@@ -13,6 +13,9 @@ println("Started Lambdatron. Type ':quit' to exit...")
 // Input
 let descriptor = NSFileHandle.fileHandleWithStandardInput()
 
+// NOTE: this must be removed in a later iteration.
+var TEMPORARY_globalContext = Session()
+
 while true {
   print("> ")
   // Read data from user
@@ -32,13 +35,20 @@ while true {
       exit(EXIT_SUCCESS)
     }
     else {
-      // TODO: Entry point into Lambdatron. For now, just echo the input
-      println("You typed '\(trimmedData)'\n")
-
+//      println("You typed '\(trimmedData)'\n")
       // TEST: exercise the lexer
       let x = lex(trimmedData)
       if let actualX = x {
-        println("Your entry lexes to: \(actualX)")
+        println("\nYour entry lexes to: \(actualX)")
+        let c = parse(actualX)
+        if let actualC = c {
+          println("Your entry parses to: \(actualC)")
+          let n = c?.evaluate()
+          println("Evaluation result: \(n!)")
+        }
+        else {
+          println("Your entry didn't parse correctly")
+        }
       }
       else {
         println("ERROR: lexing failed")

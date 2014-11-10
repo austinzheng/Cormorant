@@ -8,12 +8,22 @@
 
 import Foundation
 
+typealias LambdatronFunction = [ConsValue] -> ConsValue
+
 func extractNumber(n: ConsValue) -> Double {
   let x : Double = {
     switch n {
     case let .Variable(a):
-      // TODO: Implement this
-      fatal("Unsupported")
+      // Get the current context, and try to resolve the variale into a literal
+      let context = TEMPORARY_globalContext
+      switch(context[a]) {
+      case .Invalid:
+        fatal("Undefined variable named '\(a)'")
+      case let .Literal(literalValue):
+        return extractNumber(.Literal(literalValue))
+      case .Function(_):
+        fatal("Variable named '\(a)' is a function, not a numerical operand")
+      }
     case let .Literal(literalValue):
       switch literalValue {
       case .NilLiteral:
@@ -26,10 +36,12 @@ func extractNumber(n: ConsValue) -> Double {
         fatal("Function expecting numerical operand, got a string operand instead")
       case let .List(c):
         // Evaluate and then try again
-        return extractNumber(ConsValue.Literal(c.eval()))
+        return extractNumber(ConsValue.Literal(c.evaluate()))
       case .Vector(_):
         fatal("Function expecting numerical operand, got a vector instead")
       }
+    case .None:
+      fatal("Internal error")
     }
     }()
   return x

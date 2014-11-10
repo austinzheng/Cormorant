@@ -20,8 +20,8 @@ func parse(raw: String) -> Cons? {
 enum LexToken : Printable {
   case LeftP
   case RightP
-  case StringLiteral(String)
   case NilLiteral
+  case StringLiteral(String)
   case Number(Double)
   case Boolean(Bool)
   case Keyword(String)
@@ -173,6 +173,87 @@ func buildNumberFromString(str: String) -> LexToken? {
   return nil
 }
 
-//func parse(tokens: [Token]) -> List {
-//  return List.None
-//}
+func parse(tokens: [LexToken]) -> Cons? {
+  /// A stack of the 'currentCons' value for the levels above the current level of the AST. The top object on this stack
+  /// is always the Cons node to continue working with after the current subtree has been completely parsed.
+  var consStack : [Cons] = []
+  /// A reference to the Cons object we are currently working with. currentCons changes values in accordance with a
+  /// depth-first traversal of the completed AST.
+  var currentCons : Cons? = nil
+  /// A reference to the top level Cons object (the root of the entire AST for this expression).
+  var baseCons : Cons? = nil
+
+  var needFirstInCons = false
+
+  func addCons(v: ConsValue) {
+    if needFirstInCons {
+      // First element in a cons list
+      currentCons?.value = v
+      needFirstInCons = false
+    }
+    else {
+      let newCons = Cons(v)
+      currentCons?.next = newCons
+      currentCons = newCons
+    }
+  }
+
+  for token in tokens {
+    switch token {
+    case .LeftP:
+      // Create a new Cons
+      let newCons = Cons()
+      if baseCons == nil {
+        // If this is the very first node in the expression, capture a reference
+        baseCons = newCons
+      }
+      if needFirstInCons {
+        // Modify the current node, and then descend
+        currentCons?.value = .Literal(.List(newCons))
+        if let actualCons = currentCons {
+          // Push the current Cons onto the stack, so we can continue from it when we go back up a level
+          consStack.append(actualCons)
+        }
+      }
+      else {
+        // Add a final node, and then descend
+        let finalCons = Cons(.Literal(.List(newCons)))
+        currentCons?.next = finalCons
+        consStack.append(finalCons)
+      }
+      currentCons = newCons
+      needFirstInCons = true
+    case .RightP:
+      // Pop the previous Cons off the stack
+      if consStack.count > 0 {
+        currentCons = consStack.last
+        consStack.removeLast()
+      }
+      // Otherwise, we're at the end; do nothing
+      break
+    case .NilLiteral:
+      addCons(.Literal(.NilLiteral))
+    case let .StringLiteral(s):
+      addCons(.Literal(.StringLiteral(s)))
+    case let .Number(n):
+      addCons(.Literal(.NumberLiteral(n)))
+    case let .Boolean(b):
+      addCons(.Literal(.BoolLiteral(b)))
+    case let .Keyword(k):
+      fatal("Not supported yet")
+    case let .Identifier(r):
+      addCons(.Variable(r))
+    }
+  }
+
+  if consStack.count > 0 {
+    // We have too many left parentheses
+    return nil
+  }
+  else if let actualBaseCons = baseCons {
+    return actualBaseCons
+  }
+  else {
+    return nil
+  }
+}
