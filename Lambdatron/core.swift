@@ -1,5 +1,5 @@
 //
-//  ds.swift
+//  core.swift
 //  Lambdatron
 //
 //  Created by Austin Zheng on 10/21/14.
@@ -11,6 +11,22 @@ import Foundation
 class Cons : Printable {
   var next : Cons?
   var value : ConsValue
+  
+  var isEmpty : Bool {
+    get {
+      if next != nil {
+        return false
+      }
+      switch value {
+      case .Variable: return false
+      case let .Literal(l):
+        switch l {
+        case .NilLiteral: return true
+        default: return false
+        }
+      }
+    }
+  }
 
   func asFunction() -> LambdatronFunction? {
     // TODO: This should accept closure type literals in the future as well
@@ -24,14 +40,12 @@ class Cons : Printable {
       }
     case .Literal:
       return nil
-    case .None:
-      fatal("Internal error")
     }
   }
 
   init() {
     self.next = nil
-    self.value = .None
+    self.value = .Literal(.NilLiteral)
   }
 
   convenience init(_ value: ConsValue) {
@@ -60,7 +74,6 @@ class Cons : Printable {
       switch result {
       case .Variable: fatal("Something went wrong")
       case let .Literal(literalValue): return literalValue
-      case .None: fatal("Internal error")
       }
     }
     fatal("Cannot call 'evaluate' on this cons list; first object isn't actually a function. Sorry.")
@@ -87,14 +100,12 @@ class Cons : Printable {
 enum ConsValue : Printable {
   case Variable(String)
   case Literal(LiteralValue)
-  case None
 
   var description : String {
     get {
       switch self {
       case let Variable(s): return s
       case let Literal(v): return v.description
-      case None: return "<error>"
       }
     }
   }
@@ -116,7 +127,7 @@ enum LiteralValue : Printable {
       case let BoolLiteral(b): return b == false
       case let NumberLiteral(n): return n == 0
       case let StringLiteral(s): return NSString(string: s).length == 0
-      case List: return false
+      case let List(l): return l.isEmpty
       case let Vector(v): return v.count == 0
       }
     }

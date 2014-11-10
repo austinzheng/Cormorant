@@ -40,8 +40,6 @@ func extractNumber(n: ConsValue) -> Double {
       case .Vector(_):
         fatal("Function expecting numerical operand, got a vector instead")
       }
-    case .None:
-      fatal("Internal error")
     }
     }()
   return x

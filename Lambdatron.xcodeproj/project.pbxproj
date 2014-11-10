@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A24D9CC19F71645003980C1 /* ds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24D9CB19F71645003980C1 /* ds.swift */; };
+		1A24D9CC19F71645003980C1 /* core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24D9CB19F71645003980C1 /* core.swift */; };
 		1A24D9CE19F71875003980C1 /* builtin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24D9CD19F71875003980C1 /* builtin.swift */; };
 		1A24D9D019F7187D003980C1 /* parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24D9CF19F7187D003980C1 /* parser.swift */; };
 		1A24D9D219F72588003980C1 /* session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24D9D119F72588003980C1 /* session.swift */; };
@@ -28,7 +28,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1A24D9CB19F71645003980C1 /* ds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ds.swift; sourceTree = "<group>"; };
+		1A24D9CB19F71645003980C1 /* core.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = core.swift; sourceTree = "<group>"; };
 		1A24D9CD19F71875003980C1 /* builtin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = builtin.swift; sourceTree = "<group>"; };
 		1A24D9CF19F7187D003980C1 /* parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = parser.swift; sourceTree = "<group>"; };
 		1A24D9D119F72588003980C1 /* session.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = session.swift; sourceTree = "<group>"; };
@@ -68,7 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				1A73F0D819F7138100F266DA /* main.swift */,
-				1A24D9CB19F71645003980C1 /* ds.swift */,
+				1A24D9CB19F71645003980C1 /* core.swift */,
 				1A24D9CD19F71875003980C1 /* builtin.swift */,
 				1A24D9CF19F7187D003980C1 /* parser.swift */,
 				1A24D9D119F72588003980C1 /* session.swift */,
@@ -136,7 +136,7 @@
 				1A24D9D019F7187D003980C1 /* parser.swift in Sources */,
 				1A24D9CE19F71875003980C1 /* builtin.swift in Sources */,
 				1A24D9D219F72588003980C1 /* session.swift in Sources */,
-				1A24D9CC19F71645003980C1 /* ds.swift in Sources */,
+				1A24D9CC19F71645003980C1 /* core.swift in Sources */,
 				1A73F0D919F7138100F266DA /* main.swift in Sources */,
 				1A7C06311A0708B200CC35E3 /* extensions.swift in Sources */,
 			);
