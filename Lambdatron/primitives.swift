@@ -78,9 +78,11 @@ func pr_cons(args: [ConsValue]) -> EvalResult {
     // Create a new list consisting of just the first object
     return .Success(.ListLiteral(Cons(first)))
   case let .ListLiteral(l):
-    // Create a new list consisting of the first object, followed by the second list
-    let newCons = Cons(first, next: l)
-    return .Success(.ListLiteral(newCons))
+    // Create a new list consisting of the first object, followed by the second list (if not empty)
+    switch l.value {
+    case .None: return .Success(.ListLiteral(Cons(first)))
+    default: return .Success(.ListLiteral(Cons(first, next: l)))
+    }
   case let .VectorLiteral(v): fatal("Not yet implemented")
   default: return .Failure(.InvalidArgumentError)
   }
@@ -129,7 +131,7 @@ func pr_rest(args: [ConsValue]) -> EvalResult {
 
 // MARK: I/O
 
-/// Print zero to screen. Returns nil
+/// Print zero or more args to screen. Returns nil
 func pr_print(args: [ConsValue]) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
