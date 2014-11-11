@@ -23,6 +23,7 @@ Completed Features
 - Interpreter core
 - Basic lexing and parsing of text input into cons-based AST
 - Arithmetic functions: +, -, *, /
+- Comparison functions: =, <, >
 - List operations: cons, first, rest
 
 

@@ -1,5 +1,5 @@
 //
-//  builtin.swift
+//  primitives.swift
 //  Lambdatron
 //
 //  Created by Austin Zheng on 10/21/14.
@@ -45,6 +45,14 @@ func extractNumber(n: ConsValue) -> Double? {
   return x
 }
 
+func extractNumbers(n: [ConsValue]) -> [Double]? {
+  let raw = n.map(extractNumber)
+  if raw.filter({$0 == nil}).count != 0 {
+    return nil
+  }
+  return raw.map({$0!})
+}
+
 func extractList(n: ConsValue) -> Cons? {
   let x : Cons? = {
     switch n {
@@ -59,7 +67,7 @@ func extractList(n: ConsValue) -> Cons? {
 // MARK: List-related functions
 
 /// Given an item and a sequence, return a new list
-func cons(args: [ConsValue]) -> EvalResult {
+func pr_cons(args: [ConsValue]) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }
@@ -79,7 +87,7 @@ func cons(args: [ConsValue]) -> EvalResult {
 }
 
 /// Given a sequence, return the first item
-func first(args: [ConsValue]) -> EvalResult {
+func pr_first(args: [ConsValue]) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -98,7 +106,7 @@ func first(args: [ConsValue]) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first
-func rest(args: [ConsValue]) -> EvalResult {
+func pr_rest(args: [ConsValue]) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -119,69 +127,106 @@ func rest(args: [ConsValue]) -> EvalResult {
 }
 
 
+// MARK: Comparison
+
+/// Evaluate the equality of one or more forms
+func pr_equals(args: [ConsValue]) -> EvalResult {
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  var this = args[0]
+  for var i=1; i<args.count; i++ {
+    if this != args[i] {
+      return .Success(.BoolLiteral(false))
+    }
+  }
+  return .Success(.BoolLiteral(true))
+}
+
+/// Evaluate whether arguments are in monotonically decreasing order
+func pr_gt(args: [ConsValue]) -> EvalResult {
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  let maybeNumbers = extractNumbers(args)
+  if let numbers = maybeNumbers {
+    var current = numbers[0]
+    for var i=1; i<numbers.count; i++ {
+      if numbers[i] >= current {
+        return .Success(.BoolLiteral(false))
+      }
+      current = numbers[i]
+    }
+    return .Success(.BoolLiteral(true))
+  }
+  return .Failure(.InvalidArgumentError)
+}
+
+/// Evaluate whether arguments are in monotonically increasing order
+func pr_lt(args: [ConsValue]) -> EvalResult {
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  let maybeNumbers = extractNumbers(args)
+  if let numbers = maybeNumbers {
+    var current = numbers[0]
+    for var i=1; i<numbers.count; i++ {
+      if numbers[i] <= current {
+        return .Success(.BoolLiteral(false))
+      }
+      current = numbers[i]
+    }
+    return .Success(.BoolLiteral(true))
+  }
+  return .Failure(.InvalidArgumentError)
+}
+
+
 // MARK: Arithmetic
 
 /// Take an arbitrary number of numbers and return their sum
-func plus(args: [ConsValue]) -> EvalResult {
+func pr_plus(args: [ConsValue]) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  let numbers = args.map(extractNumber)
-  var acc : Double = 0
-  for possibleNumber in numbers {
-    if let number = possibleNumber {
-      acc += number
-    }
-    else {
-      return .Failure(.InvalidArgumentError)
-    }
+  let maybeNumbers = extractNumbers(args)
+  if let numbers = maybeNumbers {
+    return .Success(.NumberLiteral(numbers.reduce(0, combine: +)))
   }
-  return .Success(.NumberLiteral(acc))
+  return .Failure(.InvalidArgumentError)
 }
 
 /// Take an arbitrary number of numbers and return their difference
-func minus(args: [ConsValue]) -> EvalResult {
+func pr_minus(args: [ConsValue]) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
   var acc : Double = 0
-  let numbers = args.map(extractNumber)
-  for (idx, possibleNumber) in enumerate(numbers) {
-    if let number = possibleNumber {
-      if idx == 0 {
-        acc = number
-      }
-      else {
-        acc -= number
-      }
+  let maybeNumbers = extractNumbers(args)
+  if let numbers = maybeNumbers {
+    var acc = numbers[0]
+    for var i=1; i<numbers.count; i++ {
+      acc -= numbers[i]
     }
-    else {
-      return .Failure(.InvalidArgumentError)
-    }
+    return .Success(.NumberLiteral(acc))
   }
-  return .Success(.NumberLiteral(acc))
+  return .Failure(.InvalidArgumentError)
 }
 
 /// Take an arbitrary number of numbers  and return their product
-func multiply(args: [ConsValue]) -> EvalResult {
+func pr_multiply(args: [ConsValue]) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.ArityError)
   }
-  let numbers = args.map(extractNumber)
-  var acc : Double = 1
-  for possibleNumber in numbers {
-    if let number = possibleNumber {
-      acc *= number
-    }
-    else {
-      return .Failure(EvalError.InvalidArgumentError)
-    }
+  let maybeNumbers = extractNumbers(args)
+  if let numbers = maybeNumbers {
+    return .Success(.NumberLiteral(numbers.reduce(1, combine: *)))
   }
-  return .Success(.NumberLiteral(acc))
+  return .Failure(.InvalidArgumentError)
 }
 
 /// Take two numbers and return their quotient
-func divide(args: [ConsValue]) -> EvalResult {
+func pr_divide(args: [ConsValue]) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }

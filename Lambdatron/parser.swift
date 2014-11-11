@@ -252,7 +252,7 @@ func parse(tokens: [LexToken]) -> Cons? {
     case let .Keyword(k):
       fatal("Not supported yet")
     case let .Identifier(r):
-      addCons(.Variable(r))
+      addCons(.Symbol(r))
     case let .Special(s):
       addCons(.Special(s))
     }

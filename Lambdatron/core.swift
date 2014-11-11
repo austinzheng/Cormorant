@@ -48,7 +48,7 @@ class Cons : Printable {
   func asFunction() -> LambdatronFunction? {
     // TODO: This should accept closure type literals in the future as well
     switch value {
-    case let .Variable(vname):
+    case let .Symbol(vname):
       let vExpr = TEMPORARY_globalContext[vname]
       switch vExpr {
       case let .Function(f): return f
@@ -60,7 +60,7 @@ class Cons : Printable {
   
   func asMacro() -> LambdatronMacro? {
     switch value {
-    case let .Variable(vname):
+    case let .Symbol(vname):
       let vExpr = TEMPORARY_globalContext[vname]
       switch vExpr {
       case let .Macro(m): return m
@@ -126,11 +126,15 @@ class Cons : Printable {
       return symbolBuffer
     }
     
-    if let toExecuteSpecialForm = asSpecialForm()? {
-      if let symbols = collectSymbols(self.next) {
-//        println("DEBUG: executing special form with symbols: \(symbols)")
-        let result = toExecuteSpecialForm.function(symbols)
-//        println("DEBUG: result for executing special form is: \(result)")
+    if let toExecuteSpecialForm = asSpecialForm() {
+      let items : [ConsValue]? = {
+        switch toExecuteSpecialForm {
+        case .Quote: return collectSymbols(self.next)
+        case .If: return collectValues(self.next)
+        }
+      }()
+      if let actualItems = items {
+        let result = toExecuteSpecialForm.function(actualItems)
         switch result {
         case let .Success(v): return (v, toExecuteSpecialForm)
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -141,10 +145,8 @@ class Cons : Printable {
     else if let toExecuteFunction = asFunction() {
       // First: is the item in the head actually a function type object?
       if let values = collectValues(self.next) {
-//        println("DEBUG: executing function with values: \(values)")
         // Second: do the arguments evaluate properly?
         let result = toExecuteFunction(values)
-//        println("DEBUG: result for executing function is: \(result)")
         // TODO: Change function signature to accomodate returning closures (eventually)
         switch result {
         case let .Success(v): return (v, nil)
@@ -180,9 +182,9 @@ class Cons : Printable {
 }
 
 /// Represents the value of an item in a single cons cell; either a variable or a literal of some sort
-enum ConsValue : Printable {
+enum ConsValue : Equatable, Printable {
   case None
-  case Variable(String)
+  case Symbol(String)
   case Special(SpecialForm)
   case NilLiteral
   case BoolLiteral(Bool)
@@ -193,7 +195,7 @@ enum ConsValue : Printable {
   
   func macroexpand() -> ConsValue {
     switch self {
-    case Variable: return self
+    case Symbol: return self
     case NilLiteral: return self
     case BoolLiteral: return self
     case NumberLiteral: return self
@@ -209,11 +211,11 @@ enum ConsValue : Printable {
   
   func evaluate() -> ConsValue {
     switch self {
-    case let Variable(v):
+    case let Symbol(v):
       // Look up the value of v
       let binding = TEMPORARY_globalContext[v]
       switch binding {
-      case .Invalid: fatal("error")
+      case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
       case let .Literal(l): return l.evaluate()
       case .Macro: fatal("internal error")
       case .Function: fatal("TODO")
@@ -232,6 +234,7 @@ enum ConsValue : Printable {
         // Execution was of a special form. Each form has different rules for what to do next
         switch actualSpecialForm {
         case .Quote: return result  // Quote does not perform any further execution of the resultant expression
+        case .If: return result.evaluate()
         }
       }
       else {
@@ -247,7 +250,7 @@ enum ConsValue : Printable {
   var description : String {
     get {
       switch self {
-      case let Variable(v): return v
+      case let Symbol(v): return v
       case NilLiteral: return "nil"
       case let BoolLiteral(b): return b.description
       case let NumberLiteral(n): return n.description
@@ -257,6 +260,77 @@ enum ConsValue : Printable {
       case let Special(s): return s.rawValue
       case None: return ""
       }
+    }
+  }
+}
+
+func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
+  switch lhs {
+  case .None:
+    switch rhs {
+    case .None: return true
+    default: return false
+    }
+  case let .Symbol(v1):
+    switch rhs {
+    case let .Symbol(v2): return v1 == v2  // Can happen if comparing two quoted symbols
+    default: return false
+    }
+  case let .Special(s1):
+    switch rhs {
+    case let .Special(s2): return s1 == s2
+    default: return false
+    }
+  case .NilLiteral:
+    switch rhs {
+    case .NilLiteral: return true
+    default: return false
+    }
+  case let .BoolLiteral(b1):
+    switch rhs {
+    case let .BoolLiteral(b2): return b1 == b2
+    default: return false
+    }
+  case let .NumberLiteral(n1):
+    switch rhs {
+    case let .NumberLiteral(n2): return n1 == n2
+    default: return false
+    }
+  case let .StringLiteral(s1):
+    switch rhs {
+    case let .StringLiteral(s2): return s1 == s2
+    default: return false
+    }
+  case let .ListLiteral(l1):
+    switch rhs {
+    case let .ListLiteral(l2):
+      var this = l1
+      var that = l2
+      // We have to walk through the lists
+      while true {
+        if this.value != that.value {
+          // Different values
+          return false
+        }
+        if this.next != nil && that.next == nil || this.next == nil && that.next != nil {
+          // Different lengths
+          return false
+        }
+        if this.next == nil && that.next == nil {
+          // Same length, end of both lists
+          return true
+        }
+        this = this.next!
+        that = that.next!
+      }
+    case let .VectorLiteral(v2): fatal("not implemented")
+    default: return false
+    }
+  case let .VectorLiteral(v1):
+    switch rhs {
+    case let .ListLiteral(l2): fatal("not implemented")
+    case let .VectorLiteral(v2): return v1 == v2
+    default: return false
     }
   }
 }
