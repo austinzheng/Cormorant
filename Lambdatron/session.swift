@@ -34,15 +34,17 @@ class Session {
   // Create a new session
   init() {
     func setupDefaultBindings() {
-      // Bind list operations
+      // Bind list functions
       bindings["cons"] = .Function(pr_cons)
       bindings["first"] = .Function(pr_first)
       bindings["rest"] = .Function(pr_rest)
-      // Bind comparison operators
+      // Bind I/O functions
+      bindings["print"] = .Function(pr_print)
+      // Bind comparison functions
       bindings["="] = .Function(pr_equals)
       bindings[">"] = .Function(pr_gt)
       bindings["<"] = .Function(pr_lt)
-      // Bind math operators
+      // Bind math functions
       bindings["+"] = .Function(pr_plus)
       bindings["-"] = .Function(pr_minus)
       bindings["*"] = .Function(pr_multiply)

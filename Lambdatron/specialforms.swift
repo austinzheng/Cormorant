@@ -36,7 +36,7 @@ func sf_if(args: [ConsValue]) -> EvalResult {
   if args.count != 2 && args.count != 3 {
     return .Failure(.ArityError)
   }
-  let test = args[0]
+  let test = args[0].evaluate()
   let then = args[1]
   let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
   
@@ -50,10 +50,10 @@ func sf_if(args: [ConsValue]) -> EvalResult {
     }()
   
   if testIsTrue {
-    return .Success(then)
+    return .Success(then.evaluate())
   }
   else if let actualOtherwise = otherwise {
-    return .Success(actualOtherwise)
+    return .Success(actualOtherwise.evaluate())
   }
   else {
     return .Success(.NilLiteral)

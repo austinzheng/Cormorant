@@ -130,7 +130,7 @@ class Cons : Printable {
       let items : [ConsValue]? = {
         switch toExecuteSpecialForm {
         case .Quote: return collectSymbols(self.next)
-        case .If: return collectValues(self.next)
+        case .If: return collectSymbols(self.next)
         }
       }()
       if let actualItems = items {

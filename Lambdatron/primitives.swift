@@ -127,6 +127,23 @@ func pr_rest(args: [ConsValue]) -> EvalResult {
 }
 
 
+// MARK: I/O
+
+/// Print zero to screen. Returns nil
+func pr_print(args: [ConsValue]) -> EvalResult {
+  func toString(v: ConsValue) -> String {
+    switch v {
+    case let .StringLiteral(s): return s
+    default: return v.description
+    }
+  }
+  let descs = args.map(toString)
+  let outStr = descs.count > 0 ? join(" ", descs) : ""
+  print(outStr)
+  return .Success(.NilLiteral)
+}
+
+
 // MARK: Comparison
 
 /// Evaluate the equality of one or more forms
