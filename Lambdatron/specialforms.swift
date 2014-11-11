@@ -13,17 +13,20 @@ enum SpecialForm : String {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
   case Quote = "quote"
   case If = "if"
+  case Do = "do"
   
   var function : LambdatronSpecialForm {
     get {
       switch self {
       case .Quote: return sf_quote
       case .If: return sf_if
+      case .Do: return sf_do
       }
     }
   }
 }
 
+/// Return the raw form, without any evaluation
 func sf_quote(args: [ConsValue]) -> EvalResult {
   if args.count == 0 {
     return .Success(.NilLiteral)
@@ -32,6 +35,7 @@ func sf_quote(args: [ConsValue]) -> EvalResult {
   return .Success(first)
 }
 
+/// Evaluate a conditional, and evaluate one or one of two expressions
 func sf_if(args: [ConsValue]) -> EvalResult {
   if args.count != 2 && args.count != 3 {
     return .Failure(.ArityError)
@@ -58,4 +62,13 @@ func sf_if(args: [ConsValue]) -> EvalResult {
   else {
     return .Success(.NilLiteral)
   }
+}
+
+/// Evaluate all expressions, returning the value of the final expression
+func sf_do(args: [ConsValue]) -> EvalResult {
+  var finalValue : ConsValue = .NilLiteral
+  for expr in args {
+    finalValue = expr.evaluate()
+  }
+  return .Success(finalValue)
 }

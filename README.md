@@ -1,10 +1,10 @@
 Lambdatron
 ==========
 
-A personal project attempting to implement a simple REPL for a Lisp-like language. The initial goal is to build a REPL that can interpret arbitrarily nested prefix arithmetic (e.g. `(+ (/ 1 2) (* 3 (- 5 2)))`). The (very distant) eventual goal is to build something that conforms to the Scheme standard.
+A personal project attempting to implement a REPL for a simple Lisp-like language. The initial goal is to build a REPL that can interpret arbitrarily nested prefix arithmetic (e.g. `(+ (/ 1 2) (* 3 (- 5 2)))`). The (very distant) eventual goal might be to build something that conforms to the Scheme standard, or alternately a lightweight dialect of Clojure.
 
-Setup
------
+Application
+-----------
 
 Lambdatron is an OS X command-line application written in Swift. Type expressions at the command prompt and press 'Enter'.
 
@@ -17,16 +17,22 @@ Need ideas? Try:
 - `(rest (quote (6 7 8)))`
 
 
+Library
+-------
+
+While Lambdatron is currently way too immature/incomplete to actually do so, the goal is to eventually package it as a library so that it can be included into larger Swift applications as an embedded scripting language. This might be a good fit for applications where extensibility is more important than raw performance.
+
+
 Completed Features
 ------------------
 
 - Interpreter core
 - Basic lexing and parsing of text input into cons-based AST
-- Special forms: quote, if
-- I/O functions: print 
-- Arithmetic functions: +, -, *, /
-- Comparison functions: =, <, >
-- List functions: cons, first, rest
+- Special forms: `quote`, `if`, `do`
+- I/O functions: `print` 
+- Arithmetic functions: `+`, `-`, `*`, `/`
+- Comparison functions: `=`, `<`, `>`
+- List functions: `cons`, `first`, `rest`
 
 
 Working On
@@ -38,6 +44,7 @@ Working On
 - Logical operators
 - Distinction between integers and floating-point values
 - Support for vectors
+- Support for maps
 - Support for keywords
 - Support for macros
 - Support for syntax quoting
@@ -45,6 +52,7 @@ Working On
 - User-defined functions
 - Closures
 - Proper lexical scope and function stack
+- Support for control characters when parsing input (e.g. \")
 
 
 License

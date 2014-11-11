@@ -127,14 +127,8 @@ class Cons : Printable {
     }
     
     if let toExecuteSpecialForm = asSpecialForm() {
-      let items : [ConsValue]? = {
-        switch toExecuteSpecialForm {
-        case .Quote: return collectSymbols(self.next)
-        case .If: return collectSymbols(self.next)
-        }
-      }()
-      if let actualItems = items {
-        let result = toExecuteSpecialForm.function(actualItems)
+      if let symbols = collectSymbols(self.next) {
+        let result = toExecuteSpecialForm.function(symbols)
         switch result {
         case let .Success(v): return (v, toExecuteSpecialForm)
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -235,6 +229,7 @@ enum ConsValue : Equatable, Printable {
         switch actualSpecialForm {
         case .Quote: return result  // Quote does not perform any further execution of the resultant expression
         case .If: return result.evaluate()
+        case .Do: return result.evaluate()
         }
       }
       else {
