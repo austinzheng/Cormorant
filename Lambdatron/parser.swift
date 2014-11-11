@@ -18,14 +18,15 @@ func parse(raw: String) -> Cons? {
 
 /// Tokens that come out of the lex() function
 enum LexToken : Printable {
-  case LeftP
-  case RightP
-  case NilLiteral
-  case StringLiteral(String)
-  case Number(Double)
-  case Boolean(Bool)
-  case Keyword(String)
-  case Identifier(String)
+  case LeftP                      // left parentheses '('
+  case RightP                     // right parentheses ')'
+  case NilLiteral                 // nil
+  case StringLiteral(String)      // string (denoted by double quotes)
+  case Number(Double)             // floating-point number
+  case Boolean(Bool)              // boolean (true or false)
+  case Keyword(String)            // keyword (prefixed by ':')
+  case Identifier(String)         // unknown identifier (function or variable name)
+  case Special(SpecialForm)       // a special form (e.g. 'quote')
 
   var description : String {
     get {
@@ -38,6 +39,7 @@ enum LexToken : Printable {
       case let .Boolean(x): return "Boolean <\(x)>"
       case let .Keyword(x): return "Keyword \(x)"
       case let .Identifier(x): return "Identifier <\(x)>"
+      case let .Special(x): return x.rawValue
       }
     }
   }
@@ -134,9 +136,17 @@ func lex(raw: String) -> [LexToken]? {
       // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string
       let tValue = NSString(string: String(u))
       // Figure out what to do with the token
-      if tValue.characterAtIndex(0) == UInt16(UnicodeScalar(":").value) && tValue.length > 1 {
+      if let specialForm = SpecialForm(rawValue: tValue) {
+        // Special form
+        tokenBuffer.append(.Special(specialForm))
+      }
+      else if tValue.characterAtIndex(0) == UInt16(UnicodeScalar(":").value) && tValue.length > 1 {
         // This is a keyword (starts with ":" and has at least one other character)
         tokenBuffer.append(.Keyword(u))
+      }
+      else if tValue == "nil" {
+        // Literal nil
+        tokenBuffer.append(.NilLiteral)
       }
       else if tValue == "false" {
         // Literal bool
@@ -209,7 +219,7 @@ func parse(tokens: [LexToken]) -> Cons? {
       }
       if needFirstInCons {
         // Modify the current node, and then descend
-        currentCons?.value = .Literal(.List(newCons))
+        currentCons?.value = .ListLiteral(newCons)
         if let actualCons = currentCons {
           // Push the current Cons onto the stack, so we can continue from it when we go back up a level
           consStack.append(actualCons)
@@ -217,7 +227,7 @@ func parse(tokens: [LexToken]) -> Cons? {
       }
       else {
         // Add a final node, and then descend
-        let finalCons = Cons(.Literal(.List(newCons)))
+        let finalCons = Cons(.ListLiteral(newCons))
         currentCons?.next = finalCons
         consStack.append(finalCons)
       }
@@ -232,17 +242,19 @@ func parse(tokens: [LexToken]) -> Cons? {
       // Otherwise, we're at the end; do nothing
       break
     case .NilLiteral:
-      addCons(.Literal(.NilLiteral))
+      addCons(.NilLiteral)
     case let .StringLiteral(s):
-      addCons(.Literal(.StringLiteral(s)))
+      addCons(.StringLiteral(s))
     case let .Number(n):
-      addCons(.Literal(.NumberLiteral(n)))
+      addCons(.NumberLiteral(n))
     case let .Boolean(b):
-      addCons(.Literal(.BoolLiteral(b)))
+      addCons(.BoolLiteral(b))
     case let .Keyword(k):
       fatal("Not supported yet")
     case let .Identifier(r):
       addCons(.Variable(r))
+    case let .Special(s):
+      addCons(.Special(s))
     }
   }
 

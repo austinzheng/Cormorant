@@ -38,13 +38,19 @@ while true {
 //      println("You typed '\(trimmedData)'\n")
       // TEST: exercise the lexer
       let x = lex(trimmedData)
+      println("")
       if let actualX = x {
-        println("\nYour entry lexes to: \(actualX)")
+//        println("Your entry lexes to: \(actualX)")
         let c = parse(actualX)
         if let actualC = c {
           println("Your entry parses to: \(actualC)")
-          let n = c?.evaluate()
-          println("Evaluation result: \(n!)")
+          let (n, _) = actualC.evaluate()
+          println("Evaluation result: \(n)")
+//          let expanded = c?.macroexpand()
+//          if let actualExpanded = expanded {
+//            let finalCons = Cons(actualExpanded)
+//            println("Your entry macroexpands to \(finalCons)")
+//          }
         }
         else {
           println("Your entry didn't parse correctly")

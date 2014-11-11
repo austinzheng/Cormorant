@@ -8,10 +8,10 @@
 
 import Foundation
 
-// Variables can either be literal values, or function objects (for now)
-enum VariableEntity {
+enum Binding {
   case Invalid
-  case Literal(LiteralValue)
+  case Literal(ConsValue)
+  case Macro(LambdatronMacro)
   case Function(LambdatronFunction)
 }
 
@@ -19,9 +19,9 @@ class Session {
   // A dictionary of variable and function bindings.
   // Note: right now everything is in global scope (there isn't even dynamic scope yet)
   // The goal is eventually lexical scope, or (even better) choice between the two for demonstration's sake
-  var bindings : [String : VariableEntity] = [:]
+  var bindings : [String : Binding] = [:]
 
-  subscript(x: String) -> VariableEntity {
+  subscript(x: String) -> Binding {
     get {
       if let value = bindings[x] {
         return value
@@ -34,6 +34,10 @@ class Session {
   // Create a new session
   init() {
     func setupDefaultBindings() {
+      // Bind basic operations
+      bindings["cons"] = .Function(cons)
+      bindings["first"] = .Function(first)
+      bindings["rest"] = .Function(rest)
       // Bind math operators
       bindings["+"] = .Function(plus)
       bindings["-"] = .Function(minus)
