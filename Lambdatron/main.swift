@@ -14,7 +14,7 @@ println("Started Lambdatron. Type ':quit' to exit...")
 let descriptor = NSFileHandle.fileHandleWithStandardInput()
 
 // NOTE: this must be removed in a later iteration.
-var TEMPORARY_globalContext = Session()
+var TEMPORARY_globalContext = Context()
 
 while true {
   print("> ")

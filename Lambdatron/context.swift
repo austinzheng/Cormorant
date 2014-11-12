@@ -1,5 +1,5 @@
 //
-//  session.swift
+//  context.swift
 //  Lambdatron
 //
 //  Created by Austin Zheng on 10/21/14.
@@ -15,7 +15,7 @@ enum Binding {
   case Function(LambdatronFunction)
 }
 
-class Session {
+class Context {
   // A dictionary of variable and function bindings.
   // Note: right now everything is in global scope (there isn't even dynamic scope yet)
   // The goal is eventually lexical scope, or (even better) choice between the two for demonstration's sake
