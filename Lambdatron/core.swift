@@ -234,7 +234,9 @@ enum ConsValue : Equatable, Printable {
         // Execution was of a normal function. Evaluate recursively.
         return result.evaluate()
       }
-    case VectorLiteral: return self
+    case let VectorLiteral(v):
+      // Evaluate the value of the vector literal 'v'
+      return .VectorLiteral(v.map({$0.evaluate()}))
     case Special: fatal("TODO")
     case None: fatal("TODO")
     }
