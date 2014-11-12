@@ -18,13 +18,11 @@ enum EvalError : Printable {
   case CustomError(String)
   
   var description : String {
-    get {
-      switch self {
-      case ArityError: return "wrong number of arguments to macro, function, or special form"
-      case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
-      case DivideByZeroError: return "attempted to divide by zero"
-      case let CustomError(c): return c
-      }
+    switch self {
+    case ArityError: return "wrong number of arguments to macro, function, or special form"
+    case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
+    case DivideByZeroError: return "attempted to divide by zero"
+    case let CustomError(c): return c
     }
   }
 }

@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// Represents a cons cell, an element in a linked list
 class Cons : Printable {
   var next : Cons?
   var value : ConsValue
@@ -34,14 +35,12 @@ class Cons : Printable {
   // MARK: API
   
   var isEmpty : Bool {
-    get {
-      if next != nil {
-        return false
-      }
-      switch value {
-      case .NilLiteral: return true
-      default: return false
-      }
+    if next != nil {
+      return false
+    }
+    switch value {
+    case .NilLiteral: return true
+    default: return false
     }
   }
 
@@ -157,23 +156,22 @@ class Cons : Printable {
   }
   
   var description : String {
-    get {
-      func collectDescriptions(firstItem : Cons?) -> [String] {
-        var descBuffer : [String] = []
-        var currentItem : Cons? = firstItem
-        while let actualItem = currentItem {
-          descBuffer.append(actualItem.value.description)
-          currentItem = actualItem.next
-        }
-        return descBuffer
+    func collectDescriptions(firstItem : Cons?) -> [String] {
+      var descBuffer : [String] = []
+      var currentItem : Cons? = firstItem
+      while let actualItem = currentItem {
+        descBuffer.append(actualItem.value.description)
+        currentItem = actualItem.next
       }
-      
-      var descs = collectDescriptions(self)
-      let finalDesc = join(" ", descs)
-      return "(\(finalDesc))"
+      return descBuffer
     }
+    
+    var descs = collectDescriptions(self)
+    let finalDesc = join(" ", descs)
+    return "(\(finalDesc))"
   }
 }
+
 
 /// Represents the value of an item in a single cons cell; either a variable or a literal of some sort
 enum ConsValue : Equatable, Printable {
@@ -243,18 +241,18 @@ enum ConsValue : Equatable, Printable {
   }
 
   var description : String {
-    get {
-      switch self {
-      case let Symbol(v): return v
-      case NilLiteral: return "nil"
-      case let BoolLiteral(b): return b.description
-      case let NumberLiteral(n): return n.description
-      case let StringLiteral(s): return "\"\(s)\""
-      case let ListLiteral(l): return l.description
-      case let VectorLiteral(v): return "Vector"
-      case let Special(s): return s.rawValue
-      case None: return ""
-      }
+    switch self {
+    case let Symbol(v): return v
+    case NilLiteral: return "nil"
+    case let BoolLiteral(b): return b.description
+    case let NumberLiteral(n): return n.description
+    case let StringLiteral(s): return "\"\(s)\""
+    case let ListLiteral(l): return l.description
+    case let VectorLiteral(v):
+      let internals = join(" ", v.map({$0.description}))
+      return "[\(internals)]"
+    case let Special(s): return s.rawValue
+    case None: return ""
     }
   }
 }

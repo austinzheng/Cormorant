@@ -16,12 +16,10 @@ enum SpecialForm : String {
   case Do = "do"
   
   var function : LambdatronSpecialForm {
-    get {
-      switch self {
-      case .Quote: return sf_quote
-      case .If: return sf_if
-      case .Do: return sf_do
-      }
+    switch self {
+    case .Quote: return sf_quote
+    case .If: return sf_if
+    case .Do: return sf_do
     }
   }
 }
