@@ -8,9 +8,8 @@
 
 import Foundation
 
-typealias LambdatronFunction = [ConsValue] -> EvalResult
-typealias LambdatronSpecialForm = [ConsValue] -> EvalResult
-typealias LambdatronMacro = [ConsValue] -> ConsValue
+typealias LambdatronFunction = ([ConsValue], Context) -> EvalResult
+typealias LambdatronSpecialForm = ([ConsValue], Context) -> EvalResult
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms
 enum EvalError : Printable {
@@ -65,7 +64,7 @@ func extractList(n: ConsValue) -> Cons? {
 // MARK: List-related functions
 
 /// Given an item and a sequence, return a new list
-func pr_cons(args: [ConsValue]) -> EvalResult {
+func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }
@@ -87,7 +86,7 @@ func pr_cons(args: [ConsValue]) -> EvalResult {
 }
 
 /// Given a sequence, return the first item
-func pr_first(args: [ConsValue]) -> EvalResult {
+func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -106,7 +105,7 @@ func pr_first(args: [ConsValue]) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first
-func pr_rest(args: [ConsValue]) -> EvalResult {
+func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -130,7 +129,7 @@ func pr_rest(args: [ConsValue]) -> EvalResult {
 // MARK: I/O
 
 /// Print zero or more args to screen. Returns nil
-func pr_print(args: [ConsValue]) -> EvalResult {
+func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
     case let .StringLiteral(s): return s
@@ -147,7 +146,7 @@ func pr_print(args: [ConsValue]) -> EvalResult {
 // MARK: Comparison
 
 /// Evaluate the equality of one or more forms
-func pr_equals(args: [ConsValue]) -> EvalResult {
+func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -161,7 +160,7 @@ func pr_equals(args: [ConsValue]) -> EvalResult {
 }
 
 /// Evaluate whether arguments are in monotonically decreasing order
-func pr_gt(args: [ConsValue]) -> EvalResult {
+func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -180,7 +179,7 @@ func pr_gt(args: [ConsValue]) -> EvalResult {
 }
 
 /// Evaluate whether arguments are in monotonically increasing order
-func pr_lt(args: [ConsValue]) -> EvalResult {
+func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -202,7 +201,7 @@ func pr_lt(args: [ConsValue]) -> EvalResult {
 // MARK: Arithmetic
 
 /// Take an arbitrary number of numbers and return their sum
-func pr_plus(args: [ConsValue]) -> EvalResult {
+func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -214,7 +213,7 @@ func pr_plus(args: [ConsValue]) -> EvalResult {
 }
 
 /// Take an arbitrary number of numbers and return their difference
-func pr_minus(args: [ConsValue]) -> EvalResult {
+func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -231,7 +230,7 @@ func pr_minus(args: [ConsValue]) -> EvalResult {
 }
 
 /// Take an arbitrary number of numbers  and return their product
-func pr_multiply(args: [ConsValue]) -> EvalResult {
+func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.ArityError)
   }
@@ -243,7 +242,7 @@ func pr_multiply(args: [ConsValue]) -> EvalResult {
 }
 
 /// Take two numbers and return their quotient
-func pr_divide(args: [ConsValue]) -> EvalResult {
+func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }

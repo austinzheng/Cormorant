@@ -28,11 +28,12 @@ Completed Features
 
 - Interpreter core
 - Basic lexing and parsing of text input into cons-based AST
-- Special forms: `quote`, `if`, `do`
+- Special forms: `quote`, `if`, `do`, `def`, `let`
 - I/O functions: `print` 
 - Arithmetic functions: `+`, `-`, `*`, `/`
 - Comparison functions: `=`, `<`, `>`
 - List functions: `cons`, `first`, `rest`
+- Vectors
 
 
 Working On
@@ -43,7 +44,6 @@ Working On
 - Basic control flow
 - Logical operators
 - Distinction between integers and floating-point values
-- Support for vectors
 - Support for maps
 - Support for keywords
 - Support for macros
@@ -51,7 +51,6 @@ Working On
 - Better error handling than simply crashing the REPL
 - User-defined functions
 - Closures
-- Proper lexical scope and function stack
 - Support for control characters when parsing input (e.g. \")
 
 

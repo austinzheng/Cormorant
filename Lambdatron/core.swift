@@ -44,11 +44,11 @@ class Cons : Printable {
     }
   }
 
-  func asFunction() -> LambdatronFunction? {
+  func asFunction(ctx: Context) -> LambdatronFunction? {
     // TODO: This should accept closure type literals in the future as well
     switch value {
     case let .Symbol(vname):
-      let vExpr = TEMPORARY_globalContext[vname]
+      let vExpr = ctx[vname]
       switch vExpr {
       case let .Function(f): return f
       default: return nil
@@ -57,17 +57,17 @@ class Cons : Printable {
     }
   }
   
-  func asMacro() -> LambdatronMacro? {
-    switch value {
-    case let .Symbol(vname):
-      let vExpr = TEMPORARY_globalContext[vname]
-      switch vExpr {
-      case let .Macro(m): return m
-      default: return nil
-      }
-    default: return nil
-    }
-  }
+//  func asMacro() -> LambdatronMacro? {
+//    switch value {
+//    case let .Symbol(vname):
+//      let vExpr = TEMPORARY_globalContext[vname]
+//      switch vExpr {
+//      case let .Macro(m): return m
+//      default: return nil
+//      }
+//    default: return nil
+//    }
+//  }
   
   func asSpecialForm() -> SpecialForm? {
     switch value {
@@ -76,40 +76,40 @@ class Cons : Printable {
     }
   }
   
-  func macroexpand() -> ConsValue {
-    func collectSymbols(firstItem : Cons?) -> [ConsValue]? {
-      var symbolBuffer : [ConsValue] = []
-      var currentItem : Cons? = firstItem
-      while let actualItem = currentItem {
-        let thisSymbol = actualItem.value
-        symbolBuffer.append(thisSymbol.macroexpand())
-        currentItem = actualItem.next
-      }
-      return symbolBuffer
-    }
-    
-    if let toExecuteMacro = asMacro() {
-      // First: is the item in the head actually a macro? If so, perform the macro expansion
-      if let symbols = collectSymbols(next) {
-        return toExecuteMacro(symbols)
-      }
-      else {
-        fatal("error, todo")
-      }
-    }
-    else {
-      // Otherwise, return this item as-is
-      return .ListLiteral(self)
-    }
-  }
+//  func macroexpand() -> ConsValue {
+//    func collectSymbols(firstItem : Cons?) -> [ConsValue]? {
+//      var symbolBuffer : [ConsValue] = []
+//      var currentItem : Cons? = firstItem
+//      while let actualItem = currentItem {
+//        let thisSymbol = actualItem.value
+//        symbolBuffer.append(thisSymbol.macroexpand())
+//        currentItem = actualItem.next
+//      }
+//      return symbolBuffer
+//    }
+//    
+//    if let toExecuteMacro = asMacro() {
+//      // First: is the item in the head actually a macro? If so, perform the macro expansion
+//      if let symbols = collectSymbols(next) {
+//        return toExecuteMacro(symbols)
+//      }
+//      else {
+//        fatal("error, todo")
+//      }
+//    }
+//    else {
+//      // Otherwise, return this item as-is
+//      return .ListLiteral(self)
+//    }
+//  }
 
-  func evaluate() -> (ConsValue, SpecialForm?) {
+  func evaluate(ctx: Context) -> (ConsValue, SpecialForm?) {
     func collectValues(firstItem : Cons?) -> [ConsValue]? {
       var valueBuffer : [ConsValue] = []
       var currentItem : Cons? = firstItem
       while let actualItem = currentItem {
         let thisValue = actualItem.value
-        valueBuffer.append(thisValue.evaluate())
+        valueBuffer.append(thisValue.evaluate(ctx))
         currentItem = actualItem.next
       }
       return valueBuffer
@@ -127,7 +127,7 @@ class Cons : Printable {
     
     if let toExecuteSpecialForm = asSpecialForm() {
       if let symbols = collectSymbols(self.next) {
-        let result = toExecuteSpecialForm.function(symbols)
+        let result = toExecuteSpecialForm.function(symbols, ctx)
         switch result {
         case let .Success(v): return (v, toExecuteSpecialForm)
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -135,11 +135,11 @@ class Cons : Printable {
       }
       fatal("something went wrong evaluating a special form")
     }
-    else if let toExecuteFunction = asFunction() {
+    else if let toExecuteFunction = asFunction(ctx) {
       // First: is the item in the head actually a function type object?
       if let values = collectValues(self.next) {
         // Second: do the arguments evaluate properly?
-        let result = toExecuteFunction(values)
+        let result = toExecuteFunction(values, ctx)
         // TODO: Change function signature to accomodate returning closures (eventually)
         switch result {
         case let .Success(v): return (v, nil)
@@ -185,31 +185,32 @@ enum ConsValue : Equatable, Printable {
   case ListLiteral(Cons)
   case VectorLiteral([ConsValue])
   
-  func macroexpand() -> ConsValue {
-    switch self {
-    case Symbol: return self
-    case NilLiteral: return self
-    case BoolLiteral: return self
-    case NumberLiteral: return self
-    case StringLiteral: return self
-    case let ListLiteral(l):
-      let result = l.macroexpand()
-      return result
-    case VectorLiteral: return self
-    case Special: fatal("TODO")
-    case None: fatal("TODO")
-    }
-  }
+//  func macroexpand() -> ConsValue {
+//    switch self {
+//    case Symbol: return self
+//    case NilLiteral: return self
+//    case BoolLiteral: return self
+//    case NumberLiteral: return self
+//    case StringLiteral: return self
+//    case let ListLiteral(l):
+//      let result = l.macroexpand()
+//      return result
+//    case VectorLiteral: return self
+//    case Special: fatal("TODO")
+//    case None: fatal("TODO")
+//    }
+//  }
   
-  func evaluate() -> ConsValue {
+  func evaluate(ctx: Context) -> ConsValue {
     switch self {
     case let Symbol(v):
       // Look up the value of v
-      let binding = TEMPORARY_globalContext[v]
+      let binding = ctx[v]
       switch binding {
       case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
-      case let .Literal(l): return l.evaluate()
-      case .Macro: fatal("internal error")
+      case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
+      case let .Literal(l): return l.evaluate(ctx)
+//      case .Macro: fatal("internal error")
       case .Function: fatal("TODO")
       }
     case NilLiteral: return self
@@ -221,22 +222,24 @@ enum ConsValue : Equatable, Printable {
       // This is a two-step process:
       //  1. Evaluate the list as a function call. This will result in a ConsValue
       //  2. Recursively evaluate the ConsValue that resulted from step 1
-      let (result, specialForm) = l.evaluate()
+      let (result, specialForm) = l.evaluate(ctx)
       if let actualSpecialForm = specialForm {
         // Execution was of a special form. Each form has different rules for what to do next
         switch actualSpecialForm {
         case .Quote: return result  // Quote does not perform any further execution of the resultant expression
-        case .If: return result.evaluate()
-        case .Do: return result.evaluate()
+        case .If: return result.evaluate(ctx)
+        case .Do: return result.evaluate(ctx)
+        case .Def: return result
+        case .Let: return result.evaluate(ctx)
         }
       }
       else {
         // Execution was of a normal function. Evaluate recursively.
-        return result.evaluate()
+        return result.evaluate(ctx)
       }
     case let VectorLiteral(v):
       // Evaluate the value of the vector literal 'v'
-      return .VectorLiteral(v.map({$0.evaluate()}))
+      return .VectorLiteral(v.map({$0.evaluate(ctx)}))
     case Special: fatal("TODO")
     case None: fatal("TODO")
     }

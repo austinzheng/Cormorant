@@ -8,14 +8,48 @@
 
 import Foundation
 
-println("Started Lambdatron. Type ':quit' to exit...")
-
 // Input
-let descriptor = NSFileHandle.fileHandleWithStandardInput()
+private let descriptor = NSFileHandle.fileHandleWithStandardInput()
 
-// NOTE: this must be removed in a later iteration.
-var TEMPORARY_globalContext = Context()
+// This is the global context
+private var globalContext = Context.globalContextInstance()
 
+private enum SpecialCommand : String {
+  case Quit = "?quit"
+  case Reset = "?reset"
+  case Help = "?help"
+  
+  var allCommands : [SpecialCommand] {
+    return [.Quit, .Reset, .Help]
+  }
+  
+  func execute() {
+    switch self {
+    case .Quit:
+      println("Goodbye")
+      exit(EXIT_SUCCESS)
+    case .Reset:
+      println("Environment reset")
+      globalContext = Context.globalContextInstance()
+    case .Help:
+      println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
+      println("Special commands are:")
+      for command in allCommands {
+        println("  \(command.rawValue): \(command.helpText)")
+      }
+    }
+  }
+  
+  var helpText : String {
+    switch self {
+    case .Quit: return "Quits the REPL."
+    case .Reset: return "Resets the environment, clearing anything defined using 'def', 'defn', etc."
+    case .Help: return "Prints a brief description of the REPL."
+    }
+  }
+}
+
+println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
 while true {
   print("> ")
   // Read data from user
@@ -30,9 +64,8 @@ while true {
     }
     // Remove the trailing newline
     let trimmedData = data.substringToIndex(data.length-1)
-    if trimmedData == ":quit" {
-      println("Goodbye")
-      exit(EXIT_SUCCESS)
+    if let command = SpecialCommand(rawValue: trimmedData) {
+      command.execute()
     }
     else {
       let x = lex(trimmedData)
@@ -41,13 +74,8 @@ while true {
         let c = parse(actualX)
         if let actualC = c {
           println("Your entry parses to: \(actualC)")
-          let n = actualC.evaluate()
+          let n = actualC.evaluate(globalContext)
           println(n.description)
-//          let expanded = c?.macroexpand()
-//          if let actualExpanded = expanded {
-//            let finalCons = Cons(actualExpanded)
-//            println("Your entry macroexpands to \(finalCons)")
-//          }
         }
         else {
           println("Your entry didn't parse correctly")
