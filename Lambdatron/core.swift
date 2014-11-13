@@ -39,7 +39,7 @@ class Cons : Printable {
       return false
     }
     switch value {
-    case .NilLiteral: return true
+    case .None: return true
     default: return false
     }
   }
@@ -259,6 +259,35 @@ enum ConsValue : Equatable, Printable {
   }
 }
 
+func ==(lhs: Cons, rhs: [ConsValue]) -> Bool {
+  if rhs.count == 0 {
+    return lhs.isEmpty
+  }
+
+  var that : Cons = lhs
+  // Walk through the list
+  for var i=0; i<rhs.count; i++ {
+    if that.value != rhs[i] {
+      // Different values
+      return false
+    }
+    if let next = lhs.next {
+      that = next
+    }
+    else {
+      if i < rhs.count - 1 {
+        // List is shorter than vector
+        return false
+      }
+    }
+  }
+  if that.next != nil {
+    // List is longer than vector
+    return false
+  }
+  return true
+}
+
 func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
   switch lhs {
   case .None:
@@ -318,12 +347,12 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
         this = this.next!
         that = that.next!
       }
-    case let .VectorLiteral(v2): fatal("not implemented")
+    case let .VectorLiteral(v2): return l1 == v2
     default: return false
     }
   case let .VectorLiteral(v1):
     switch rhs {
-    case let .ListLiteral(l2): fatal("not implemented")
+    case let .ListLiteral(l2): return l2 == v1
     case let .VectorLiteral(v2): return v1 == v2
     default: return false
     }
