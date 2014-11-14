@@ -44,30 +44,17 @@ class Cons : Printable {
     }
   }
 
-  func asFunction(ctx: Context) -> LambdatronFunction? {
-    // TODO: This should accept closure type literals in the future as well
+  func asBuiltIn(ctx: Context) -> LambdatronBuiltIn? {
     switch value {
     case let .Symbol(vname):
       let vExpr = ctx[vname]
       switch vExpr {
-      case let .Function(f): return f
+      case let .BuiltIn(f): return f
       default: return nil
       }
     default: return nil
     }
   }
-  
-//  func asMacro() -> LambdatronMacro? {
-//    switch value {
-//    case let .Symbol(vname):
-//      let vExpr = TEMPORARY_globalContext[vname]
-//      switch vExpr {
-//      case let .Macro(m): return m
-//      default: return nil
-//      }
-//    default: return nil
-//    }
-//  }
   
   func asSpecialForm() -> SpecialForm? {
     switch value {
@@ -75,34 +62,22 @@ class Cons : Printable {
     default: return nil
     }
   }
-  
-//  func macroexpand() -> ConsValue {
-//    func collectSymbols(firstItem : Cons?) -> [ConsValue]? {
-//      var symbolBuffer : [ConsValue] = []
-//      var currentItem : Cons? = firstItem
-//      while let actualItem = currentItem {
-//        let thisSymbol = actualItem.value
-//        symbolBuffer.append(thisSymbol.macroexpand())
-//        currentItem = actualItem.next
-//      }
-//      return symbolBuffer
-//    }
-//    
-//    if let toExecuteMacro = asMacro() {
-//      // First: is the item in the head actually a macro? If so, perform the macro expansion
-//      if let symbols = collectSymbols(next) {
-//        return toExecuteMacro(symbols)
-//      }
-//      else {
-//        fatal("error, todo")
-//      }
-//    }
-//    else {
-//      // Otherwise, return this item as-is
-//      return .ListLiteral(self)
-//    }
-//  }
 
+  func asFunction(ctx: Context) -> Fn? {
+    switch value {
+    case let .Function(f): return f
+    case let .Symbol(vname):
+      let fExpr = ctx[vname]
+      switch fExpr {
+      case let .Literal(l): return l.asFn()
+      default: return nil
+      }
+    default: return nil
+    }
+  }
+  
+  // MARK: API - evaluate
+  
   func evaluate(ctx: Context) -> (ConsValue, SpecialForm?) {
     func collectValues(firstItem : Cons?) -> [ConsValue]? {
       var valueBuffer : [ConsValue] = []
@@ -126,6 +101,7 @@ class Cons : Printable {
     }
     
     if let toExecuteSpecialForm = asSpecialForm() {
+      // Execute a special form
       if let symbols = collectSymbols(self.next) {
         let result = toExecuteSpecialForm.function(symbols, ctx)
         switch result {
@@ -135,12 +111,23 @@ class Cons : Printable {
       }
       fatal("something went wrong evaluating a special form")
     }
-    else if let toExecuteFunction = asFunction(ctx) {
-      // First: is the item in the head actually a function type object?
+    else if let toExecuteBuiltIn = asBuiltIn(ctx) {
+      // Execute a built-in primitive
       if let values = collectValues(self.next) {
-        // Second: do the arguments evaluate properly?
-        let result = toExecuteFunction(values, ctx)
-        // TODO: Change function signature to accomodate returning closures (eventually)
+        let result = toExecuteBuiltIn(values, ctx)
+        switch result {
+        case let .Success(v): return (v, nil)
+        case let .Failure(f): fatal("Something went wrong: \(f)")
+        }
+      }
+      else {
+        fatal("Could not collect values")
+      }
+    }
+    else if let toExecuteFunction = asFunction(ctx) {
+      // Execute a normal function
+      if let values = collectValues(self.next) {
+        let result = toExecuteFunction.evaluate(values)
         switch result {
         case let .Success(v): return (v, nil)
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -154,6 +141,8 @@ class Cons : Printable {
       fatal("Cannot call 'evaluate' on this cons list, \(self); first object isn't actually a function. Sorry.")
     }
   }
+  
+  // MARK: API - describe
   
   var description : String {
     func collectDescriptions(firstItem : Cons?) -> [String] {
@@ -176,6 +165,7 @@ class Cons : Printable {
 /// Represents the value of an item in a single cons cell; either a variable or a literal of some sort
 enum ConsValue : Equatable, Printable {
   case None
+  case Function(Fn)
   case Symbol(String)
   case Special(SpecialForm)
   case NilLiteral
@@ -185,24 +175,37 @@ enum ConsValue : Equatable, Printable {
   case ListLiteral(Cons)
   case VectorLiteral([ConsValue])
   
-//  func macroexpand() -> ConsValue {
-//    switch self {
-//    case Symbol: return self
-//    case NilLiteral: return self
-//    case BoolLiteral: return self
-//    case NumberLiteral: return self
-//    case StringLiteral: return self
-//    case let ListLiteral(l):
-//      let result = l.macroexpand()
-//      return result
-//    case VectorLiteral: return self
-//    case Special: fatal("TODO")
-//    case None: fatal("TODO")
-//    }
-//  }
+  func asSymbol() -> String? {
+    switch self {
+    case let .Symbol(s): return s
+    default: return nil
+    }
+  }
+  
+  func asList() -> Cons? {
+    switch self {
+    case let .ListLiteral(l): return l
+    default: return nil
+    }
+  }
+  
+  func asVector() -> [ConsValue]? {
+    switch self {
+    case let .VectorLiteral(v): return v
+    default: return nil
+    }
+  }
+  
+  func asFn() -> Fn? {
+    switch self {
+    case let .Function(f): return f
+    default: return nil
+    }
+  }
   
   func evaluate(ctx: Context) -> ConsValue {
     switch self {
+    case let Function(f): return self
     case let Symbol(v):
       // Look up the value of v
       let binding = ctx[v]
@@ -210,8 +213,7 @@ enum ConsValue : Equatable, Printable {
       case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
       case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
       case let .Literal(l): return l.evaluate(ctx)
-//      case .Macro: fatal("internal error")
-      case .Function: fatal("TODO")
+      case .BuiltIn: fatal("TODO")
       }
     case NilLiteral: return self
     case BoolLiteral: return self
@@ -231,6 +233,7 @@ enum ConsValue : Equatable, Printable {
         case .Do: return result.evaluate(ctx)
         case .Def: return result
         case .Let: return result.evaluate(ctx)
+        case .Fn: return result.evaluate(ctx)
         }
       }
       else {
@@ -247,6 +250,7 @@ enum ConsValue : Equatable, Printable {
 
   var description : String {
     switch self {
+    case let Function(f): return f.description
     case let Symbol(v): return v
     case NilLiteral: return "nil"
     case let BoolLiteral(b): return b.description
@@ -296,6 +300,11 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
   case .None:
     switch rhs {
     case .None: return true
+    default: return false
+    }
+  case let .Function(f1):
+    switch rhs {
+    case let .Function(f2): return f1 === f2
     default: return false
     }
   case let .Symbol(v1):

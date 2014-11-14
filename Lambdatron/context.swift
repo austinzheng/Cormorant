@@ -12,8 +12,7 @@ enum Binding {
   case Invalid
   case Unbound
   case Literal(ConsValue)
-//  case Macro(LambdatronMacro)
-  case Function(LambdatronFunction)
+  case BuiltIn(LambdatronBuiltIn)
 }
 
 class Context {
@@ -68,20 +67,20 @@ class Context {
   
   func setupDefaultBindings() {
     // Bind list functions
-    bindings["cons"] = .Function(pr_cons)
-    bindings["first"] = .Function(pr_first)
-    bindings["rest"] = .Function(pr_rest)
+    bindings["cons"] = .BuiltIn(pr_cons)
+    bindings["first"] = .BuiltIn(pr_first)
+    bindings["rest"] = .BuiltIn(pr_rest)
     // Bind I/O functions
-    bindings["print"] = .Function(pr_print)
+    bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions
-    bindings["="] = .Function(pr_equals)
-    bindings[">"] = .Function(pr_gt)
-    bindings["<"] = .Function(pr_lt)
+    bindings["="] = .BuiltIn(pr_equals)
+    bindings[">"] = .BuiltIn(pr_gt)
+    bindings["<"] = .BuiltIn(pr_lt)
     // Bind math functions
-    bindings["+"] = .Function(pr_plus)
-    bindings["-"] = .Function(pr_minus)
-    bindings["*"] = .Function(pr_multiply)
-    bindings["/"] = .Function(pr_divide)
+    bindings["+"] = .BuiltIn(pr_plus)
+    bindings["-"] = .BuiltIn(pr_minus)
+    bindings["*"] = .BuiltIn(pr_multiply)
+    bindings["/"] = .BuiltIn(pr_divide)
   }
 
   class func globalContextInstance() -> Context {

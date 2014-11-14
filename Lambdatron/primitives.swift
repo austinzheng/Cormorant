@@ -8,8 +8,7 @@
 
 import Foundation
 
-typealias LambdatronFunction = ([ConsValue], Context) -> EvalResult
-typealias LambdatronSpecialForm = ([ConsValue], Context) -> EvalResult
+typealias LambdatronBuiltIn = ([ConsValue], Context) -> EvalResult
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms
 enum EvalError : Printable {

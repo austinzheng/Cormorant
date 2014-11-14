@@ -16,14 +16,16 @@ enum SpecialForm : String {
   case Do = "do"
   case Def = "def"
   case Let = "let"
+  case Fn = "fn"
   
-  var function : LambdatronSpecialForm {
+  var function : LambdatronBuiltIn {
     switch self {
     case .Quote: return sf_quote
     case .If: return sf_if
     case .Do: return sf_do
     case .Def: return sf_def
     case .Let: return sf_let
+    case .Fn: return sf_fn
     }
   }
 }
@@ -148,6 +150,76 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
     let result = sf_do(restOfArgs, newContext)
     return result
   default:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
+  func extractParameters(args: [ConsValue]) -> ([String], String?)? {
+    // Returns a list of symbol names representing the parameter names, as well as the variadic parameter name (if any)
+    var names : [String] = []
+    for arg in args {
+      switch arg {
+      case let .Symbol(s): names.append(s)
+      default: return nil // Non-symbol objects in argument list are invalid
+      }
+    }
+    // No '&' allowed anywhere except for second-last position
+    for (idx, name) in enumerate(names) {
+      if name == "&" && idx != names.count - 2 {
+        return nil
+      }
+    }
+    // Check to see if there's a variadic argument
+    if names.count >= 2 && names[names.count - 2] == "&" {
+      return (Array(names[0..<names.count-2]), names[names.count-1])
+    }
+    else {
+      return (names, nil)
+    }
+  }
+  
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  if let name = args[0].asSymbol() {
+    if args.count == 1 {
+      return .Failure(.ArityError)
+    }
+    if let argsVector = args[1].asVector() {
+      // SINGLE ARITY
+      // After the name comes the vector of arguments
+      if let paramTuple = extractParameters(argsVector) {
+        let (paramNames, variadic) = paramTuple
+        let forms = args.count > 2 ? Array(args[2..<args.count]) : []
+        let fn = Fn(parameters: paramNames, forms: forms, variadicParam: variadic, name: name, ctx: ctx)
+        return .Success(.Function(fn))
+      }
+    }
+    else {
+      // MULTIPLE ARITY
+      // After the name comes multiple Cons, each with a separate definition
+      fatal("Not yet implemented")
+    }
+    return .Failure(.InvalidArgumentError)
+  }
+  else {
+    // No name provided
+    if let argsVector = args[0].asVector() {
+      // SINGLE ARITY
+      // The vector of args comes first
+      if let paramTuple = extractParameters(argsVector) {
+        let (paramNames, variadic) = paramTuple
+        let forms = args.count > 1 ? Array(args[1..<args.count]) : []
+        let fn = Fn(parameters: paramNames, forms: forms, variadicParam: variadic, name: nil, ctx: ctx)
+        return .Success(.Function(fn))
+      }
+    }
+    else {
+      // MULTIPLE ARITY
+      // After the name comes multiple Cons, each with a separate definition
+      fatal("Not yet implemented")
+    }
     return .Failure(.InvalidArgumentError)
   }
 }

@@ -1,7 +1,8 @@
 Lambdatron
 ==========
 
-A personal project attempting to implement a REPL for a simple Lisp-like language. The initial goal is to build a REPL that can interpret arbitrarily nested prefix arithmetic (e.g. `(+ (/ 1 2) (* 3 (- 5 2)))`). The (very distant) eventual goal might be to build something that conforms to the Scheme standard, or alternately a lightweight dialect of Clojure.
+A (very in-progress) interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/). Eventual goal is a library that can be used independently of the REPL front-end.
+
 
 Application
 -----------
@@ -10,17 +11,10 @@ Lambdatron is an OS X command-line application written in Swift. Type expression
 
 Need ideas? Try:
 
-- `(+ 1 2 3)`
 - `(+ (* 2 4) (- 8 6) (+ (+ 1 3) 4))`
 - `(cons 1 (quote (2 3 4)))`
-- `(first (quote (6 7 8)))`
-- `(rest (quote (6 7 8)))`
-
-
-Library
--------
-
-While Lambdatron is currently way too immature/incomplete to actually do so, the goal is to eventually package it as a library so that it can be included into larger Swift applications as an embedded scripting language. This might be a good fit for applications where extensibility is more important than raw performance.
+- `(def myfunc (fn [a b] (+ a b 1)))`, then `(myfunc 10 20)`
+- `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))` then `(r 10)`
 
 
 Completed Features
@@ -28,7 +22,7 @@ Completed Features
 
 - Interpreter core
 - Basic lexing and parsing of text input into cons-based AST
-- Special forms: `quote`, `if`, `do`, `def`, `let`
+- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`
 - I/O functions: `print` 
 - Arithmetic functions: `+`, `-`, `*`, `/`
 - Comparison functions: `=`, `<`, `>`
@@ -49,9 +43,10 @@ Working On
 - Support for macros
 - Support for syntax quoting
 - Better error handling than simply crashing the REPL
-- User-defined functions
-- Closures
+- Multiple arities for functions
 - Support for control characters when parsing input (e.g. \")
+- Ability to type in multiple forms at the top level; ability to read and execute from file
+- Metacontext - allow consumer to define custom functions visible to the user
 
 
 License
