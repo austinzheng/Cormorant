@@ -8,10 +8,15 @@
 
 import Foundation
 
-// TODO: Replace with an *actual* lexer/parser.
-
 enum TokenCollectionType {
   case List, Vector
+}
+
+enum NextFormTreatment {
+  // This enum describes several special reader forms that affect the parsing of the form that follows immediately
+  // afterwards. For example, something like '(1 2 3) should expand to (quote (1 2 3)).
+  case None   // No special treatment
+  case Quote  // Wrap next form with (quote)
 }
 
 /// Collect a sequence of tokens representing a single collection type form (e.g. a single list).
@@ -55,10 +60,27 @@ func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollection
   return count == 0 ? buffer : nil
 }
 
+// Note that this function will *reset* wrapType.
+func wrappedConsItem(item: ConsValue, inout wrapType: NextFormTreatment) -> ConsValue {
+  let wrappedItem : ConsValue = {
+    switch wrapType {
+    case .None:
+      return item
+    case .Quote:
+      // Wrap as a cons
+      return .ListLiteral(Cons(.Special(.Quote), next: Cons(item)))
+    }
+    }()
+  wrapType = .None
+  return wrappedItem
+}
+
 /// Take a list of LexTokens and return a list of ConsValues which can be transformed into a list, a vector, or another
 /// collection type. This method recursively finds token sequences representing collections and calls the appropriate
 /// constructor to build a valid ConsValue for that form
 func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
+  var wrapType : NextFormTreatment = .None
+  
   // Create a new ConsValue array with all sub-structures properly processed
   var buffer : [ConsValue] = []
   var counter = 0
@@ -67,7 +89,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     switch currentToken {
     case .LeftParentheses:
       if let newList = listWithTokens(collectTokens(tokens, &counter, .List)) {
-        buffer.append(.ListLiteral(newList))
+        buffer.append(wrappedConsItem(.ListLiteral(newList), &wrapType))
       }
       else {
         return nil
@@ -76,27 +98,29 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
       return nil
     case .LeftSquareBracket:
       if let newVector = vectorWithTokens(collectTokens(tokens, &counter, .Vector)) {
-        buffer.append(.VectorLiteral(newVector))
+        buffer.append(wrappedConsItem(.VectorLiteral(newVector), &wrapType))
       }
       else {
         return nil
       }
     case .RightSquareBracket:
       return nil
+    case .Quote:
+      wrapType = .Quote
     case .NilLiteral:
-      buffer.append(.NilLiteral)
+      buffer.append(wrappedConsItem(.NilLiteral, &wrapType))
     case let .StringLiteral(s):
-      buffer.append(.StringLiteral(s))
+      buffer.append(wrappedConsItem(.StringLiteral(s), &wrapType))
     case let .Number(n):
-      buffer.append(.NumberLiteral(n))
+      buffer.append(wrappedConsItem(.NumberLiteral(n), &wrapType))
     case let .Boolean(b):
-      buffer.append(.BoolLiteral(b))
+      buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapType))
     case let .Keyword(k):
       fatal("Not supported yet")
     case let .Identifier(r):
-      buffer.append(.Symbol(r))
+      buffer.append(wrappedConsItem(.Symbol(r), &wrapType))
     case let .Special(s):
-      buffer.append(.Special(s))
+      buffer.append(wrappedConsItem(.Special(s), &wrapType))
     }
     counter++
   }
@@ -142,6 +166,7 @@ func vectorWithTokens(tokens: [LexToken]?) -> [ConsValue]? {
 
 func parse(tokens: [LexToken]) -> ConsValue? {
   var index = 0
+  var wrapType : NextFormTreatment = .None
   // Figure out how to parse
   switch tokens[0] {
   case .LeftParentheses where tokens.count > 1:
@@ -156,6 +181,15 @@ func parse(tokens: [LexToken]) -> ConsValue? {
     }
     return nil
   case .RightSquareBracket: return nil
+  case .Quote where tokens.count > 1:
+    // The top-level expression can be a quoted thing.
+    var restTokens = tokens
+    restTokens.removeAtIndex(0)
+    if let restResult = parse(restTokens) {
+      wrapType = .Quote
+      return wrappedConsItem(restResult, &wrapType)
+    }
+    return nil
   case _ where tokens.count > 1: return nil
   case .NilLiteral: return .NilLiteral
   case let .StringLiteral(s): return .StringLiteral(s)

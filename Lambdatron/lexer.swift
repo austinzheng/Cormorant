@@ -14,6 +14,7 @@ enum LexToken : Printable {
   case RightParentheses           // right parentheses ')'
   case LeftSquareBracket          // left square bracket '['
   case RightSquareBracket         // right square bracket ']'
+  case Quote                      // single quote '''
   case NilLiteral                 // nil
   case StringLiteral(String)      // string (denoted by double quotes)
   case Number(Double)             // floating-point number
@@ -28,6 +29,7 @@ enum LexToken : Printable {
     case .RightParentheses: return "RightP <)>"
     case .LeftSquareBracket: return "LeftSqBr <[>"
     case .RightSquareBracket: return "RightSqBr <]>"
+    case .Quote: return "Quote <'>"
     case let .StringLiteral(x): return "String \"\(x)\""
     case let .NilLiteral: return "Nil"
     case let .Number(x): return "Number <\(x)>"
@@ -45,6 +47,7 @@ func lex(raw: String) -> [LexToken]? {
     case RightP
     case LeftSqBr
     case RightSqBr
+    case Quote
     case StringLiteral(String)
     case Unknown(String)
   }
@@ -104,6 +107,9 @@ func lex(raw: String) -> [LexToken]? {
       case "]":
         flushTokenToBuffer()                          // Right square bracket
         rawTokenBuffer.append(.RightSqBr)
+      case "'":
+        flushTokenToBuffer()                          // Single quote
+        rawTokenBuffer.append(.Quote)
       case _ where wsSet.characterIsMember(tChar):
         flushTokenToBuffer()                          // Whitespace/newline
       default:
@@ -127,6 +133,7 @@ func lex(raw: String) -> [LexToken]? {
     case .RightP: tokenBuffer.append(.RightParentheses)
     case .LeftSqBr: tokenBuffer.append(.LeftSquareBracket)
     case .RightSqBr: tokenBuffer.append(.RightSquareBracket)
+    case .Quote: tokenBuffer.append(.Quote)
     case let .StringLiteral(sl): tokenBuffer.append(.StringLiteral(sl))
     case let .Unknown(u):
       // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string
