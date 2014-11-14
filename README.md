@@ -45,7 +45,6 @@ Working On
 - Tail-call recursion optimization
 - Better error handling than simply crashing the REPL
 - Multiple arities for functions
-- Support for control characters when parsing input (e.g. \" for double quote literal in a string)
 - Ability to type in multiple forms at the top level; ability to read and execute from file
 - Metacontext - allow consumer to define custom functions visible to the user
 - Full unit test suite (once development stabilizes)

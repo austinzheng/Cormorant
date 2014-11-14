@@ -41,6 +41,17 @@ enum LexToken : Printable {
   }
 }
 
+func processEscape(sequence: String) -> String? {
+  switch sequence {
+    case "r": return "\r"
+    case "n": return "\n"
+    case "t": return "\t"
+    case "\"": return "\""
+    case "\\": return "\\"
+  default: return nil
+  }
+}
+
 func lex(raw: String) -> [LexToken]? {
   enum RawLexToken {
     case LeftP
@@ -68,11 +79,17 @@ func lex(raw: String) -> [LexToken]? {
     currentToken = ""
   }
   
-  // TODO: Support control sequences.
-  //  var controlSequenceActive = false
   // Whether or not the user is currently in a string
   var stringActive = false
-  for char in raw {
+  var skipCount = 0
+  let rawAsNSString = NSString(string: raw)
+  for (idx, char) in enumerate(raw) {
+    if skipCount > 0 {
+      // Multi-character sequence detected previously. Don't run.
+      skipCount--
+      continue
+    }
+    
     // Horrible, horrible hacks to turn a Character into a unichar
     var tChar = NSString(string: String(char)).characterAtIndex(0)
     
@@ -83,6 +100,21 @@ func lex(raw: String) -> [LexToken]? {
         rawTokenBuffer.append(.StringLiteral(currentToken))
         currentToken = ""
         stringActive = false
+      }
+      else if (char == "\\") {
+        if idx == rawAsNSString.length - 1 {
+          // An escape character cannot be the last character in the input
+          return nil
+        }
+        skipCount = 1
+        // Get the next character
+        let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
+        if let escapeSeq = processEscape(nextChar) {
+          currentToken.appendString(escapeSeq)
+        }
+        else {
+          return nil
+        }
       }
       else {
         // Any other token gets added to the buffer as a literal
