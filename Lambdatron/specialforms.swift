@@ -12,6 +12,9 @@ import Foundation
 enum SpecialForm : String {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
   case Quote = "quote"
+  case Cons = "cons"
+  case First = "first"
+  case Rest = "rest"
   case If = "if"
   case Do = "do"
   case Def = "def"
@@ -21,6 +24,9 @@ enum SpecialForm : String {
   var function : LambdatronBuiltIn {
     switch self {
     case .Quote: return sf_quote
+    case .Cons: return sf_cons
+    case .First: return sf_first
+    case .Rest: return sf_rest
     case .If: return sf_if
     case .Do: return sf_do
     case .Def: return sf_def
@@ -37,6 +43,67 @@ func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   let first = args[0]
   return .Success(first)
+}
+
+func sf_cons(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0].evaluate(ctx)
+  let second = args[1].evaluate(ctx)
+  switch second {
+  case .NilLiteral:
+    // Create a new list consisting of just the first object
+    return .Success(.ListLiteral(Cons(first)))
+  case let .ListLiteral(l):
+    // Create a new list consisting of the first object, followed by the second list (if not empty)
+    switch l.value {
+    case .None: return .Success(.ListLiteral(Cons(first)))
+    default: return .Success(.ListLiteral(Cons(first, next: l)))
+    }
+  case let .VectorLiteral(v): fatal("Not yet implemented")
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given a sequence, return the first item
+func sf_first(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0].evaluate(ctx)
+  switch first {
+  case .NilLiteral:
+    return .Success(.NilLiteral)
+  case let .ListLiteral(l):
+    switch l.value {
+    case .None: return .Success(.NilLiteral)
+    default: return .Success(l.value)
+    }
+  case let .VectorLiteral(v): fatal("Not yet implemented")
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given a sequence, return the sequence comprised of all items but the first
+func sf_rest(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0].evaluate(ctx)
+  switch first {
+  case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case let .ListLiteral(l):
+    if let actualNext = l.next {
+      // List has more than one item
+      return .Success(.ListLiteral(actualNext))
+    }
+    else {
+      // List has zero or one items, return the empty list
+      return .Success(.ListLiteral(Cons()))
+    }
+  default: return .Failure(.InvalidArgumentError)
+  }
 }
 
 /// Evaluate a conditional, and evaluate one or one of two expressions

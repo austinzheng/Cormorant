@@ -229,6 +229,9 @@ enum ConsValue : Equatable, Printable {
         // Execution was of a special form. Each form has different rules for what to do next
         switch actualSpecialForm {
         case .Quote: return result  // Quote does not perform any further execution of the resultant expression
+        case .Cons: return result
+        case .First: return result
+        case .Rest: return result
         case .If: return result.evaluate(ctx)
         case .Do: return result.evaluate(ctx)
         case .Def: return result

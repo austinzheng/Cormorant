@@ -66,10 +66,6 @@ class Context {
   }
   
   func setupDefaultBindings() {
-    // Bind list functions
-    bindings["cons"] = .BuiltIn(pr_cons)
-    bindings["first"] = .BuiltIn(pr_first)
-    bindings["rest"] = .BuiltIn(pr_rest)
     // Bind I/O functions
     bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions
