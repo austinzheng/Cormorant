@@ -20,6 +20,7 @@ enum SpecialForm : String {
   case Def = "def"
   case Let = "let"
   case Fn = "fn"
+  case Defmacro = "defmacro"
   
   var function : LambdatronBuiltIn {
     switch self {
@@ -32,9 +33,13 @@ enum SpecialForm : String {
     case .Def: return sf_def
     case .Let: return sf_let
     case .Fn: return sf_fn
+    case .Defmacro: return sf_defmacro
     }
   }
 }
+
+
+// MARK: Special forms
 
 /// Return the raw form, without any evaluation
 func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
@@ -222,30 +227,6 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
-  func extractParameters(args: [ConsValue]) -> ([String], String?)? {
-    // Returns a list of symbol names representing the parameter names, as well as the variadic parameter name (if any)
-    var names : [String] = []
-    for arg in args {
-      switch arg {
-      case let .Symbol(s): names.append(s)
-      default: return nil // Non-symbol objects in argument list are invalid
-      }
-    }
-    // No '&' allowed anywhere except for second-last position
-    for (idx, name) in enumerate(names) {
-      if name == "&" && idx != names.count - 2 {
-        return nil
-      }
-    }
-    // Check to see if there's a variadic argument
-    if names.count >= 2 && names[names.count - 2] == "&" {
-      return (Array(names[0..<names.count-2]), names[names.count-1])
-    }
-    else {
-      return (names, nil)
-    }
-  }
-  
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -259,8 +240,8 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
       if let paramTuple = extractParameters(argsVector) {
         let (paramNames, variadic) = paramTuple
         let forms = args.count > 2 ? Array(args[2..<args.count]) : []
-        let fn = Fn(parameters: paramNames, forms: forms, variadicParam: variadic, name: name, ctx: ctx)
-        return .Success(.Function(fn))
+        let fn = Function(parameters: paramNames, forms: forms, variadicParam: variadic, name: name, ctx: ctx)
+        return .Success(.FunctionLiteral(fn))
       }
     }
     else {
@@ -278,8 +259,8 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
       if let paramTuple = extractParameters(argsVector) {
         let (paramNames, variadic) = paramTuple
         let forms = args.count > 1 ? Array(args[1..<args.count]) : []
-        let fn = Fn(parameters: paramNames, forms: forms, variadicParam: variadic, name: nil, ctx: ctx)
-        return .Success(.Function(fn))
+        let fn = Function(parameters: paramNames, forms: forms, variadicParam: variadic, name: nil, ctx: ctx)
+        return .Success(.FunctionLiteral(fn))
       }
     }
     else {
@@ -288,5 +269,57 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
       fatal("Not yet implemented")
     }
     return .Failure(.InvalidArgumentError)
+  }
+}
+
+func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count < 2 {
+    return .Failure(.ArityError)
+  }
+  if let name = args[0].asSymbol() {
+    if let argsVector = args[1].asVector() {
+      if let paramTuple = extractParameters(argsVector) {
+        let (paramNames, variadic) = paramTuple
+        // NOTE: at this time, macros are unhygenic. Symbols will be evaluated with their meanings at expansion time,
+        //  rather than when they are defined. This also means macros will break if defined with argument names that
+        //  are later rebound using def, let, etc.
+        // Macros also don't capture their context. They use the context provided at the time they are expanded.
+        let forms = args.count > 2 ? Array(args[2..<args.count]) : []
+        let macro = Macro(parameters: paramNames, forms: forms, variadicParam: variadic, name: name)
+        // Register the macro to the global context
+        ctx.setTopLevelBinding(name, value: .BoundMacro(macro))
+        return .Success(args[0])
+      }
+    }
+  }
+  return .Failure(.InvalidArgumentError)
+}
+
+
+// MARK: Helper functions
+
+/// Given a list of args (all of which should be symbols), extract the strings corresponding with their argument names,
+/// as well as any variadic parameter that exists.
+private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
+  // Returns a list of symbol names representing the parameter names, as well as the variadic parameter name (if any)
+  var names : [String] = []
+  for arg in args {
+    switch arg {
+    case let .Symbol(s): names.append(s)
+    default: return nil // Non-symbol objects in argument list are invalid
+    }
+  }
+  // No '&' allowed anywhere except for second-last position
+  for (idx, name) in enumerate(names) {
+    if name == "&" && idx != names.count - 2 {
+      return nil
+    }
+  }
+  // Check to see if there's a variadic argument
+  if names.count >= 2 && names[names.count - 2] == "&" {
+    return (Array(names[0..<names.count-2]), names[names.count-1])
+  }
+  else {
+    return (names, nil)
   }
 }

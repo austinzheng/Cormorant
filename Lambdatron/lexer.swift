@@ -36,7 +36,7 @@ enum LexToken : Printable {
     case let .Boolean(x): return "Boolean <\(x)>"
     case let .Keyword(x): return "Keyword \(x)"
     case let .Identifier(x): return "Identifier <\(x)>"
-    case let .Special(x): return x.rawValue
+    case let .Special(x): return "Special <\(x.rawValue)>"
     }
   }
 }

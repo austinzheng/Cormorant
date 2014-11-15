@@ -167,6 +167,9 @@ func vectorWithTokens(tokens: [LexToken]?) -> [ConsValue]? {
 func parse(tokens: [LexToken]) -> ConsValue? {
   var index = 0
   var wrapType : NextFormTreatment = .None
+  if tokens.count == 0 {
+    return nil
+  }
   // Figure out how to parse
   switch tokens[0] {
   case .LeftParentheses where tokens.count > 1:

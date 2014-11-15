@@ -8,11 +8,22 @@
 
 import Foundation
 
-enum Binding {
+enum Binding : Printable {
   case Invalid
   case Unbound
   case Literal(ConsValue)
+  case BoundMacro(Macro)
   case BuiltIn(LambdatronBuiltIn)
+  
+  var description : String {
+    switch self {
+    case .Invalid: return "invalid"
+    case .Unbound: return "unbound"
+    case let .Literal(l): return "literal: \(l.description)"
+    case let .BoundMacro(m): return "macro: '\(m.name)'"
+    case let .BuiltIn(b): return "builtin: \(b)"
+    }
+  }
 }
 
 class Context {
@@ -66,6 +77,8 @@ class Context {
   }
   
   func setupDefaultBindings() {
+    // Bind collection functions
+    bindings["list"] = .BuiltIn(pr_list)
     // Bind I/O functions
     bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions

@@ -61,6 +61,23 @@ func extractList(n: ConsValue) -> Cons? {
 }
 
 
+// MARK: Collections
+
+func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count == 0 {
+    return .Success(.ListLiteral(Cons()))
+  }
+  let first = Cons(args[0])
+  var current = first
+  for var i=1; i<args.count; i++ {
+    let this = Cons(args[i])
+    current.next = this
+    current = this
+  }
+  return .Success(.ListLiteral(first))
+}
+
+
 // MARK: I/O
 
 /// Print zero or more args to screen. Returns nil

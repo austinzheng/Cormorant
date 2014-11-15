@@ -1,7 +1,7 @@
 Lambdatron
 ==========
 
-A (very in-progress) interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/). Eventual goal is a library that can be used independently of the REPL front-end.
+An interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/). Eventual goal is a library that can be used independently of the REPL front-end.
 
 
 Application
@@ -14,24 +14,38 @@ Need ideas? Try:
 - `(+ (* 2 4) (- 8 6) (+ (+ 1 3) 4))`
 - `(cons 1 '(2 3 4))`
 - `(def myfunc (fn [a b] (+ a b 1)))`, then `(myfunc 10 20)`
-- `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))` then `(r 10)`
+- `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))`, then `(r 10)`
+- `(defmacro when [__MACRO_pred __MACRO_do] (list 'if __MACRO_pred __MACRO_do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) "bad")`
 
 
-Completed Features
-------------------
+Features
+--------
+
+Lambdatron has the following features:
+
+**Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `'()`. Or use the `list` function to create a list from zero or more arguments.
+
+**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`. Unlike lists, vectors can't be eval'ed.
+
+**Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Right now, only single-arity functions can be defined (although functions can have an optional vararg at the end of their parameter list).
+
+**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. As well, when macros are expanded, they do so using the bindings at the time they are expanded, not the bindings at the time they were created (like functions). Create them using `defmacro`.
+
+**Let-binding**, using `let`, allows you to create a lexical context with new bindings available only within the scope of that context.
+
+
+### Completed
 
 - Interpreter core
-- Basic lexing and parsing of text input into cons-based AST
-- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`
+- Lexer and parser
+- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`
 - Reader macros: `'` (for quoting)
-- I/O functions: `print` 
-- Arithmetic functions: `+`, `-`, `*`, `/`
-- Comparison functions: `=`, `<`, `>`
-- Vectors
+- I/O built-in functions: `print` 
+- Arithmetic built-in functions: `+`, `-`, `*`, `/`
+- Comparison built-in functions: `=`, `<`, `>`
 
 
-Working On
-----------
+### Working On
 
 - I/O functions
 - Special forms
@@ -40,11 +54,10 @@ Working On
 - Distinction between integers and floating-point values
 - Support for maps
 - Support for keywords
-- Support for macros
 - Support for syntax quoting
 - Tail-call recursion optimization
 - Better error handling than simply crashing the REPL
-- Multiple arities for functions
+- Multiple arities for functions/macros
 - Ability to type in multiple forms at the top level; ability to read and execute from file
 - Metacontext - allow consumer to define custom functions visible to the user
 - Full unit test suite (once development stabilizes)

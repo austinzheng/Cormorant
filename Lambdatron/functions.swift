@@ -8,7 +8,7 @@
 
 import Foundation
 
-private struct SingleFn : Printable {
+struct SingleFn : Printable {
   let parameters : [String]
   let forms : [ConsValue]
   let variadicParameter : String?
@@ -61,10 +61,10 @@ private struct SingleFn : Printable {
   }
 }
 
-class Fn : Printable {
-  private let context : Context?
-  private let variadic : SingleFn?
-  private let specificFns : [Int : SingleFn]
+class Function : Printable {
+  let context : Context?
+  let variadic : SingleFn?
+  let specificFns : [Int : SingleFn]
   
   // Construct a new Fn argument corresponding to a single-arity function.
   init(parameters: [String], forms: [ConsValue], variadicParam: String?, name: String?, ctx: Context) {
@@ -80,7 +80,7 @@ class Fn : Printable {
     
     // Bind the context, based on whether or not we provided an actual name
     if let actualName = name {
-      context = Context(parent: ctx, bindings: [actualName : .Literal(.Function(self))])
+      context = Context(parent: ctx, bindings: [actualName : .Literal(.FunctionLiteral(self))])
     }
     else {
       context = ctx
