@@ -116,7 +116,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     case let .Boolean(b):
       buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapType))
     case let .Keyword(k):
-      fatal("Not supported yet")
+      fatal("TODO - support keywords")
     case let .Identifier(r):
       buffer.append(wrappedConsItem(.Symbol(r), &wrapType))
     case let .Special(s):
@@ -199,7 +199,7 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   case let .Number(n): return .NumberLiteral(n)
   case let .Boolean(b): return .BoolLiteral(b)
   case let .Keyword(k):
-    fatal("Not supported yet")
+    fatal("TODO - support keywords")
   case let .Identifier(r): return .Symbol(r)
   case let .Special(s): return .Special(s)
   default: fatal("Internal error")

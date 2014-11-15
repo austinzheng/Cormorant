@@ -117,7 +117,7 @@ class Cons : Printable {
   
   // MARK: API - evaluate
   
-  func evaluate(ctx: Context) -> (ConsValue, SpecialForm?) {
+  func evaluate(ctx: Context) -> (ConsValue, EvalType) {
     if let toExecuteSpecialForm = asSpecialForm() {
       // Execute a special form
       // How it works:
@@ -127,7 +127,7 @@ class Cons : Printable {
       let symbols = collectSymbols(next)
       let result = toExecuteSpecialForm.function(symbols, ctx)
       switch result {
-      case let .Success(v): return (v, toExecuteSpecialForm)
+      case let .Success(v): return (v, .Special(toExecuteSpecialForm))
       case let .Failure(f): fatal("Something went wrong: \(f)")
       }
     }
@@ -137,7 +137,7 @@ class Cons : Printable {
       if let values = collectValues(self.next, ctx: ctx) {
         let result = toExecuteBuiltIn(values, ctx)
         switch result {
-        case let .Success(v): return (v, nil)
+        case let .Success(v): return (v, .Function)
         case let .Failure(f): fatal("Something went wrong: \(f)")
         }
       }
@@ -156,7 +156,7 @@ class Cons : Printable {
       switch expanded {
       case let .Success(v):
         let result = v.evaluate(ctx)
-        return (v, nil)
+        return (v, .Macro)
       case let .Failure(f): fatal("Something went wrong: \(f)")
       }
     }
@@ -165,11 +165,11 @@ class Cons : Printable {
       // How it works:
       // 1. Arguments are evaluated before the function is ever invoked
       // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
-      // 3. The result is always evaluated recursively
+      // 3. The result is then used as-is
       if let values = collectValues(self.next, ctx: ctx) {
         let result = toExecuteFunction.evaluate(values)
         switch result {
-        case let .Success(v): return (v, nil)
+        case let .Success(v): return (v, .Function)
         case let .Failure(f): fatal("Something went wrong: \(f)")
         }
       }
@@ -202,6 +202,11 @@ class Cons : Printable {
   }
 }
 
+enum EvalType {
+  case Special(SpecialForm)
+  case Macro
+  case Function
+}
 
 /// Represents the value of an item in a single cons cell; either a variable or a literal of some sort
 enum ConsValue : Equatable, Printable {
@@ -254,8 +259,8 @@ enum ConsValue : Equatable, Printable {
       case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
       case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
       case let .Literal(l): return l.evaluate(ctx)
-      case .BoundMacro: fatal("TODO")
-      case .BuiltIn: fatal("TODO")
+      case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
+      case .BuiltIn: return self
       }
     case NilLiteral: return self
     case BoolLiteral: return self
@@ -266,31 +271,26 @@ enum ConsValue : Equatable, Printable {
       // This is a two-step process:
       //  1. Evaluate the list as a function call. This will result in a ConsValue
       //  2. Recursively evaluate the ConsValue that resulted from step 1
-      let (result, specialForm) = l.evaluate(ctx)
-      if let actualSpecialForm = specialForm {
-        // Execution was of a special form. Each form has different rules for what to do next
-        switch actualSpecialForm {
-        case .Quote: return result  // Quote does not perform any further execution of the resultant expression
-        case .Cons: return result
-        case .First: return result
-        case .Rest: return result
-        case .If: return result.evaluate(ctx)
-        case .Do: return result.evaluate(ctx)
-        case .Def: return result
-        case .Let: return result.evaluate(ctx)
-        case .Fn: return result.evaluate(ctx)
-        case .Defmacro: return result
-        }
-      }
-      else {
-        // Execution was of a normal function. Evaluate recursively.
+      let (result, evalType) = l.evaluate(ctx)
+      switch evalType {
+      case .Special:
+        // Once a special form is evaluated, its result is not evaluated again. (If necessary this can be defined on a
+        //  case by case basis, although it should be unnecessary.)
+        return result
+      case .Function:
+        // Once a function is evaluated, its result is not evaluated again (this is only relevant for functions that
+        //  return lists)
+        return result
+      case .Macro:
+        // Once a macro is evaluated, its product is expected to be a form (usually a list) which must be evaluated
+        //  again, either to perform another macroexpansion or to execute a function
         return result.evaluate(ctx)
       }
     case let VectorLiteral(v):
       // Evaluate the value of the vector literal 'v'
       return .VectorLiteral(v.map({$0.evaluate(ctx)}))
-    case Special: fatal("TODO")
-    case None: fatal("TODO")
+    case Special: fatal("TODO - taking the value of a special form should be disallowed")
+    case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")
     }
   }
 

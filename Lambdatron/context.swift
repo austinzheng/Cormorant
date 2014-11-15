@@ -79,6 +79,7 @@ class Context {
   func setupDefaultBindings() {
     // Bind collection functions
     bindings["list"] = .BuiltIn(pr_list)
+    bindings["vector"] = .BuiltIn(pr_vector)
     // Bind I/O functions
     bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions

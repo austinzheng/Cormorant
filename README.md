@@ -3,6 +3,8 @@ Lambdatron
 
 An interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/). Eventual goal is a library that can be used independently of the REPL front-end.
 
+The name is provisional and will be changed once I come up with something better.
+
 
 Application
 -----------
@@ -11,11 +13,30 @@ Lambdatron is an OS X command-line application written in Swift. Type expression
 
 Need ideas? Try:
 
+**Basic arithmetic**
+
 - `(+ (* 2 4) (- 8 6) (+ (+ 1 3) 4))`
+
+**Working with lists**
+
 - `(cons 1 '(2 3 4))`
+- `(rest '(1 2 3 4 5))`
+
+**Defining and calling a function**
+
 - `(def myfunc (fn [a b] (+ a b 1)))`, then `(myfunc 10 20)`
+
+**Recursively calling a function**
+
 - `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))`, then `(r 10)`
+
+**Creating and using a macro**
+
 - `(defmacro when [__MACRO_pred __MACRO_do] (list 'if __MACRO_pred __MACRO_do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) "bad")`
+
+**Defining a function returning another one**
+
+- `(def f1 (fn [arg1] (fn [arg2] (+ arg1 arg2))))`, then `(let [plusone (f1 1)] (plusone 3))`
 
 
 Features
@@ -40,6 +61,7 @@ Lambdatron has the following features:
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`
 - Reader macros: `'` (for quoting)
+- Collection built-in functions: `list`, `vector`
 - I/O built-in functions: `print` 
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
 - Comparison built-in functions: `=`, `<`, `>`

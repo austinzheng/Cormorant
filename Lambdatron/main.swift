@@ -70,10 +70,10 @@ while true {
     else {
       let x = lex(trimmedData)
       if let actualX = x {
-        println("Your entry lexes to: \(actualX)")
+//        println("Your entry lexes to: \(actualX)")
         let c = parse(actualX)
         if let actualC = c {
-          println("Your entry parses to: \(actualC)")
+//          println("Your entry parses to: \(actualC)")
           let n = actualC.evaluate(globalContext)
           println(n.description)
         }
@@ -82,7 +82,7 @@ while true {
         }
       }
       else {
-        println("ERROR: lexing failed")
+        println("Your entry didn't lex correctly")
       }
     }
   }

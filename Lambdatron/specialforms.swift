@@ -66,7 +66,19 @@ func sf_cons(args: [ConsValue], ctx: Context) -> EvalResult {
     case .None: return .Success(.ListLiteral(Cons(first)))
     default: return .Success(.ListLiteral(Cons(first, next: l)))
     }
-  case let .VectorLiteral(v): fatal("Not yet implemented")
+  case let .VectorLiteral(v):
+    // Create a new list consisting of the first object, followed by a list comprised of the vector's items
+    if v.count == 0 {
+      return .Success(.ListLiteral(Cons(first)))
+    }
+    let head = Cons(first)
+    var current = head
+    for item in v {
+      let this = Cons(item)
+      current.next = this
+      current = this
+    }
+    return .Success(.ListLiteral(head))
   default: return .Failure(.InvalidArgumentError)
   }
 }
@@ -85,7 +97,8 @@ func sf_first(args: [ConsValue], ctx: Context) -> EvalResult {
     case .None: return .Success(.NilLiteral)
     default: return .Success(l.value)
     }
-  case let .VectorLiteral(v): fatal("Not yet implemented")
+  case let .VectorLiteral(v):
+    return .Success(v.count == 0 ? .NilLiteral : v[0])
   default: return .Failure(.InvalidArgumentError)
   }
 }
@@ -107,6 +120,19 @@ func sf_rest(args: [ConsValue], ctx: Context) -> EvalResult {
       // List has zero or one items, return the empty list
       return .Success(.ListLiteral(Cons()))
     }
+  case let .VectorLiteral(v):
+    if v.count < 2 {
+      // Vector has zero or one items
+      return .Success(.ListLiteral(Cons()))
+    }
+    let head = Cons(v[1])
+    var current = head
+    for var i=2; i<v.count; i++ {
+      let this = Cons(v[i])
+      current.next = this
+      current = this
+    }
+    return .Success(.ListLiteral(head))
   default: return .Failure(.InvalidArgumentError)
   }
 }

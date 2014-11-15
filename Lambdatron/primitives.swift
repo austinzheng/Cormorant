@@ -77,6 +77,10 @@ func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.ListLiteral(first))
 }
 
+func pr_vector(args: [ConsValue], ctx: Context) -> EvalResult {
+  return .Success(.VectorLiteral(args))
+}
+
 
 // MARK: I/O
 
