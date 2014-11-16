@@ -38,6 +38,6 @@ class Macro {
         return varargFunction.evaluate(arguments, ctx: ctx)
       }
     }
-    fatal("Internal error")
+    internalError("macro was somehow defined without any arities; this is a bug")
   }
 }

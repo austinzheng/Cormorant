@@ -8,6 +8,27 @@
 
 import Foundation
 
+/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms
+enum EvalError : Printable {
+  case ArityError, InvalidArgumentError, DivideByZeroError, RecurMisuseError
+  case CustomError(String)
+  
+  var description : String {
+    switch self {
+    case ArityError: return "wrong number of arguments to macro, function, or special form"
+    case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
+    case DivideByZeroError: return "attempted to divide by zero"
+    case .RecurMisuseError: return "didn't use recur in the correct position"
+    case let CustomError(c): return c
+    }
+  }
+}
+
+enum EvalResult {
+  case Success(ConsValue)
+  case Failure(EvalError)
+}
+
 struct SingleFn : Printable {
   let parameters : [String]
   let forms : [ConsValue]
@@ -19,17 +40,13 @@ struct SingleFn : Printable {
     return variadicParameter != nil
   }
   
-  func evaluate(arguments: [ConsValue], ctx: Context) -> EvalResult {
+  func bindToNewContext(arguments: [ConsValue], ctx: Context) -> Context? {
     // Precondition: arguments has an appropriate number of arguments for the function
     // Create the bindings. One binding per parameter
-    if !isVariadic {
-      assert(arguments.count == parameters.count)
-    }
-    else {
-      assert(arguments.count >= parameters.count)
+    if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
+      return nil
     }
     var bindings : [String : Binding] = [:]
-    
     var i=0
     for ; i<parameters.count; i++ {
       bindings[parameters[i]] = .Literal(arguments[i])
@@ -39,10 +56,32 @@ struct SingleFn : Printable {
       let rest = arguments.count > parameters.count ? Array(arguments[i..<arguments.count]) : []
       bindings[variadicParameter] = .Literal(.VectorLiteral(rest))
     }
-    
-    // Create the context, then perform a 'do' with the body of the function
     let newContext = Context(parent: ctx, bindings: bindings)
-    return sf_do(forms, newContext)
+    return newContext
+  }
+  
+  func evaluate(arguments: [ConsValue], ctx: Context) -> EvalResult {
+    // Create the context, then perform a 'do' with the body of the function
+    var possibleContext : Context? = bindToNewContext(arguments, ctx: ctx)
+    while true {
+      if let newContext = possibleContext {
+        let result = sf_do(forms, newContext)
+        switch result {
+        case let .Success(resultValue):
+          switch resultValue {
+          case let .RecurSentinel(newBindings):
+            // If result is 'recur', we need to rebind and run the function again from the start.
+            possibleContext = bindToNewContext(newBindings, ctx: ctx)
+            continue
+          default:
+            return result
+          }
+        case .Failure:
+          return result
+        }
+      }
+      return .Failure(.ArityError)
+    }
   }
   
   var description : String {
@@ -105,7 +144,7 @@ class Function : Printable {
       }
       return .Failure(.ArityError)
     }
-    fatal("Internal error")
+    internalError("evaluating fn or macro with nil context")
   }
   
   var description : String {
@@ -122,7 +161,7 @@ class Function : Printable {
             return item.description
           }
         }
-        fatal("Internal error")
+        internalError("an array with no objects reported itself as having at least one object")
       }()
       return "(fn \(funcString))"
     }

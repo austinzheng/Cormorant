@@ -220,6 +220,8 @@ enum ConsValue : Equatable, Printable {
   case ListLiteral(Cons)
   case VectorLiteral([ConsValue])
   case FunctionLiteral(Function)
+  // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
+  case RecurSentinel([ConsValue])
   
   func asSymbol() -> String? {
     switch self {
@@ -249,6 +251,13 @@ enum ConsValue : Equatable, Printable {
     }
   }
   
+  var isRecurSentinel : Bool {
+    switch self {
+    case .RecurSentinel: return true
+    default: return false
+    }
+  }
+  
   func evaluate(ctx: Context) -> ConsValue {
     switch self {
     case FunctionLiteral: return self
@@ -258,7 +267,7 @@ enum ConsValue : Equatable, Printable {
       switch binding {
       case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
       case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
-      case let .Literal(l): return l.evaluate(ctx)
+      case let .Literal(l): return l
       case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
       case .BuiltIn: return self
       }
@@ -291,6 +300,7 @@ enum ConsValue : Equatable, Printable {
       return .VectorLiteral(v.map({$0.evaluate(ctx)}))
     case Special: fatal("TODO - taking the value of a special form should be disallowed")
     case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")
+    case RecurSentinel: return self
     }
   }
 
@@ -308,6 +318,7 @@ enum ConsValue : Equatable, Printable {
     case let FunctionLiteral(f): return f.description
     case let Special(s): return s.rawValue
     case None: return ""
+    case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
     }
   }
 }
@@ -414,5 +425,6 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .FunctionLiteral(f2): return f1 === f2
     default: return false
     }
+  case .RecurSentinel: return false
   }
 }

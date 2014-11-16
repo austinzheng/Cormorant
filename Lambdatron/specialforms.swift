@@ -9,7 +9,7 @@
 import Foundation
 
 /// An enum describing all the special forms recognized by the interpreter
-enum SpecialForm : String {
+enum SpecialForm : String, Printable {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
   case Quote = "quote"
   case Cons = "cons"
@@ -21,6 +21,8 @@ enum SpecialForm : String {
   case Let = "let"
   case Fn = "fn"
   case Defmacro = "defmacro"
+  case Loop = "loop"
+  case Recur = "recur"
   
   var function : LambdatronBuiltIn {
     switch self {
@@ -34,7 +36,13 @@ enum SpecialForm : String {
     case .Let: return sf_let
     case .Fn: return sf_fn
     case .Defmacro: return sf_defmacro
+    case .Loop: return sf_loop
+    case .Recur: return sf_recur
     }
+  }
+  
+  var description : String {
+    return self.rawValue
   }
 }
 
@@ -169,8 +177,11 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
 /// Evaluate all expressions, returning the value of the final expression
 func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
   var finalValue : ConsValue = .NilLiteral
-  for expr in args {
+  for (idx, expr) in enumerate(args) {
     finalValue = expr.evaluate(ctx)
+    if idx != args.count - 1 && finalValue.isRecurSentinel {
+      return .Failure(.RecurMisuseError)
+    }
   }
   return .Success(finalValue)
 }
@@ -319,6 +330,71 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     }
   }
   return .Failure(.InvalidArgumentError)
+}
+
+func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  if let bindingsVector = args[0].asVector() {
+    // The first argument must be a vector of bindings and values
+    // Evaluate each binding's initializer and bind it to the corresponding symbol
+    if bindingsVector.count % 2 != 0 {
+      return .Failure(.CustomError("loop binding vector must have an even number of elements"))
+    }
+    var bindings : [String : Binding] = [:]
+    var symbols : [String] = []
+    var ctr = 0
+    while ctr < bindingsVector.count {
+      let name = bindingsVector[ctr]
+      switch name {
+      case let .Symbol(s):
+        let expression = bindingsVector[ctr+1]
+        let result = expression.evaluate(Context(parent: ctx, bindings: bindings))
+        bindings[s] = .Literal(result)
+        symbols.append(s)
+      default:
+        return .Failure(.InvalidArgumentError)
+      }
+      ctr += 2
+    }
+    let forms = args.count > 1 ? Array(args[1..<args.count]) : []
+    // Now, run the loop body
+    var context = bindings.count == 0 ? ctx : Context(parent: ctx, bindings: bindings)
+    while true {
+      let result = sf_do(forms, context)
+      switch result {
+      case let .Success(resultValue):
+        switch resultValue {
+        case let .RecurSentinel(newBindingValues):
+          // If result is 'recur', we need to rebind and run the loop again from the start.
+          if newBindingValues.count != symbols.count {
+            return .Failure(.ArityError)
+          }
+          var newBindings : [String : Binding] = [:]
+          for (idx, newValue) in enumerate(newBindingValues) {
+            newBindings[symbols[idx]] = .Literal(newValue)
+          }
+          context = bindings.count == 0 ? ctx : Context(parent: ctx, bindings: newBindings)
+          continue
+        default: return result
+        }
+      default: return result
+      }
+    }
+  }
+  return .Failure(.InvalidArgumentError)
+}
+
+func sf_recur(args: [ConsValue], ctx: Context) -> EvalResult {
+  // recur can *only* be used inside the context of a 'loop' or a fn declaration
+  // Evaluate all arguments, and then create a sentinel value
+  var newArgs : [ConsValue] = []
+  for arg in args {
+    let result = arg.evaluate(ctx)
+    newArgs.append(result)
+  }
+  return .Success(.RecurSentinel(newArgs))
 }
 
 

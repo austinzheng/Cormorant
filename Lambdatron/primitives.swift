@@ -10,26 +10,6 @@ import Foundation
 
 typealias LambdatronBuiltIn = ([ConsValue], Context) -> EvalResult
 
-/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms
-enum EvalError : Printable {
-  case ArityError, InvalidArgumentError, DivideByZeroError
-  case CustomError(String)
-  
-  var description : String {
-    switch self {
-    case ArityError: return "wrong number of arguments to macro, function, or special form"
-    case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
-    case DivideByZeroError: return "attempted to divide by zero"
-    case let CustomError(c): return c
-    }
-  }
-}
-
-enum EvalResult {
-  case Success(ConsValue)
-  case Failure(EvalError)
-}
-
 func extractNumber(n: ConsValue) -> Double? {
   let x : Double? = {
     switch n {

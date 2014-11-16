@@ -26,9 +26,11 @@ Need ideas? Try:
 
 - `(def myfunc (fn [a b] (+ a b 1)))`, then `(myfunc 10 20)`
 
-**Recursively calling a function**
+**Recursion and iteration**
 
 - `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))`, then `(r 10)`
+- `(def recadd (fn [mylist sofar] (if (= (first mylist) nil) sofar (recur (rest mylist) (+ (first mylist) sofar)))))`, then `(recadd '(1 2 3 4 5) 0)`
+- `(loop [a 10 b 0] (if (= a 0) b (recur (- a 1) (+ b a))))`
 
 **Creating and using a macro**
 
@@ -59,7 +61,7 @@ Lambdatron has the following features:
 
 - Interpreter core
 - Lexer and parser
-- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`
+- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`, `loop`, `recur`
 - Reader macros: `'` (for quoting)
 - Collection built-in functions: `list`, `vector`
 - I/O built-in functions: `print` 
@@ -70,18 +72,17 @@ Lambdatron has the following features:
 ### Working On
 
 - I/O functions
-- Special forms
 - Basic control flow
 - Logical operators
 - Distinction between integers and floating-point values
 - Support for maps
 - Support for keywords
 - Support for syntax quoting
-- Tail-call recursion optimization
 - Better error handling than simply crashing the REPL
 - Multiple arities for functions/macros
 - Ability to type in multiple forms at the top level; ability to read and execute from file
 - Metacontext - allow consumer to define custom functions visible to the user
+- Performance optimization (once development stabilizes)
 - Full unit test suite (once development stabilizes)
 
 

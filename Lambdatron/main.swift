@@ -93,3 +93,8 @@ while true {
   println("Fatal error: \(message)")
   exit(EXIT_FAILURE)
 }
+
+@noreturn func internalError(message: @autoclosure () -> String) {
+  println("Internal error: \(message())")
+  exit(EXIT_FAILURE)
+}

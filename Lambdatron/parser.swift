@@ -202,6 +202,6 @@ func parse(tokens: [LexToken]) -> ConsValue? {
     fatal("TODO - support keywords")
   case let .Identifier(r): return .Symbol(r)
   case let .Special(s): return .Special(s)
-  default: fatal("Internal error")
+  default: internalError("parser is in an invalid state; this should never happen")
   }
 }
