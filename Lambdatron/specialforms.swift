@@ -267,46 +267,28 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  if let name = args[0].asSymbol() {
-    if args.count == 1 {
-      return .Failure(.ArityError)
+  let name : String? = args[0].asSymbol()
+  let rest = (name == nil) ? args : Array(args[1..<args.count])
+  if rest[0].asVector() != nil {
+    // Single arity
+    let singleArity = buildSingleFnForItem(.VectorLiteral(rest))
+    if let actualSingleArity = singleArity {
+      return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
     }
-    if let argsVector = args[1].asVector() {
-      // SINGLE ARITY
-      // After the name comes the vector of arguments
-      if let paramTuple = extractParameters(argsVector) {
-        let (paramNames, variadic) = paramTuple
-        let forms = args.count > 2 ? Array(args[2..<args.count]) : []
-        let fn = Function(parameters: paramNames, forms: forms, variadicParam: variadic, name: name, ctx: ctx)
-        return .Success(.FunctionLiteral(fn))
-      }
-    }
-    else {
-      // MULTIPLE ARITY
-      // After the name comes multiple Cons, each with a separate definition
-      fatal("Not yet implemented")
-    }
-    return .Failure(.InvalidArgumentError)
   }
   else {
-    // No name provided
-    if let argsVector = args[0].asVector() {
-      // SINGLE ARITY
-      // The vector of args comes first
-      if let paramTuple = extractParameters(argsVector) {
-        let (paramNames, variadic) = paramTuple
-        let forms = args.count > 1 ? Array(args[1..<args.count]) : []
-        let fn = Function(parameters: paramNames, forms: forms, variadicParam: variadic, name: nil, ctx: ctx)
-        return .Success(.FunctionLiteral(fn))
+    var arityBuffer : [SingleFn] = []
+    for potential in rest {
+      if let nextFn = buildSingleFnForItem(potential) {
+        arityBuffer.append(nextFn)
+      }
+      else {
+        return .Failure(.InvalidArgumentError)
       }
     }
-    else {
-      // MULTIPLE ARITY
-      // After the name comes multiple Cons, each with a separate definition
-      fatal("Not yet implemented")
-    }
-    return .Failure(.InvalidArgumentError)
+    return Function.buildFunction(arityBuffer, name: name, ctx: ctx)
   }
+  return .Failure(.InvalidArgumentError)
 }
 
 func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
@@ -425,3 +407,31 @@ private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
     return (names, nil)
   }
 }
+
+/// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
+/// SingleFn instance.
+private func buildSingleFnForItem(item: ConsValue) -> SingleFn? {
+  let itemAsVector : [ConsValue]? = {
+    switch item {
+    case let .ListLiteral(l): return Cons.collectSymbols(l)
+    case let .VectorLiteral(v): return v
+    default: return nil
+    }
+  }()
+  if let vector = itemAsVector {
+    // The argument 'item' was a valid list or vector
+    if vector.count == 0 {
+      return nil
+    }
+    if let params = vector[0].asVector() {
+      if let paramTuple = extractParameters(params) {
+        // Now we've taken out the parameters (they are symbols in a vector
+        let (paramNames, variadic) = paramTuple
+        let forms = vector.count > 1 ? Array(vector[1..<vector.count]) : []
+        return SingleFn(parameters: paramNames, forms: forms, variadicParameter: variadic)
+      }
+    }
+  }
+  return nil
+}
+

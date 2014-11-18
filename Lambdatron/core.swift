@@ -94,7 +94,7 @@ class Cons : Printable {
   
   // MARK: API - helpers
   
-  func collectValues(firstItem : Cons?, ctx: Context) -> [ConsValue]? {
+  class func collectValues(firstItem : Cons?, ctx: Context) -> [ConsValue]? {
     var valueBuffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
     while let actualItem = currentItem {
@@ -105,11 +105,15 @@ class Cons : Printable {
     return valueBuffer
   }
   
-  func collectSymbols(firstItem: Cons?) -> [ConsValue] {
+  class func collectSymbols(firstItem: Cons?) -> [ConsValue] {
     var symbolBuffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
     while let actualItem = currentItem {
-      symbolBuffer.append(actualItem.value)
+      let value = actualItem.value
+      switch value {
+      case .None: break
+      default: symbolBuffer.append(actualItem.value)
+      }
       currentItem = actualItem.next
     }
     return symbolBuffer
@@ -125,7 +129,7 @@ class Cons : Printable {
       // 1. Arguments are passed in as-is
       // 2. The special form decides whether or not to evaluate or use the arguments
       // 3. The result may or may not be evaluated, depending on the special form
-      let symbols = collectSymbols(next)
+      let symbols = Cons.collectSymbols(next)
       let result = toExecuteSpecialForm.function(symbols, ctx)
       switch result {
       case let .Success(v): return (v, .Special(toExecuteSpecialForm))
@@ -135,7 +139,7 @@ class Cons : Printable {
     else if let toExecuteBuiltIn = asBuiltIn(ctx) {
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
-      if let values = collectValues(self.next, ctx: ctx) {
+      if let values = Cons.collectValues(next, ctx: ctx) {
         let result = toExecuteBuiltIn(values, ctx)
         switch result {
         case let .Success(v): return (v, .Function)
@@ -152,7 +156,7 @@ class Cons : Printable {
       // 1. Arguments are passed in as-is
       // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
       // 3. This replacement form is then evaluated
-      let symbols = collectSymbols(next)
+      let symbols = Cons.collectSymbols(next)
       let expanded = toExpandMacro.macroexpand(symbols, ctx: ctx)
       switch expanded {
       case let .Success(v):
@@ -167,7 +171,7 @@ class Cons : Printable {
       // 1. Arguments are evaluated before the function is ever invoked
       // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
       // 3. The result is then used as-is
-      if let values = collectValues(self.next, ctx: ctx) {
+      if let values = Cons.collectValues(next, ctx: ctx) {
         let result = toExecuteFunction.evaluate(values)
         switch result {
         case let .Success(v): return (v, .Function)

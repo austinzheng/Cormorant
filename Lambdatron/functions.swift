@@ -11,6 +11,7 @@ import Foundation
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms
 enum EvalError : Printable {
   case ArityError, InvalidArgumentError, DivideByZeroError, RecurMisuseError
+  case DefineFunctionError(String)
   case CustomError(String)
   
   var description : String {
@@ -19,6 +20,7 @@ enum EvalError : Printable {
     case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
     case DivideByZeroError: return "attempted to divide by zero"
     case .RecurMisuseError: return "didn't use recur in the correct position"
+    case let DefineFunctionError(e): return e
     case let CustomError(c): return c
     }
   }
@@ -53,8 +55,13 @@ struct SingleFn : Printable {
     }
     if let variadicParameter = variadicParameter {
       // Add the rest of the arguments (if any) to the vararg vector
-      let rest = arguments.count > parameters.count ? Array(arguments[i..<arguments.count]) : []
-      bindings[variadicParameter] = .Literal(.VectorLiteral(rest))
+      if arguments.count > parameters.count {
+        let rest = Array(arguments[i..<arguments.count])
+        bindings[variadicParameter] = .Literal(.VectorLiteral(rest))
+      }
+      else {
+        bindings[variadicParameter] = .Literal(.NilLiteral)
+      }
     }
     let newContext = Context(parent: ctx, bindings: bindings)
     return newContext
@@ -105,18 +112,45 @@ class Function : Printable {
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
-  // Construct a new Fn argument corresponding to a single-arity function.
-  init(parameters: [String], forms: [ConsValue], variadicParam: String?, name: String?, ctx: Context) {
-    let single = SingleFn(parameters: parameters, forms: forms, variadicParameter: variadicParam)
-    if variadicParam != nil {
-      variadic = single
-      specificFns = [:]
+  class func buildFunction(arities: [SingleFn], name: String?, ctx: Context) -> EvalResult {
+    if arities.count == 0 {
+      // Must have at least one arity
+      return .Failure(.DefineFunctionError("function must be defined with at least one arity"))
     }
-    else {
-      variadic = nil
-      specificFns = [single.paramCount : single]
+    // Do validation
+    var variadic : SingleFn? = nil
+    var aritiesMap : [Int : SingleFn] = [:]
+    for arity in arities {
+      // 1. Only one variable arity definition
+      if arity.isVariadic {
+        if variadic != nil {
+          return .Failure(.DefineFunctionError("function can only be defined with at most one variadic arity"))
+        }
+        variadic = arity
+      }
+      // 2. Only one definition per fixed arity
+      if !arity.isVariadic {
+        if aritiesMap[arity.paramCount] != nil {
+          return .Failure(.DefineFunctionError("function can only be defined with one definition per fixed arity"))
+        }
+        aritiesMap[arity.paramCount] = arity
+      }
     }
-    
+    if let actualVariadic = variadic {
+      for arity in arities {
+        // 3. If variable arity definition, no fixed-arity definitions can have more params than the variable arity def
+        if !arity.isVariadic && arity.paramCount > actualVariadic.paramCount {
+          return .Failure(.DefineFunctionError("function's fixed arities cannot have more params than variable arity"))
+        }
+      }
+    }
+    let newFunction = Function(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
+    return .Success(.FunctionLiteral(newFunction))
+  }
+  
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: String?, ctx: Context) {
+    self.specificFns = specificFns
+    self.variadic = variadic
     // Bind the context, based on whether or not we provided an actual name
     if let actualName = name {
       context = Context(parent: ctx, bindings: [actualName : .Literal(.FunctionLiteral(self))])
@@ -166,7 +200,15 @@ class Function : Printable {
       return "(fn \(funcString))"
     }
     else {
-      fatal("Describing multi-arity functions not yet implemented")
+      var descs : [String] = []
+      for (_, fn) in specificFns {
+        descs.append("(\(fn.description))")
+      }
+      if let variadic = variadic {
+        descs.append("(\(variadic.description))")
+      }
+      let joined = join(" ", descs)
+      return "(fn \(joined))"
     }
   }
 }

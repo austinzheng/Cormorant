@@ -50,9 +50,9 @@ Lambdatron has the following features:
 
 **Vectors**, declared using square brackets: `[1 2 true "Lisp"]`. Unlike lists, vectors can't be eval'ed.
 
-**Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Right now, only single-arity functions can be defined (although functions can have an optional vararg at the end of their parameter list).
+**Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
-**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. As well, when macros are expanded, they do so using the bindings at the time they are expanded, not the bindings at the time they were created (like functions). Create them using `defmacro`.
+**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. As well, when macros are expanded, they do so using the bindings at the time they are expanded, not the bindings at the time they were created (like functions). Create them using `defmacro`. Only one arity can be defined for macros, but macros can take varargs.
 
 **Let-binding**, using `let`, allows you to create a lexical context with new bindings available only within the scope of that context.
 
@@ -71,15 +71,13 @@ Lambdatron has the following features:
 
 ### Working On
 
-- I/O functions
-- Basic control flow
-- Logical operators
+- Standard library
 - Distinction between integers and floating-point values
 - Support for maps
 - Support for keywords
 - Support for syntax quoting
+- Basic namespacing
 - Better error handling than simply crashing the REPL
-- Multiple arities for functions/macros
 - Ability to type in multiple forms at the top level; ability to read and execute from file
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)
