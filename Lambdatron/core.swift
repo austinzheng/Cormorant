@@ -115,6 +115,7 @@ class Cons : Printable {
     return symbolBuffer
   }
   
+  
   // MARK: API - evaluate
   
   func evaluate(ctx: Context) -> (ConsValue, EvalType) {
@@ -277,14 +278,10 @@ enum ConsValue : Equatable, Printable {
     case StringLiteral: return self
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
-      // This is a two-step process:
-      //  1. Evaluate the list as a function call. This will result in a ConsValue
-      //  2. Recursively evaluate the ConsValue that resulted from step 1
       let (result, evalType) = l.evaluate(ctx)
       switch evalType {
       case .Special:
-        // Once a special form is evaluated, its result is not evaluated again. (If necessary this can be defined on a
-        //  case by case basis, although it should be unnecessary.)
+        // Once a special form is evaluated, its result is not evaluated again
         return result
       case .Function:
         // Once a function is evaluated, its result is not evaluated again (this is only relevant for functions that
