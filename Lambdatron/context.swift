@@ -96,6 +96,7 @@ class Context {
   class func globalContextInstance() -> Context {
     let context = Context()
     context.setupDefaultBindings()
+    loadStdlibInto(context, stdlib_files)
     return context
   }
   
