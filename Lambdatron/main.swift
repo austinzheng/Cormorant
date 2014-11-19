@@ -69,9 +69,10 @@ while true {
     }
     else {
       let x = lex(trimmedData)
-      if let actualX = x {
-//        println("Your entry lexes to: \(actualX)")
-        let c = parse(actualX)
+      switch x {
+      case let .Success(lexedData):
+//        println("Your entry lexes to: \(lexedData)")
+        let c = parse(lexedData)
         if let actualC = c {
 //          println("Your entry parses to: \(actualC)")
           let n = actualC.evaluate(globalContext)
@@ -80,9 +81,7 @@ while true {
         else {
           println("Your entry didn't parse correctly")
         }
-      }
-      else {
-        println("Your entry didn't lex correctly")
+      case let .Failure(error): println("Your entry didn't lex correctly (error: \(error.description))")
       }
     }
   }

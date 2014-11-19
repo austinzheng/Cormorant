@@ -8,6 +8,23 @@
 
 import Foundation
 
+enum LexResult {
+  case Success([LexToken])
+  case Failure(LexError)
+}
+
+enum LexError : Printable {
+  case InvalidEscapeSequenceError
+  case NonTerminatedStringError
+  
+  var description : String {
+    switch self {
+    case .InvalidEscapeSequenceError: return "invalid or unfinished escape sequence"
+    case .NonTerminatedStringError: return "strings weren't all terminated by end of input"
+    }
+  }
+}
+
 /// Tokens that come out of the lex() function
 enum LexToken : Printable {
   case LeftParentheses            // left parentheses '('
@@ -52,7 +69,7 @@ func processEscape(sequence: String) -> String? {
   }
 }
 
-func lex(raw: String) -> [LexToken]? {
+func lex(raw: String) -> LexResult {
   enum RawLexToken {
     case LeftP
     case RightP
@@ -104,7 +121,7 @@ func lex(raw: String) -> [LexToken]? {
       else if (char == "\\") {
         if idx == rawAsNSString.length - 1 {
           // An escape character cannot be the last character in the input
-          return nil
+          return .Failure(.InvalidEscapeSequenceError)
         }
         skipCount = 1
         // Get the next character
@@ -113,7 +130,7 @@ func lex(raw: String) -> [LexToken]? {
           currentToken.appendString(escapeSeq)
         }
         else {
-          return nil
+          return .Failure(.InvalidEscapeSequenceError)
         }
       }
       else {
@@ -152,7 +169,7 @@ func lex(raw: String) -> [LexToken]? {
   
   if stringActive {
     // This is bad; a string was left dangling
-    return nil
+    return .Failure(.NonTerminatedStringError)
   }
   // If there's another token left, flush it
   flushTokenToBuffer()
@@ -202,7 +219,7 @@ func lex(raw: String) -> [LexToken]? {
     }
   }
   
-  return tokenBuffer
+  return .Success(tokenBuffer)
 }
 
 func buildNumberFromString(str: String) -> LexToken? {

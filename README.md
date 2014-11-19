@@ -9,7 +9,7 @@ The name is provisional and will be changed once I come up with something better
 Application
 -----------
 
-Lambdatron is an OS X command-line application written in Swift. Type expressions at the command prompt and press 'Enter'.
+Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.1 or later to build. Type expressions at the command prompt and press 'Enter'.
 
 Need ideas? Try:
 
@@ -39,6 +39,17 @@ Need ideas? Try:
 **Defining a function returning another one**
 
 - `(def f1 (fn [arg1] (fn [arg2] (+ arg1 arg2))))`, then `(let [plusone (f1 1)] (plusone 3))`
+
+### Current Limitations
+
+Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
+
+- The REPL is fragile. Don't press the arrow keys while inside it, for example. Copy-pasting text works fine.
+- The REPL can only take one form at a time.
+- There currently isn't any namespacing or symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
+- Macros are cumbersome to define since the syntax-quote system hasn't yet been implemented.
+
+These will disappear as the feature set is filled out.
 
 
 Features
@@ -78,6 +89,7 @@ Lambdatron has the following features:
 - Support for syntax quoting
 - Basic namespacing
 - Better error handling than simply crashing the REPL
+- Improved REPL
 - Ability to type in multiple forms at the top level; ability to read and execute from file
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)
