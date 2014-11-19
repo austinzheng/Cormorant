@@ -63,7 +63,7 @@ Lambdatron has the following features:
 
 **Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
-**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. As well, when macros are expanded, they do so using the bindings at the time they are expanded, not the bindings at the time they were created (like functions). Create them using `defmacro`. Only one arity can be defined for macros, but macros can take varargs.
+**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. Macros are expanded using the bindings at the time expansion happens, not the bindings at the time they were created (as is true with functions). Create them using `defmacro`. Macros can be defined with multiple arities and/or varargs.
 
 **Let-binding**, using `let`, allows you to create a lexical context with new bindings available only within the scope of that context.
 

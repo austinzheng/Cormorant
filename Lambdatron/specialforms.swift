@@ -296,18 +296,42 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(.ArityError)
   }
   if let name = args[0].asSymbol() {
-    if let argsVector = args[1].asVector() {
-      if let paramTuple = extractParameters(argsVector) {
-        let (paramNames, variadic) = paramTuple
-        // NOTE: at this time, macros are unhygenic. Symbols will be evaluated with their meanings at expansion time,
-        //  rather than when they are defined. This also means macros will break if defined with argument names that
-        //  are later rebound using def, let, etc.
-        // Macros also don't capture their context. They use the context provided at the time they are expanded.
-        let forms = args.count > 2 ? Array(args[2..<args.count]) : []
-        let macro = Macro(parameters: paramNames, forms: forms, variadicParam: variadic, name: name)
-        // Register the macro to the global context
+    // NOTE: at this time, macros are unhygenic. Symbols will be evaluated with their meanings at expansion time,
+    //  rather than when they are defined. This also means macros will break if defined with argument names that
+    //  are later rebound using def, let, etc.
+    // Macros also don't capture their context. They use the context provided at the time they are expanded.
+    let rest = Array(args[1..<args.count])
+    if rest[0].asVector() != nil {
+      // Single arity
+      let singleArity = buildSingleFnForItem(.VectorLiteral(rest))
+      if let actualSingleArity = singleArity {
+        let macroResult = Macro.buildMacro([actualSingleArity], name: name)
+        switch macroResult {
+        case let .Success(macro):
+          ctx.setTopLevelBinding(name, value: .BoundMacro(macro))
+          return .Success(args[0])
+        case let .Failure(f):
+          return .Failure(f)
+        }
+      }
+    }
+    else {
+      var arityBuffer : [SingleFn] = []
+      for potential in rest {
+        if let nextFn = buildSingleFnForItem(potential) {
+          arityBuffer.append(nextFn)
+        }
+        else {
+          return .Failure(.InvalidArgumentError)
+        }
+      }
+      let macroResult = Macro.buildMacro(arityBuffer, name: name)
+      switch macroResult {
+      case let .Success(macro):
         ctx.setTopLevelBinding(name, value: .BoundMacro(macro))
         return .Success(args[0])
+      case let .Failure(f):
+        return .Failure(f)
       }
     }
   }

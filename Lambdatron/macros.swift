@@ -8,23 +8,56 @@
 
 import Foundation
 
+enum MacroCreationResult {
+  case Success(Macro)
+  case Failure(EvalError)
+}
+
 class Macro {
   let name : String
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
-  // Construct a new Macro with a single arity.
-  init(parameters: [String], forms: [ConsValue], variadicParam: String?, name: String) {
+  class func buildMacro(arities: [SingleFn], name: String) -> MacroCreationResult {
+    if arities.count == 0 {
+      // Must have at least one arity
+      return .Failure(.DefineFunctionError("macro must be defined with at least one arity"))
+    }
+    // Do validation
+    var variadic : SingleFn? = nil
+    var aritiesMap : [Int : SingleFn] = [:]
+    for arity in arities {
+      // 1. Only one variable arity definition
+      if arity.isVariadic {
+        if variadic != nil {
+          return .Failure(.DefineFunctionError("macro can only be defined with at most one variadic arity"))
+        }
+        variadic = arity
+      }
+      // 2. Only one definition per fixed arity
+      if !arity.isVariadic {
+        if aritiesMap[arity.paramCount] != nil {
+          return .Failure(.DefineFunctionError("macro can only be defined with one definition per fixed arity"))
+        }
+        aritiesMap[arity.paramCount] = arity
+      }
+    }
+    if let actualVariadic = variadic {
+      for arity in arities {
+        // 3. If variable arity definition, no fixed-arity definitions can have more params than the variable arity def
+        if !arity.isVariadic && arity.paramCount > actualVariadic.paramCount {
+          return .Failure(.DefineFunctionError("macro's fixed arities cannot have more params than variable arity"))
+        }
+      }
+    }
+    let newMacro = Macro(specificFns: aritiesMap, variadic: variadic, name: name)
+    return .Success(newMacro)
+  }
+  
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: String) {
+    self.specificFns = specificFns
+    self.variadic = variadic
     self.name = name
-    let single = SingleFn(parameters: parameters, forms: forms, variadicParameter: variadicParam)
-    if variadicParam != nil {
-      variadic = single
-      specificFns = [:]
-    }
-    else {
-      variadic = nil
-      specificFns = [single.paramCount : single]
-    }
   }
   
   func macroexpand(arguments: [ConsValue], ctx: Context) -> EvalResult {
