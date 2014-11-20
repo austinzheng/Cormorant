@@ -80,7 +80,12 @@ func lex(raw: String) -> LexResult {
     case Unknown(String)
   }
   
+  enum State {
+    case Normal, String, Comment
+  }
+  
   let wsSet = NSCharacterSet.whitespaceAndNewlineCharacterSet()
+  let nlSet = NSCharacterSet.newlineCharacterSet()
   
   // PHASE 1: raw lex
   var rawTokenBuffer : [RawLexToken] = []
@@ -96,8 +101,8 @@ func lex(raw: String) -> LexResult {
     currentToken = ""
   }
   
-  // Whether or not the user is currently in a string
-  var stringActive = false
+  var state : State = .Normal
+  
   var skipCount = 0
   let rawAsNSString = NSString(string: raw)
   for (idx, char) in enumerate(raw) {
@@ -110,40 +115,15 @@ func lex(raw: String) -> LexResult {
     // Horrible, horrible hacks to turn a Character into a unichar
     var tChar = NSString(string: String(char)).characterAtIndex(0)
     
-    if stringActive {
-      // User currently in the context of a string
-      if char == "\"" {
-        // User ended the string with a closing "
-        rawTokenBuffer.append(.StringLiteral(currentToken))
-        currentToken = ""
-        stringActive = false
-      }
-      else if (char == "\\") {
-        if idx == rawAsNSString.length - 1 {
-          // An escape character cannot be the last character in the input
-          return .Failure(.InvalidEscapeSequenceError)
-        }
-        skipCount = 1
-        // Get the next character
-        let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
-        if let escapeSeq = processEscape(nextChar) {
-          currentToken.appendString(escapeSeq)
-        }
-        else {
-          return .Failure(.InvalidEscapeSequenceError)
-        }
-      }
-      else {
-        // Any other token gets added to the buffer as a literal
-        currentToken.appendString(String(char))
-      }
-    }
-    else {
-      // User currently NOT in the context of a string
+    switch state {
+    case .Normal:
       switch char {
+      case ";":
+        flushTokenToBuffer()                          // User starting a comment with a ;
+        state = .Comment
       case "\"":
         flushTokenToBuffer()                          // User starting a string with an opening "
-        stringActive = true
+        state = .String
       case "(":
         flushTokenToBuffer()                          // Left parentheses
         rawTokenBuffer.append(.LeftP)
@@ -164,10 +144,45 @@ func lex(raw: String) -> LexResult {
       default:
         currentToken.appendString(String(char))       // Any other valid character
       }
+    case .String:
+      // Currently lexing characters forming a string literal
+      if char == "\"" {
+        // User ended the string with a closing "
+        rawTokenBuffer.append(.StringLiteral(currentToken))
+        currentToken = ""
+        state = .Normal
+      }
+      else if (char == "\\") {
+        if idx == rawAsNSString.length - 1 {
+          // An escape character cannot be the last character in the input
+          return .Failure(.InvalidEscapeSequenceError)
+        }
+        skipCount = 1
+        // Get the next character
+        let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
+        if let escapeSeq = processEscape(nextChar) {
+          currentToken.appendString(escapeSeq)
+        }
+        else {
+          return .Failure(.InvalidEscapeSequenceError)
+        }
+      }
+      else {
+        // Any other token gets added to the buffer as a literal
+        currentToken.appendString(String(char))
+      }
+    case .Comment:
+      // Comments are completely ignored by the lexer, and are terminated by a newline
+      switch char {
+      case _ where nlSet.characterIsMember(tChar):
+        // End of string
+        state = .Normal
+      default: break
+      }
     }
   }
   
-  if stringActive {
+  if state == .String {
     // This is bad; a string was left dangling
     return .Failure(.NonTerminatedStringError)
   }
