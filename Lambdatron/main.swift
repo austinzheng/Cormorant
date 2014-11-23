@@ -12,42 +12,8 @@ import Foundation
 private let descriptor = NSFileHandle.fileHandleWithStandardInput()
 
 // This is the global context
-private var globalContext = Context.globalContextInstance()
-
-private enum SpecialCommand : String {
-  case Quit = "?quit"
-  case Reset = "?reset"
-  case Help = "?help"
-  
-  var allCommands : [SpecialCommand] {
-    return [.Quit, .Reset, .Help]
-  }
-  
-  func execute() {
-    switch self {
-    case .Quit:
-      println("Goodbye")
-      exit(EXIT_SUCCESS)
-    case .Reset:
-      println("Environment reset")
-      globalContext = Context.globalContextInstance()
-    case .Help:
-      println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
-      println("Special commands are:")
-      for command in allCommands {
-        println("  \(command.rawValue): \(command.helpText)")
-      }
-    }
-  }
-  
-  var helpText : String {
-    switch self {
-    case .Quit: return "Quits the REPL."
-    case .Reset: return "Resets the environment, clearing anything defined using 'def', 'defn', etc."
-    case .Help: return "Prints a brief description of the REPL."
-    }
-  }
-}
+// TODO: This needs to not be a global variable
+internal var globalContext = Context.globalContextInstance()
 
 println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
 while true {
@@ -64,8 +30,8 @@ while true {
     }
     // Remove the trailing newline
     let trimmedData = data.substringToIndex(data.length-1)
-    if let command = SpecialCommand(rawValue: trimmedData) {
-      command.execute()
+    if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
+      command.execute(args)
     }
     else {
       let x = lex(trimmedData)
@@ -75,7 +41,7 @@ while true {
         let c = parse(lexedData)
         if let actualC = c {
 //          println("Your entry parses to: \(actualC)")
-          let n = actualC.evaluate(globalContext)
+          let n = actualC.evaluate(globalContext, .Normal)
           println(n.description)
         }
         else {

@@ -8,6 +8,8 @@
 
 import Foundation
 
+typealias LambdatronSpecialForm = ([ConsValue], Context, EvalEnvironment) -> EvalResult
+
 /// An enum describing all the special forms recognized by the interpreter
 enum SpecialForm : String, Printable {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
@@ -24,7 +26,7 @@ enum SpecialForm : String, Printable {
   case Loop = "loop"
   case Recur = "recur"
   
-  var function : LambdatronBuiltIn {
+  var function : LambdatronSpecialForm {
     switch self {
     case .Quote: return sf_quote
     case .Cons: return sf_cons
@@ -50,7 +52,7 @@ enum SpecialForm : String, Printable {
 // MARK: Special forms
 
 /// Return the raw form, without any evaluation
-func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_quote(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Success(.NilLiteral)
   }
@@ -58,12 +60,12 @@ func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(first)
 }
 
-func sf_cons(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_cons(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }
-  let first = args[0].evaluate(ctx)
-  let second = args[1].evaluate(ctx)
+  let first = args[0].evaluate(ctx, env)
+  let second = args[1].evaluate(ctx, env)
   switch second {
   case .NilLiteral:
     // Create a new list consisting of just the first object
@@ -92,11 +94,11 @@ func sf_cons(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the first item
-func sf_first(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_first(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  let first = args[0].evaluate(ctx)
+  let first = args[0].evaluate(ctx, env)
   switch first {
   case .NilLiteral:
     return .Success(.NilLiteral)
@@ -112,11 +114,11 @@ func sf_first(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first
-func sf_rest(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_rest(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
-  let first = args[0].evaluate(ctx)
+  let first = args[0].evaluate(ctx, env)
   switch first {
   case .NilLiteral: return .Success(.ListLiteral(Cons()))
   case let .ListLiteral(l):
@@ -146,11 +148,11 @@ func sf_rest(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Evaluate a conditional, and evaluate one or one of two expressions
-func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 2 && args.count != 3 {
     return .Failure(.ArityError)
   }
-  let test = args[0].evaluate(ctx)
+  let test = args[0].evaluate(ctx, env)
   let then = args[1]
   let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
   
@@ -164,10 +166,10 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
     }()
   
   if testIsTrue {
-    return .Success(then.evaluate(ctx))
+    return .Success(then.evaluate(ctx, env))
   }
   else if let actualOtherwise = otherwise {
-    return .Success(actualOtherwise.evaluate(ctx))
+    return .Success(actualOtherwise.evaluate(ctx, env))
   }
   else {
     return .Success(.NilLiteral)
@@ -175,10 +177,10 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Evaluate all expressions, returning the value of the final expression
-func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_do(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   var finalValue : ConsValue = .NilLiteral
   for (idx, expr) in enumerate(args) {
-    finalValue = expr.evaluate(ctx)
+    finalValue = expr.evaluate(ctx, env)
     if idx != args.count - 1 && finalValue.isRecurSentinel {
       return .Failure(.RecurMisuseError)
     }
@@ -186,7 +188,7 @@ func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(finalValue)
 }
 
-func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count < 1 {
     return .Failure(.ArityError)
   }
@@ -203,7 +205,7 @@ func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
     // Do stuff
     if let actualInit = initializer {
       // If a value is provided, always use that value
-      let result = actualInit.evaluate(ctx)
+      let result = actualInit.evaluate(ctx, env)
       ctx.setTopLevelBinding(s, value: .Literal(result))
     }
     else {
@@ -219,7 +221,7 @@ func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
-func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -240,7 +242,7 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context(parent: ctx, bindings: newBindings))
+        let result = expression.evaluate(Context(parent: ctx, bindings: newBindings), env)
         newBindings[s] = .Literal(result)
       default:
         return .Failure(.InvalidArgumentError)
@@ -256,14 +258,14 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
       return .Success(.NilLiteral)
     }
     let restOfArgs = Array(args[1..<args.count])
-    let result = sf_do(restOfArgs, newContext)
+    let result = sf_do(restOfArgs, newContext, env)
     return result
   default:
     return .Failure(.InvalidArgumentError)
   }
 }
 
-func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -271,7 +273,7 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   let rest = (name == nil) ? args : Array(args[1..<args.count])
   if rest[0].asVector() != nil {
     // Single arity
-    let singleArity = buildSingleFnForItem(.VectorLiteral(rest))
+    let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Function)
     if let actualSingleArity = singleArity {
       return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
     }
@@ -279,7 +281,7 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   else {
     var arityBuffer : [SingleFn] = []
     for potential in rest {
-      if let nextFn = buildSingleFnForItem(potential) {
+      if let nextFn = buildSingleFnFor(potential, type: .Function) {
         arityBuffer.append(nextFn)
       }
       else {
@@ -291,7 +293,7 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count < 2 {
     return .Failure(.ArityError)
   }
@@ -303,7 +305,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     let rest = Array(args[1..<args.count])
     if rest[0].asVector() != nil {
       // Single arity
-      let singleArity = buildSingleFnForItem(.VectorLiteral(rest))
+      let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Macro)
       if let actualSingleArity = singleArity {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name)
         switch macroResult {
@@ -318,7 +320,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     else {
       var arityBuffer : [SingleFn] = []
       for potential in rest {
-        if let nextFn = buildSingleFnForItem(potential) {
+        if let nextFn = buildSingleFnFor(potential, type: .Macro) {
           arityBuffer.append(nextFn)
         }
         else {
@@ -338,7 +340,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -356,7 +358,7 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
       switch name {
       case let .Symbol(s):
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context(parent: ctx, bindings: bindings))
+        let result = expression.evaluate(Context(parent: ctx, bindings: bindings), env)
         bindings[s] = .Literal(result)
         symbols.append(s)
       default:
@@ -368,7 +370,7 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
     // Now, run the loop body
     var context = bindings.count == 0 ? ctx : Context(parent: ctx, bindings: bindings)
     while true {
-      let result = sf_do(forms, context)
+      let result = sf_do(forms, context, env)
       switch result {
       case let .Success(resultValue):
         switch resultValue {
@@ -392,12 +394,12 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-func sf_recur(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_recur(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   // recur can *only* be used inside the context of a 'loop' or a fn declaration
   // Evaluate all arguments, and then create a sentinel value
   var newArgs : [ConsValue] = []
   for arg in args {
-    let result = arg.evaluate(ctx)
+    let result = arg.evaluate(ctx, env)
     newArgs.append(result)
   }
   return .Success(.RecurSentinel(newArgs))
@@ -434,7 +436,7 @@ private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
 
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
 /// SingleFn instance.
-private func buildSingleFnForItem(item: ConsValue) -> SingleFn? {
+private func buildSingleFnFor(item: ConsValue, #type: FnType) -> SingleFn? {
   let itemAsVector : [ConsValue]? = {
     switch item {
     case let .ListLiteral(l): return Cons.collectSymbols(l)
@@ -452,7 +454,7 @@ private func buildSingleFnForItem(item: ConsValue) -> SingleFn? {
         // Now we've taken out the parameters (they are symbols in a vector
         let (paramNames, variadic) = paramTuple
         let forms = vector.count > 1 ? Array(vector[1..<vector.count]) : []
-        return SingleFn(parameters: paramNames, forms: forms, variadicParameter: variadic)
+        return SingleFn(fnType: type, parameters: paramNames, forms: forms, variadicParameter: variadic)
       }
     }
   }

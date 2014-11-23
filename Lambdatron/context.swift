@@ -12,6 +12,8 @@ enum Binding : Printable {
   case Invalid
   case Unbound
   case Literal(ConsValue)
+  case FunctionParam(ConsValue)
+  case MacroParam(ConsValue)
   case BoundMacro(Macro)
   case BuiltIn(LambdatronBuiltIn)
   
@@ -20,6 +22,8 @@ enum Binding : Printable {
     case .Invalid: return "invalid"
     case .Unbound: return "unbound"
     case let .Literal(l): return "literal: \(l.description)"
+    case let .FunctionParam(fp): return "function parameter: \(fp.description)"
+    case let .MacroParam(mp): return "macro parameter: \(mp.description)"
     case let .BoundMacro(m): return "macro: '\(m.name)'"
     case let .BuiltIn(b): return "builtin: \(b)"
     }

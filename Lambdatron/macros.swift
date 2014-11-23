@@ -60,15 +60,16 @@ class Macro {
     self.name = name
   }
   
-  func macroexpand(arguments: [ConsValue], ctx: Context) -> EvalResult {
+  func macroexpand(arguments: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+    // TODO: propagate env if necessary
     if let functionToUse = specificFns[arguments.count] {
       // We have a valid fixed arity definition to use; use it
-      return functionToUse.evaluate(arguments, ctx: ctx)
+      return functionToUse.evaluate(arguments, ctx: ctx, env: .Macro)
     }
     else if let varargFunction = variadic {
       if arguments.count >= varargFunction.paramCount {
         // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
-        return varargFunction.evaluate(arguments, ctx: ctx)
+        return varargFunction.evaluate(arguments, ctx: ctx, env: .Macro)
       }
     }
     internalError("macro was somehow defined without any arities; this is a bug")

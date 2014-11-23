@@ -8,7 +8,21 @@
 
 import Foundation
 
-/// Represents a cons cell, an element in a linked list
+/// A container class allowing for references to value types.
+class Box<T> {
+  let value : T
+  init(_ value: T) {
+    self.value = value
+  }
+}
+
+/// The environment under which an entity is executing. This might be either as a function call or a macro expansion.
+enum EvalEnvironment {
+  case Normal
+  case Macro
+}
+
+/// Represents a cons cell, an element in a linked list.
 class Cons : Printable {
   var next : Cons?
   var value : ConsValue
@@ -94,12 +108,12 @@ class Cons : Printable {
   
   // MARK: API - helpers
   
-  class func collectValues(firstItem : Cons?, ctx: Context) -> [ConsValue]? {
+  class func collectValues(firstItem : Cons?, ctx: Context, env: EvalEnvironment) -> [ConsValue]? {
     var valueBuffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
     while let actualItem = currentItem {
       let thisValue = actualItem.value
-      valueBuffer.append(thisValue.evaluate(ctx))
+      valueBuffer.append(thisValue.evaluate(ctx, env))
       currentItem = actualItem.next
     }
     return valueBuffer
@@ -122,24 +136,26 @@ class Cons : Printable {
   
   // MARK: API - evaluate
   
-  func evaluate(ctx: Context) -> (ConsValue, EvalType) {
+  func evaluate(ctx: Context, _ env: EvalEnvironment) -> (ConsValue, EvalType) {
     if let toExecuteSpecialForm = asSpecialForm() {
+      logEval("evaluating as special form: \(self.description)")
       // Execute a special form
       // How it works:
       // 1. Arguments are passed in as-is
       // 2. The special form decides whether or not to evaluate or use the arguments
       // 3. The result may or may not be evaluated, depending on the special form
       let symbols = Cons.collectSymbols(next)
-      let result = toExecuteSpecialForm.function(symbols, ctx)
+      let result = toExecuteSpecialForm.function(symbols, ctx, env)
       switch result {
       case let .Success(v): return (v, .Special(toExecuteSpecialForm))
       case let .Failure(f): fatal("Something went wrong: \(f)")
       }
     }
     else if let toExecuteBuiltIn = asBuiltIn(ctx) {
+      logEval("evaluating as built-in function: \(self.description)")
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
-      if let values = Cons.collectValues(next, ctx: ctx) {
+      if let values = Cons.collectValues(next, ctx: ctx, env: env) {
         let result = toExecuteBuiltIn(values, ctx)
         switch result {
         case let .Success(v): return (v, .Function)
@@ -151,28 +167,31 @@ class Cons : Printable {
       }
     }
     else if let toExpandMacro = asMacro(ctx) {
+      logEval("evaluating as macro expansion: \(self.description)")
       // Expand a macro
       // How it works:
       // 1. Arguments are passed in as-is
       // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
       // 3. This replacement form is then evaluated
       let symbols = Cons.collectSymbols(next)
-      let expanded = toExpandMacro.macroexpand(symbols, ctx: ctx)
+      let expanded = toExpandMacro.macroexpand(symbols, ctx: ctx, env: env)
       switch expanded {
       case let .Success(v):
-        let result = v.evaluate(ctx)
-        return (v, .Macro)
+        logEval("macroexpansion complete; new form: \(v.description)")
+        let result = v.evaluate(ctx, env)
+        return (result, .Macro)
       case let .Failure(f): fatal("Something went wrong: \(f)")
       }
     }
     else if let toExecuteFunction = asFunction(ctx) {
+      logEval("evaluating as function: \(self.description)")
       // Execute a normal function
       // How it works:
       // 1. Arguments are evaluated before the function is ever invoked
       // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
       // 3. The result is then used as-is
-      if let values = Cons.collectValues(next, ctx: ctx) {
-        let result = toExecuteFunction.evaluate(values)
+      if let values = Cons.collectValues(next, ctx: ctx, env: env) {
+        let result = toExecuteFunction.evaluate(values, env: env)
         switch result {
         case let .Success(v): return (v, .Function)
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -227,6 +246,8 @@ enum ConsValue : Equatable, Printable {
   case FunctionLiteral(Function)
   // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
   case RecurSentinel([ConsValue])
+  // A special case only for use with macro arguments
+  case MacroArgument(Box<ConsValue>)
   
   func asSymbol() -> String? {
     switch self {
@@ -263,7 +284,7 @@ enum ConsValue : Equatable, Printable {
     }
   }
   
-  func evaluate(ctx: Context) -> ConsValue {
+  func evaluate(ctx: Context, _ env: EvalEnvironment) -> ConsValue {
     switch self {
     case FunctionLiteral: return self
     case let Symbol(v):
@@ -273,6 +294,8 @@ enum ConsValue : Equatable, Printable {
       case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
       case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
       case let .Literal(l): return l
+      case let .FunctionParam(fp): return fp
+      case let .MacroParam(mp): return .MacroArgument(Box(mp))
       case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
       case .BuiltIn: return self
       }
@@ -282,7 +305,7 @@ enum ConsValue : Equatable, Printable {
     case StringLiteral: return self
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
-      let (result, evalType) = l.evaluate(ctx)
+      let (result, evalType) = l.evaluate(ctx, env)
       switch evalType {
       case .Special:
         // Once a special form is evaluated, its result is not evaluated again
@@ -294,14 +317,21 @@ enum ConsValue : Equatable, Printable {
       case .Macro:
         // Once a macro is evaluated, its product is expected to be a form (usually a list) which must be evaluated
         //  again, either to perform another macroexpansion or to execute a function
-        return result.evaluate(ctx)
+        return result.evaluate(ctx, env)
       }
     case let VectorLiteral(v):
       // Evaluate the value of the vector literal 'v'
-      return .VectorLiteral(v.map({$0.evaluate(ctx)}))
+      return .VectorLiteral(v.map({$0.evaluate(ctx, env)}))
     case Special: fatal("TODO - taking the value of a special form should be disallowed")
     case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")
     case RecurSentinel: return self
+    case let MacroArgument(ma):
+      // A macro argument is either being evaluated in the environment of a macro definition (in which case it should be
+      // not further evaluated), or in the normal environment (in which case it should be treated as a normal value)
+      switch env {
+      case .Normal: return ma.value.evaluate(ctx, env)
+      case .Macro: return ma.value
+      }
     }
   }
 
@@ -320,112 +350,7 @@ enum ConsValue : Equatable, Printable {
     case let Special(s): return s.rawValue
     case None: return ""
     case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
+    case let MacroArgument(ma): return ma.value.description
     }
-  }
-}
-
-func ==(lhs: Cons, rhs: [ConsValue]) -> Bool {
-  if rhs.count == 0 {
-    return lhs.isEmpty
-  }
-
-  var that : Cons = lhs
-  // Walk through the list
-  for var i=0; i<rhs.count; i++ {
-    if that.value != rhs[i] {
-      // Different values
-      return false
-    }
-    if let next = lhs.next {
-      that = next
-    }
-    else {
-      if i < rhs.count - 1 {
-        // List is shorter than vector
-        return false
-      }
-    }
-  }
-  if that.next != nil {
-    // List is longer than vector
-    return false
-  }
-  return true
-}
-
-func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
-  switch lhs {
-  case .None:
-    switch rhs {
-    case .None: return true
-    default: return false
-    }
-  case let .Symbol(v1):
-    switch rhs {
-    case let .Symbol(v2): return v1 == v2  // Can happen if comparing two quoted symbols
-    default: return false
-    }
-  case let .Special(s1):
-    switch rhs {
-    case let .Special(s2): return s1 == s2
-    default: return false
-    }
-  case .NilLiteral:
-    switch rhs {
-    case .NilLiteral: return true
-    default: return false
-    }
-  case let .BoolLiteral(b1):
-    switch rhs {
-    case let .BoolLiteral(b2): return b1 == b2
-    default: return false
-    }
-  case let .NumberLiteral(n1):
-    switch rhs {
-    case let .NumberLiteral(n2): return n1 == n2
-    default: return false
-    }
-  case let .StringLiteral(s1):
-    switch rhs {
-    case let .StringLiteral(s2): return s1 == s2
-    default: return false
-    }
-  case let .ListLiteral(l1):
-    switch rhs {
-    case let .ListLiteral(l2):
-      var this = l1
-      var that = l2
-      // We have to walk through the lists
-      while true {
-        if this.value != that.value {
-          // Different values
-          return false
-        }
-        if this.next != nil && that.next == nil || this.next == nil && that.next != nil {
-          // Different lengths
-          return false
-        }
-        if this.next == nil && that.next == nil {
-          // Same length, end of both lists
-          return true
-        }
-        this = this.next!
-        that = that.next!
-      }
-    case let .VectorLiteral(v2): return l1 == v2
-    default: return false
-    }
-  case let .VectorLiteral(v1):
-    switch rhs {
-    case let .ListLiteral(l2): return l2 == v1
-    case let .VectorLiteral(v2): return v1 == v2
-    default: return false
-    }
-  case let .FunctionLiteral(f1):
-    switch rhs {
-    case let .FunctionLiteral(f2): return f1 === f2
-    default: return false
-    }
-  case .RecurSentinel: return false
   }
 }

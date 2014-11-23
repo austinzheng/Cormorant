@@ -17,7 +17,7 @@ func loadStdlibInto(context: Context, files: [String]) {
       if let segments = segmentsForFile(data) {
         for s in segments {
           if let parsedData = parse(s) {
-            parsedData.evaluate(context)
+            parsedData.evaluate(context, .Normal)
           }
         }
       }
