@@ -84,6 +84,16 @@ class Context {
     // Bind collection functions
     bindings["list"] = .BuiltIn(pr_list)
     bindings["vector"] = .BuiltIn(pr_vector)
+    // Bind type test functions
+    bindings["number?"] = .BuiltIn(pr_isNumber)
+    bindings["string?"] = .BuiltIn(pr_isString)
+    bindings["symbol?"] = .BuiltIn(pr_isSymbol)
+    bindings["fn?"] = .BuiltIn(pr_isFunction)
+    bindings["eval?"] = .BuiltIn(pr_isEvalable)
+    bindings["true?"] = .BuiltIn(pr_isTrue)
+    bindings["false?"] = .BuiltIn(pr_isFalse)
+    bindings["list?"] = .BuiltIn(pr_isList)
+    bindings["vector?"] = .BuiltIn(pr_isVector)
     // Bind I/O functions
     bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions
