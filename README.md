@@ -25,20 +25,18 @@ Need ideas? Try:
 **Defining and calling a function**
 
 - `(def myfunc (fn [a b] (+ a b 1)))`, then `(myfunc 10 20)`
+- Functions returning functions: `(def f1 (fn [arg1] (fn [arg2] (+ arg1 arg2))))`, then `(let [plusone (f1 1)] (plusone 3))`
 
 **Recursion and iteration**
 
-- `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))`, then `(r 10)`
-- `(def recadd (fn [mylist sofar] (if (= (first mylist) nil) sofar (recur (rest mylist) (+ (first mylist) sofar)))))`, then `(recadd '(1 2 3 4 5) 0)`
-- `(loop [a 10 b 0] (if (= a 0) b (recur (- a 1) (+ b a))))`
+- Basic recursion: `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))`, then `(r 10)`
+- Tail-call recursion using recur: `(def recadd (fn [mylist sofar] (if (= (first mylist) nil) sofar (recur (rest mylist) (+ (first mylist) sofar)))))`, then `(recadd '(1 2 3 4 5) 0)`
+- Iteration using loops: `(loop [a 10 b 0] (if (= a 0) b (recur (- a 1) (+ b a))))`
 
 **Creating and using a macro**
 
-- `(defmacro when [__MACRO_pred __MACRO_do] (list 'if __MACRO_pred __MACRO_do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) "bad")`
+- `(defmacro when [predicate then-do] (list 'if predicate then-do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) "bad")`
 
-**Defining a function returning another one**
-
-- `(def f1 (fn [arg1] (fn [arg2] (+ arg1 arg2))))`, then `(let [plusone (f1 1)] (plusone 3))`
 
 ### Current Limitations
 
@@ -59,15 +57,17 @@ Lambdatron has the following features:
 
 **Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `'()`. Or use the `list` function to create a list from zero or more arguments.
 
-**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`. Unlike lists, vectors can't be eval'ed.
+**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`. Unlike lists, vectors can't be used to invoke functions.
 
 **Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`). To create a function you can call by name later, use the workaround `(def *name* (fn [*args*] *body*))`.
 
-**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. Macros are expanded using the (non-argument) bindings at the time expansion happens, not the bindings at the time they were created (as is true with functions). Create them using `defmacro`. Macros can be defined with multiple arities and/or varargs.
+**Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. Like functions, macros capture their (non parameter binding) context. Create them using `defmacro`. Macros can be defined with multiple arities and/or varargs.
 
 **Let-binding**, using `let`, allows you to create a lexical context with new bindings available only within the scope of that context.
 
-**Vars** are global bindings to a value that can be rebound as desired. Create them using `def`.
+**Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
+
+**Basic types** include booleans (`true` and `false`), `nil`, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`).
 
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
 
@@ -89,6 +89,7 @@ Lambdatron has the following features:
 - Standard library
 - Distinction between integers and floating-point values
 - Support for maps
+- Support for sets
 - Support for keywords
 - Support for syntax quoting
 - Basic namespacing

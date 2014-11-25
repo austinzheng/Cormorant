@@ -14,11 +14,12 @@ enum MacroCreationResult {
 }
 
 class Macro {
+  let context : Context
   let name : String
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
-  class func buildMacro(arities: [SingleFn], name: String) -> MacroCreationResult {
+  class func buildMacro(arities: [SingleFn], name: String, ctx: Context) -> MacroCreationResult {
     if arities.count == 0 {
       // Must have at least one arity
       return .Failure(.DefineFunctionError("macro must be defined with at least one arity"))
@@ -50,26 +51,27 @@ class Macro {
         }
       }
     }
-    let newMacro = Macro(specificFns: aritiesMap, variadic: variadic, name: name)
+    let newMacro = Macro(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
     return .Success(newMacro)
   }
   
-  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: String) {
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: String, ctx: Context) {
     self.specificFns = specificFns
     self.variadic = variadic
     self.name = name
+    self.context = ctx
   }
   
-  func macroexpand(arguments: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  func macroexpand(arguments: [ConsValue], env: EvalEnvironment) -> EvalResult {
     // TODO: propagate env if necessary
     if let functionToUse = specificFns[arguments.count] {
       // We have a valid fixed arity definition to use; use it
-      return functionToUse.evaluate(arguments, ctx: ctx, env: .Macro)
+      return functionToUse.evaluate(arguments, ctx: context, env: .Macro)
     }
     else if let varargFunction = variadic {
       if arguments.count >= varargFunction.paramCount {
         // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
-        return varargFunction.evaluate(arguments, ctx: ctx, env: .Macro)
+        return varargFunction.evaluate(arguments, ctx: context, env: .Macro)
       }
     }
     internalError("macro was somehow defined without any arities; this is a bug")

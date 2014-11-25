@@ -307,7 +307,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
       // Single arity
       let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Macro)
       if let actualSingleArity = singleArity {
-        let macroResult = Macro.buildMacro([actualSingleArity], name: name)
+        let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
         case let .Success(macro):
           ctx.setTopLevelBinding(name, value: .BoundMacro(macro))
@@ -327,7 +327,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
           return .Failure(.InvalidArgumentError)
         }
       }
-      let macroResult = Macro.buildMacro(arityBuffer, name: name)
+      let macroResult = Macro.buildMacro(arityBuffer, name: name, ctx: ctx)
       switch macroResult {
       case let .Success(macro):
         ctx.setTopLevelBinding(name, value: .BoundMacro(macro))

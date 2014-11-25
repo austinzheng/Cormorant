@@ -174,7 +174,7 @@ class Cons : Printable {
       // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
       // 3. This replacement form is then evaluated
       let symbols = Cons.collectSymbols(next)
-      let expanded = toExpandMacro.macroexpand(symbols, ctx: ctx, env: env)
+      let expanded = toExpandMacro.macroexpand(symbols, env: env)
       switch expanded {
       case let .Success(v):
         logEval("macroexpansion complete; new form: \(v.description)")
