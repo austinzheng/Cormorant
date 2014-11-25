@@ -149,7 +149,7 @@ func listWithTokens(tokens: [LexToken]?) -> Cons? {
   return nil
 }
 
-func vectorWithTokens(tokens: [LexToken]?) -> [ConsValue]? {
+func vectorWithTokens(tokens: [LexToken]?) -> Vector? {
   if let tokens = tokens {
     if tokens.count == 0 {
       // Empty vector: []

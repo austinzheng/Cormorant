@@ -8,7 +8,7 @@
 
 import Foundation
 
-func ==(lhs: Cons, rhs: [ConsValue]) -> Bool {
+func ==(lhs: Cons, rhs: Vector) -> Bool {
   if rhs.count == 0 {
     return lhs.isEmpty
   }

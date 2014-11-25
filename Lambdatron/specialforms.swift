@@ -437,7 +437,7 @@ private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
 /// SingleFn instance.
 private func buildSingleFnFor(item: ConsValue, #type: FnType) -> SingleFn? {
-  let itemAsVector : [ConsValue]? = {
+  let itemAsVector : Vector? = {
     switch item {
     case let .ListLiteral(l): return Cons.collectSymbols(l)
     case let .VectorLiteral(v): return v

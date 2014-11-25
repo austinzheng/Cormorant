@@ -8,6 +8,8 @@
 
 import Foundation
 
+typealias Vector = [ConsValue]
+
 /// A container class allowing for references to value types.
 class Box<T> {
   let value : T
@@ -242,7 +244,7 @@ enum ConsValue : Equatable, Printable {
   case NumberLiteral(Double)
   case StringLiteral(String)
   case ListLiteral(Cons)
-  case VectorLiteral([ConsValue])
+  case VectorLiteral(Vector)
   case FunctionLiteral(Function)
   // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
   case RecurSentinel([ConsValue])
@@ -263,7 +265,7 @@ enum ConsValue : Equatable, Printable {
     }
   }
   
-  func asVector() -> [ConsValue]? {
+  func asVector() -> Vector? {
     switch self {
     case let .VectorLiteral(v): return v
     default: return nil
