@@ -69,6 +69,7 @@ func processEscape(sequence: String) -> String? {
   }
 }
 
+/// Given a raw input (as a string), lex it into individual tokens.
 func lex(raw: String) -> LexResult {
   enum RawLexToken {
     case LeftP

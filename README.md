@@ -78,7 +78,7 @@ Lambdatron has the following features:
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`, `loop`, `recur`
 - Reader macros: `'` (for quoting)
-- Collection built-in functions: `list`, `vector`
+- Collection built-in functions: `list`, `vector`, `concat`, `seq`
 - I/O built-in functions: `print`
 - Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`

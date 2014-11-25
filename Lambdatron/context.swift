@@ -84,6 +84,8 @@ class Context {
     // Bind collection functions
     bindings["list"] = .BuiltIn(pr_list)
     bindings["vector"] = .BuiltIn(pr_vector)
+    bindings["concat"] = .BuiltIn(pr_concat)
+    bindings["seq"] = .BuiltIn(pr_seq)
     // Bind type test functions
     bindings["number?"] = .BuiltIn(pr_isNumber)
     bindings["string?"] = .BuiltIn(pr_isString)

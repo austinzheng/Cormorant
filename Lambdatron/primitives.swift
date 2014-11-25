@@ -43,6 +43,7 @@ func extractList(n: ConsValue) -> Cons? {
 
 // MARK: Collections
 
+/// Given zero or more arguments, construct a list whose components are the arguments (or the empty list).
 func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.ListLiteral(Cons()))
@@ -57,13 +58,88 @@ func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.ListLiteral(first))
 }
 
+/// Given zero or more arguments, construct a vector whose components are the arguments (or the empty vector).
 func pr_vector(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.VectorLiteral(args))
+}
+
+/// Given a single sequence, return nil (if empty) or a list built out of that sequence.
+func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .NilLiteral: return .Success(args[0])
+  case let .ListLiteral(l):
+    return .Success(l.isEmpty ? .NilLiteral : .ListLiteral(l))
+  case let .VectorLiteral(v):
+    // Turn the vector into a list
+    if v.count == 0 {
+      return .Success(.NilLiteral)
+    }
+    let head = Cons(v[0])
+    var this = head
+    for var i=1; i<v.count; i++ {
+      var next = Cons(v[i])
+      this.next = next
+      this = next
+    }
+    return .Success(.ListLiteral(this))
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
+func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count == 0 {
+    return .Success(.ListLiteral(Cons()))
+  }
+  // TODO: Support strings (which should concat into characters)
+  var headInitialized = false
+  var head = Cons()
+  var this = head
+  for arg in args {
+    switch arg {
+    case .NilLiteral: continue
+    case let .ListLiteral(l):
+      if !l.isEmpty {
+        var listHead : Cons? = l
+        while let actualHead = listHead {
+          if !headInitialized {
+            this.value = actualHead.value
+            headInitialized = true
+          }
+          else {
+            let next = Cons(actualHead.value)
+            this.next = next
+            this = next
+          }
+          listHead = actualHead.next
+        }
+      }
+    case let .VectorLiteral(v):
+      for item in v {
+        if !headInitialized {
+          this.value = item
+          headInitialized = true
+        }
+        else {
+          let next = Cons(item)
+          this.next = next
+          this = next
+        }
+      }
+    default:
+      return .Failure(.InvalidArgumentError)
+    }
+  }
+  return .Success(.ListLiteral(head))
 }
 
 
 // MARK: Typechecking
 
+/// Return whether or not the argument is a number of some sort.
 func pr_isNumber(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -74,6 +150,7 @@ func pr_isNumber(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a string literal.
 func pr_isString(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -84,6 +161,7 @@ func pr_isString(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a symbol.
 func pr_isSymbol(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -94,6 +172,7 @@ func pr_isSymbol(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a user-defined function.
 func pr_isFunction(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -104,6 +183,7 @@ func pr_isFunction(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is something that can be called in function position (e.g. special forms).
 func pr_isEvalable(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -121,6 +201,7 @@ func pr_isEvalable(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is the boolean value 'true'.
 func pr_isTrue(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -131,6 +212,7 @@ func pr_isTrue(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is the boolean value 'false'.
 func pr_isFalse(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -141,6 +223,7 @@ func pr_isFalse(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a list.
 func pr_isList(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -151,6 +234,7 @@ func pr_isList(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a vector.
 func pr_isVector(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -164,7 +248,7 @@ func pr_isVector(args: [ConsValue], ctx: Context) -> EvalResult {
 
 // MARK: I/O
 
-/// Print zero or more args to screen. Returns nil
+/// Print zero or more args to screen. Returns nil.
 func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
@@ -181,7 +265,7 @@ func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
 
 // MARK: Comparison
 
-/// Evaluate the equality of one or more forms
+/// Evaluate the equality of one or more forms.
 func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -195,7 +279,7 @@ func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.BoolLiteral(true))
 }
 
-/// Evaluate whether arguments are in monotonically decreasing order
+/// Evaluate whether arguments are in monotonically decreasing order.
 func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -214,7 +298,7 @@ func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-/// Evaluate whether arguments are in monotonically increasing order
+/// Evaluate whether arguments are in monotonically increasing order.
 func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -236,7 +320,7 @@ func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
 
 // MARK: Arithmetic
 
-/// Take an arbitrary number of numbers and return their sum
+/// Take an arbitrary number of numbers and return their sum.
 func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -248,7 +332,7 @@ func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-/// Take an arbitrary number of numbers and return their difference
+/// Take an arbitrary number of numbers and return their difference.
 func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -265,7 +349,7 @@ func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-/// Take an arbitrary number of numbers  and return their product
+/// Take an arbitrary number of numbers  and return their product.
 func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.ArityError)
@@ -277,7 +361,7 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.InvalidArgumentError)
 }
 
-/// Take two numbers and return their quotient
+/// Take two numbers and return their quotient.
 func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)

@@ -38,7 +38,7 @@ class Cons : Printable {
     self.value = .None
   }
   
-  /// Create a list with a single item.
+  /// Create a single-element list with a single item.
   init(_ value: ConsValue) {
     self.next = nil
     self.value = value
@@ -53,6 +53,7 @@ class Cons : Printable {
   
   // MARK: API
   
+  /// Whether or not this list is the empty list ().
   var isEmpty : Bool {
     if next != nil {
       return false
@@ -110,6 +111,8 @@ class Cons : Printable {
   
   // MARK: API - helpers
   
+  /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
+  /// to perform argument evaluation as part of the process of calling a function.
   class func collectValues(firstItem : Cons?, ctx: Context, env: EvalEnvironment) -> [ConsValue]? {
     var valueBuffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
@@ -121,6 +124,8 @@ class Cons : Printable {
     return valueBuffer
   }
   
+  /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended
+  /// to collect symbols as part of the process of calling a macro or special form.
   class func collectSymbols(firstItem: Cons?) -> [ConsValue] {
     var symbolBuffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
@@ -138,6 +143,7 @@ class Cons : Printable {
   
   // MARK: API - evaluate
   
+  /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
   func evaluate(ctx: Context, _ env: EvalEnvironment) -> (ConsValue, EvalType) {
     if let toExecuteSpecialForm = asSpecialForm() {
       logEval("evaluating as special form: \(self.description)")
@@ -234,7 +240,8 @@ enum EvalType {
   case Function
 }
 
-/// Represents the value of an item in a single cons cell; either a variable or a literal of some sort
+/// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms, collections, and sentinel
+/// values (which should never leak into a normal evaluation context).
 enum ConsValue : Equatable, Printable {
   case None
   case Symbol(String)

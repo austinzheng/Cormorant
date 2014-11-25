@@ -51,7 +51,7 @@ enum SpecialForm : String, Printable {
 
 // MARK: Special forms
 
-/// Return the raw form, without any evaluation
+/// Return the argument as its literal value (without performing any evaluation).
 func sf_quote(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Success(.NilLiteral)
@@ -60,6 +60,7 @@ func sf_quote(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   return .Success(first)
 }
 
+/// Given a prefix and a list argument, return a new list where the prefix is followed by the list argument.
 func sf_cons(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
@@ -93,7 +94,7 @@ func sf_cons(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
   }
 }
 
-/// Given a sequence, return the first item
+/// Given a sequence, return the first item.
 func sf_first(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -113,7 +114,7 @@ func sf_first(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   }
 }
 
-/// Given a sequence, return the sequence comprised of all items but the first
+/// Given a sequence, return the sequence comprised of all items but the first.
 func sf_rest(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
@@ -147,7 +148,7 @@ func sf_rest(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
   }
 }
 
-/// Evaluate a conditional, and evaluate one or one of two expressions
+/// Evaluate a conditional, and evaluate one or one of two expressions based on its boolean value.
 func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 2 && args.count != 3 {
     return .Failure(.ArityError)
@@ -176,7 +177,7 @@ func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   }
 }
 
-/// Evaluate all expressions, returning the value of the final expression
+/// Evaluate all expressions, returning the value of the final expression.
 func sf_do(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   var finalValue : ConsValue = .NilLiteral
   for (idx, expr) in enumerate(args) {
@@ -188,6 +189,7 @@ func sf_do(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   return .Success(finalValue)
 }
 
+/// Bind or re-bind a global identifier, optionally assigning it a value.
 func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count < 1 {
     return .Failure(.ArityError)
@@ -221,6 +223,8 @@ func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
   }
 }
 
+/// Create a new lexical scope in which zero or more symbols are bound to the results of corresponding forms; all forms
+/// after the binding vector are evaluated in an implicit 'do' form within the context of the new scope.
 func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -265,6 +269,11 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
   }
 }
 
+/// Define a user-defined function, consisting of an parameter vector followed by zero or more forms comprising the
+/// body, or one or more lists comprised of parameter vectors and body forms. When the function is called, argument
+/// values are bound to the parameter symbols, and the body forms are evaluated in an implicit 'do' form. A name can
+/// optionally be provided before the argument vector or first arity list, allowing the function to be referenced from
+/// within itself.
 func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -293,6 +302,8 @@ func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   return .Failure(.InvalidArgumentError)
 }
 
+/// Define a macro. A macro is defined in a similar manner to a function, except that macros must be bound to a global
+/// binding and cannot be treated as values.
 func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count < 2 {
     return .Failure(.ArityError)
@@ -340,6 +351,10 @@ func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
   return .Failure(.InvalidArgumentError)
 }
 
+/// Define a loop. Loops define a set of zero or more bindings in a new lexical environment, followed by zero or more
+/// forms which are evaluated within an implicit 'do' form. The loop body may return either a normal value, in which
+/// case the loop terminates, or the value of a 'recur' form, in which case the new arguments are re-bound and the loop
+/// forms are evaluated again.
 func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
@@ -394,6 +409,9 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
   return .Failure(.InvalidArgumentError)
 }
 
+/// When in the context of a function or a loop, indicate that execution of the current iteration has completed and
+/// provide updated bindings for re-running the function or loop as part of tail-call optimized recursion. Use outside
+/// these contexts is considered an error.
 func sf_recur(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   // recur can *only* be used inside the context of a 'loop' or a fn declaration
   // Evaluate all arguments, and then create a sentinel value

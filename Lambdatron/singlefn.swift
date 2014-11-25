@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms
+/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
 enum EvalError : Printable {
   case ArityError, InvalidArgumentError, DivideByZeroError, RecurMisuseError
   case DefineFunctionError(String)
@@ -26,6 +26,8 @@ enum EvalError : Printable {
   }
 }
 
+/// The result of evaluating a function, macro, or special form. Successfully returned values or error messages are
+/// encapsulated in each case.
 enum EvalResult {
   case Success(ConsValue)
   case Failure(EvalError)
