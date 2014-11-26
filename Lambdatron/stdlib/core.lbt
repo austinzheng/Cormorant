@@ -1,0 +1,27 @@
+; Lambdatron standard library
+; core.lbt
+; Parts of this code adapted from Clojure's standard library.
+
+; Define a function in the global context
+(defmacro defn [fnname & fnargs]
+  `(def ~fnname (fn ~@fnargs)))
+
+; Return the logical opposite of the argument
+(defn not [x]
+  (if x false true))
+
+; Return the logical AND of zero or more values
+(defmacro and
+  ([] true)
+  ([x] x)
+  ([x & next]
+    `(let [__MACRO_andValue ~x]
+        (if __MACRO_andValue (and ~@next) __MACRO_andValue))))
+
+; Return the logical OR of zero or more values
+(defmacro or
+  ([] nil)
+  ([x] x)
+  ([x & next]
+    `(let [__MACRO_orValue ~x]
+      (if __MACRO_orValue __MACRO_orValue (or ~@next)))))

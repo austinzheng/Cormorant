@@ -8,7 +8,7 @@
 
 import Foundation
 
-let stdlib_files = ["sequences"]
+let stdlib_files = ["core"]
 
 func loadStdlibInto(context: Context, files: [String]) {
   for file in files {
@@ -17,7 +17,9 @@ func loadStdlibInto(context: Context, files: [String]) {
       if let segments = segmentsForFile(data) {
         for s in segments {
           if let parsedData = parse(s) {
-            parsedData.evaluate(context, .Normal)
+            // First, perform reader expansion
+            let re = parsedData.readerExpand()
+            re.evaluate(context, .Normal)
           }
         }
       }

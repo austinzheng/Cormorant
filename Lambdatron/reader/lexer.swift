@@ -32,6 +32,9 @@ enum LexToken : Printable {
   case LeftSquareBracket          // left square bracket '['
   case RightSquareBracket         // right square bracket ']'
   case Quote                      // single quote '''
+  case Backquote                  // isolate grave accent '`'
+  case Tilde                      // tilde '~'
+  case TildeAt                    // tilde followed by at '~@'
   case NilLiteral                 // nil
   case StringLiteral(String)      // string (denoted by double quotes)
   case Number(Double)             // floating-point number
@@ -47,6 +50,9 @@ enum LexToken : Printable {
     case .LeftSquareBracket: return "LeftSqBr <[>"
     case .RightSquareBracket: return "RightSqBr <]>"
     case .Quote: return "Quote <'>"
+    case .Backquote: return "Backquote <`>"
+    case .Tilde: return "Tilde <~>"
+    case .TildeAt: return "TildeAt <~@>"
     case let .StringLiteral(x): return "String \"\(x)\""
     case let .NilLiteral: return "Nil"
     case let .Number(x): return "Number <\(x)>"
@@ -77,6 +83,9 @@ func lex(raw: String) -> LexResult {
     case LeftSqBr
     case RightSqBr
     case Quote
+    case Backquote
+    case Tilde
+    case TildeAt
     case StringLiteral(String)
     case Unknown(String)
   }
@@ -140,6 +149,19 @@ func lex(raw: String) -> LexResult {
       case "'":
         flushTokenToBuffer()                          // Single quote
         rawTokenBuffer.append(.Quote)
+      case "`":
+        flushTokenToBuffer()                          // Backquote
+        rawTokenBuffer.append(.Backquote)
+      case "~":
+        flushTokenToBuffer()                          // Tilde can either signify ~ or ~@
+        if idx < rawAsNSString.length - 1 {
+          let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
+          rawTokenBuffer.append(nextChar == "@" ? .TildeAt : .Tilde)
+          skipCount = nextChar == "@" ? 1 : 0
+        }
+        else {
+          rawTokenBuffer.append(.Tilde)
+        }
       case _ where wsSet.characterIsMember(tChar):
         flushTokenToBuffer()                          // Whitespace/newline
       default:
@@ -199,6 +221,9 @@ func lex(raw: String) -> LexResult {
     case .LeftSqBr: tokenBuffer.append(.LeftSquareBracket)
     case .RightSqBr: tokenBuffer.append(.RightSquareBracket)
     case .Quote: tokenBuffer.append(.Quote)
+    case .Backquote: tokenBuffer.append(.Backquote)
+    case .Tilde: tokenBuffer.append(.Tilde)
+    case .TildeAt: tokenBuffer.append(.TildeAt)
     case let .StringLiteral(sl): tokenBuffer.append(.StringLiteral(sl))
     case let .Unknown(u):
       // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string

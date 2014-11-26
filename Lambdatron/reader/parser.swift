@@ -15,8 +15,11 @@ enum TokenCollectionType {
 enum NextFormTreatment {
   // This enum describes several special reader forms that affect the parsing of the form that follows immediately
   // afterwards. For example, something like '(1 2 3) should expand to (quote (1 2 3)).
-  case None   // No special treatment
-  case Quote  // Wrap next form with (quote)
+  case None           // No special treatment
+  case Quote          // Wrap next form with (quote)
+  case SyntaxQuote
+  case Unquote
+  case UnquoteSplice
 }
 
 /// Collect a sequence of tokens representing a single collection type form (e.g. a single list).
@@ -60,18 +63,27 @@ func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollection
   return count == 0 ? buffer : nil
 }
 
-// Note that this function will *reset* wrapType.
-func wrappedConsItem(item: ConsValue, inout wrapType: NextFormTreatment) -> ConsValue {
+// Note that this function will *modify* wrapStack by removing elements.
+func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> ConsValue {
+  let wrapType : NextFormTreatment = wrapStack.last ?? .None
   let wrappedItem : ConsValue = {
     switch wrapType {
     case .None:
       return item
     case .Quote:
-      // Wrap as a cons
-      return .ListLiteral(Cons(.Special(.Quote), next: Cons(item)))
+      return .ListLiteral(Cons(.ReaderMacro(.Quote), next: Cons(item)))
+    case .SyntaxQuote:
+      return .ListLiteral(Cons(.ReaderMacro(.SyntaxQuote), next: Cons(item)))
+    case .Unquote:
+      return .ListLiteral(Cons(.ReaderMacro(.Unquote), next: Cons(item)))
+    case .UnquoteSplice:
+      return .ListLiteral(Cons(.ReaderMacro(.UnquoteSplice), next: Cons(item)))
     }
     }()
-  wrapType = .None
+  if wrapStack.count > 0 {
+    wrapStack.removeLast()
+    return wrappedConsItem(wrappedItem, &wrapStack)
+  }
   return wrappedItem
 }
 
@@ -79,7 +91,7 @@ func wrappedConsItem(item: ConsValue, inout wrapType: NextFormTreatment) -> Cons
 /// collection type. This method recursively finds token sequences representing collections and calls the appropriate
 /// constructor to build a valid ConsValue for that form
 func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
-  var wrapType : NextFormTreatment = .None
+  var wrapStack : [NextFormTreatment] = []
   
   // Create a new ConsValue array with all sub-structures properly processed
   var buffer : [ConsValue] = []
@@ -89,7 +101,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     switch currentToken {
     case .LeftParentheses:
       if let newList = listWithTokens(collectTokens(tokens, &counter, .List)) {
-        buffer.append(wrappedConsItem(.ListLiteral(newList), &wrapType))
+        buffer.append(wrappedConsItem(.ListLiteral(newList), &wrapStack))
       }
       else {
         return nil
@@ -98,7 +110,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
       return nil
     case .LeftSquareBracket:
       if let newVector = vectorWithTokens(collectTokens(tokens, &counter, .Vector)) {
-        buffer.append(wrappedConsItem(.VectorLiteral(newVector), &wrapType))
+        buffer.append(wrappedConsItem(.VectorLiteral(newVector), &wrapStack))
       }
       else {
         return nil
@@ -106,21 +118,27 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     case .RightSquareBracket:
       return nil
     case .Quote:
-      wrapType = .Quote
+      wrapStack.append(.Quote)
+    case .Backquote:
+      wrapStack.append(.SyntaxQuote)
+    case .Tilde:
+      wrapStack.append(.Unquote)
+    case .TildeAt:
+      wrapStack.append(.UnquoteSplice)
     case .NilLiteral:
-      buffer.append(wrappedConsItem(.NilLiteral, &wrapType))
+      buffer.append(wrappedConsItem(.NilLiteral, &wrapStack))
     case let .StringLiteral(s):
-      buffer.append(wrappedConsItem(.StringLiteral(s), &wrapType))
+      buffer.append(wrappedConsItem(.StringLiteral(s), &wrapStack))
     case let .Number(n):
-      buffer.append(wrappedConsItem(.NumberLiteral(n), &wrapType))
+      buffer.append(wrappedConsItem(.NumberLiteral(n), &wrapStack))
     case let .Boolean(b):
-      buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapType))
+      buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapStack))
     case let .Keyword(k):
       fatal("TODO - support keywords")
     case let .Identifier(r):
-      buffer.append(wrappedConsItem(.Symbol(r), &wrapType))
+      buffer.append(wrappedConsItem(.Symbol(r), &wrapStack))
     case let .Special(s):
-      buffer.append(wrappedConsItem(.Special(s), &wrapType))
+      buffer.append(wrappedConsItem(.Special(s), &wrapStack))
     }
     counter++
   }
@@ -166,7 +184,7 @@ func vectorWithTokens(tokens: [LexToken]?) -> Vector? {
 
 func parse(tokens: [LexToken]) -> ConsValue? {
   var index = 0
-  var wrapType : NextFormTreatment = .None
+  var wrapStack : [NextFormTreatment] = []
   if tokens.count == 0 {
     return nil
   }
@@ -189,8 +207,32 @@ func parse(tokens: [LexToken]) -> ConsValue? {
     var restTokens = tokens
     restTokens.removeAtIndex(0)
     if let restResult = parse(restTokens) {
-      wrapType = .Quote
-      return wrappedConsItem(restResult, &wrapType)
+      wrapStack.append(.Quote)
+      return wrappedConsItem(restResult, &wrapStack)
+    }
+    return nil
+  case .Backquote where tokens.count > 1:
+    var restTokens = tokens
+    restTokens.removeAtIndex(0)
+    if let restResult = parse(restTokens) {
+      wrapStack.append(.SyntaxQuote)
+      return wrappedConsItem(restResult, &wrapStack)
+    }
+    return nil
+  case .Tilde where tokens.count > 1:
+    var restTokens = tokens
+    restTokens.removeAtIndex(0)
+    if let restResult = parse(restTokens) {
+      wrapStack.append(.Unquote)
+      return wrappedConsItem(restResult, &wrapStack)
+    }
+    return nil
+  case .TildeAt where tokens.count > 1:
+    var restTokens = tokens
+    restTokens.removeAtIndex(0)
+    if let restResult = parse(restTokens) {
+      wrapStack.append(.UnquoteSplice)
+      return wrappedConsItem(restResult, &wrapStack)
     }
     return nil
   case _ where tokens.count > 1: return nil

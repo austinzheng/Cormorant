@@ -44,11 +44,13 @@ class replInstance {
           let x = lex(trimmedData)
           switch x {
           case let .Success(lexedData):
-//        println("Your entry lexes to: \(lexedData)")
+//            println("Your entry lexes to: \(lexedData)")
             let c = parse(lexedData)
             if let actualC = c {
-//          println("Your entry parses to: \(actualC)")
-              let n = actualC.evaluate(replContext, .Normal)
+//              println("Your entry parses to: \(actualC)")
+              let re = actualC.readerExpand()
+//              println("Your entry reader-expands to: \(re.description)")
+              let n = re.evaluate(replContext, .Normal)
               println(n.description)
             }
             else {

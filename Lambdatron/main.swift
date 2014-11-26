@@ -21,7 +21,7 @@ private func doFormForFileData(d: String) -> [ConsValue]? {
     var buffer : [ConsValue] = []
     for segment in segments {
       if let parsedData = parse(segment) {
-        buffer.append(parsedData)
+        buffer.append(parsedData.readerExpand())
       }
       else {
         return nil

@@ -58,7 +58,7 @@ internal enum SpecialCommand : String {
         // Turning logging on or off for a specific domain
         if let domain = LoggingDomain(rawValue: args[0]) {
           processOnOff(args[1],
-            { println("Turning logging for domain '\(args[0])' on'");
+            { println("Turning logging for domain '\(args[0])' on");
               LoggingManager.sharedInstance.setLoggingForDomain(domain, enabled: true) },
             { println("Turning logging for domain '\(args[0])' off")
               LoggingManager.sharedInstance.setLoggingForDomain(domain, enabled: false) },

@@ -92,7 +92,13 @@ extension ConsValue {
       // Look up the value of v
       let binding = ctx[v]
       switch binding {
-      case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
+      case .Invalid:
+        switch env {
+        case .Normal:
+          fatal("Error; symbol '\(v)' doesn't seem to be valid")
+        case .Macro:
+          return self
+        }
       case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
       case let .Literal(l): return l
       case let .FunctionParam(fp): return fp
@@ -112,6 +118,7 @@ extension ConsValue {
       // Evaluate the value of the vector literal 'v'
       return .VectorLiteral(v.map({$0.evaluate(ctx, env)}))
     case Special: fatal("TODO - taking the value of a special form should be disallowed")
+    case ReaderMacro: internalError("reader macro should never be accessible at the eval stage")
     case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")
     case RecurSentinel: return self
     case let MacroArgument(ma):

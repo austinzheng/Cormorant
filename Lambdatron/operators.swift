@@ -116,5 +116,6 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .MacroArgument(ma2): return ma1.value == ma2.value
     default: return ma1.value == rhs
     }
+  case .ReaderMacro: return false
   }
 }

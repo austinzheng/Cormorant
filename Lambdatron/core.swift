@@ -32,6 +32,20 @@ class Cons : Printable, DebugPrintable {
   
   // MARK: Initializers
   
+  class func listFromVector(v: Vector) -> Cons {
+    if v.count == 0 {
+      return Cons()
+    }
+    let head = Cons(v[0])
+    var this = head
+    for var i=1; i<v.count; i++ {
+      let next = Cons(v[i])
+      this.next = next
+      this = next
+    }
+    return head
+  }
+  
   /// Create an empty list.
   init() {
     self.next = nil
@@ -79,6 +93,13 @@ class Cons : Printable, DebugPrintable {
   func asSpecialForm() -> SpecialForm? {
     switch value {
     case let .Special(sf): return sf
+    default: return nil
+    }
+  }
+  
+  func asReaderForm() -> ReaderForm? {
+    switch value {
+    case let .ReaderMacro(rf): return rf
     default: return nil
     }
   }
@@ -181,6 +202,7 @@ enum ConsValue : Equatable, Printable, DebugPrintable {
   case None
   case Symbol(String)
   case Special(SpecialForm)
+  case ReaderMacro(ReaderForm)
   case NilLiteral
   case BoolLiteral(Bool)
   case NumberLiteral(Double)
@@ -241,6 +263,7 @@ enum ConsValue : Equatable, Printable, DebugPrintable {
       return "[\(internals)]"
     case let FunctionLiteral(f): return f.description
     case let Special(s): return s.rawValue
+    case let ReaderMacro(r): return r.description
     case None: return ""
     case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
     case let MacroArgument(ma): return ma.value.description
@@ -260,6 +283,7 @@ enum ConsValue : Equatable, Printable, DebugPrintable {
       return "ConsValue.VectorLiteral([\(internals)])"
     case let FunctionLiteral(f): return "ConsValue.FunctionLiteral(\(f.description))"
     case let Special(s): return "ConsValue.Special(\(s.rawValue))"
+    case let ReaderMacro(r): return "ConsValue.ReaderMacro(\(r.description))"
     case None: return "ConsValue.None"
     case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
     case let MacroArgument(ma): return "ConsValue.MacroArgument-->(\(ma.value.debugDescription))"

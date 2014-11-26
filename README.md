@@ -5,8 +5,6 @@ An interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conve
 
 The name is provisional and will be changed once I come up with something better.
 
-**NOTE**: You can try out an experimental implementation of syntax-quote support by switching to the `sq` branch. See the README for more details, including usage and limitations.
-
 
 Application
 -----------
@@ -28,26 +26,27 @@ Need ideas? Try:
 
 **Defining and calling a function**
 
-- `(def myfunc (fn [a b] (+ a b 1)))`, then `(myfunc 10 20)`
-- Functions returning functions: `(def f1 (fn [arg1] (fn [arg2] (+ arg1 arg2))))`, then `(let [plusone (f1 1)] (plusone 3))`
+- `(defn myfunc [a b] (+ a b 1))`, then `(myfunc 10 20)`
+- Functions returning functions: `(defn f1 [arg1] (fn [arg2] (+ arg1 arg2)))`, then `(let [plusone (f1 1)] (plusone 3))`
 
 **Recursion and iteration**
 
-- Basic recursion: `(def r (fn [a] (print a " ") (if (> a 0) (r (- a 1)))))`, then `(r 10)`
-- Tail-call recursion using recur: `(def recadd (fn [mylist sofar] (if (= (first mylist) nil) sofar (recur (rest mylist) (+ (first mylist) sofar)))))`, then `(recadd '(1 2 3 4 5) 0)`
+- Basic recursion: `(defn r [a] (print a " ") (if (> a 0) (r (- a 1))))`, then `(r 10)`
+- Tail-call recursion using recur: `(defn recadd [mylist sofar] (if (= (first mylist) nil) sofar (recur (rest mylist) (+ (first mylist) sofar))))`, then `(recadd '(1 2 3 4 5) 0)`
 - Iteration using loops: `(loop [a 10 b 0] (if (= a 0) b (recur (- a 1) (+ b a))))`
 
 **Creating and using a macro**
 
-- `(defmacro when [predicate then-do] (list 'if predicate then-do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) "bad")`
+- `(defmacro when [predicate then-do] (list 'if predicate then-do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) (do (print "this shouldn't show up") "bad"))`
 
 
 ### Current Limitations
 
 Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
 
-- The REPL is fragile. Don't press the arrow keys while inside it, for example. Copy-pasting text works fine.
+- The REPL is fragile. Don't press the arrow keys while inside it, for example, or move the cursor and then try to insert/delete text. Copy-pasting text works fine.
 - The REPL can only take one form at a time.
+- Large parts of the error handling system aren't implemented yet. Asserts will cause the REPL to quit if something goes wrong during evaluation.
 - There currently isn't any namespacing or symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
 - Macros are cumbersome to define since the syntax-quote system hasn't yet been implemented.
 
@@ -63,7 +62,7 @@ Lambdatron has the following features:
 
 **Vectors**, declared using square brackets: `[1 2 true "Lisp"]`. Unlike lists, vectors can't be used to invoke functions.
 
-**Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`). To create a function you can call by name later, use the workaround `(def *name* (fn [*args*] *body*))`.
+**Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Or create a function bound to a global name using `defn`. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
 **Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. Like functions, macros capture their (non parameter binding) context. Create them using `defmacro`. Macros can be defined with multiple arities and/or varargs.
 
@@ -73,6 +72,8 @@ Lambdatron has the following features:
 
 **Basic types** include booleans (`true` and `false`), `nil`, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`).
 
+**Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` can be used to force evaluation of the unquote form, while `~@` can be used to force evaluation of a form to a collection whose elements are then spliced in.
+
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
 
 
@@ -81,13 +82,14 @@ Lambdatron has the following features:
 - Interpreter core
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`, `loop`, `recur`
-- Reader macros: `'` (for quoting)
+- Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
 - Collection built-in functions: `list`, `vector`, `concat`, `seq`
 - I/O built-in functions: `print`
 - Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
 - Comparison built-in functions: `=`, `<`, `>`
 - Other built-in functions: `apply`
+- Standard library functions and macros: `defn`, `not`, `and`, `or`
 
 
 ### Working On
@@ -97,7 +99,6 @@ Lambdatron has the following features:
 - Support for maps
 - Support for sets
 - Support for keywords
-- Support for syntax quoting
 - Basic namespacing
 - Better error handling than simply crashing the REPL
 - Improved REPL
@@ -110,4 +111,4 @@ Lambdatron has the following features:
 License
 -------
 
-Lambdatron © 2014 Austin Zheng. Lambdatron is open-source software, released under the terms of the MIT License.
+Lambdatron © 2014 Austin Zheng. The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound by the terms of this license. You must not remove this notice, or any other, from this software.
