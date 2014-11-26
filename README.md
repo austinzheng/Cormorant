@@ -9,7 +9,9 @@ The name is provisional and will be changed once I come up with something better
 Application
 -----------
 
-Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.1 or later to build. Type expressions at the command prompt and press 'Enter'.
+Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.1 or later to build.
+
+Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
 Need ideas? Try:
 
@@ -96,7 +98,7 @@ Lambdatron has the following features:
 - Basic namespacing
 - Better error handling than simply crashing the REPL
 - Improved REPL
-- Ability to type in multiple forms at the top level; ability to read and execute from file
+- Ability to type in multiple forms at the top level
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)
 - Full unit test suite (once development stabilizes)

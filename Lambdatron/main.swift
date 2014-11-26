@@ -8,54 +8,81 @@
 
 import Foundation
 
-// Input
-private let descriptor = NSFileHandle.fileHandleWithStandardInput()
+private func fileDataForRawPath(p: String) -> String? {
+  let fileURL = NSURL(fileURLWithPath: p.stringByExpandingTildeInPath)
+  if let fileURL = fileURL {
+    return NSString(contentsOfURL: fileURL, encoding: NSUTF8StringEncoding, error: nil)
+  }
+  return nil
+}
 
-// This is the global context
-// TODO: This needs to not be a global variable
-internal var globalContext = Context.globalContextInstance()
-
-println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
-while true {
-  print("> ")
-  // Read data from user
-  // TODO: Strange characters are due to pressing keys like 'up' and 'down' in the input window.
-  let rawData = descriptor.availableData
-  let optionalData : NSString? = NSString(data: rawData, encoding: NSUTF8StringEncoding)
-  if let data = optionalData {
-    if (data.length == 0
-      || data.characterAtIndex(data.length-1) != UInt16(UnicodeScalar("\n").value)) {
-        // Something wrong with the input
-        exit(EXIT_FAILURE)
-    }
-    // Remove the trailing newline
-    let trimmedData = data.substringToIndex(data.length-1)
-    if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
-      command.execute(args)
-    }
-    else {
-      let x = lex(trimmedData)
-      switch x {
-      case let .Success(lexedData):
-//        println("Your entry lexes to: \(lexedData)")
-        let c = parse(lexedData)
-        if let actualC = c {
-//          println("Your entry parses to: \(actualC)")
-          let n = actualC.evaluate(globalContext, .Normal)
-          println(n.description)
-        }
-        else {
-          println("Your entry didn't parse correctly")
-        }
-      case let .Failure(error): println("Your entry didn't lex correctly (error: \(error.description))")
+private func doFormForFileData(d: String) -> [ConsValue]? {
+  if let segments = segmentsForFile(d) {
+    var buffer : [ConsValue] = []
+    for segment in segments {
+      if let parsedData = parse(segment) {
+        buffer.append(parsedData)
+      }
+      else {
+        return nil
       }
     }
+    return buffer
+  }
+  return nil
+}
+
+// Mark: Entry point
+
+func main() {
+  // Retrieve command-line arguments
+  let args = Process.arguments
+  
+  if args.count == 1 {
+    // Run the REPL
+    let handle = NSFileHandle.fileHandleWithStandardInput()
+    let repl = replInstance(descriptor: handle)
+    let result = repl.run()
+    exit(result ? EXIT_SUCCESS : EXIT_FAILURE)
+  }
+  else if args.count == 3 && args[1] == "-f" {
+    // Execute a file
+    let fileName = args[2]
+    if let fileInput = fileDataForRawPath(fileName) {
+      if let forms = doFormForFileData(fileInput) {
+        let result = sf_do(forms, Context.globalContextInstance(), .Normal)
+        switch result {
+        case let .Success(s):
+          println(s.description)
+        case let .Failure(f):
+          println("Evaluation error: \(f.description)")
+        }
+      }
+    }
+
+    // Have the user type something in to quit
+    let handle = NSFileHandle.fileHandleWithStandardInput()
+    println("Evaluation complete. Press enter to quit...")
+    let rawData = handle.availableData
+  }
+  else {
+    // Print help
+    println("Lambdatron - the amazingly slow pseudo-Clojure interpreter")
+    println("Invoke without arguments to start the REPL, or with '-f FILENAME' to run a file.")
+    // Have the user type something in to quit
+    let handle = NSFileHandle.fileHandleWithStandardInput()
+    println("Press enter to quit...")
+    let rawData = handle.availableData
   }
 }
+main()
+
+
+// MARK: Special functions
 
 // Force the program to exit if something is wrong
 @noreturn func fatal(message: String) {
-  println("Fatal error: \(message)")
+  println("Assertion: \(message)")
   exit(EXIT_FAILURE)
 }
 

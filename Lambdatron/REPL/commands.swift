@@ -30,14 +30,14 @@ internal enum SpecialCommand : String {
     return nil
   }
 
-  func execute(args: [String]) {
+  func execute(args: [String], inout ctx: Context) -> Bool {
     switch self {
     case .Quit:
       println("Goodbye")
-      exit(EXIT_SUCCESS)
+      return true
     case .Reset:
       println("Environment reset")
-      globalContext = Context.globalContextInstance()
+      ctx = Context.globalContextInstance()
     case .Help:
       println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
       println("Special commands are:")
@@ -63,7 +63,7 @@ internal enum SpecialCommand : String {
             { println("Turning logging for domain '\(args[0])' off")
               LoggingManager.sharedInstance.setLoggingForDomain(domain, enabled: false) },
             { println("Error: specify either 'on' or 'off'.") })
-          return
+          return false
         }
         else {
           println("Error: unrecognized logging domain '\(args[0])'.")
@@ -73,12 +73,13 @@ internal enum SpecialCommand : String {
         println("Error: cannot call '\(self.rawValue)' without at least one argument.")
       }
     }
+    return false
   }
 
   var helpText : String {
     switch self {
     case .Quit: return "Quits the REPL."
-    case .Reset: return "Resets the environment, clearing anything defined using 'def', 'defn', etc."
+    case .Reset: return "Resets the environment, clearing anything defined using 'def', 'defmacro', etc."
     case .Help: return "Prints a brief description of the REPL."
     case .Logging: return "Turns logging for a given domain on or off. Call with <domain> and either 'on' or 'off'."
     }
