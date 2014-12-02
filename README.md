@@ -5,6 +5,8 @@ An interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conve
 
 The name is provisional and will be changed once I come up with something better.
 
+**NOTE**: You can try out an experimental implementation of syntax-quote support by switching to the `sq` branch. See the README for more details, including usage and limitations.
+
 
 Application
 -----------
