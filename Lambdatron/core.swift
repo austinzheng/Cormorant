@@ -25,7 +25,7 @@ enum EvalEnvironment {
 }
 
 /// Represents a cons cell, an element in a linked list.
-class Cons : Printable {
+class Cons : Printable, DebugPrintable {
   var next : Cons?
   var value : ConsValue
   
@@ -140,81 +140,6 @@ class Cons : Printable {
     return symbolBuffer
   }
   
-  
-  // MARK: API - evaluate
-  
-  /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
-  func evaluate(ctx: Context, _ env: EvalEnvironment) -> (ConsValue, EvalType) {
-    if let toExecuteSpecialForm = asSpecialForm() {
-      logEval("evaluating as special form: \(self.description)")
-      // Execute a special form
-      // How it works:
-      // 1. Arguments are passed in as-is
-      // 2. The special form decides whether or not to evaluate or use the arguments
-      // 3. The result may or may not be evaluated, depending on the special form
-      let symbols = Cons.collectSymbols(next)
-      let result = toExecuteSpecialForm.function(symbols, ctx, env)
-      switch result {
-      case let .Success(v): return (v, .Special(toExecuteSpecialForm))
-      case let .Failure(f): fatal("Something went wrong: \(f)")
-      }
-    }
-    else if let toExecuteBuiltIn = asBuiltIn(ctx) {
-      logEval("evaluating as built-in function: \(self.description)")
-      // Execute a built-in primitive
-      // Works the exact same way as executing a normal function (see below)
-      if let values = Cons.collectValues(next, ctx: ctx, env: env) {
-        let result = toExecuteBuiltIn(values, ctx)
-        switch result {
-        case let .Success(v): return (v, .Function)
-        case let .Failure(f): fatal("Something went wrong: \(f)")
-        }
-      }
-      else {
-        fatal("Could not collect values")
-      }
-    }
-    else if let toExpandMacro = asMacro(ctx) {
-      logEval("evaluating as macro expansion: \(self.description)")
-      // Expand a macro
-      // How it works:
-      // 1. Arguments are passed in as-is
-      // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
-      // 3. This replacement form is then evaluated
-      let symbols = Cons.collectSymbols(next)
-      let expanded = toExpandMacro.macroexpand(symbols, env: env)
-      switch expanded {
-      case let .Success(v):
-        logEval("macroexpansion complete; new form: \(v.description)")
-        let result = v.evaluate(ctx, env)
-        return (result, .Macro)
-      case let .Failure(f): fatal("Something went wrong: \(f)")
-      }
-    }
-    else if let toExecuteFunction = asFunction(ctx) {
-      logEval("evaluating as function: \(self.description)")
-      // Execute a normal function
-      // How it works:
-      // 1. Arguments are evaluated before the function is ever invoked
-      // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
-      // 3. The result is then used as-is
-      if let values = Cons.collectValues(next, ctx: ctx, env: env) {
-        let result = toExecuteFunction.evaluate(values, env: env)
-        switch result {
-        case let .Success(v): return (v, .Function)
-        case let .Failure(f): fatal("Something went wrong: \(f)")
-        }
-      }
-      else {
-        fatal("Could not collect values")
-      }
-    }
-    else {
-      fatal("Cannot call 'evaluate' on this cons list, \(self); first object isn't actually a function. Sorry.")
-    }
-  }
-  
-  
   // MARK: API - describe
   
   var description : String {
@@ -232,17 +157,27 @@ class Cons : Printable {
     let finalDesc = join(" ", descs)
     return "(\(finalDesc))"
   }
-}
-
-enum EvalType {
-  case Special(SpecialForm)
-  case Macro
-  case Function
+  
+  var debugDescription : String {
+    func collectDescriptions(firstItem : Cons?) -> [String] {
+      var descBuffer : [String] = []
+      var currentItem : Cons? = firstItem
+      while let actualItem = currentItem {
+        descBuffer.append(actualItem.value.debugDescription)
+        currentItem = actualItem.next
+      }
+      return descBuffer
+    }
+    
+    var descs = collectDescriptions(self)
+    let finalDesc = join(" ", descs)
+    return "(\(finalDesc))"
+  }
 }
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms, collections, and sentinel
 /// values (which should never leak into a normal evaluation context).
-enum ConsValue : Equatable, Printable {
+enum ConsValue : Equatable, Printable, DebugPrintable {
   case None
   case Symbol(String)
   case Special(SpecialForm)
@@ -292,57 +227,6 @@ enum ConsValue : Equatable, Printable {
     default: return false
     }
   }
-  
-  func evaluate(ctx: Context, _ env: EvalEnvironment) -> ConsValue {
-    switch self {
-    case FunctionLiteral: return self
-    case let Symbol(v):
-      // Look up the value of v
-      let binding = ctx[v]
-      switch binding {
-      case .Invalid: fatal("Error; symbol '\(v)' doesn't seem to be valid")
-      case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
-      case let .Literal(l): return l
-      case let .FunctionParam(fp): return fp
-      case let .MacroParam(mp): return .MacroArgument(Box(mp))
-      case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
-      case .BuiltIn: return self
-      }
-    case NilLiteral: return self
-    case BoolLiteral: return self
-    case NumberLiteral: return self
-    case StringLiteral: return self
-    case let ListLiteral(l):
-      // Evaluate the value of the list 'l'
-      let (result, evalType) = l.evaluate(ctx, env)
-      switch evalType {
-      case .Special:
-        // Once a special form is evaluated, its result is not evaluated again
-        return result
-      case .Function:
-        // Once a function is evaluated, its result is not evaluated again (this is only relevant for functions that
-        //  return lists)
-        return result
-      case .Macro:
-        // Once a macro is evaluated, its product is expected to be a form (usually a list) which must be evaluated
-        //  again, either to perform another macroexpansion or to execute a function
-        return result.evaluate(ctx, env)
-      }
-    case let VectorLiteral(v):
-      // Evaluate the value of the vector literal 'v'
-      return .VectorLiteral(v.map({$0.evaluate(ctx, env)}))
-    case Special: fatal("TODO - taking the value of a special form should be disallowed")
-    case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")
-    case RecurSentinel: return self
-    case let MacroArgument(ma):
-      // A macro argument is either being evaluated in the environment of a macro definition (in which case it should be
-      // not further evaluated), or in the normal environment (in which case it should be treated as a normal value)
-      switch env {
-      case .Normal: return ma.value.evaluate(ctx, env)
-      case .Macro: return ma.value
-      }
-    }
-  }
 
   var description : String {
     switch self {
@@ -360,6 +244,25 @@ enum ConsValue : Equatable, Printable {
     case None: return ""
     case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
     case let MacroArgument(ma): return ma.value.description
+    }
+  }
+  
+  var debugDescription : String {
+    switch self {
+    case let Symbol(v): return "ConsValue.Symbol(\(v))"
+    case NilLiteral: return "ConsValue.NilLiteral"
+    case let BoolLiteral(b): return "ConsValue.BoolLiteral(\(b))"
+    case let NumberLiteral(n): return "ConsValue.NumberLiteral(\(n.description))"
+    case let StringLiteral(s): return "ConsValue.StringLiteral(\"\(s)\")"
+    case let ListLiteral(l): return "ConsValue.ListLiteral(\(l.debugDescription))"
+    case let VectorLiteral(v):
+      let internals = join(" ", v.map({$0.debugDescription}))
+      return "ConsValue.VectorLiteral([\(internals)])"
+    case let FunctionLiteral(f): return "ConsValue.FunctionLiteral(\(f.description))"
+    case let Special(s): return "ConsValue.Special(\(s.rawValue))"
+    case None: return "ConsValue.None"
+    case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
+    case let MacroArgument(ma): return "ConsValue.MacroArgument-->(\(ma.value.debugDescription))"
     }
   }
 }

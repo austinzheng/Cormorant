@@ -80,9 +80,6 @@ struct SingleFn : Printable {
   }
 
   func evaluate(arguments: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-    // TODO: If we encapsulate syntax-quote info in ctx, we need to be pass it down. (see the invocation of 'sf_do')
-    // If we encapsulate syntax-quote a different way, though, we shouldn't pass in 'env' at all.
-
     // Create the context, then perform a 'do' with the body of the function
     var possibleContext : Context? = bindToNewContext(arguments, ctx: ctx)
     while true {

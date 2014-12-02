@@ -62,8 +62,7 @@ class Macro {
     self.context = ctx
   }
   
-  func macroexpand(arguments: [ConsValue], env: EvalEnvironment) -> EvalResult {
-    // TODO: propagate env if necessary
+  func macroexpand(arguments: [ConsValue]) -> EvalResult {
     if let functionToUse = specificFns[arguments.count] {
       // We have a valid fixed arity definition to use; use it
       return functionToUse.evaluate(arguments, ctx: context, env: .Macro)
@@ -75,5 +74,34 @@ class Macro {
       }
     }
     internalError("macro was somehow defined without any arities; this is a bug")
+  }
+}
+
+extension Cons {
+  
+  class func purgeMacroArgs(start: Cons) -> ConsValue {
+    // Purge each arg
+    var this : Cons? = start
+    while let actualThis = this {
+      actualThis.value = actualThis.value.purgeMacroArgs()
+      this = actualThis.next
+    }
+    return .ListLiteral(start)
+  }
+}
+
+extension ConsValue {
+  
+  func purgeMacroArgs() -> ConsValue {
+    switch self {
+    case let .MacroArgument(m):
+      return m.value
+    case let .ListLiteral(l):
+      return Cons.purgeMacroArgs(l)
+    case let .VectorLiteral(v):
+      return .VectorLiteral(v.map({$0.purgeMacroArgs()}))
+    default:
+      return self
+    }
   }
 }
