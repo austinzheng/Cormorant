@@ -87,6 +87,7 @@ Lambdatron has the following features:
 - Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
 - Comparison built-in functions: `=`, `<`, `>`
+- Other built-in functions: `apply`
 
 
 ### Working On

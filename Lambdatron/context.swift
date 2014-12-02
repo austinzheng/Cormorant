@@ -107,6 +107,8 @@ class Context {
     bindings["-"] = .BuiltIn(pr_minus)
     bindings["*"] = .BuiltIn(pr_multiply)
     bindings["/"] = .BuiltIn(pr_divide)
+    // Bind other functions
+    bindings["apply"] = .BuiltIn(pr_apply)
   }
 
   class func globalContextInstance() -> Context {

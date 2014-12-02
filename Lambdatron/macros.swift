@@ -96,7 +96,7 @@ extension ConsValue {
     switch self {
     case let .MacroArgument(m):
       return m.value
-    case let .ListLiteral(l):
+    case let .ListLiteral(l) where !l.isEmpty:
       return Cons.purgeMacroArgs(l)
     case let .VectorLiteral(v):
       return .VectorLiteral(v.map({$0.purgeMacroArgs()}))

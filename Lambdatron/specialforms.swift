@@ -73,10 +73,7 @@ func sf_cons(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
     return .Success(.ListLiteral(Cons(first)))
   case let .ListLiteral(l):
     // Create a new list consisting of the first object, followed by the second list (if not empty)
-    switch l.value {
-    case .None: return .Success(.ListLiteral(Cons(first)))
-    default: return .Success(.ListLiteral(Cons(first, next: l)))
-    }
+    return .Success(.ListLiteral(l.isEmpty ? Cons(first) : Cons(first, next: l)))
   case let .VectorLiteral(v):
     // Create a new list consisting of the first object, followed by a list comprised of the vector's items
     if v.count == 0 {
@@ -104,10 +101,7 @@ func sf_first(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   case .NilLiteral:
     return .Success(.NilLiteral)
   case let .ListLiteral(l):
-    switch l.value {
-    case .None: return .Success(.NilLiteral)
-    default: return .Success(l.value)
-    }
+    return .Success(l.isEmpty ? .NilLiteral : l.value)
   case let .VectorLiteral(v):
     return .Success(v.count == 0 ? .NilLiteral : v[0])
   default: return .Failure(.InvalidArgumentError)

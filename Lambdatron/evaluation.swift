@@ -31,7 +31,7 @@ extension Cons {
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
       if let values = Cons.collectValues(next, ctx: ctx, env: env) {
-        let result = toExecuteBuiltIn(values, ctx)
+        let result = toExecuteBuiltIn(values, ctx, env)
         switch result {
         case let .Success(v): return v
         case let .Failure(f): fatal("Something went wrong: \(f)")
