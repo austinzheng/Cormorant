@@ -73,7 +73,7 @@ class Macro {
         return varargFunction.evaluate(arguments, ctx: context, env: .Macro)
       }
     }
-    internalError("macro was somehow defined without any arities; this is a bug")
+    return .Failure(.ArityError)
   }
 }
 

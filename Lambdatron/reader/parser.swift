@@ -9,7 +9,7 @@
 import Foundation
 
 enum TokenCollectionType {
-  case List, Vector
+  case List, Vector, Map
 }
 
 enum NextFormTreatment {
@@ -28,6 +28,7 @@ func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollection
   switch tokens[counter] {
   case .LeftParentheses where type == .List: break
   case .LeftSquareBracket where type == .Vector: break
+  case .LeftBrace where type == .Map: break
   default: fatal("test1: token was \(tokens[counter]), type was \(type)") //return nil
   }
   var count = 1
@@ -49,6 +50,14 @@ func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollection
       count++
       buffer.append(currentToken)
     case .RightSquareBracket where type == .Vector:
+      count--
+      if count > 0 {
+        buffer.append(currentToken)
+      }
+    case .LeftBrace where type == .Map:
+      count++
+      buffer.append(currentToken)
+    case .RightBrace where type == .Map:
       count--
       if count > 0 {
         buffer.append(currentToken)
@@ -117,6 +126,15 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
       }
     case .RightSquareBracket:
       return nil
+    case .LeftBrace:
+      if let newMap = mapWithTokens(collectTokens(tokens, &counter, .Map)) {
+        buffer.append(wrappedConsItem(.MapLiteral(newMap), &wrapStack))
+      }
+      else {
+        return nil
+      }
+    case .RightBrace:
+      return nil
     case .Quote:
       wrapStack.append(.Quote)
     case .Backquote:
@@ -174,8 +192,33 @@ func vectorWithTokens(tokens: [LexToken]?) -> Vector? {
       return []
     }
     if let processedForms = processTokenList(tokens) {
-      // Create the vector itself
+      // Create the map itself
       return processedForms
+    }
+    return nil
+  }
+  return nil
+}
+
+func mapWithTokens(tokens: [LexToken]?) -> Map? {
+  if let tokens = tokens {
+    if tokens.count == 0 {
+      // Empty map: []
+      return [:]
+    }
+    if let processedForms = processTokenList(tokens) {
+      // Create the vector itself
+      var newMap : Map = [:]
+      if processedForms.count % 2 != 0 {
+        // Invalid; need an even number of tokens
+        return nil
+      }
+      for var i=0; i<processedForms.count - 1; i += 2 {
+        let key = processedForms[i]
+        let value = processedForms[i+1]
+        newMap[key] = value
+      }
+      return newMap
     }
     return nil
   }
@@ -202,6 +245,12 @@ func parse(tokens: [LexToken]) -> ConsValue? {
     }
     return nil
   case .RightSquareBracket: return nil
+  case .LeftBrace:
+    if let result = mapWithTokens(collectTokens(tokens, &index, .Map)) {
+      return .MapLiteral(result)
+    }
+    return nil
+  case .RightBrace: return nil
   case .Quote where tokens.count > 1:
     // The top-level expression can be a quoted thing.
     var restTokens = tokens

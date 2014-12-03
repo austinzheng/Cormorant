@@ -85,6 +85,12 @@ func pr_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
       this.next = next
       this = next
     }
+  case let .MapLiteral(m):
+    for (key, value) in m {
+      let next = Cons(.VectorLiteral([key, value]))
+      this.next = next
+      this = next
+    }
   default:
     break
   }
@@ -116,6 +122,21 @@ func pr_vector(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
   return .Success(.VectorLiteral(args))
 }
 
+/// Given zero or more arguments, construct a map whose components are the keys and values (or the empty map).
+func pr_hashmap(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count % 2 != 0 {
+    // Must have an even number of arguments
+    return .Failure(.InvalidArgumentError)
+  }
+  var buffer : Map = [:]
+  for var i=0; i<args.count-1; i += 2 {
+    let key = args[i]
+    let value = args[i+1]
+    buffer[key] = value
+  }
+  return .Success(.MapLiteral(buffer))
+}
+
 /// Given a single sequence, return nil (if empty) or a list built out of that sequence.
 func pr_seq(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count != 1 {
@@ -137,7 +158,24 @@ func pr_seq(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
       this.next = next
       this = next
     }
-    return .Success(.ListLiteral(this))
+    return .Success(.ListLiteral(head))
+  case let .MapLiteral(m):
+    if m.count == 0 {
+      return .Success(.NilLiteral)
+    }
+    var head : Cons? = nil
+    var this = head
+    for (key, value) in m {
+      let next = Cons(.VectorLiteral([key, value]))
+      if let this = this {
+        this.next = next
+      }
+      else {
+        head = next
+      }
+      this = next
+    }
+    return .Success(.ListLiteral(head!))
   default: return .Failure(.InvalidArgumentError)
   }
 }
@@ -178,6 +216,18 @@ func pr_concat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
         }
         else {
           let next = Cons(item)
+          this.next = next
+          this = next
+        }
+      }
+    case let .MapLiteral(m):
+      for (key, value) in m {
+        if !headInitialized {
+          this.value = .VectorLiteral([key, value])
+          headInitialized = true
+        }
+        else {
+          let next = Cons(.VectorLiteral([key, value]))
           this.next = next
           this = next
         }
@@ -294,6 +344,17 @@ func pr_isVector(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
   }
   switch args[0] {
   case .VectorLiteral: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
+/// Return whether or not the argument is a map.
+func pr_isMap(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .MapLiteral: return .Success(.BoolLiteral(true))
   default: return .Success(.BoolLiteral(false))
   }
 }

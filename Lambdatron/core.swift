@@ -9,6 +9,7 @@
 import Foundation
 
 typealias Vector = [ConsValue]
+typealias Map = [ConsValue:ConsValue]
 
 /// A container class allowing for references to value types.
 class Box<T> {
@@ -25,10 +26,13 @@ enum EvalEnvironment {
 }
 
 /// Represents a cons cell, an element in a linked list.
-class Cons : Printable, DebugPrintable {
+class Cons : Hashable, Printable, DebugPrintable {
   var next : Cons?
   var value : ConsValue
   
+  var hashValue : Int {
+    return value.hashValue
+  }
   
   // MARK: Initializers
   
@@ -44,6 +48,27 @@ class Cons : Printable, DebugPrintable {
       this = next
     }
     return head
+  }
+  
+  class func listFromMap(m: Map) -> Cons {
+    if m.count == 0 {
+      return Cons()
+    }
+    var head : Cons? = nil
+    var this = head
+    for (key, item) in m {
+      let n2 = Cons(item)
+      let n1 = Cons(key, next: n2)
+      if let this = this {
+        this.next = n1
+      }
+      else {
+        // First key-value pair; need to set up head
+        head = n1
+      }
+      this = n2
+    }
+    return head!
   }
   
   /// Create an empty list.
@@ -198,7 +223,7 @@ class Cons : Printable, DebugPrintable {
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms, collections, and sentinel
 /// values (which should never leak into a normal evaluation context).
-enum ConsValue : Equatable, Printable, DebugPrintable {
+enum ConsValue : Hashable, Printable, DebugPrintable {
   case None
   case Symbol(String)
   case Special(SpecialForm)
@@ -209,11 +234,31 @@ enum ConsValue : Equatable, Printable, DebugPrintable {
   case StringLiteral(String)
   case ListLiteral(Cons)
   case VectorLiteral(Vector)
+  case MapLiteral(Map)
   case FunctionLiteral(Function)
   // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
   case RecurSentinel([ConsValue])
   // A special case only for use with macro arguments
   case MacroArgument(Box<ConsValue>)
+  
+  var hashValue : Int {
+    switch self {
+    case None: return 0
+    case let Symbol(s): return s.hashValue
+    case let Special(sf): return sf.hashValue
+    case let ReaderMacro(rf): return rf.hashValue
+    case NilLiteral: return 0
+    case let BoolLiteral(b): return b.hashValue
+    case let NumberLiteral(d): return d.hashValue
+    case let StringLiteral(s): return s.hashValue
+    case let ListLiteral(l): return l.hashValue
+    case let VectorLiteral(v): return v.count == 0 ? 0 : v[0].hashValue
+    case let MapLiteral(m): return m.count
+    case let FunctionLiteral(f): return 0
+    case RecurSentinel: return 0
+    case let MacroArgument(ma): return ma.value.hashValue
+    }
+  }
   
   func asSymbol() -> String? {
     switch self {
@@ -261,6 +306,14 @@ enum ConsValue : Equatable, Printable, DebugPrintable {
     case let VectorLiteral(v):
       let internals = join(" ", v.map({$0.description}))
       return "[\(internals)]"
+    case let MapLiteral(m):
+      var components : [String] = []
+      for (key, value) in m {
+        components.append(key.description)
+        components.append(value.description)
+      }
+      let internals = join(" ", components)
+      return "{\(internals)}"
     case let FunctionLiteral(f): return f.description
     case let Special(s): return s.rawValue
     case let ReaderMacro(r): return r.description
@@ -281,6 +334,14 @@ enum ConsValue : Equatable, Printable, DebugPrintable {
     case let VectorLiteral(v):
       let internals = join(" ", v.map({$0.debugDescription}))
       return "ConsValue.VectorLiteral([\(internals)])"
+    case let MapLiteral(m):
+      var components : [String] = []
+      for (key, value) in m {
+        components.append(key.debugDescription)
+        components.append(value.debugDescription)
+      }
+      let internals = join(" ", components)
+      return "{\(internals)}"
     case let FunctionLiteral(f): return "ConsValue.FunctionLiteral(\(f.description))"
     case let Special(s): return "ConsValue.Special(\(s.rawValue))"
     case let ReaderMacro(r): return "ConsValue.ReaderMacro(\(r.description))"

@@ -80,11 +80,25 @@ func sf_cons(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
       return .Success(.ListLiteral(Cons(first)))
     }
     let head = Cons(first)
-    var current = head
+    var this = head
     for item in v {
-      let this = Cons(item)
-      current.next = this
-      current = this
+      let next = Cons(item)
+      this.next = next
+      this = next
+    }
+    return .Success(.ListLiteral(head))
+  case let .MapLiteral(m):
+    // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
+    //  key-value pairs
+    if m.count == 0 {
+      return .Success(.ListLiteral(Cons(first)))
+    }
+    let head = Cons(first)
+    var this = head
+    for (key, value) in m {
+      let next = Cons(.VectorLiteral([key, value]))
+      this.next = next
+      this = next
     }
     return .Success(.ListLiteral(head))
   default: return .Failure(.InvalidArgumentError)
@@ -104,6 +118,14 @@ func sf_first(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
     return .Success(l.isEmpty ? .NilLiteral : l.value)
   case let .VectorLiteral(v):
     return .Success(v.count == 0 ? .NilLiteral : v[0])
+  case let .MapLiteral(m):
+    if m.count == 0 {
+      return .Success(.NilLiteral)
+    }
+    for (key, value) in m {
+      return .Success(.VectorLiteral([key, value]))
+    }
+    internalError("Cannot ever reach this point")
   default: return .Failure(.InvalidArgumentError)
   }
 }
@@ -131,13 +153,36 @@ func sf_rest(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
       return .Success(.ListLiteral(Cons()))
     }
     let head = Cons(v[1])
-    var current = head
+    var this = head
     for var i=2; i<v.count; i++ {
-      let this = Cons(v[i])
-      current.next = this
-      current = this
+      let next = Cons(v[i])
+      this.next = next
+      this = next
     }
     return .Success(.ListLiteral(head))
+  case let .MapLiteral(m):
+    if m.count < 2 {
+      // Map has zero or one items
+      return .Success(.ListLiteral(Cons()))
+    }
+    var head : Cons? = nil
+    var this = head
+    var skippedFirst = false
+    for (key, value) in m {
+      if !skippedFirst {
+        skippedFirst = true
+        continue
+      }
+      let next = Cons(.VectorLiteral([key, value]))
+      if let this = this {
+        this.next = next
+      }
+      else {
+        head = next
+      }
+      this = next
+    }
+    return .Success(.ListLiteral(head!))
   default: return .Failure(.InvalidArgumentError)
   }
 }

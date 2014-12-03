@@ -117,6 +117,15 @@ extension ConsValue {
     case let VectorLiteral(v):
       // Evaluate the value of the vector literal 'v'
       return .VectorLiteral(v.map({$0.evaluate(ctx, env)}))
+    case let MapLiteral(m):
+      // Evaluate the value of the map literal 'm'
+      var newMap : Map = [:]
+      for (key, value) in m {
+        let evaluatedKey = key.evaluate(ctx, env)
+        let evaluatedValue = value.evaluate(ctx, env)
+        newMap[evaluatedKey] = evaluatedValue
+      }
+      return .MapLiteral(newMap)
     case Special: fatal("TODO - taking the value of a special form should be disallowed")
     case ReaderMacro: internalError("reader macro should never be accessible at the eval stage")
     case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")

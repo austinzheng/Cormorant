@@ -31,6 +31,8 @@ enum LexToken : Printable {
   case RightParentheses           // right parentheses ')'
   case LeftSquareBracket          // left square bracket '['
   case RightSquareBracket         // right square bracket ']'
+  case LeftBrace                  // left brace '{'
+  case RightBrace                 // right brace '}'
   case Quote                      // single quote '''
   case Backquote                  // isolate grave accent '`'
   case Tilde                      // tilde '~'
@@ -49,6 +51,8 @@ enum LexToken : Printable {
     case .RightParentheses: return "RightP <)>"
     case .LeftSquareBracket: return "LeftSqBr <[>"
     case .RightSquareBracket: return "RightSqBr <]>"
+    case .LeftBrace: return "LeftBrace <{>"
+    case .RightBrace: return "RightBrace <}>"
     case .Quote: return "Quote <'>"
     case .Backquote: return "Backquote <`>"
     case .Tilde: return "Tilde <~>"
@@ -82,6 +86,8 @@ func lex(raw: String) -> LexResult {
     case RightP
     case LeftSqBr
     case RightSqBr
+    case LeftBrace
+    case RightBrace
     case Quote
     case Backquote
     case Tilde
@@ -146,6 +152,12 @@ func lex(raw: String) -> LexResult {
       case "]":
         flushTokenToBuffer()                          // Right square bracket
         rawTokenBuffer.append(.RightSqBr)
+      case "{":
+        flushTokenToBuffer()                          // Left brace
+        rawTokenBuffer.append(.LeftBrace)
+      case "}":
+        flushTokenToBuffer()                          // Right brace
+        rawTokenBuffer.append(.RightBrace)
       case "'":
         flushTokenToBuffer()                          // Single quote
         rawTokenBuffer.append(.Quote)
@@ -220,6 +232,8 @@ func lex(raw: String) -> LexResult {
     case .RightP: tokenBuffer.append(.RightParentheses)
     case .LeftSqBr: tokenBuffer.append(.LeftSquareBracket)
     case .RightSqBr: tokenBuffer.append(.RightSquareBracket)
+    case .LeftBrace: tokenBuffer.append(.LeftBrace)
+    case .RightBrace: tokenBuffer.append(.RightBrace)
     case .Quote: tokenBuffer.append(.Quote)
     case .Backquote: tokenBuffer.append(.Backquote)
     case .Tilde: tokenBuffer.append(.Tilde)

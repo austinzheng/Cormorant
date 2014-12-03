@@ -84,6 +84,7 @@ class Context {
     // Bind collection functions
     bindings["list"] = .BuiltIn(pr_list)
     bindings["vector"] = .BuiltIn(pr_vector)
+    bindings["hash-map"] = .BuiltIn(pr_hashmap)
     bindings["concat"] = .BuiltIn(pr_concat)
     bindings["seq"] = .BuiltIn(pr_seq)
     // Bind type test functions
@@ -96,6 +97,7 @@ class Context {
     bindings["false?"] = .BuiltIn(pr_isFalse)
     bindings["list?"] = .BuiltIn(pr_isList)
     bindings["vector?"] = .BuiltIn(pr_isVector)
+    bindings["map?"] = .BuiltIn(pr_isMap)
     // Bind I/O functions
     bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions

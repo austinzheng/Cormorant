@@ -128,6 +128,14 @@ extension ConsValue {
         copy[i] = v[i].readerExpand()
       }
       return .VectorLiteral(copy)
+    case let MapLiteral(m):
+      var newMap : Map = [:]
+      for (key, value) in m {
+        let expandedKey = key.readerExpand()
+        let expandedValue = value.readerExpand()
+        newMap[expandedKey] = expandedValue
+      }
+      return .MapLiteral(newMap)
     case FunctionLiteral, ReaderMacro, None, RecurSentinel, MacroArgument:
       fatal("Something has gone very wrong in ConsValue's readerExpand method")
     }
@@ -211,7 +219,7 @@ extension ConsValue {
         case let ListLiteral(symbolAsList):
           // A 'list' in the list could represent a normal list or a nested reader macro
           expansionBuffer.append(symbolAsList.expansionForSyntaxQuote())
-        case let VectorLiteral(symbolAsVector):
+        case VectorLiteral, MapLiteral:
           expansionBuffer.append(.ListLiteral(Cons(.Symbol("list"), next: Cons(symbol.expandSyntaxQuotedItem()))))
         case FunctionLiteral, ReaderMacro, None, RecurSentinel, MacroArgument:
           fatal("Something has gone very wrong 2")
@@ -231,6 +239,11 @@ extension ConsValue {
       let asList = Cons(.ReaderMacro(.SyntaxQuote), next: Cons(.ListLiteral(Cons.listFromVector(v))))
       let expanded = ConsValue.ListLiteral(asList).readerExpand()
       let head = Cons(.Symbol("apply"), next: Cons(.Symbol("vector"), next: Cons(expanded)))
+      return .ListLiteral(head)
+    case let MapLiteral(m):
+      let asList = Cons(.ReaderMacro(.SyntaxQuote), next: Cons(.ListLiteral(Cons.listFromMap(m))))
+      let expanded = ConsValue.ListLiteral(asList).readerExpand()
+      let head = Cons(.Symbol("apply"), next: Cons(.Symbol("hash-map"), next: Cons(expanded)))
       return .ListLiteral(head)
     case FunctionLiteral:
       fatal("Cannot expand a syntax-quoted function literal")

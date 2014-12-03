@@ -19,10 +19,12 @@ Need ideas? Try:
 
 - `(+ (* 2 4) (- 8 6) (+ (+ 1 3) 4))`
 
-**Working with lists**
+**Working with collectionss**
 
 - `(cons 1 '(2 3 4))`
 - `(rest '(1 2 3 4 5))`
+- `(concat '(1 2 3) [4 5] {"six" 6 "seven" 7})`
+- `(seq {1 "one" 2 true "three" [nil]})`
 
 **Defining and calling a function**
 
@@ -37,7 +39,7 @@ Need ideas? Try:
 
 **Creating and using a macro**
 
-- `(defmacro when [predicate then-do] (list 'if predicate then-do nil))`, then `(when (= 1 1) "good")` or `(when (= 1 2) (do (print "this shouldn't show up") "bad"))`
+- ``(defmacro my-when [predicate then-do] `(if ~predicate ~then-do nil))``, then `(my-when (= 1 1) "good")` or `(my-when (= 1 2) (do (print "this shouldn't show up") "bad"))`
 
 
 ### Current Limitations
@@ -60,7 +62,9 @@ Lambdatron has the following features:
 
 **Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `'()`. Or use the `list` function to create a list from zero or more arguments.
 
-**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`. Unlike lists, vectors can't be used to invoke functions.
+**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`, or the `vector` function. Unlike lists, vectors can't be used to invoke functions.
+
+**Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function.
 
 **Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Or create a function bound to a global name using `defn`. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
@@ -83,9 +87,9 @@ Lambdatron has the following features:
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`, `loop`, `recur`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
-- Collection built-in functions: `list`, `vector`, `concat`, `seq`
+- Collection built-in functions: `list`, `vector`, `hash-map`, `concat`, `seq`
 - I/O built-in functions: `print`
-- Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`
+- Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
 - Comparison built-in functions: `=`, `<`, `>`
 - Other built-in functions: `apply`

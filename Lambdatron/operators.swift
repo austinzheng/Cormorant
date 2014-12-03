@@ -8,6 +8,28 @@
 
 import Foundation
 
+func ==(lhs: Cons, rhs: Cons) -> Bool {
+  var this = lhs
+  var that = rhs
+  // We have to walk through the lists
+  while true {
+    if this.value != that.value {
+      // Different values
+      return false
+    }
+    if this.next != nil && that.next == nil || this.next == nil && that.next != nil {
+      // Different lengths
+      return false
+    }
+    if this.next == nil && that.next == nil {
+      // Same length, end of both lists
+      return true
+    }
+    this = this.next!
+    that = that.next!
+  }
+}
+
 func ==(lhs: Cons, rhs: Vector) -> Bool {
   if rhs.count == 0 {
     return lhs.isEmpty
@@ -76,26 +98,7 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     }
   case let .ListLiteral(l1):
     switch rhs {
-    case let .ListLiteral(l2):
-      var this = l1
-      var that = l2
-      // We have to walk through the lists
-      while true {
-        if this.value != that.value {
-          // Different values
-          return false
-        }
-        if this.next != nil && that.next == nil || this.next == nil && that.next != nil {
-          // Different lengths
-          return false
-        }
-        if this.next == nil && that.next == nil {
-          // Same length, end of both lists
-          return true
-        }
-        this = this.next!
-        that = that.next!
-      }
+    case let .ListLiteral(l2): return l1 == l2
     case let .VectorLiteral(v2): return l1 == v2
     default: return false
     }
@@ -103,6 +106,11 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     switch rhs {
     case let .ListLiteral(l2): return l2 == v1
     case let .VectorLiteral(v2): return v1 == v2
+    default: return false
+    }
+  case let .MapLiteral(m1):
+    switch rhs {
+    case let .MapLiteral(m2): return m1 == m2
     default: return false
     }
   case let .FunctionLiteral(f1):
