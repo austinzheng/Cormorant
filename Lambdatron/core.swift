@@ -153,6 +153,23 @@ class Cons : Hashable, Printable, DebugPrintable {
     default: return nil
     }
   }
+
+  func asMap(ctx: Context) -> Map? {
+    switch value {
+    case let .Symbol(name):
+      let mExpr = ctx[name]
+      switch mExpr {
+      case let .Literal(l):
+        switch l {
+        case let .MapLiteral(m): return m
+        default: return nil
+        }
+      default: return nil
+      }
+    case let .MapLiteral(m): return m
+    default: return nil
+    }
+  }
   
   
   // MARK: API - helpers

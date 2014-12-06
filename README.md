@@ -1,7 +1,7 @@
 Lambdatron
 ==========
 
-An interpreter for a simple Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/). Eventual goal is a library that can be used independently of the REPL front-end.
+An interpreter for a Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/), and the interpreter endeavors to match Clojure's behavior as closely as possible. Eventual goal is a library that can be used independently of the REPL front-end.
 
 The name is provisional and will be changed once I come up with something better.
 
@@ -12,6 +12,8 @@ Application
 Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.1 or later to build.
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
+
+[Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the behavior of all included functions and special forms (although there are limitations that prevent exact compliance).
 
 Need ideas? Try:
 
@@ -64,7 +66,7 @@ Lambdatron has the following features:
 
 **Vectors**, declared using square brackets: `[1 2 true "Lisp"]`, or the `vector` function. Unlike lists, vectors can't be used to invoke functions.
 
-**Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function.
+**Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function. Maps can be used in function position in order to get a value for a key.
 
 **Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Or create a function bound to a global name using `defn`. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
@@ -87,7 +89,7 @@ Lambdatron has the following features:
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `cons`, `first`, `rest`, `defmacro`, `loop`, `recur`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
-- Collection built-in functions: `list`, `vector`, `hash-map`, `concat`, `seq`
+- Collection built-in functions: `list`, `vector`, `hash-map`, `concat`, `seq`, `get`, `assoc`, `dissoc`
 - I/O built-in functions: `print`
 - Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
@@ -100,7 +102,6 @@ Lambdatron has the following features:
 
 - Standard library
 - Distinction between integers and floating-point values
-- Support for maps
 - Support for sets
 - Support for keywords
 - Basic namespacing
@@ -112,7 +113,21 @@ Lambdatron has the following features:
 - Full unit test suite (once development stabilizes)
 
 
+### Very Long Term Goals
+
+- Persistent data structures
+- Proper support for lazy collections
+- STM and support for multithreading
+- Destructuring via pattern matching
+- Interpreter rewrite (compile to bytecode rather than direct interpretation) - probably as a separate project
+- Full Foundation/Cocoa bindings
+- Better Swift runtime interop (if proper reflection support ever comes to Swift)
+- Port to Rust
+
+
 License
 -------
 
-Lambdatron © 2014 Austin Zheng. The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound by the terms of this license. You must not remove this notice, or any other, from this software.
+Lambdatron © 2014 Austin Zheng, released as open-source software subject to the following terms.
+
+The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound by the terms of this license. You must not remove this notice, or any other, from this software.

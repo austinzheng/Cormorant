@@ -239,6 +239,84 @@ func pr_concat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
   return .Success(.ListLiteral(head))
 }
 
+/// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value
+func pr_get(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count < 2 || args.count > 3 {
+    return .Failure(.ArityError)
+  }
+  let key = args[1]
+  let fallback : ConsValue = args.count == 3 ? args[2] : .NilLiteral
+
+  switch args[0] {
+  case let .StringLiteral(s):
+    fatal("Not yet implemented")
+  case let .VectorLiteral(v):
+    fatal("Not yet implemented")
+  case let .MapLiteral(m):
+    return .Success(m[key] ?? fallback)
+  default:
+    return .Success(fallback)
+  }
+}
+
+/// Given a supported collection and one or more key-value pairs, associate the new values with the keys.
+func pr_assoc(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  func updateMapFromArray(raw: [ConsValue], inout starting: Map) {
+    for var i=0; i<raw.count - 1; i += 2 {
+      let key = raw[i]
+      let value = raw[i+1]
+      starting[key] = value
+    }
+  }
+  // This function requires at least one collection/nil and one key/index-value pair
+  if args.count < 3 {
+    return .Failure(.ArityError)
+  }
+  // Collect all arguments after the first one
+  let rest = Array(args[1..<args.count])
+  if rest.count % 2 != 0 {
+    // Must have an even number of key/index-value pairs
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .NilLiteral:
+    // Put key-value pairs in a new map
+    var newMap : Map = [:]
+    updateMapFromArray(rest, &newMap)
+    return .Success(.MapLiteral(newMap))
+  case let .StringLiteral(s):
+    // TODO: Implement string and vector support. This will require support for integers.
+    fatal("Implement me!")
+  case let .VectorLiteral(v):
+    fatal("Implement me!")
+  case let .MapLiteral(m):
+    var newMap = m
+    updateMapFromArray(rest, &newMap)
+    return .Success(.MapLiteral(newMap))
+  default:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
+func pr_dissoc(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count < 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .NilLiteral:
+    return .Success(.NilLiteral)
+  case let .MapLiteral(m):
+    var newMap = m
+    for var i=1; i<args.count; i++ {
+      newMap.removeValueForKey(args[i])
+    }
+    return .Success(.MapLiteral(newMap))
+  default:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
 
 // MARK: Typechecking
 
@@ -292,9 +370,9 @@ func pr_isEvalable(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> Eva
     return .Failure(.ArityError)
   }
   // User-defined functions, built-ins, and special forms are eval'able.
-  // TODO: vectors, maps, and sets should also be eval'able, as they are in Clojure
+  // TODO: vectors and sets should also be eval'able, as they are in Clojure
   switch args[0] {
-  case .FunctionLiteral, .Special: return .Success(.BoolLiteral(true))
+  case .FunctionLiteral, .MapLiteral, .Special: return .Success(.BoolLiteral(true))
   case let .Symbol(s):
     switch ctx[s] {
     case .BuiltIn: return .Success(.BoolLiteral(true))

@@ -87,6 +87,9 @@ class Context {
     bindings["hash-map"] = .BuiltIn(pr_hashmap)
     bindings["concat"] = .BuiltIn(pr_concat)
     bindings["seq"] = .BuiltIn(pr_seq)
+    bindings["get"] = .BuiltIn(pr_get)
+    bindings["assoc"] = .BuiltIn(pr_assoc)
+    bindings["dissoc"] = .BuiltIn(pr_dissoc)
     // Bind type test functions
     bindings["number?"] = .BuiltIn(pr_isNumber)
     bindings["string?"] = .BuiltIn(pr_isString)

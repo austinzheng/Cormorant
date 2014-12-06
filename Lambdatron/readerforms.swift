@@ -184,7 +184,6 @@ extension ConsValue {
     case let ListLiteral(l):
       // We have a list, such that we have (` (a b c d e))
       // We need to reader-expand each individual a, b, c, then wrap it all in a (seq (cons X))
-      // Collect all the values
       if l.isEmpty {
         // `() --> (list)
         return .ListLiteral(Cons(.Symbol("list")))

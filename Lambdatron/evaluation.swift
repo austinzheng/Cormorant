@@ -18,7 +18,7 @@ extension Cons {
       // How it works:
       // 1. Arguments are passed in as-is
       // 2. The special form decides whether or not to evaluate or use the arguments
-      // 3. The result may or may not be evaluated, depending on the special form
+      // 3. The special form returns a value
       let symbols = Cons.collectSymbols(next)
       let result = toExecuteSpecialForm.function(symbols, ctx, env)
       switch result {
@@ -47,7 +47,7 @@ extension Cons {
       // How it works:
       // 1. Arguments are passed in as-is
       // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
-      // 3. This replacement form is then evaluated
+      // 3. This replacement form is then evaluated to return a value
       let symbols = Cons.collectSymbols(next)
       let expanded = toExpandMacro.macroexpand(symbols)
       switch expanded {
@@ -65,9 +65,26 @@ extension Cons {
       // How it works:
       // 1. Arguments are evaluated before the function is ever invoked
       // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
-      // 3. The result is then used as-is
+      // 3. The function returns a value
       if let values = Cons.collectValues(next, ctx: ctx, env: env) {
         let result = toExecuteFunction.evaluate(values, env: env)
+        switch result {
+        case let .Success(v): return v
+        case let .Failure(f): fatal("Something went wrong: \(f)")
+        }
+      }
+      else {
+        fatal("Could not collect values")
+      }
+    }
+    else if let toEvalMap = asMap(ctx) {
+      logEval("evaluating as function with map in function position: \(self.description)")
+      // Execute a list with a map in function position
+      // How it works:
+      // 1. (*map* *args*...) is translated into (get *map* *args*...).
+      // 2. Normal function call
+      if let args = Cons.collectValues(self, ctx: ctx, env: env) {
+        let result = pr_get(args, ctx, env)
         switch result {
         case let .Success(v): return v
         case let .Failure(f): fatal("Something went wrong: \(f)")
