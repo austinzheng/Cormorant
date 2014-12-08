@@ -18,12 +18,15 @@
 		1A5DE9711A1D7CB000973951 /* singlefn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DE9701A1D7CB000973951 /* singlefn.swift */; };
 		1A5DE9731A1D8D1400973951 /* operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DE9721A1D8D1400973951 /* operators.swift */; };
 		1A73F0D919F7138100F266DA /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A73F0D819F7138100F266DA /* main.swift */; };
+		1A942AE11A35A94D0036BF5A /* builtin.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A942AE01A35A94D0036BF5A /* builtin.lbt */; };
+		1A942AE21A35A9E30036BF5A /* builtin.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A942AE01A35A94D0036BF5A /* builtin.lbt */; };
 		1A98B1121A1C83E700019DB4 /* core.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A98B10C1A1C79F300019DB4 /* core.lbt */; };
 		1A98B1141A1C84CE00019DB4 /* core.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A98B10C1A1C79F300019DB4 /* core.lbt */; };
 		1ACFB1901A21BD82000FB61F /* commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB18F1A21BD82000FB61F /* commands.swift */; };
 		1ACFB1921A21C011000FB61F /* logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1911A21C011000FB61F /* logging.swift */; };
 		1ACFB1941A256008000FB61F /* repl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1931A256008000FB61F /* repl.swift */; };
 		1ADAAD9C1A11E2FB00C2223E /* specialforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ADAAD9B1A11E2FB00C2223E /* specialforms.swift */; };
+		1AE1A3321A3ACA3A009A6CAB /* temp_bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE1A3311A3ACA3A009A6CAB /* temp_bootstrap.swift */; };
 		1AF1B1401A1B0C2400C93C60 /* readerforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF1B13F1A1B0C2400C93C60 /* readerforms.swift */; };
 		1AFB727D1A2DAE1400A0CB69 /* evaluation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFB727C1A2DAE1400A0CB69 /* evaluation.swift */; };
 		FB50163F1A37E29C004A2BFE /* LineReader.m in Sources */ = {isa = PBXBuildFile; fileRef = FB50163E1A37E29C004A2BFE /* LineReader.m */; };
@@ -37,6 +40,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				1A942AE21A35A9E30036BF5A /* builtin.lbt in CopyFiles */,
 				1A98B1141A1C84CE00019DB4 /* core.lbt in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -56,11 +60,13 @@
 		1A5DE9721A1D8D1400973951 /* operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = operators.swift; sourceTree = "<group>"; };
 		1A73F0D519F7138100F266DA /* Lambdatron */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Lambdatron; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A73F0D819F7138100F266DA /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		1A942AE01A35A94D0036BF5A /* builtin.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = builtin.lbt; path = stdlib/builtin.lbt; sourceTree = "<group>"; };
 		1A98B10C1A1C79F300019DB4 /* core.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = core.lbt; path = stdlib/core.lbt; sourceTree = "<group>"; };
 		1ACFB18F1A21BD82000FB61F /* commands.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = commands.swift; path = REPL/commands.swift; sourceTree = "<group>"; };
 		1ACFB1911A21C011000FB61F /* logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = logging.swift; path = REPL/logging.swift; sourceTree = "<group>"; };
 		1ACFB1931A256008000FB61F /* repl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = repl.swift; path = REPL/repl.swift; sourceTree = "<group>"; };
 		1ADAAD9B1A11E2FB00C2223E /* specialforms.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = specialforms.swift; sourceTree = "<group>"; };
+		1AE1A3311A3ACA3A009A6CAB /* temp_bootstrap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = temp_bootstrap.swift; path = builtin/temp_bootstrap.swift; sourceTree = "<group>"; };
 		1AF1B13F1A1B0C2400C93C60 /* readerforms.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = readerforms.swift; sourceTree = "<group>"; };
 		1AFB727C1A2DAE1400A0CB69 /* evaluation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = evaluation.swift; sourceTree = "<group>"; };
 		FB50163D1A37E29B004A2BFE /* Lambdatron-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Lambdatron-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -120,6 +126,7 @@
 				1A28DF541A15B0D80036A562 /* functions.swift */,
 				1A28DF561A16C69B0036A562 /* macros.swift */,
 				1A24D9CD19F71875003980C1 /* primitives.swift */,
+				1AE1A3311A3ACA3A009A6CAB /* temp_bootstrap.swift */,
 				1A24D9D119F72588003980C1 /* context.swift */,
 				1A5DE9721A1D8D1400973951 /* operators.swift */,
 				1A22BCB11A25AFEE00D34872 /* reader */,
@@ -133,6 +140,7 @@
 			isa = PBXGroup;
 			children = (
 				1A98B10C1A1C79F300019DB4 /* core.lbt */,
+				1A942AE01A35A94D0036BF5A /* builtin.lbt */,
 			);
 			name = stdlib;
 			sourceTree = "<group>";
@@ -207,6 +215,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A942AE11A35A94D0036BF5A /* builtin.lbt in Resources */,
 				1A98B1121A1C83E700019DB4 /* core.lbt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -228,6 +237,7 @@
 				1A24D9D219F72588003980C1 /* context.swift in Sources */,
 				1A24D9CC19F71645003980C1 /* core.swift in Sources */,
 				1A28DF551A15B0D80036A562 /* functions.swift in Sources */,
+				1AE1A3321A3ACA3A009A6CAB /* temp_bootstrap.swift in Sources */,
 				1ACFB1941A256008000FB61F /* repl.swift in Sources */,
 				1ACFB1921A21C011000FB61F /* logging.swift in Sources */,
 				1AFB727D1A2DAE1400A0CB69 /* evaluation.swift in Sources */,

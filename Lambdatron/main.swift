@@ -32,7 +32,7 @@ private func doFormForFileData(d: String) -> [ConsValue]? {
   return nil
 }
 
-// Mark: Entry point
+// MARK: Entry point
 
 func main() {
   // Retrieve command-line arguments
@@ -80,7 +80,8 @@ main()
 
 // MARK: Special functions
 
-// Force the program to exit if something is wrong
+/// Force the program to exit if something is wrong. This function is intended only to represent bugs in the Lambdatron
+/// interpreter.
 @noreturn func fatal(message: String) {
   println("Assertion: \(message)")
   exit(EXIT_FAILURE)

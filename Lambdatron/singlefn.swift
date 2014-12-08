@@ -19,7 +19,7 @@ enum EvalError : Printable {
     case ArityError: return "wrong number of arguments to macro, function, or special form"
     case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
     case DivideByZeroError: return "attempted to divide by zero"
-    case .RecurMisuseError: return "didn't use recur in the correct position"
+    case RecurMisuseError: return "didn't use recur in the correct position"
     case let DefineFunctionError(e): return e
     case let CustomError(c): return c
     }

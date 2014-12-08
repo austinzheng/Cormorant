@@ -25,3 +25,88 @@
   ([x & next]
     `(let [__MACRO_orValue ~x]
       (if __MACRO_orValue __MACRO_orValue (or ~@next)))))
+
+; Return the sum of zero or more numeric values
+; TODO: Remove dependence on bootstrap function
+(defn +
+  ([] 0)
+  ([x] x)
+  ([x y] (.+ x y))
+  ([x y & rest] (.B+ x y rest))
+)
+
+; Return the difference of one or more numeric values
+; TODO: Remove dependence on bootstrap function
+(defn -
+  ([x] (- 0 x))
+  ([x y] (.- x y))
+  ([x y & rest] (.B- x y rest))
+)
+
+; Return the product of zero or more numeric values
+; TODO: Remove dependence on bootstrap function
+(defn *
+  ([] 1)
+  ([x] x)
+  ([x y] (.* x y))
+  ([x y & rest] (.B* x y rest))
+)
+
+; Return the quotient of one or more numeric values
+; TODO: Remove dependence on bootstrap function
+(defn /
+  ([x] (/ 1 x))
+  ([x y] (./ x y))
+  ([x y & rest] (.B/ x y rest))
+)
+
+; Return whether one or more numerical values are strictly monotonically increasing in value
+; TODO: Replace 'rest' with 'next'
+(defn <
+  ([x] true)
+  ([x y] (.< x y))
+  ([x y & more]
+    (if (.< x y)
+      (if (not (.= '() (rest more)))
+        (recur y (first more) (rest more))
+        (.< y (first more))
+      )
+      false)))
+
+; Return whether one or more numerical values are strictly monotonically decreasing in value
+; TODO: Replace 'rest' with 'next'
+(defn >
+  ([x] true)
+  ([x y] (.> x y))
+  ([x y & more]
+    (if (.> x y)
+      (if (not (.= '() (rest more)))
+        (recur y (first more) (rest more))
+        (.> y (first more))
+      )
+      false)))
+
+; Return whether one or more numeric values are equivalent
+; TODO: Replace 'rest' with 'next'
+(defn ==
+  ([x] true)
+  ([x y] (.== x y))
+  ([x y & more]
+    (if (.== x y)
+      (if (not (.= '() (rest more)))
+        (recur y (first more) (rest more))
+        (.== y (first more))
+      )
+      false)))
+
+; Return whether one or more values are equal
+(defn =
+  ([x] true)
+  ([x y] (.= x y))
+  ([x y & more]
+    (if (.= x y)
+      (if (not (.= '() (rest more)))
+        (recur y (first more) (rest more))
+        (.= y (first more))
+      )
+      false)))

@@ -76,6 +76,11 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .Special(s2): return s1 == s2
     default: return false
     }
+  case let .BuiltInFunction(b1):
+    switch rhs {
+    case let .BuiltInFunction(b2): return b1 == b2
+    default: return false
+    }
   case .NilLiteral:
     switch rhs {
     case .NilLiteral: return true

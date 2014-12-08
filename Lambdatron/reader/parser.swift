@@ -159,6 +159,8 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
       buffer.append(wrappedConsItem(.Symbol(r), &wrapStack))
     case let .Special(s):
       buffer.append(wrappedConsItem(.Special(s), &wrapStack))
+    case let .BuiltInFunction(bf):
+      buffer.append(wrappedConsItem(.BuiltInFunction(bf), &wrapStack))
     }
     counter++
   }

@@ -103,15 +103,12 @@ class Cons : Hashable, Printable, DebugPrintable {
     }
   }
 
-  func asBuiltIn(ctx: Context) -> LambdatronBuiltIn? {
+  func asBuiltIn() -> LambdatronBuiltIn? {
     switch value {
-    case let .Symbol(vname):
-      let vExpr = ctx[vname]
-      switch vExpr {
-      case let .BuiltIn(f): return f
-      default: return nil
-      }
-    default: return nil
+    case let .BuiltInFunction(bf):
+      return bf.function
+    default:
+      return nil
     }
   }
   
@@ -244,6 +241,7 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
   case None
   case Symbol(String)
   case Special(SpecialForm)
+  case BuiltInFunction(BuiltIn)
   case ReaderMacro(ReaderForm)
   case NilLiteral
   case BoolLiteral(Bool)
@@ -264,6 +262,7 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     case None: return 0
     case let Symbol(s): return s.hashValue
     case let Special(sf): return sf.hashValue
+    case let BuiltInFunction(bf): return bf.hashValue
     case let ReaderMacro(rf): return rf.hashValue
     case NilLiteral: return 0
     case let BoolLiteral(b): return b.hashValue
@@ -336,6 +335,7 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
       return "{\(internals)}"
     case let FunctionLiteral(f): return f.description
     case let Special(s): return s.rawValue
+    case let BuiltInFunction(bf): return bf.rawValue
     case let ReaderMacro(r): return r.description
     case None: return ""
     case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
@@ -365,6 +365,7 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
       return "{\(internals)}"
     case let FunctionLiteral(f): return "ConsValue.FunctionLiteral(\(f.description))"
     case let Special(s): return "ConsValue.Special(\(s.rawValue))"
+    case let BuiltInFunction(bf): return "ConsValue.BuiltInFunction(\(bf.rawValue))"
     case let ReaderMacro(r): return "ConsValue.ReaderMacro(\(r.description))"
     case None: return "ConsValue.None"
     case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")

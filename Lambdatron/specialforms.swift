@@ -14,9 +14,6 @@ typealias LambdatronSpecialForm = ([ConsValue], Context, EvalEnvironment) -> Eva
 enum SpecialForm : String, Printable {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
   case Quote = "quote"
-  case Cons = "cons"
-  case First = "first"
-  case Rest = "rest"
   case If = "if"
   case Do = "do"
   case Def = "def"
@@ -25,21 +22,20 @@ enum SpecialForm : String, Printable {
   case Defmacro = "defmacro"
   case Loop = "loop"
   case Recur = "recur"
+  case Apply = "apply"
   
   var function : LambdatronSpecialForm {
     switch self {
-    case .Quote: return sf_quote
-    case .Cons: return sf_cons
-    case .First: return sf_first
-    case .Rest: return sf_rest
-    case .If: return sf_if
-    case .Do: return sf_do
-    case .Def: return sf_def
-    case .Let: return sf_let
-    case .Fn: return sf_fn
-    case .Defmacro: return sf_defmacro
-    case .Loop: return sf_loop
-    case .Recur: return sf_recur
+    case Quote: return sf_quote
+    case If: return sf_if
+    case Do: return sf_do
+    case Def: return sf_def
+    case Let: return sf_let
+    case Fn: return sf_fn
+    case Defmacro: return sf_defmacro
+    case Loop: return sf_loop
+    case Recur: return sf_recur
+    case Apply: return sf_apply
     }
   }
   
@@ -58,133 +54,6 @@ func sf_quote(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   }
   let first = args[0]
   return .Success(first)
-}
-
-/// Given a prefix and a list argument, return a new list where the prefix is followed by the list argument.
-func sf_cons(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count != 2 {
-    return .Failure(.ArityError)
-  }
-  let first = args[0].evaluate(ctx, env)
-  let second = args[1].evaluate(ctx, env)
-  switch second {
-  case .NilLiteral:
-    // Create a new list consisting of just the first object
-    return .Success(.ListLiteral(Cons(first)))
-  case let .ListLiteral(l):
-    // Create a new list consisting of the first object, followed by the second list (if not empty)
-    return .Success(.ListLiteral(l.isEmpty ? Cons(first) : Cons(first, next: l)))
-  case let .VectorLiteral(v):
-    // Create a new list consisting of the first object, followed by a list comprised of the vector's items
-    if v.count == 0 {
-      return .Success(.ListLiteral(Cons(first)))
-    }
-    let head = Cons(first)
-    var this = head
-    for item in v {
-      let next = Cons(item)
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
-  case let .MapLiteral(m):
-    // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
-    //  key-value pairs
-    if m.count == 0 {
-      return .Success(.ListLiteral(Cons(first)))
-    }
-    let head = Cons(first)
-    var this = head
-    for (key, value) in m {
-      let next = Cons(.VectorLiteral([key, value]))
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
-  default: return .Failure(.InvalidArgumentError)
-  }
-}
-
-/// Given a sequence, return the first item.
-func sf_first(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count == 0 {
-    return .Failure(.ArityError)
-  }
-  let first = args[0].evaluate(ctx, env)
-  switch first {
-  case .NilLiteral:
-    return .Success(.NilLiteral)
-  case let .ListLiteral(l):
-    return .Success(l.isEmpty ? .NilLiteral : l.value)
-  case let .VectorLiteral(v):
-    return .Success(v.count == 0 ? .NilLiteral : v[0])
-  case let .MapLiteral(m):
-    if m.count == 0 {
-      return .Success(.NilLiteral)
-    }
-    for (key, value) in m {
-      return .Success(.VectorLiteral([key, value]))
-    }
-    internalError("Cannot ever reach this point")
-  default: return .Failure(.InvalidArgumentError)
-  }
-}
-
-/// Given a sequence, return the sequence comprised of all items but the first.
-func sf_rest(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count != 1 {
-    return .Failure(.ArityError)
-  }
-  let first = args[0].evaluate(ctx, env)
-  switch first {
-  case .NilLiteral: return .Success(.ListLiteral(Cons()))
-  case let .ListLiteral(l):
-    if let actualNext = l.next {
-      // List has more than one item
-      return .Success(.ListLiteral(actualNext))
-    }
-    else {
-      // List has zero or one items, return the empty list
-      return .Success(.ListLiteral(Cons()))
-    }
-  case let .VectorLiteral(v):
-    if v.count < 2 {
-      // Vector has zero or one items
-      return .Success(.ListLiteral(Cons()))
-    }
-    let head = Cons(v[1])
-    var this = head
-    for var i=2; i<v.count; i++ {
-      let next = Cons(v[i])
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
-  case let .MapLiteral(m):
-    if m.count < 2 {
-      // Map has zero or one items
-      return .Success(.ListLiteral(Cons()))
-    }
-    var head : Cons? = nil
-    var this = head
-    var skippedFirst = false
-    for (key, value) in m {
-      if !skippedFirst {
-        skippedFirst = true
-        continue
-      }
-      let next = Cons(.VectorLiteral([key, value]))
-      if let this = this {
-        this.next = next
-      }
-      else {
-        head = next
-      }
-      this = next
-    }
-    return .Success(.ListLiteral(head!))
-  default: return .Failure(.InvalidArgumentError)
-  }
 }
 
 /// Evaluate a conditional, and evaluate one or one of two expressions based on its boolean value.
@@ -460,6 +329,58 @@ func sf_recur(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
     newArgs.append(result)
   }
   return .Success(.RecurSentinel(newArgs))
+}
+
+/// Given a function, zero or more leading arguments, and a sequence of args, apply the function with the arguments.
+func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count < 2 {
+    return .Failure(.ArityError)
+  }
+  // First argument must be a function, built-in, or special form
+  // TODO: There should be a less ad-hoc way of determining whether the first argument is eval'able.
+  let first = args[0].evaluate(ctx, env)
+  switch first {
+  case .FunctionLiteral, .BuiltInFunction, .Special, .MapLiteral, .Symbol: break
+  default: return .Failure(.InvalidArgumentError)
+  }
+  
+  // Straightforward implementation: build a list and then eval it
+  let head = Cons(first)
+  var this = head
+  
+  for var i=1; i<args.count - 1; i++ {
+    // Add all leading args (after being evaluated) to the list directly
+    let evaluatedResult = args[i].evaluate(ctx, env)
+    let next = Cons(evaluatedResult)
+    this.next = next
+    this = next
+  }
+  
+  // Evaluate the last argument, which should be some sort of collection.
+  // Note that, since there can never be zero arguments, last will always be non-nil.
+  let last = args.last!.evaluate(ctx, env)
+  switch last {
+  case let .ListLiteral(l) where !l.isEmpty:
+    this.next = l
+  case let .VectorLiteral(v):
+    for item in v {
+      let next = Cons(item)
+      this.next = next
+      this = next
+    }
+  case let .MapLiteral(m):
+    for (key, value) in m {
+      let next = Cons(.VectorLiteral([key, value]))
+      this.next = next
+      this = next
+    }
+  default:
+    return .Failure(.InvalidArgumentError)
+  }
+  
+  // With the entire list constructed, evaluate it as a function call and then return the result.
+  let result = head.evaluate(ctx, env)
+  return .Success(result)
 }
 
 

@@ -8,7 +8,105 @@
 
 import Foundation
 
-typealias LambdatronBuiltIn = ([ConsValue], Context, EvalEnvironment) -> EvalResult
+typealias LambdatronBuiltIn = ([ConsValue], Context) -> EvalResult
+
+enum BuiltIn : String, Printable {
+  
+  // Collection-related
+  case List = ".list"
+  case Vector = ".vector"
+  case Hashmap = ".hash-map"
+  case Cons = ".cons"
+  case First = ".first"
+  case Rest = ".rest"
+  case Concat = ".concat"
+  case Seq = ".seq"
+  case Get = ".get"
+  case Assoc = ".assoc"
+  case Dissoc = ".dissoc"
+  
+  // I/O
+  case Print = ".print"
+  
+  // Typechecking
+  case IsNumber = ".number?"
+  case IsInteger = ".int?"
+  case IsFloat = ".float?"
+  case IsString = ".string?"
+  case IsSymbol = ".symbol?"
+  case IsFn = ".fn?"
+  case IsEvalable = ".eval?"
+  case IsTrue = ".true?"
+  case IsFalse = ".false?"
+  case IsList = ".list?"
+  case IsVector = ".vector?"
+  case IsMap = ".map?"
+  
+  // Comparison
+  case Equals = ".="
+  case NumericEquals = ".=="
+  case GreaterThan = ".>"
+  case LessThan = ".<"
+  
+  // Arithmetic
+  case Plus = ".+"
+  case Minus = ".-"
+  case Multiply = ".*"
+  case Divide = "./"
+  
+  // TEMPORARY BOOTSTRAP
+  case BootstrapPlus = ".B+"
+  case BootstrapMinus = ".B-"
+  case BootstrapMultiply = ".B*"
+  case BootstrapDivide = ".B/"
+  
+  var function : LambdatronBuiltIn {
+    switch self {
+    case List: return pr_list
+    case Vector: return pr_vector
+    case Hashmap: return pr_hashmap
+    case Cons: return pr_cons
+    case First: return pr_first
+    case Rest: return pr_rest
+    case Concat: return pr_concat
+    case Seq: return pr_seq
+    case Get: return pr_get
+    case Assoc: return pr_assoc
+    case Dissoc: return pr_dissoc
+    case Print: return pr_print
+    case IsNumber: return pr_isNumber
+    case IsInteger: return pr_isInteger
+    case IsFloat: return pr_isFloat
+    case IsString: return pr_isString
+    case IsSymbol: return pr_isSymbol
+    case IsFn: return pr_isFunction
+    case IsEvalable: return pr_isEvalable
+    case IsTrue: return pr_isTrue
+    case IsFalse: return pr_isFalse
+    case IsList: return pr_isList
+    case IsVector: return pr_isVector
+    case IsMap: return pr_isMap
+    case Equals: return pr_equals
+    case NumericEquals: return pr_numericEquals
+    case GreaterThan: return pr_gt
+    case LessThan: return pr_lt
+    case Plus: return pr_plus
+    case Minus: return pr_minus
+    case Multiply: return pr_multiply
+    case Divide: return pr_divide
+      
+    // TEMPORARY
+    case BootstrapPlus: return bootstrap_plus
+    case BootstrapMinus: return bootstrap_minus
+    case BootstrapMultiply: return bootstrap_multiply
+    case BootstrapDivide: return bootstrap_divide
+    }
+  }
+  
+  var description : String {
+    return self.rawValue
+  }
+}
 
 func extractList(n: ConsValue) -> Cons? {
   let x : Cons? = {
@@ -21,70 +119,11 @@ func extractList(n: ConsValue) -> Cons? {
   return x
 }
 
-// MARK: General
-
-/// Given a function, zero or more leading arguments, and a sequence of args, apply the function with the arguments.
-func pr_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count < 2 {
-    return .Failure(.ArityError)
-  }
-  // First argument must be a function, built-in, or special form
-  switch args[0] {
-  case .FunctionLiteral, .Special: break
-  case let .Symbol(s):
-    switch ctx[s] {
-    case .BuiltIn: break
-    default: return .Failure(.InvalidArgumentError)
-    }
-  default: return .Failure(.InvalidArgumentError)
-  }
-  let last = args.last!
-  switch last {
-  case .ListLiteral, .VectorLiteral:
-    break
-  default:
-    // Last argument must be a collection
-    return .Failure(.InvalidArgumentError)
-  }
-  
-  // Straightforward implementation: build a list and then eval it
-  let head = Cons(args[0])
-  var this = head
-  
-  for var i=1; i<args.count - 1; i++ {
-    // Add all leading args to the list directly
-    let next = Cons(args[i])
-    this.next = next
-    this = next
-  }
-  switch last {
-  case let .ListLiteral(l) where !l.isEmpty:
-    this.next = l
-  case let .VectorLiteral(v):
-    for item in v {
-      let next = Cons(item)
-      this.next = next
-      this = next
-    }
-  case let .MapLiteral(m):
-    for (key, value) in m {
-      let next = Cons(.VectorLiteral([key, value]))
-      this.next = next
-      this = next
-    }
-  default:
-    break
-  }
-  
-  let result = head.evaluate(ctx, env)
-  return .Success(result)
-}
-
 
 // MARK: Collections
 
 /// Given zero or more arguments, construct a list whose components are the arguments (or the empty list).
-func pr_list(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.ListLiteral(Cons()))
   }
@@ -99,12 +138,12 @@ func pr_list(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
 }
 
 /// Given zero or more arguments, construct a vector whose components are the arguments (or the empty vector).
-func pr_vector(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_vector(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.VectorLiteral(args))
 }
 
 /// Given zero or more arguments, construct a map whose components are the keys and values (or the empty map).
-func pr_hashmap(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_hashmap(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count % 2 != 0 {
     // Must have an even number of arguments
     return .Failure(.InvalidArgumentError)
@@ -118,8 +157,135 @@ func pr_hashmap(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRe
   return .Success(.MapLiteral(buffer))
 }
 
+/// Given a prefix and a list argument, return a new list where the prefix is followed by the list argument.
+func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0]
+  let second = args[1]
+  switch second {
+  case .NilLiteral:
+    // Create a new list consisting of just the first object
+    return .Success(.ListLiteral(Cons(first)))
+  case let .ListLiteral(l):
+    // Create a new list consisting of the first object, followed by the second list (if not empty)
+    return .Success(.ListLiteral(l.isEmpty ? Cons(first) : Cons(first, next: l)))
+  case let .VectorLiteral(v):
+    // Create a new list consisting of the first object, followed by a list comprised of the vector's items
+    if v.count == 0 {
+      return .Success(.ListLiteral(Cons(first)))
+    }
+    let head = Cons(first)
+    var this = head
+    for item in v {
+      let next = Cons(item)
+      this.next = next
+      this = next
+    }
+    return .Success(.ListLiteral(head))
+  case let .MapLiteral(m):
+    // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
+    //  key-value pairs
+    if m.count == 0 {
+      return .Success(.ListLiteral(Cons(first)))
+    }
+    let head = Cons(first)
+    var this = head
+    for (key, value) in m {
+      let next = Cons(.VectorLiteral([key, value]))
+      this.next = next
+      this = next
+    }
+    return .Success(.ListLiteral(head))
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given a sequence, return the first item.
+func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0]
+  switch first {
+  case .NilLiteral:
+    return .Success(.NilLiteral)
+  case let .ListLiteral(l):
+    return .Success(l.isEmpty ? .NilLiteral : l.value)
+  case let .VectorLiteral(v):
+    return .Success(v.count == 0 ? .NilLiteral : v[0])
+  case let .MapLiteral(m):
+    if m.count == 0 {
+      return .Success(.NilLiteral)
+    }
+    for (key, value) in m {
+      return .Success(.VectorLiteral([key, value]))
+    }
+    internalError("Cannot ever reach this point")
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given a sequence, return the sequence comprised of all items but the first.
+func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0]
+  switch first {
+  case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case let .ListLiteral(l):
+    if let actualNext = l.next {
+      // List has more than one item
+      return .Success(.ListLiteral(actualNext))
+    }
+    else {
+      // List has zero or one items, return the empty list
+      return .Success(.ListLiteral(Cons()))
+    }
+  case let .VectorLiteral(v):
+    if v.count < 2 {
+      // Vector has zero or one items
+      return .Success(.ListLiteral(Cons()))
+    }
+    let head = Cons(v[1])
+    var this = head
+    for var i=2; i<v.count; i++ {
+      let next = Cons(v[i])
+      this.next = next
+      this = next
+    }
+    return .Success(.ListLiteral(head))
+  case let .MapLiteral(m):
+    if m.count < 2 {
+      // Map has zero or one items
+      return .Success(.ListLiteral(Cons()))
+    }
+    var head : Cons? = nil
+    var this = head
+    var skippedFirst = false
+    for (key, value) in m {
+      if !skippedFirst {
+        skippedFirst = true
+        continue
+      }
+      let next = Cons(.VectorLiteral([key, value]))
+      if let this = this {
+        this.next = next
+      }
+      else {
+        head = next
+      }
+      this = next
+    }
+    return .Success(.ListLiteral(head!))
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
 /// Given a single sequence, return nil (if empty) or a list built out of that sequence.
-func pr_seq(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -162,7 +328,7 @@ func pr_seq(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
 }
 
 /// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
-func pr_concat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.ListLiteral(Cons()))
   }
@@ -221,7 +387,7 @@ func pr_concat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
 }
 
 /// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value
-func pr_get(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 2 || args.count > 3 {
     return .Failure(.ArityError)
   }
@@ -241,7 +407,7 @@ func pr_get(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
 }
 
 /// Given a supported collection and one or more key-value pairs, associate the new values with the keys.
-func pr_assoc(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
   func updateMapFromArray(raw: [ConsValue], inout starting: Map) {
     for var i=0; i<raw.count - 1; i += 2 {
       let key = raw[i]
@@ -280,7 +446,7 @@ func pr_assoc(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 }
 
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
-func pr_dissoc(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_dissoc(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 1 {
     return .Failure(.ArityError)
   }
@@ -302,7 +468,7 @@ func pr_dissoc(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
 // MARK: Typechecking
 
 /// Return whether or not the argument is a number of some sort.
-func pr_isNumber(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isNumber(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -313,7 +479,7 @@ func pr_isNumber(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
 }
 
 /// Return whether or not the argument is a floating point number.
-func pr_isInteger(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isInteger(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -324,7 +490,7 @@ func pr_isInteger(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> Eval
 }
 
 /// Return whether or not the argument is a floating point number.
-func pr_isFloat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isFloat(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -335,7 +501,7 @@ func pr_isFloat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRe
 }
 
 /// Return whether or not the argument is a string literal.
-func pr_isString(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isString(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -346,7 +512,7 @@ func pr_isString(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
 }
 
 /// Return whether or not the argument is a symbol.
-func pr_isSymbol(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isSymbol(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -357,7 +523,7 @@ func pr_isSymbol(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
 }
 
 /// Return whether or not the argument is a user-defined function.
-func pr_isFunction(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isFunction(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -368,25 +534,20 @@ func pr_isFunction(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> Eva
 }
 
 /// Return whether or not the argument is something that can be called in function position (e.g. special forms).
-func pr_isEvalable(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isEvalable(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
   // User-defined functions, built-ins, and special forms are eval'able.
   // TODO: vectors and sets should also be eval'able, as they are in Clojure
   switch args[0] {
-  case .FunctionLiteral, .MapLiteral, .Special: return .Success(.BoolLiteral(true))
-  case let .Symbol(s):
-    switch ctx[s] {
-    case .BuiltIn: return .Success(.BoolLiteral(true))
-    default: return .Success(.BoolLiteral(false))
-    }
+  case .FunctionLiteral, .MapLiteral, .Special, .BuiltInFunction: return .Success(.BoolLiteral(true))
   default: return .Success(.BoolLiteral(false))
   }
 }
 
 /// Return whether or not the argument is the boolean value 'true'.
-func pr_isTrue(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isTrue(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -397,7 +558,7 @@ func pr_isTrue(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
 }
 
 /// Return whether or not the argument is the boolean value 'false'.
-func pr_isFalse(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isFalse(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -408,7 +569,7 @@ func pr_isFalse(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRe
 }
 
 /// Return whether or not the argument is a list.
-func pr_isList(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isList(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -419,7 +580,7 @@ func pr_isList(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
 }
 
 /// Return whether or not the argument is a vector.
-func pr_isVector(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isVector(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -430,7 +591,7 @@ func pr_isVector(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
 }
 
 /// Return whether or not the argument is a map.
-func pr_isMap(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_isMap(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
@@ -444,7 +605,7 @@ func pr_isMap(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 // MARK: I/O
 
 /// Print zero or more args to screen. Returns nil.
-func pr_print(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
     case let .StringLiteral(s): return s
@@ -461,19 +622,14 @@ func pr_print(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 // MARK: Math Helpers
 
 /// An enum wrapping one of several numerical types, or an invalid value sigil.
-private enum NumericalType {
+internal enum NumericalType {
   case Integer(Int)
   case Float(Double)
   case Invalid
 }
 
-/// An enum describing the numerical mode of an operation.
-private enum NumericalMode {
-  case Integer, Float
-}
-
 /// Convert a given ConsValue argument into the equivalent NumericalType token.
-private func extractNumber(n: ConsValue) -> NumericalType {
+internal func extractNumber(n: ConsValue) -> NumericalType {
   switch n {
   case let .IntegerLiteral(v): return .Integer(v)
   case let .FloatLiteral(v): return .Float(v)
@@ -481,25 +637,11 @@ private func extractNumber(n: ConsValue) -> NumericalType {
   }
 }
 
-/// Build initial state for first argument for a mathematical operation. This method returns a tuple containing an
-/// integer accumulator, a double accumulator, a mode, and an optional error flag. If the error flag is true, the prior
-/// items should be ignored.
-private func stateForFirstArgument(first: ConsValue) -> (Int, Double, NumericalMode, Bool) {
-  switch extractNumber(first) {
-  case let .Integer(v):
-    return (v, 0.0, .Integer, false)
-  case let .Float(v):
-    return (0, v, .Float, false)
-  case .Invalid:
-    return (0, 0, .Float, true)
-  }
-}
-
 
 // MARK: Comparison
 
 /// Evaluate the equality of one or more forms.
-func pr_equals(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -513,7 +655,7 @@ func pr_equals(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
 }
 
 /// Evaluate the equality of two numeric forms.
-func pr_numericEquals(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }
@@ -537,264 +679,188 @@ func pr_numericEquals(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> 
 }
 
 /// Evaluate whether arguments are in monotonically decreasing order.
-func pr_gt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count == 0 {
+func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
     return .Failure(.ArityError)
   }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
   
-  // Set up the initial state
-  var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
-  if didError {
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2): return .Success(.BoolLiteral(v1 > v2))
+    case let .Float(v2): return .Success(.BoolLiteral(Double(v1) > v2))
+    case .Invalid: return .Failure(.InvalidArgumentError)
+    }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2): return .Success(.BoolLiteral(v1 > Double(v2)))
+    case let .Float(v2): return .Success(.BoolLiteral(v1 > v2))
+    case .Invalid: return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
     return .Failure(.InvalidArgumentError)
   }
-  
-  for var i=1; i<args.count; i++ {
-    let arg = args[i]
-    switch extractNumber(arg) {
-    case let .Integer(v):
-      switch mode {
-      case .Integer:
-        if v >= intAccum {
-          return .Success(.BoolLiteral(false))
-        }
-        intAccum = v
-      case .Float:
-        if Double(v) >= floatAccum {
-          return .Success(.BoolLiteral(false))
-        }
-        floatAccum = Double(v)
-      }
-    case let .Float(v):
-      switch mode {
-      case .Integer:
-        mode = .Float
-        floatAccum = Double(intAccum)
-        if Double(v) >= floatAccum {
-          return .Success(.BoolLiteral(false))
-        }
-      case .Float:
-        if v >= floatAccum {
-          return .Success(.BoolLiteral(false))
-        }
-      }
-      floatAccum = Double(v)
-    case .Invalid:
-      return .Failure(.InvalidArgumentError)
-    }
-  }
-  return .Success(.BoolLiteral(true))
 }
 
 /// Evaluate whether arguments are in monotonically increasing order.
-func pr_lt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count == 0 {
+func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
     return .Failure(.ArityError)
   }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
   
-  // Set up the initial state
-  var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
-  if didError {
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2): return .Success(.BoolLiteral(v1 < v2))
+    case let .Float(v2): return .Success(.BoolLiteral(Double(v1) < v2))
+    case .Invalid: return .Failure(.InvalidArgumentError)
+    }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2): return .Success(.BoolLiteral(v1 < Double(v2)))
+    case let .Float(v2): return .Success(.BoolLiteral(v1 < v2))
+    case .Invalid: return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
     return .Failure(.InvalidArgumentError)
   }
-  
-  for var i=1; i<args.count; i++ {
-    let arg = args[i]
-    switch extractNumber(arg) {
-    case let .Integer(v):
-      switch mode {
-      case .Integer:
-        if v <= intAccum {
-          return .Success(.BoolLiteral(false))
-        }
-        intAccum = v
-      case .Float:
-        if Double(v) <= floatAccum {
-          return .Success(.BoolLiteral(false))
-        }
-        floatAccum = Double(v)
-      }
-    case let .Float(v):
-      switch mode {
-      case .Integer:
-        mode = .Float
-        floatAccum = Double(intAccum)
-        if Double(v) <= floatAccum {
-          return .Success(.BoolLiteral(false))
-        }
-      case .Float:
-        if v <= floatAccum {
-          return .Success(.BoolLiteral(false))
-        }
-      }
-      floatAccum = Double(v)
-    case .Invalid:
-      return .Failure(.InvalidArgumentError)
-    }
-  }
-  return .Success(.BoolLiteral(true))
 }
 
 
 // MARK: Arithmetic
 
-/// Take an arbitrary number of numbers and return their sum.
-func pr_plus(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  var mode : NumericalMode = .Integer
-  var intAccum : Int = 0
-  var floatAccum : Double = 0.0
-  
-  for arg in args {
-    switch extractNumber(arg) {
-    case let .Integer(v):
-      switch mode {
-      case .Integer:
-        intAccum += v
-      case .Float:
-        floatAccum += Double(v)
-      }
-    case let .Float(v):
-      switch mode {
-      case .Integer:
-        mode = .Float
-        floatAccum = Double(intAccum) + v
-      case .Float:
-        floatAccum += v
-      }
-    case .Invalid:
-      return .Failure(.InvalidArgumentError)
-    }
-  }
-  switch mode {
-  case .Integer:
-    return .Success(.IntegerLiteral(intAccum))
-  case .Float:
-    return .Success(.FloatLiteral(floatAccum))
-  }
-}
-
-/// Take one or more numbers and return their difference. If only one number, returns 1-arg[0].
-func pr_minus(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count == 0 {
+/// Take two numbers and return their sum.
+func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
     return .Failure(.ArityError)
   }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
   
-  // Set up the initial state
-  var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
-  if didError {
-    return .Failure(.InvalidArgumentError)
-  }
-  
-  if args.count == 1 {
-    // Return 0 - arg[0]
-    switch mode {
-    case .Integer:
-      return .Success(.IntegerLiteral(intAccum * -1))
-    case .Float:
-      return .Success(.FloatLiteral(floatAccum * -1))
-    }
-  }
-  
-  for var i=1; i<args.count; i++ {
-    let arg = args[i]
-    switch extractNumber(arg) {
-    case let .Integer(v):
-      switch mode {
-      case .Integer:
-        intAccum -= v
-      case .Float:
-        floatAccum -= Double(v)
-      }
-    case let .Float(v):
-      switch mode {
-      case .Integer:
-        mode = .Float
-        floatAccum = Double(intAccum) - v
-      case .Float:
-        floatAccum -= v
-      }
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2):
+      return .Success(.IntegerLiteral(v1 + v2))
+    case let .Float(v2):
+      return .Success(.FloatLiteral(Double(v1) + v2))
     case .Invalid:
       return .Failure(.InvalidArgumentError)
     }
-  }
-  switch mode {
-  case .Integer:
-    return .Success(.IntegerLiteral(intAccum))
-  case .Float:
-    return .Success(.FloatLiteral(floatAccum))
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2):
+      return .Success(.FloatLiteral(v1 + Double(v2)))
+    case let .Float(v2):
+      return .Success(.FloatLiteral(v1 + v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
   }
 }
 
-/// Take an arbitrary number of numbers  and return their product.
-func pr_multiply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  var mode : NumericalMode = .Integer
-  var intAccum : Int = 1
-  var floatAccum : Double = 1.0
+/// Take two numbers and return their difference.
+func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
   
-  for arg in args {
-    switch extractNumber(arg) {
-    case let .Integer(v):
-      switch mode {
-      case .Integer:
-        intAccum *= v
-      case .Float:
-        floatAccum *= Double(v)
-      }
-    case let .Float(v):
-      switch mode {
-      case .Integer:
-        mode = .Float
-        floatAccum = Double(intAccum) * v
-      case .Float:
-        floatAccum *= v
-      }
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2):
+      return .Success(.IntegerLiteral(v1 - v2))
+    case let .Float(v2):
+      return .Success(.FloatLiteral(Double(v1) - v2))
     case .Invalid:
       return .Failure(.InvalidArgumentError)
     }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2):
+      return .Success(.FloatLiteral(v1 - Double(v2)))
+    case let .Float(v2):
+      return .Success(.FloatLiteral(v1 - v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
   }
-  switch mode {
-  case .Integer:
-    return .Success(.IntegerLiteral(intAccum))
-  case .Float:
-    return .Success(.FloatLiteral(floatAccum))
+}
+
+/// Take two numbers and return their product.
+func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
+  
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2):
+      return .Success(.IntegerLiteral(v1 * v2))
+    case let .Float(v2):
+      return .Success(.FloatLiteral(Double(v1) * v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2):
+      return .Success(.FloatLiteral(v1 * Double(v2)))
+    case let .Float(v2):
+      return .Success(.FloatLiteral(v1 * v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
   }
 }
 
 /// Take one or more numbers and return their quotient. If only one number, returns 1/arg[0].
-func pr_divide(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count == 0 {
+func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
     return .Failure(.ArityError)
   }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
   
-  // Set up the initial state
-  var firstArg = extractNumber(args[0])
-  var mode : NumericalMode = .Float
-  var floatAccum : Double = 0.0
-  switch firstArg {
-  case let .Integer(v):
-    floatAccum = Double(v)
-  case let .Float(v):
-    floatAccum = v
-  case .Invalid:
-    return .Failure(.InvalidArgumentError)
-  }
-  
-  if args.count == 1 {
-    // Return 1/arg[0]
-    return .Success(.FloatLiteral(1.0/floatAccum))
-  }
-  
-  for var i=1; i<args.count; i++ {
-    let arg = args[i]
-    switch extractNumber(arg) {
-    case let .Integer(v):
-      if v == 0 { return .Failure(.DivideByZeroError) }
-      floatAccum /= Double(v)
-    case let .Float(v):
-      if v == 0 { return .Failure(.DivideByZeroError) }
-      floatAccum /= v
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(Double(v1) / Double(v2)))
+    case let .Float(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(Double(v1) / v2))
     case .Invalid:
       return .Failure(.InvalidArgumentError)
     }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(v1 / Double(v2)))
+    case let .Float(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(v1 / v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
   }
-  return .Success(.FloatLiteral(floatAccum))
 }

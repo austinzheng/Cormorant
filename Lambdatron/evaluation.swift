@@ -26,12 +26,12 @@ extension Cons {
       case let .Failure(f): fatal("Something went wrong: \(f)")
       }
     }
-    else if let toExecuteBuiltIn = asBuiltIn(ctx) {
+    else if let toExecuteBuiltIn = asBuiltIn() {
       logEval("evaluating as built-in function: \(self.description)")
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
       if let values = Cons.collectValues(next, ctx: ctx, env: env) {
-        let result = toExecuteBuiltIn(values, ctx, env)
+        let result = toExecuteBuiltIn(values, ctx)
         switch result {
         case let .Success(v): return v
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -84,7 +84,7 @@ extension Cons {
       // 1. (*map* *args*...) is translated into (get *map* *args*...).
       // 2. Normal function call
       if let args = Cons.collectValues(self, ctx: ctx, env: env) {
-        let result = pr_get(args, ctx, env)
+        let result = pr_get(args, ctx)
         switch result {
         case let .Success(v): return v
         case let .Failure(f): fatal("Something went wrong: \(f)")
@@ -105,6 +105,7 @@ extension ConsValue {
   func evaluate(ctx: Context, _ env: EvalEnvironment) -> ConsValue {
     switch self {
     case FunctionLiteral: return self
+    case BuiltInFunction: return self
     case let Symbol(v):
       // Look up the value of v
       let binding = ctx[v]
@@ -122,7 +123,6 @@ extension ConsValue {
       case let .MacroParam(mp):
         return .MacroArgument(Box(mp))
       case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
-      case .BuiltIn: return self
       }
     case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral: return self
     case let ListLiteral(l):

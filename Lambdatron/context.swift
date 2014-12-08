@@ -15,17 +15,15 @@ enum Binding : Printable {
   case FunctionParam(ConsValue)
   case MacroParam(ConsValue)
   case BoundMacro(Macro)
-  case BuiltIn(LambdatronBuiltIn)
   
   var description : String {
     switch self {
-    case .Invalid: return "invalid"
-    case .Unbound: return "unbound"
-    case let .Literal(l): return "literal: \(l.description)"
-    case let .FunctionParam(fp): return "function parameter: \(fp.description)"
-    case let .MacroParam(mp): return "macro parameter: \(mp.description)"
-    case let .BoundMacro(m): return "macro: '\(m.name)'"
-    case let .BuiltIn(b): return "builtin: \(b)"
+    case Invalid: return "invalid"
+    case Unbound: return "unbound"
+    case let Literal(l): return "literal: \(l.description)"
+    case let FunctionParam(fp): return "function parameter: \(fp.description)"
+    case let MacroParam(mp): return "macro parameter: \(mp.description)"
+    case let BoundMacro(m): return "macro: '\(m.name)'"
     }
   }
 }
@@ -80,48 +78,8 @@ class Context {
     }
   }
   
-  func setupDefaultBindings() {
-    // Bind collection functions
-    bindings["list"] = .BuiltIn(pr_list)
-    bindings["vector"] = .BuiltIn(pr_vector)
-    bindings["hash-map"] = .BuiltIn(pr_hashmap)
-    bindings["concat"] = .BuiltIn(pr_concat)
-    bindings["seq"] = .BuiltIn(pr_seq)
-    bindings["get"] = .BuiltIn(pr_get)
-    bindings["assoc"] = .BuiltIn(pr_assoc)
-    bindings["dissoc"] = .BuiltIn(pr_dissoc)
-    // Bind type test functions
-    bindings["number?"] = .BuiltIn(pr_isNumber)
-    bindings["int?"] = .BuiltIn(pr_isInteger)
-    bindings["float?"] = .BuiltIn(pr_isFloat)
-    bindings["string?"] = .BuiltIn(pr_isString)
-    bindings["symbol?"] = .BuiltIn(pr_isSymbol)
-    bindings["fn?"] = .BuiltIn(pr_isFunction)
-    bindings["eval?"] = .BuiltIn(pr_isEvalable)
-    bindings["true?"] = .BuiltIn(pr_isTrue)
-    bindings["false?"] = .BuiltIn(pr_isFalse)
-    bindings["list?"] = .BuiltIn(pr_isList)
-    bindings["vector?"] = .BuiltIn(pr_isVector)
-    bindings["map?"] = .BuiltIn(pr_isMap)
-    // Bind I/O functions
-    bindings["print"] = .BuiltIn(pr_print)
-    // Bind comparison functions
-    bindings["="] = .BuiltIn(pr_equals)
-    bindings[".=="] = .BuiltIn(pr_numericEquals)
-    bindings[">"] = .BuiltIn(pr_gt)
-    bindings["<"] = .BuiltIn(pr_lt)
-    // Bind math functions
-    bindings["+"] = .BuiltIn(pr_plus)
-    bindings["-"] = .BuiltIn(pr_minus)
-    bindings["*"] = .BuiltIn(pr_multiply)
-    bindings["/"] = .BuiltIn(pr_divide)
-    // Bind other functions
-    bindings["apply"] = .BuiltIn(pr_apply)
-  }
-
   class func globalContextInstance() -> Context {
     let context = Context()
-    context.setupDefaultBindings()
     loadStdlibInto(context, stdlib_files)
     return context
   }

@@ -1,0 +1,29 @@
+; Lambdatron standard library
+; builtin.lbt
+
+(defmacro list [& x] `(.list ~@x))
+(defmacro vector [& x] `(.vector ~@x))
+(defmacro hashmap [& x] `(.hashmap ~@x))
+(defmacro cons [& x] `(.cons ~@x))
+(defmacro first [x] `(.first ~x))
+(defmacro rest [x] `(.rest ~x))
+(defmacro concat [& x] `(.concat ~@x))
+(defmacro seq [x] `(.seq ~x))
+(defmacro get [& x] `(.get ~@x))
+(defmacro assoc [& x] `(.assoc ~@x))
+(defmacro dissoc [& x] `(.dissoc ~@x))
+
+(defmacro print [& x] `(.print ~@x))
+
+(defmacro number? [x] `(.number? ~x))
+(defmacro int? [x] `(.int? ~x))
+(defmacro float? [x] `(.float? ~x))
+(defmacro string? [x] `(.string? ~x))
+(defmacro symbol? [x] `(.symbol? ~x))
+(defmacro fn? [x] `(.fn? ~x))
+(defmacro eval? [x] `(.eval? ~x))
+(defmacro true? [x] `(.true? ~x))
+(defmacro false? [x] `(.false? ~x))
+(defmacro list? [x] `(.list? ~x))
+(defmacro vector? [x] `(.vector? ~x))
+(defmacro map? [x] `(.map? ~x))

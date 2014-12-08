@@ -45,6 +45,7 @@ enum LexToken : Printable {
   case Keyword(String)            // keyword (prefixed by ':')
   case Identifier(String)         // unknown identifier (function or variable name)
   case Special(SpecialForm)       // a special form (e.g. 'quote')
+  case BuiltInFunction(BuiltIn)   // a built-in function
   
   var description : String {
     switch self {
@@ -66,6 +67,7 @@ enum LexToken : Printable {
     case let .Keyword(x): return "Keyword \(x)"
     case let .Identifier(x): return "Identifier <\(x)>"
     case let .Special(x): return "Special <\(x.rawValue)>"
+    case let .BuiltInFunction(x): return "BuiltIn <\(x.rawValue)>"
     }
   }
 }
@@ -248,6 +250,10 @@ func lex(raw: String) -> LexResult {
       if let specialForm = SpecialForm(rawValue: tValue) {
         // Special form
         tokenBuffer.append(.Special(specialForm))
+      }
+      else if let builtIn = BuiltIn(rawValue: tValue) {
+        // Built-in function
+        tokenBuffer.append(.BuiltInFunction(builtIn))
       }
       else if tValue.characterAtIndex(0) == UInt16(UnicodeScalar(":").value) && tValue.length > 1 {
         // This is a keyword (starts with ":" and has at least one other character)
