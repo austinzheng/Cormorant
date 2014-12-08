@@ -39,7 +39,8 @@ enum LexToken : Printable {
   case TildeAt                    // tilde followed by at '~@'
   case NilLiteral                 // nil
   case StringLiteral(String)      // string (denoted by double quotes)
-  case Number(Double)             // floating-point number
+  case Integer(Int)               // integer number
+  case FlPtNumber(Double)         // floating-point number
   case Boolean(Bool)              // boolean (true or false)
   case Keyword(String)            // keyword (prefixed by ':')
   case Identifier(String)         // unknown identifier (function or variable name)
@@ -59,7 +60,8 @@ enum LexToken : Printable {
     case .TildeAt: return "TildeAt <~@>"
     case let .StringLiteral(x): return "String \"\(x)\""
     case let .NilLiteral: return "Nil"
-    case let .Number(x): return "Number <\(x)>"
+    case let .Integer(v): return "Integer <\(v)>"
+    case let .FlPtNumber(x): return "FlPtNumber <\(x)>"
     case let .Boolean(x): return "Boolean <\(x)>"
     case let .Keyword(x): return "Keyword \(x)"
     case let .Identifier(x): return "Identifier <\(x)>"
@@ -277,15 +279,39 @@ func lex(raw: String) -> LexResult {
   return .Success(tokenBuffer)
 }
 
+// Immutable utility items
+private let nf = NSNumberFormatter()
+
 func buildNumberFromString(str: String) -> LexToken? {
+  enum NumberMode {
+    case Integer, FloatingPoint
+  }
+  var mode : NumberMode = .Integer
+  
+  // Scan string for "."
+  for item in str {
+    if item == "." {
+      switch mode {
+      case .Integer:
+        mode = .FloatingPoint
+      case .FloatingPoint:
+        // A second decimal point makes the number invalid
+        return nil
+      }
+    }
+  }
+  
   // The classic 'isNumber()' function.
   // TODO: Replace this with a REAL number parser
-  let nf = NSNumberFormatter()
   nf.numberStyle = NSNumberFormatterStyle.DecimalStyle
   let number = nf.numberFromString(str)
   if let actualNumber = number {
-    let doubleVal = actualNumber.doubleValue
-    return LexToken.Number(actualNumber.doubleValue)
+    switch mode {
+    case .Integer:
+      return LexToken.Integer(actualNumber.longValue)
+    case .FloatingPoint:
+      return LexToken.FlPtNumber(actualNumber.doubleValue)
+    }
   }
   return nil
 }

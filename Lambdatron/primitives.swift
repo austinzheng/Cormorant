@@ -10,25 +10,6 @@ import Foundation
 
 typealias LambdatronBuiltIn = ([ConsValue], Context, EvalEnvironment) -> EvalResult
 
-func extractNumber(n: ConsValue) -> Double? {
-  let x : Double? = {
-    switch n {
-    case let .NumberLiteral(number):
-      return number
-    default: return nil
-    }
-    }()
-  return x
-}
-
-func extractNumbers(n: [ConsValue]) -> [Double]? {
-  let raw = n.map(extractNumber)
-  if raw.filter({$0 == nil}).count != 0 {
-    return nil
-  }
-  return raw.map({$0!})
-}
-
 func extractList(n: ConsValue) -> Cons? {
   let x : Cons? = {
     switch n {
@@ -326,7 +307,29 @@ func pr_isNumber(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
     return .Failure(.ArityError)
   }
   switch args[0] {
-  case .NumberLiteral: return .Success(.BoolLiteral(true))
+  case .IntegerLiteral, .FloatLiteral: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
+/// Return whether or not the argument is a floating point number.
+func pr_isInteger(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .IntegerLiteral: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
+/// Return whether or not the argument is a floating point number.
+func pr_isFloat(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .FloatLiteral: return .Success(.BoolLiteral(true))
   default: return .Success(.BoolLiteral(false))
   }
 }
@@ -455,6 +458,44 @@ func pr_print(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 }
 
 
+// MARK: Math Helpers
+
+/// An enum wrapping one of several numerical types, or an invalid value sigil.
+private enum NumericalType {
+  case Integer(Int)
+  case Float(Double)
+  case Invalid
+}
+
+/// An enum describing the numerical mode of an operation.
+private enum NumericalMode {
+  case Integer, Float
+}
+
+/// Convert a given ConsValue argument into the equivalent NumericalType token.
+private func extractNumber(n: ConsValue) -> NumericalType {
+  switch n {
+  case let .IntegerLiteral(v): return .Integer(v)
+  case let .FloatLiteral(v): return .Float(v)
+  default: return .Invalid
+  }
+}
+
+/// Build initial state for first argument for a mathematical operation. This method returns a tuple containing an
+/// integer accumulator, a double accumulator, a mode, and an optional error flag. If the error flag is true, the prior
+/// items should be ignored.
+private func stateForFirstArgument(first: ConsValue) -> (Int, Double, NumericalMode, Bool) {
+  switch extractNumber(first) {
+  case let .Integer(v):
+    return (v, 0.0, .Integer, false)
+  case let .Float(v):
+    return (0, v, .Float, false)
+  case .Invalid:
+    return (0, 0, .Float, true)
+  }
+}
+
+
 // MARK: Comparison
 
 /// Evaluate the equality of one or more forms.
@@ -471,23 +512,77 @@ func pr_equals(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalRes
   return .Success(.BoolLiteral(true))
 }
 
+/// Evaluate the equality of two numeric forms.
+func pr_numericEquals(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let first = extractNumber(args[0])
+  let second = extractNumber(args[1])
+  switch first {
+  case let .Integer(v1):
+    switch second {
+    case let .Integer(v2): return .Success(.BoolLiteral(v1 == v2))
+    case let .Float(v2): return .Success(.BoolLiteral(Double(v1) == v2))
+    case .Invalid: return .Failure(.InvalidArgumentError)
+    }
+  case let .Float(v1):
+    switch second {
+    case let .Integer(v2): return .Success(.BoolLiteral(v1 == Double(v2)))
+    case let .Float(v2): return .Success(.BoolLiteral(v1 == v2))
+    case .Invalid: return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid: return .Failure(.InvalidArgumentError)
+  }
+}
+
 /// Evaluate whether arguments are in monotonically decreasing order.
 func pr_gt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  let maybeNumbers = extractNumbers(args)
-  if let numbers = maybeNumbers {
-    var current = numbers[0]
-    for var i=1; i<numbers.count; i++ {
-      if numbers[i] >= current {
-        return .Success(.BoolLiteral(false))
-      }
-      current = numbers[i]
-    }
-    return .Success(.BoolLiteral(true))
+  
+  // Set up the initial state
+  var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
+  if didError {
+    return .Failure(.InvalidArgumentError)
   }
-  return .Failure(.InvalidArgumentError)
+  
+  for var i=1; i<args.count; i++ {
+    let arg = args[i]
+    switch extractNumber(arg) {
+    case let .Integer(v):
+      switch mode {
+      case .Integer:
+        if v >= intAccum {
+          return .Success(.BoolLiteral(false))
+        }
+        intAccum = v
+      case .Float:
+        if Double(v) >= floatAccum {
+          return .Success(.BoolLiteral(false))
+        }
+        floatAccum = Double(v)
+      }
+    case let .Float(v):
+      switch mode {
+      case .Integer:
+        mode = .Float
+        floatAccum = Double(intAccum)
+        if Double(v) >= floatAccum {
+          return .Success(.BoolLiteral(false))
+        }
+      case .Float:
+        if v >= floatAccum {
+          return .Success(.BoolLiteral(false))
+        }
+      }
+      floatAccum = Double(v)
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  }
+  return .Success(.BoolLiteral(true))
 }
 
 /// Evaluate whether arguments are in monotonically increasing order.
@@ -495,18 +590,48 @@ func pr_lt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  let maybeNumbers = extractNumbers(args)
-  if let numbers = maybeNumbers {
-    var current = numbers[0]
-    for var i=1; i<numbers.count; i++ {
-      if numbers[i] <= current {
-        return .Success(.BoolLiteral(false))
-      }
-      current = numbers[i]
-    }
-    return .Success(.BoolLiteral(true))
+  
+  // Set up the initial state
+  var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
+  if didError {
+    return .Failure(.InvalidArgumentError)
   }
-  return .Failure(.InvalidArgumentError)
+  
+  for var i=1; i<args.count; i++ {
+    let arg = args[i]
+    switch extractNumber(arg) {
+    case let .Integer(v):
+      switch mode {
+      case .Integer:
+        if v <= intAccum {
+          return .Success(.BoolLiteral(false))
+        }
+        intAccum = v
+      case .Float:
+        if Double(v) <= floatAccum {
+          return .Success(.BoolLiteral(false))
+        }
+        floatAccum = Double(v)
+      }
+    case let .Float(v):
+      switch mode {
+      case .Integer:
+        mode = .Float
+        floatAccum = Double(intAccum)
+        if Double(v) <= floatAccum {
+          return .Success(.BoolLiteral(false))
+        }
+      case .Float:
+        if v <= floatAccum {
+          return .Success(.BoolLiteral(false))
+        }
+      }
+      floatAccum = Double(v)
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  }
+  return .Success(.BoolLiteral(true))
 }
 
 
@@ -514,53 +639,162 @@ func pr_lt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
 
 /// Take an arbitrary number of numbers and return their sum.
 func pr_plus(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  let maybeNumbers = extractNumbers(args)
-  if let numbers = maybeNumbers {
-    return .Success(.NumberLiteral(numbers.reduce(0, combine: +)))
+  var mode : NumericalMode = .Integer
+  var intAccum : Int = 0
+  var floatAccum : Double = 0.0
+  
+  for arg in args {
+    switch extractNumber(arg) {
+    case let .Integer(v):
+      switch mode {
+      case .Integer:
+        intAccum += v
+      case .Float:
+        floatAccum += Double(v)
+      }
+    case let .Float(v):
+      switch mode {
+      case .Integer:
+        mode = .Float
+        floatAccum = Double(intAccum) + v
+      case .Float:
+        floatAccum += v
+      }
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
   }
-  return .Failure(.InvalidArgumentError)
+  switch mode {
+  case .Integer:
+    return .Success(.IntegerLiteral(intAccum))
+  case .Float:
+    return .Success(.FloatLiteral(floatAccum))
+  }
 }
 
-/// Take an arbitrary number of numbers and return their difference.
+/// Take one or more numbers and return their difference. If only one number, returns 1-arg[0].
 func pr_minus(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  var acc : Double = 0
-  let maybeNumbers = extractNumbers(args)
-  if let numbers = maybeNumbers {
-    var acc = numbers[0]
-    for var i=1; i<numbers.count; i++ {
-      acc -= numbers[i]
-    }
-    return .Success(.NumberLiteral(acc))
+  
+  // Set up the initial state
+  var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
+  if didError {
+    return .Failure(.InvalidArgumentError)
   }
-  return .Failure(.InvalidArgumentError)
+  
+  if args.count == 1 {
+    // Return 0 - arg[0]
+    switch mode {
+    case .Integer:
+      return .Success(.IntegerLiteral(intAccum * -1))
+    case .Float:
+      return .Success(.FloatLiteral(floatAccum * -1))
+    }
+  }
+  
+  for var i=1; i<args.count; i++ {
+    let arg = args[i]
+    switch extractNumber(arg) {
+    case let .Integer(v):
+      switch mode {
+      case .Integer:
+        intAccum -= v
+      case .Float:
+        floatAccum -= Double(v)
+      }
+    case let .Float(v):
+      switch mode {
+      case .Integer:
+        mode = .Float
+        floatAccum = Double(intAccum) - v
+      case .Float:
+        floatAccum -= v
+      }
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  }
+  switch mode {
+  case .Integer:
+    return .Success(.IntegerLiteral(intAccum))
+  case .Float:
+    return .Success(.FloatLiteral(floatAccum))
+  }
 }
 
 /// Take an arbitrary number of numbers  and return their product.
 func pr_multiply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count == 0 {
-    return .Failure(EvalError.ArityError)
+  var mode : NumericalMode = .Integer
+  var intAccum : Int = 1
+  var floatAccum : Double = 1.0
+  
+  for arg in args {
+    switch extractNumber(arg) {
+    case let .Integer(v):
+      switch mode {
+      case .Integer:
+        intAccum *= v
+      case .Float:
+        floatAccum *= Double(v)
+      }
+    case let .Float(v):
+      switch mode {
+      case .Integer:
+        mode = .Float
+        floatAccum = Double(intAccum) * v
+      case .Float:
+        floatAccum *= v
+      }
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
   }
-  let maybeNumbers = extractNumbers(args)
-  if let numbers = maybeNumbers {
-    return .Success(.NumberLiteral(numbers.reduce(1, combine: *)))
+  switch mode {
+  case .Integer:
+    return .Success(.IntegerLiteral(intAccum))
+  case .Float:
+    return .Success(.FloatLiteral(floatAccum))
   }
-  return .Failure(.InvalidArgumentError)
 }
 
-/// Take two numbers and return their quotient.
+/// Take one or more numbers and return their quotient. If only one number, returns 1/arg[0].
 func pr_divide(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
-  if args.count != 2 {
+  if args.count == 0 {
     return .Failure(.ArityError)
   }
-  let (x, y) = (extractNumber(args[0]), extractNumber(args[1]))
-  if x == nil || y == nil {
+  
+  // Set up the initial state
+  var firstArg = extractNumber(args[0])
+  var mode : NumericalMode = .Float
+  var floatAccum : Double = 0.0
+  switch firstArg {
+  case let .Integer(v):
+    floatAccum = Double(v)
+  case let .Float(v):
+    floatAccum = v
+  case .Invalid:
     return .Failure(.InvalidArgumentError)
   }
-  if y == 0 {
-    return .Failure(.DivideByZeroError)
+  
+  if args.count == 1 {
+    // Return 1/arg[0]
+    return .Success(.FloatLiteral(1.0/floatAccum))
   }
-  return .Success(.NumberLiteral(x! / y!))
+  
+  for var i=1; i<args.count; i++ {
+    let arg = args[i]
+    switch extractNumber(arg) {
+    case let .Integer(v):
+      if v == 0 { return .Failure(.DivideByZeroError) }
+      floatAccum /= Double(v)
+    case let .Float(v):
+      if v == 0 { return .Failure(.DivideByZeroError) }
+      floatAccum /= v
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  }
+  return .Success(.FloatLiteral(floatAccum))
 }

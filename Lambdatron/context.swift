@@ -92,6 +92,8 @@ class Context {
     bindings["dissoc"] = .BuiltIn(pr_dissoc)
     // Bind type test functions
     bindings["number?"] = .BuiltIn(pr_isNumber)
+    bindings["int?"] = .BuiltIn(pr_isInteger)
+    bindings["float?"] = .BuiltIn(pr_isFloat)
     bindings["string?"] = .BuiltIn(pr_isString)
     bindings["symbol?"] = .BuiltIn(pr_isSymbol)
     bindings["fn?"] = .BuiltIn(pr_isFunction)
@@ -105,6 +107,7 @@ class Context {
     bindings["print"] = .BuiltIn(pr_print)
     // Bind comparison functions
     bindings["="] = .BuiltIn(pr_equals)
+    bindings[".=="] = .BuiltIn(pr_numericEquals)
     bindings[">"] = .BuiltIn(pr_gt)
     bindings["<"] = .BuiltIn(pr_lt)
     // Bind math functions

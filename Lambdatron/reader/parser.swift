@@ -147,8 +147,10 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
       buffer.append(wrappedConsItem(.NilLiteral, &wrapStack))
     case let .StringLiteral(s):
       buffer.append(wrappedConsItem(.StringLiteral(s), &wrapStack))
-    case let .Number(n):
-      buffer.append(wrappedConsItem(.NumberLiteral(n), &wrapStack))
+    case let .Integer(v):
+      buffer.append(wrappedConsItem(.IntegerLiteral(v), &wrapStack))
+    case let .FlPtNumber(n):
+      buffer.append(wrappedConsItem(.FloatLiteral(n), &wrapStack))
     case let .Boolean(b):
       buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapStack))
     case let .Keyword(k):
@@ -287,7 +289,8 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   case _ where tokens.count > 1: return nil
   case .NilLiteral: return .NilLiteral
   case let .StringLiteral(s): return .StringLiteral(s)
-  case let .Number(n): return .NumberLiteral(n)
+  case let .Integer(v): return .IntegerLiteral(v)
+  case let .FlPtNumber(n): return .FloatLiteral(n)
   case let .Boolean(b): return .BoolLiteral(b)
   case let .Keyword(k):
     fatal("TODO - support keywords")

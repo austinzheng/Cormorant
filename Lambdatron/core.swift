@@ -247,7 +247,8 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
   case ReaderMacro(ReaderForm)
   case NilLiteral
   case BoolLiteral(Bool)
-  case NumberLiteral(Double)
+  case IntegerLiteral(Int)
+  case FloatLiteral(Double)
   case StringLiteral(String)
   case ListLiteral(Cons)
   case VectorLiteral(Vector)
@@ -266,7 +267,8 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     case let ReaderMacro(rf): return rf.hashValue
     case NilLiteral: return 0
     case let BoolLiteral(b): return b.hashValue
-    case let NumberLiteral(d): return d.hashValue
+    case let IntegerLiteral(v): return v.hashValue
+    case let FloatLiteral(d): return d.hashValue
     case let StringLiteral(s): return s.hashValue
     case let ListLiteral(l): return l.hashValue
     case let VectorLiteral(v): return v.count == 0 ? 0 : v[0].hashValue
@@ -317,7 +319,8 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     case let Symbol(v): return v
     case NilLiteral: return "nil"
     case let BoolLiteral(b): return b.description
-    case let NumberLiteral(n): return n.description
+    case let IntegerLiteral(v): return v.description
+    case let FloatLiteral(n): return n.description
     case let StringLiteral(s): return "\"\(s)\""
     case let ListLiteral(l): return l.description
     case let VectorLiteral(v):
@@ -345,7 +348,8 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     case let Symbol(v): return "ConsValue.Symbol(\(v))"
     case NilLiteral: return "ConsValue.NilLiteral"
     case let BoolLiteral(b): return "ConsValue.BoolLiteral(\(b))"
-    case let NumberLiteral(n): return "ConsValue.NumberLiteral(\(n.description))"
+    case let IntegerLiteral(v): return "ConsValue.IntegerLiteral(\(v))"
+    case let FloatLiteral(n): return "ConsValue.FloatLiteral(\(n))"
     case let StringLiteral(s): return "ConsValue.StringLiteral(\"\(s)\")"
     case let ListLiteral(l): return "ConsValue.ListLiteral(\(l.debugDescription))"
     case let VectorLiteral(v):

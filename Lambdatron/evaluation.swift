@@ -124,10 +124,7 @@ extension ConsValue {
       case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
       case .BuiltIn: return self
       }
-    case NilLiteral: return self
-    case BoolLiteral: return self
-    case NumberLiteral: return self
-    case StringLiteral: return self
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral: return self
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
       return l.evaluate(ctx, env)

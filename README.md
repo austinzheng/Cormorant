@@ -13,7 +13,7 @@ Lambdatron is an OS X command-line application written in Swift. You will need X
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
-[Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the behavior of all included functions and special forms (although there are limitations that prevent exact compliance).
+[Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the intended behavior of all included functions and special forms.
 
 Need ideas? Try:
 
@@ -76,7 +76,7 @@ Lambdatron has the following features:
 
 **Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
 
-**Basic types** include booleans (`true` and `false`), `nil`, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`).
+**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`).
 
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` can be used to force evaluation of the unquote form, while `~@` can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
@@ -91,7 +91,7 @@ Lambdatron has the following features:
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
 - Collection built-in functions: `list`, `vector`, `hash-map`, `concat`, `seq`, `get`, `assoc`, `dissoc`
 - I/O built-in functions: `print`
-- Type-checking built-in functions: `number?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`
+- Type-checking built-in functions: `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
 - Comparison built-in functions: `=`, `<`, `>`
 - Other built-in functions: `apply`
@@ -101,7 +101,7 @@ Lambdatron has the following features:
 ### Working On
 
 - Standard library
-- Distinction between integers and floating-point values
+- Support for character literals
 - Support for sets
 - Support for keywords
 - Basic namespacing
