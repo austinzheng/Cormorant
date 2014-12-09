@@ -49,7 +49,7 @@ struct SingleFn : Printable {
     return variadicParameter != nil
   }
 
-  func bindToNewContext(arguments: [ConsValue], ctx: Context) -> Context? {
+  func bindToNewContext(arguments: [ConsValue], ctx: Context, asRecur: Bool) -> Context? {
     // Precondition: arguments has an appropriate number of arguments for the function
     // Create the bindings. One binding per parameter
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
@@ -66,13 +66,24 @@ struct SingleFn : Printable {
       }()
     }
     if let variadicParameter = variadicParameter {
-      // Add the rest of the arguments (if any) to the vararg vector
-      if arguments.count > parameters.count {
-        let rest = Array(arguments[i..<arguments.count])
-        bindings[variadicParameter] = .Literal(.VectorLiteral(rest))
+      if asRecur {
+        // If we're rebinding parameters, we MUST have a vararg if the function signature specifies a vararg.
+        // This matches Clojure's behavior.
+        if arguments.count != parameters.count + 1 {
+          return nil
+        }
+        // Bind the last argument directly to the vararg param; because of the above check 'last' will always be valid
+        bindings[variadicParameter] = .Literal(arguments.last!)
       }
       else {
-        bindings[variadicParameter] = .Literal(.NilLiteral)
+        // Add the rest of the arguments (if any) to the vararg vector
+        if arguments.count > parameters.count {
+          let rest = Array(arguments[i..<arguments.count])
+          bindings[variadicParameter] = .Literal(.ListLiteral(Cons.listFromVector(rest)))
+        }
+        else {
+          bindings[variadicParameter] = .Literal(.NilLiteral)
+        }
       }
     }
     let newContext = Context(parent: ctx, bindings: bindings)
@@ -81,7 +92,7 @@ struct SingleFn : Printable {
 
   func evaluate(arguments: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
     // Create the context, then perform a 'do' with the body of the function
-    var possibleContext : Context? = bindToNewContext(arguments, ctx: ctx)
+    var possibleContext : Context? = bindToNewContext(arguments, ctx: ctx, asRecur: false)
     while true {
       if let newContext = possibleContext {
         let result = sf_do(forms, newContext, env)
@@ -90,7 +101,7 @@ struct SingleFn : Printable {
           switch resultValue {
           case let .RecurSentinel(newBindings):
             // If result is 'recur', we need to rebind and run the function again from the start.
-            possibleContext = bindToNewContext(newBindings, ctx: ctx)
+            possibleContext = bindToNewContext(newBindings, ctx: ctx, asRecur: true)
             continue
           default:
             return result
