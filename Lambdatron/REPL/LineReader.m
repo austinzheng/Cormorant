@@ -53,15 +53,12 @@ HistEvent _ev;
     
     // line includes the trailing newline
     int count;
-    const wchar_t* line = el_wgets(_el, &count);
+    const char* line = el_gets(_el, &count);
     
     if (count > 0) {
         history(_hist, &_ev, H_ENTER, line);
         
-        // using automatic reference counting (ARC)
-        return [[NSString alloc] initWithBytes:line
-                                        length:wcslen(line)*sizeof(*line)
-                                      encoding:NSUTF32LittleEndianStringEncoding];
+        return [NSString stringWithUTF8String:line];
     }
     
     return nil;

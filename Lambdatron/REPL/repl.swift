@@ -9,11 +9,11 @@
 import Foundation
 
 class replInstance {
-  //let descriptor : NSFileHandle
+  let descriptor : NSFileHandle
   internal var replContext = Context.globalContextInstance()
 
   init(descriptor: NSFileHandle) {
-    //self.descriptor = descriptor
+    self.descriptor = descriptor
   }
 
   func run() -> Bool {
