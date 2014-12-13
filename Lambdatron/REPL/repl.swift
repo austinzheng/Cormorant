@@ -18,14 +18,14 @@ class replInstance {
 
   func run() -> Bool {
     println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
+    // from http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application
+    // TODO use capabilities of EditLine
+    let prompt: LineReader = LineReader(argv0: C_ARGV[0])
+    
     while true {
-      print("> ")
-      fflush(__stdoutp)
-      // Read data from user
-      // TODO: Strange characters are due to pressing keys like 'up' and 'down' in the input window.
-      // TODO: replace this with libedit (see http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application )
-      let rawData = descriptor.availableData
-      let optionalData : NSString? = NSString(data: rawData, encoding: NSUTF8StringEncoding)
+      //print("> ")
+      let rawData = prompt.gets()
+      let optionalData : NSString? = NSString(CString: rawData, encoding: NSUTF8StringEncoding)
       if let data = optionalData {
         if (data.length == 0
           || data.characterAtIndex(data.length-1) != UInt16(UnicodeScalar("\n").value)) {
