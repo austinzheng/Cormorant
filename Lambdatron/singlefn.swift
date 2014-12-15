@@ -12,6 +12,7 @@ import Foundation
 enum EvalError : Printable {
   case ArityError, InvalidArgumentError, DivideByZeroError, RecurMisuseError
   case DefineFunctionError(String)
+  case RuntimeError(String?)
   case CustomError(String)
 
   var description : String {
@@ -21,6 +22,7 @@ enum EvalError : Printable {
     case DivideByZeroError: return "attempted to divide by zero"
     case RecurMisuseError: return "didn't use recur in the correct position"
     case let DefineFunctionError(e): return e
+    case let RuntimeError(e): return e != nil ? "runtime error: \(e!)" : "runtime error"
     case let CustomError(c): return c
     }
   }

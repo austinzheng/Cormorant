@@ -26,6 +26,9 @@
     `(let [__MACRO_orValue ~x]
       (if __MACRO_orValue __MACRO_orValue (or ~@next)))))
 
+; Returns the second item in a collection
+(defn second [x] (first (next x)))
+
 ; Return the sum of zero or more numeric values
 ; TODO: Remove dependence on bootstrap function
 (defn +
@@ -61,39 +64,36 @@
 )
 
 ; Return whether one or more numerical values are strictly monotonically increasing in value
-; TODO: Replace 'rest' with 'next'
 (defn <
   ([x] true)
   ([x y] (.< x y))
   ([x y & more]
     (if (.< x y)
-      (if (not (.= '() (rest more)))
+      (if (.next more)
         (recur y (first more) (rest more))
         (.< y (first more))
       )
       false)))
 
 ; Return whether one or more numerical values are strictly monotonically decreasing in value
-; TODO: Replace 'rest' with 'next'
 (defn >
   ([x] true)
   ([x y] (.> x y))
   ([x y & more]
     (if (.> x y)
-      (if (not (.= '() (rest more)))
+      (if (.next more)
         (recur y (first more) (rest more))
         (.> y (first more))
       )
       false)))
 
 ; Return whether one or more numeric values are equivalent
-; TODO: Replace 'rest' with 'next'
 (defn ==
   ([x] true)
   ([x y] (.== x y))
   ([x y & more]
     (if (.== x y)
-      (if (not (.= '() (rest more)))
+      (if (.next more)
         (recur y (first more) (rest more))
         (.== y (first more))
       )
@@ -105,7 +105,7 @@
   ([x y] (.= x y))
   ([x y & more]
     (if (.= x y)
-      (if (not (.= '() (rest more)))
+      (if (.next more)
         (recur y (first more) (rest more))
         (.= y (first more))
       )

@@ -278,6 +278,13 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     }
   }
   
+  func asStringLiteral() -> String? {
+    switch self {
+    case let .StringLiteral(s): return s
+    default: return nil
+    }
+  }
+  
   func asSymbol() -> String? {
     switch self {
     case let .Symbol(s): return s

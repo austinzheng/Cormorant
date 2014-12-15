@@ -90,17 +90,17 @@ Lambdatron has the following features:
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
-- Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `concat`, `seq`, `get`, `assoc`, `dissoc`
+- Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `seq`, `get`, `assoc`, `dissoc`
 - I/O built-in functions: `print`
-- Type-checking built-in functions: `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`
+- Type-checking built-in functions: `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`
-- Comparison built-in functions: `=`, `<`, `>`
-- Standard library functions and macros: `defn`, `not`, `and`, `or`
+- Comparison built-in functions: `=`, `==`, `<`, `>`
+- Other built-in functions: `fail`
 
 
 ### Working On
 
-- Standard library
+- Expanding standard library
 - Support for character literals
 - Support for sets
 - Support for keywords

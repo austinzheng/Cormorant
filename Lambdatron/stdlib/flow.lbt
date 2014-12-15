@@ -1,0 +1,40 @@
+; Lambdatron standard library
+; flow.lbt (control flow)
+; Parts of this code adapted from Clojure's standard library.
+
+; Evaluates a predicate, and if true evaluates the body in an implicit do
+(defmacro when [test & body]
+  (list 'if test (cons 'do body)))
+
+; Given test/expr pairs, evaluates the expr corresponding to the first test that evaluates as true, or nil
+(defmacro cond [& clauses]
+  (when clauses
+    (list 'if (first clauses)
+      (if (next clauses)
+        (second clauses)
+        (.fail "cond requires an even number of forms"))
+      (cons 'cond (next (next clauses))))))
+
+; Threading macro, equivalent to Clojure's '->' macro
+(defmacro ->
+  [x & forms]
+  (loop [x x, forms forms]
+    (if forms
+      (let [form (first forms)
+            threaded (if (seq? form)
+                       `(~(first form) ~x ~@(next form))
+                       (list form x))]
+        (recur threaded (next forms)))
+      x)))
+
+; Reverse threading macro, equivalent to Clojure's '->>' macro
+(defmacro ->>
+  [x & forms]
+  (loop [x x, forms forms]
+    (if forms
+      (let [form (first forms)
+            threaded (if (seq? form)
+                       `(~(first form) ~@(next form)  ~x)
+                        (list form x))]
+        (recur threaded (next forms)))
+      x)))

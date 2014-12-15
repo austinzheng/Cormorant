@@ -19,6 +19,7 @@ enum BuiltIn : String, Printable {
   case Cons = ".cons"
   case First = ".first"
   case Rest = ".rest"
+  case Next = ".next"
   case Concat = ".concat"
   case Seq = ".seq"
   case Get = ".get"
@@ -41,6 +42,7 @@ enum BuiltIn : String, Printable {
   case IsList = ".list?"
   case IsVector = ".vector?"
   case IsMap = ".map?"
+  case IsSeq = ".seq?"
   
   // Comparison
   case Equals = ".="
@@ -53,6 +55,9 @@ enum BuiltIn : String, Printable {
   case Minus = ".-"
   case Multiply = ".*"
   case Divide = "./"
+  
+  // Miscellaneous
+  case Fail = ".fail"
   
   // TEMPORARY BOOTSTRAP
   case BootstrapPlus = ".B+"
@@ -68,6 +73,7 @@ enum BuiltIn : String, Printable {
     case Cons: return pr_cons
     case First: return pr_first
     case Rest: return pr_rest
+    case Next: return pr_next
     case Concat: return pr_concat
     case Seq: return pr_seq
     case Get: return pr_get
@@ -86,6 +92,7 @@ enum BuiltIn : String, Printable {
     case IsList: return pr_isList
     case IsVector: return pr_isVector
     case IsMap: return pr_isMap
+    case IsSeq: return pr_isSeq
     case Equals: return pr_equals
     case NumericEquals: return pr_numericEquals
     case GreaterThan: return pr_gt
@@ -94,6 +101,7 @@ enum BuiltIn : String, Printable {
     case Minus: return pr_minus
     case Multiply: return pr_multiply
     case Divide: return pr_divide
+    case Fail: return pr_fail
       
     // TEMPORARY
     case BootstrapPlus: return bootstrap_plus
@@ -261,6 +269,66 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
     if m.count < 2 {
       // Map has zero or one items
       return .Success(.ListLiteral(Cons()))
+    }
+    var head : Cons? = nil
+    var this = head
+    var skippedFirst = false
+    for (key, value) in m {
+      if !skippedFirst {
+        skippedFirst = true
+        continue
+      }
+      let next = Cons(.VectorLiteral([key, value]))
+      if let this = this {
+        this.next = next
+      }
+      else {
+        head = next
+      }
+      this = next
+    }
+    return .Success(.ListLiteral(head!))
+  default: return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Given a sequence, return the sequence comprised of all items but the first, or nil if there are no more items.
+func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
+  // NOTE: This function appears identical to pr_rest, except for returning .NilLiteral instead of Cons() when there are
+  // no more items. I expect this code to diverge if/when lazy seqs are ever implemented, and so it is copied over
+  // verbatim rather than being refactored.
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let first = args[0]
+  switch first {
+  case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case let .ListLiteral(l):
+    if let actualNext = l.next {
+      // List has more than one item
+      return .Success(.ListLiteral(actualNext))
+    }
+    else {
+      // List has zero or one items, return nil
+      return .Success(.NilLiteral)
+    }
+  case let .VectorLiteral(v):
+    if v.count < 2 {
+      // Vector has zero or one items
+      return .Success(.NilLiteral)
+    }
+    let head = Cons(v[1])
+    var this = head
+    for var i=2; i<v.count; i++ {
+      let next = Cons(v[i])
+      this.next = next
+      this = next
+    }
+    return .Success(.ListLiteral(head))
+  case let .MapLiteral(m):
+    if m.count < 2 {
+      // Map has zero or one items
+      return .Success(.NilLiteral)
     }
     var head : Cons? = nil
     var this = head
@@ -601,6 +669,17 @@ func pr_isMap(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a sequence.
+func pr_isSeq(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .ListLiteral, .VectorLiteral, .MapLiteral: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
 
 // MARK: I/O
 
@@ -863,4 +942,12 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   case .Invalid:
     return .Failure(.InvalidArgumentError)
   }
+}
+
+
+// MARK: Miscellaneous
+
+/// Force a failure. Call with zero arguments or a string containing an error message.
+func pr_fail(args: [ConsValue], ctx: Context) -> EvalResult {
+  return .Failure(.RuntimeError(args.count > 0 ? args[0].asStringLiteral() : nil))
 }

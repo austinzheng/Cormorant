@@ -22,6 +22,8 @@
 		1A942AE21A35A9E30036BF5A /* builtin.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A942AE01A35A94D0036BF5A /* builtin.lbt */; };
 		1A98B1121A1C83E700019DB4 /* core.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A98B10C1A1C79F300019DB4 /* core.lbt */; };
 		1A98B1141A1C84CE00019DB4 /* core.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A98B10C1A1C79F300019DB4 /* core.lbt */; };
+		1AB5D34A1A3EA80F00599861 /* flow.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1AB5D3491A3EA80F00599861 /* flow.lbt */; };
+		1AB5D34B1A3EA88100599861 /* flow.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1AB5D3491A3EA80F00599861 /* flow.lbt */; };
 		1ACFB1901A21BD82000FB61F /* commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB18F1A21BD82000FB61F /* commands.swift */; };
 		1ACFB1921A21C011000FB61F /* logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1911A21C011000FB61F /* logging.swift */; };
 		1ACFB1941A256008000FB61F /* repl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1931A256008000FB61F /* repl.swift */; };
@@ -40,6 +42,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				1AB5D34B1A3EA88100599861 /* flow.lbt in CopyFiles */,
 				1A942AE21A35A9E30036BF5A /* builtin.lbt in CopyFiles */,
 				1A98B1141A1C84CE00019DB4 /* core.lbt in CopyFiles */,
 			);
@@ -62,6 +65,7 @@
 		1A73F0D819F7138100F266DA /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1A942AE01A35A94D0036BF5A /* builtin.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = builtin.lbt; path = stdlib/builtin.lbt; sourceTree = "<group>"; };
 		1A98B10C1A1C79F300019DB4 /* core.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = core.lbt; path = stdlib/core.lbt; sourceTree = "<group>"; };
+		1AB5D3491A3EA80F00599861 /* flow.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = flow.lbt; path = stdlib/flow.lbt; sourceTree = "<group>"; };
 		1ACFB18F1A21BD82000FB61F /* commands.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = commands.swift; path = REPL/commands.swift; sourceTree = "<group>"; };
 		1ACFB1911A21C011000FB61F /* logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = logging.swift; path = REPL/logging.swift; sourceTree = "<group>"; };
 		1ACFB1931A256008000FB61F /* repl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = repl.swift; path = REPL/repl.swift; sourceTree = "<group>"; };
@@ -139,8 +143,9 @@
 		1A98B10B1A1C79AA00019DB4 /* stdlib */ = {
 			isa = PBXGroup;
 			children = (
-				1A98B10C1A1C79F300019DB4 /* core.lbt */,
 				1A942AE01A35A94D0036BF5A /* builtin.lbt */,
+				1A98B10C1A1C79F300019DB4 /* core.lbt */,
+				1AB5D3491A3EA80F00599861 /* flow.lbt */,
 			);
 			name = stdlib;
 			sourceTree = "<group>";
@@ -217,6 +222,7 @@
 			files = (
 				1A942AE11A35A94D0036BF5A /* builtin.lbt in Resources */,
 				1A98B1121A1C83E700019DB4 /* core.lbt in Resources */,
+				1AB5D34A1A3EA80F00599861 /* flow.lbt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

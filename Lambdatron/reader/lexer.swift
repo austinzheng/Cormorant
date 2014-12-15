@@ -104,7 +104,10 @@ func lex(raw: String) -> LexResult {
     case Normal, String, Comment
   }
   
+  // Whitespace character set; 'otherWsSet' is used for characters that should be ignored like whitespace
   let wsSet = NSCharacterSet.whitespaceAndNewlineCharacterSet()
+  let otherWsSet = NSCharacterSet(charactersInString: ",")
+  // Newline character set; only used for finding the newlines that terminate single-line comments
   let nlSet = NSCharacterSet.newlineCharacterSet()
   
   // PHASE 1: raw lex
@@ -178,8 +181,8 @@ func lex(raw: String) -> LexResult {
         else {
           rawTokenBuffer.append(.Tilde)
         }
-      case _ where wsSet.characterIsMember(tChar):
-        flushTokenToBuffer()                          // Whitespace/newline
+      case _ where wsSet.characterIsMember(tChar) || otherWsSet.characterIsMember(tChar):
+        flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
       default:
         currentToken.appendString(String(char))       // Any other valid character
       }
