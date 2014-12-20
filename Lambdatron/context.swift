@@ -24,7 +24,7 @@ enum Binding : Printable {
     case let Literal(l): return "literal: \(l.description)"
     case let FunctionParam(fp): return "function parameter: \(fp.description)"
     case let MacroParam(mp): return "macro parameter: \(mp.description)"
-    case let BoundMacro(m): return "macro: '\(m.name)'"
+    case let BoundMacro(m): return "macro:'\(m.name)'"
     }
   }
 }
@@ -32,9 +32,21 @@ enum Binding : Printable {
 /// A class representing the lexical context of a function, loop, or 'let'-scoped block. Contexts chain together to form
 /// a 'spaghetti stack'.
 class Context {
-  var bindings : [String : Binding] = [:]
+  var bindings : [InternedSymbol : Binding] = [:]
   
-  func setTopLevelBinding(name: String, value: Binding) {
+  func setTopLevelBinding(name: InternedSymbol, value: Binding) {
+    fatalError("Subclasses must override this")
+  }
+  
+  func nameForSymbol(symbol: InternedSymbol) -> String {
+    fatalError("Subclasses must override this")
+  }
+  
+  func symbolForName(name: String) -> InternedSymbol {
+    fatalError("Subclasses must override this")
+  }
+  
+  private func retrieveBaseParent() -> BaseContext {
     fatalError("Subclasses must override this")
   }
   
@@ -46,27 +58,27 @@ class Context {
   }
   
   /// Create a new instance of a context for a lexical scope.
-  class func instance(# parent: Context, bindings: [String : Binding]) -> Context {
+  class func instance(# parent: Context, bindings: [InternedSymbol : Binding]) -> Context {
     return ChildContext(parent: parent, bindings: bindings)
   }
   
-  func nameIsValid(name: String) -> Bool {
-    let binding = self[name]
+  func symbolIsValid(symbol: InternedSymbol) -> Bool {
+    let binding = self[symbol]
     switch binding {
     case .Invalid: return false
     default: return true
     }
   }
   
-  func nameIsUnbound(name: String) -> Bool {
-    let binding = self[name]
+  func symbolIsBound(symbol: InternedSymbol) -> Bool {
+    let binding = self[symbol]
     switch binding {
     case .Unbound: return true
     default: return false
     }
   }
   
-  subscript(x: String) -> Binding {
+  subscript(x: InternedSymbol) -> Binding {
     get { fatalError("Subclasses must override this") }
     set { bindings[x] = newValue }
   }
@@ -74,11 +86,44 @@ class Context {
 
 /// A class representing the 'base' context - the one in which the standard library and global symbols are loaded.
 private class BaseContext : Context {
-  override func setTopLevelBinding(name: String, value: Binding) {
+  // The base context is responsible for maintaining the table that maps symbol names (e.g. "foo") to their interned
+  //  identifiers, as well as building new gensyms.
+  
+  var namesToIds : [String : InternedSymbol] = [:]
+  var idsToNames : [InternedSymbol : String] = [:]
+  var idCounter = 0
+  
+  override func nameForSymbol(symbol: InternedSymbol) -> String {
+    if let name = idsToNames[symbol] {
+      return name
+    }
+    // If there is no name for an interned symbol, something is seriously wrong.
+    fatal("Previously interned symbol doesn't have a name")
+  }
+  
+  override func symbolForName(name: String) -> InternedSymbol {
+    if let symbol = namesToIds[name] {
+      return symbol
+    }
+    else {
+      // We need to intern a new symbol
+      let newSymbol = InternedSymbol(idCounter)
+      idCounter++
+      namesToIds[name] = newSymbol
+      idsToNames[newSymbol] = name
+      return newSymbol
+    }
+  }
+  
+  private override func retrieveBaseParent() -> BaseContext {
+    return self
+  }
+  
+  override func setTopLevelBinding(name: InternedSymbol, value: Binding) {
     self[name] = value
   }
   
-  override subscript(x: String) -> Binding {
+  override subscript(x: InternedSymbol) -> Binding {
     get { return bindings[x] ?? .Invalid }
     set { super[x] = newValue }
   }
@@ -87,19 +132,33 @@ private class BaseContext : Context {
 /// A class representing a context representing any lexical scope beneath the global scope.
 private class ChildContext : Context {
   let parent : Context
+  private let baseParent : BaseContext
   
-  override func setTopLevelBinding(name: String, value: Binding) {
+  override func nameForSymbol(symbol: InternedSymbol) -> String {
+    return baseParent.nameForSymbol(symbol)
+  }
+  
+  override func symbolForName(name: String) -> InternedSymbol {
+    return baseParent.symbolForName(name)
+  }
+  
+  override func setTopLevelBinding(name: InternedSymbol, value: Binding) {
     parent.setTopLevelBinding(name, value: value)
   }
   
-  override subscript(x: String) -> Binding {
+  private override func retrieveBaseParent() -> BaseContext {
+    return baseParent
+  }
+  
+  override subscript(x: InternedSymbol) -> Binding {
     get { return bindings[x] ?? parent[x] }
     set { super[x] = newValue }
   }
   
   // Create a new session
-  init(parent: Context, bindings: [String : Binding]) {
+  init(parent: Context, bindings: [InternedSymbol : Binding]) {
     self.parent = parent
+    baseParent = parent.retrieveBaseParent()
     super.init()
     self.bindings = bindings
   }

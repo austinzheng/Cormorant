@@ -16,7 +16,7 @@ func loadStdlibInto(context: Context, files: [String]) {
       // Data loaded from file as string
       if let segments = segmentsForFile(data) {
         for s in segments {
-          if let parsedData = parse(s) {
+          if let parsedData = parse(s, context) {
             // First, perform reader expansion
             let re = parsedData.readerExpand()
             re.evaluate(context, .Normal)

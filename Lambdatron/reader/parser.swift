@@ -99,7 +99,7 @@ func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> C
 /// Take a list of LexTokens and return a list of ConsValues which can be transformed into a list, a vector, or another
 /// collection type. This method recursively finds token sequences representing collections and calls the appropriate
 /// constructor to build a valid ConsValue for that form
-func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
+func processTokenList(tokens: [LexToken], ctx: Context) -> [ConsValue]? {
   var wrapStack : [NextFormTreatment] = []
   
   // Create a new ConsValue array with all sub-structures properly processed
@@ -109,7 +109,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     let currentToken = tokens[counter]
     switch currentToken {
     case .LeftParentheses:
-      if let newList = listWithTokens(collectTokens(tokens, &counter, .List)) {
+      if let newList = listWithTokens(collectTokens(tokens, &counter, .List), ctx) {
         buffer.append(wrappedConsItem(.ListLiteral(newList), &wrapStack))
       }
       else {
@@ -118,7 +118,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     case .RightParentheses:
       return nil
     case .LeftSquareBracket:
-      if let newVector = vectorWithTokens(collectTokens(tokens, &counter, .Vector)) {
+      if let newVector = vectorWithTokens(collectTokens(tokens, &counter, .Vector), ctx) {
         buffer.append(wrappedConsItem(.VectorLiteral(newVector), &wrapStack))
       }
       else {
@@ -127,7 +127,7 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     case .RightSquareBracket:
       return nil
     case .LeftBrace:
-      if let newMap = mapWithTokens(collectTokens(tokens, &counter, .Map)) {
+      if let newMap = mapWithTokens(collectTokens(tokens, &counter, .Map), ctx) {
         buffer.append(wrappedConsItem(.MapLiteral(newMap), &wrapStack))
       }
       else {
@@ -156,7 +156,8 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
     case let .Keyword(k):
       fatal("TODO - support keywords")
     case let .Identifier(r):
-      buffer.append(wrappedConsItem(.Symbol(r), &wrapStack))
+      let internedSymbol = ctx.symbolForName(r)
+      buffer.append(wrappedConsItem(.Symbol(internedSymbol), &wrapStack))
     case let .Special(s):
       buffer.append(wrappedConsItem(.Special(s), &wrapStack))
     case let .BuiltInFunction(bf):
@@ -167,13 +168,13 @@ func processTokenList(tokens: [LexToken]) -> [ConsValue]? {
   return buffer
 }
 
-func listWithTokens(tokens: [LexToken]?) -> Cons? {
+func listWithTokens(tokens: [LexToken]?, ctx: Context) -> Cons? {
   if let tokens = tokens {
     if tokens.count == 0 {
       // Empty list: ()
       return Cons()
     }
-    if let processedForms = processTokenList(tokens) {
+    if let processedForms = processTokenList(tokens, ctx) {
       // Create the list itself
       let first = Cons(processedForms[0])
       var prev = first
@@ -189,13 +190,13 @@ func listWithTokens(tokens: [LexToken]?) -> Cons? {
   return nil
 }
 
-func vectorWithTokens(tokens: [LexToken]?) -> Vector? {
+func vectorWithTokens(tokens: [LexToken]?, ctx: Context) -> Vector? {
   if let tokens = tokens {
     if tokens.count == 0 {
       // Empty vector: []
       return []
     }
-    if let processedForms = processTokenList(tokens) {
+    if let processedForms = processTokenList(tokens, ctx) {
       // Create the map itself
       return processedForms
     }
@@ -204,13 +205,13 @@ func vectorWithTokens(tokens: [LexToken]?) -> Vector? {
   return nil
 }
 
-func mapWithTokens(tokens: [LexToken]?) -> Map? {
+func mapWithTokens(tokens: [LexToken]?, ctx: Context) -> Map? {
   if let tokens = tokens {
     if tokens.count == 0 {
       // Empty map: []
       return [:]
     }
-    if let processedForms = processTokenList(tokens) {
+    if let processedForms = processTokenList(tokens, ctx) {
       // Create the vector itself
       var newMap : Map = [:]
       if processedForms.count % 2 != 0 {
@@ -229,7 +230,7 @@ func mapWithTokens(tokens: [LexToken]?) -> Map? {
   return nil
 }
 
-func parse(tokens: [LexToken]) -> ConsValue? {
+func parse(tokens: [LexToken], ctx: Context) -> ConsValue? {
   var index = 0
   var wrapStack : [NextFormTreatment] = []
   if tokens.count == 0 {
@@ -238,19 +239,19 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   // Figure out how to parse
   switch tokens[0] {
   case .LeftParentheses where tokens.count > 1:
-    if let result = listWithTokens(collectTokens(tokens, &index, .List)) {
+    if let result = listWithTokens(collectTokens(tokens, &index, .List), ctx) {
       return .ListLiteral(result)
     }
     return nil
   case .RightParentheses: return nil
   case .LeftSquareBracket where tokens.count > 1:
-    if let result = vectorWithTokens(collectTokens(tokens, &index, .Vector)) {
+    if let result = vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
       return .VectorLiteral(result)
     }
     return nil
   case .RightSquareBracket: return nil
   case .LeftBrace:
-    if let result = mapWithTokens(collectTokens(tokens, &index, .Map)) {
+    if let result = mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
       return .MapLiteral(result)
     }
     return nil
@@ -259,7 +260,7 @@ func parse(tokens: [LexToken]) -> ConsValue? {
     // The top-level expression can be a quoted thing.
     var restTokens = tokens
     restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens) {
+    if let restResult = parse(restTokens, ctx) {
       wrapStack.append(.Quote)
       return wrappedConsItem(restResult, &wrapStack)
     }
@@ -267,7 +268,7 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   case .Backquote where tokens.count > 1:
     var restTokens = tokens
     restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens) {
+    if let restResult = parse(restTokens, ctx) {
       wrapStack.append(.SyntaxQuote)
       return wrappedConsItem(restResult, &wrapStack)
     }
@@ -275,7 +276,7 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   case .Tilde where tokens.count > 1:
     var restTokens = tokens
     restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens) {
+    if let restResult = parse(restTokens, ctx) {
       wrapStack.append(.Unquote)
       return wrappedConsItem(restResult, &wrapStack)
     }
@@ -283,7 +284,7 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   case .TildeAt where tokens.count > 1:
     var restTokens = tokens
     restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens) {
+    if let restResult = parse(restTokens, ctx) {
       wrapStack.append(.UnquoteSplice)
       return wrappedConsItem(restResult, &wrapStack)
     }
@@ -296,7 +297,9 @@ func parse(tokens: [LexToken]) -> ConsValue? {
   case let .Boolean(b): return .BoolLiteral(b)
   case let .Keyword(k):
     fatal("TODO - support keywords")
-  case let .Identifier(r): return .Symbol(r)
+  case let .Identifier(r):
+    let internedSymbol = ctx.symbolForName(r)
+    return .Symbol(internedSymbol)
   case let .Special(s): return .Special(s)
   default: internalError("parser is in an invalid state; this should never happen")
   }

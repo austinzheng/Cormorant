@@ -16,11 +16,11 @@ private func fileDataForRawPath(p: String) -> String? {
   return nil
 }
 
-private func doFormForFileData(d: String) -> [ConsValue]? {
+private func doFormForFileData(d: String, ctx: Context) -> [ConsValue]? {
   if let segments = segmentsForFile(d) {
     var buffer : [ConsValue] = []
     for segment in segments {
-      if let parsedData = parse(segment) {
+      if let parsedData = parse(segment, ctx) {
         buffer.append(parsedData.readerExpand())
       }
       else {
@@ -49,11 +49,12 @@ func main() {
     // Execute a file
     let fileName = args[2]
     if let fileInput = fileDataForRawPath(fileName) {
-      if let forms = doFormForFileData(fileInput) {
-        let result = sf_do(forms, Context.globalContextInstance(), .Normal)
+      let ctx = Context.globalContextInstance()
+      if let forms = doFormForFileData(fileInput, ctx) {
+        let result = sf_do(forms, ctx, .Normal)
         switch result {
         case let .Success(s):
-          println(s.description)
+          println(s.describe(ctx))
         case let .Failure(f):
           println("Evaluation error: \(f.description)")
         }

@@ -8,12 +8,12 @@
 
 import Foundation
 
-class Function : Printable {
+class Function {
   let context : Context?
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
-  class func buildFunction(arities: [SingleFn], name: String?, ctx: Context) -> EvalResult {
+  class func buildFunction(arities: [SingleFn], name: InternedSymbol?, ctx: Context) -> EvalResult {
     if arities.count == 0 {
       // Must have at least one arity
       return .Failure(.DefineFunctionError("function must be defined with at least one arity"))
@@ -49,7 +49,7 @@ class Function : Printable {
     return .Success(.FunctionLiteral(newFunction))
   }
   
-  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: String?, ctx: Context) {
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: InternedSymbol?, ctx: Context) {
     self.specificFns = specificFns
     self.variadic = variadic
     // Bind the context, based on whether or not we provided an actual name
@@ -80,36 +80,5 @@ class Function : Printable {
       return .Failure(.ArityError)
     }
     internalError("evaluating fn or macro with nil context")
-  }
-  
-  var description : String {
-    var count = variadic == nil ? 0 : 1
-    count += specificFns.count
-    if count == 1 {
-      // Only one arity
-      let funcString : String = {
-        if let v = self.variadic {
-          return v.description
-        }
-        else {
-          for (_, item) in self.specificFns {
-            return item.description
-          }
-        }
-        internalError("an array with no objects reported itself as having at least one object")
-      }()
-      return "(fn \(funcString))"
-    }
-    else {
-      var descs : [String] = []
-      for (_, fn) in specificFns {
-        descs.append("(\(fn.description))")
-      }
-      if let variadic = variadic {
-        descs.append("(\(variadic.description))")
-      }
-      let joined = join(" ", descs)
-      return "(fn \(joined))"
-    }
   }
 }

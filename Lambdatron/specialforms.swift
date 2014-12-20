@@ -121,7 +121,7 @@ func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
     else {
       // No value is provided
       // If invalid, create the var as unbound
-      if !ctx.nameIsValid(s) {
+      if !ctx.symbolIsValid(s) {
         ctx.setTopLevelBinding(s, value: .Unbound)
       }
     }
@@ -145,11 +145,11 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
       return .Failure(.CustomError("let binding vector must have an even number of elements"))
     }
     // Create a bindings dictionary for our new context
-    var newBindings : [String : Binding] = [:]
+    var newBindings : [InternedSymbol : Binding] = [:]
     var ctr = 0
     while ctr < bindingsVector.count {
-      let name = bindingsVector[ctr]
-      switch name {
+      let bindingSymbol = bindingsVector[ctr]
+      switch bindingSymbol {
       case let .Symbol(s):
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
@@ -186,11 +186,11 @@ func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   if args.count == 0 {
     return .Failure(.ArityError)
   }
-  let name : String? = args[0].asSymbol()
+  let name : InternedSymbol? = args[0].asSymbol()
   let rest = (name == nil) ? args : Array(args[1..<args.count])
   if rest[0].asVector() != nil {
     // Single arity
-    let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Function)
+    let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Function, ctx: ctx)
     if let actualSingleArity = singleArity {
       return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
     }
@@ -198,7 +198,7 @@ func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   else {
     var arityBuffer : [SingleFn] = []
     for potential in rest {
-      if let nextFn = buildSingleFnFor(potential, type: .Function) {
+      if let nextFn = buildSingleFnFor(potential, type: .Function, ctx: ctx) {
         arityBuffer.append(nextFn)
       }
       else {
@@ -217,14 +217,11 @@ func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
     return .Failure(.ArityError)
   }
   if let name = args[0].asSymbol() {
-    // NOTE: at this time, macros are unhygenic. Symbols will be evaluated with their meanings at expansion time,
-    //  rather than when they are defined. This also means macros will break if defined with argument names that
-    //  are later rebound using def, let, etc.
-    // Macros also don't capture their context. They use the context provided at the time they are expanded.
+    // NOTE: at this time, macros might be unhygenic. This will change as the symbol system is built out.
     let rest = Array(args[1..<args.count])
     if rest[0].asVector() != nil {
       // Single arity
-      let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Macro)
+      let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Macro, ctx: ctx)
       if let actualSingleArity = singleArity {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
@@ -239,7 +236,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
     else {
       var arityBuffer : [SingleFn] = []
       for potential in rest {
-        if let nextFn = buildSingleFnFor(potential, type: .Macro) {
+        if let nextFn = buildSingleFnFor(potential, type: .Macro, ctx: ctx) {
           arityBuffer.append(nextFn)
         }
         else {
@@ -273,8 +270,8 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
     if bindingsVector.count % 2 != 0 {
       return .Failure(.CustomError("loop binding vector must have an even number of elements"))
     }
-    var bindings : [String : Binding] = [:]
-    var symbols : [String] = []
+    var bindings : [InternedSymbol : Binding] = [:]
+    var symbols : [InternedSymbol] = []
     var ctr = 0
     while ctr < bindingsVector.count {
       let name = bindingsVector[ctr]
@@ -302,7 +299,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
           if newBindingValues.count != symbols.count {
             return .Failure(.ArityError)
           }
-          var newBindings : [String : Binding] = [:]
+          var newBindings : [InternedSymbol : Binding] = [:]
           for (idx, newValue) in enumerate(newBindingValues) {
             newBindings[symbols[idx]] = .Literal(newValue)
           }
@@ -388,9 +385,9 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 
 /// Given a list of args (all of which should be symbols), extract the strings corresponding with their argument names,
 /// as well as any variadic parameter that exists.
-private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
+private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSymbol], InternedSymbol?)? {
   // Returns a list of symbol names representing the parameter names, as well as the variadic parameter name (if any)
-  var names : [String] = []
+  var names : [InternedSymbol] = []
   for arg in args {
     switch arg {
     case let .Symbol(s): names.append(s)
@@ -398,13 +395,13 @@ private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
     }
   }
   // No '&' allowed anywhere except for second-last position
-  for (idx, name) in enumerate(names) {
-    if name == "&" && idx != names.count - 2 {
+  for (idx, symbol) in enumerate(names) {
+    if symbol == ctx.symbolForName("&") && idx != names.count - 2 {
       return nil
     }
   }
   // Check to see if there's a variadic argument
-  if names.count >= 2 && names[names.count - 2] == "&" {
+  if names.count >= 2 && ctx.nameForSymbol(names[names.count - 2]) == "&" {
     return (Array(names[0..<names.count-2]), names[names.count-1])
   }
   else {
@@ -414,7 +411,7 @@ private func extractParameters(args: [ConsValue]) -> ([String], String?)? {
 
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
 /// SingleFn instance.
-private func buildSingleFnFor(item: ConsValue, #type: FnType) -> SingleFn? {
+private func buildSingleFnFor(item: ConsValue, #type: FnType, #ctx: Context) -> SingleFn? {
   let itemAsVector : Vector? = {
     switch item {
     case let .ListLiteral(l): return Cons.collectSymbols(l)
@@ -428,7 +425,7 @@ private func buildSingleFnFor(item: ConsValue, #type: FnType) -> SingleFn? {
       return nil
     }
     if let params = vector[0].asVector() {
-      if let paramTuple = extractParameters(params) {
+      if let paramTuple = extractParameters(params, ctx) {
         // Now we've taken out the parameters (they are symbols in a vector
         let (paramNames, variadic) = paramTuple
         let forms = vector.count > 1 ? Array(vector[1..<vector.count]) : []

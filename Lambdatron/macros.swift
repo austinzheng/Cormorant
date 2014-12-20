@@ -15,11 +15,11 @@ enum MacroCreationResult {
 
 class Macro {
   let context : Context
-  let name : String
+  let name : InternedSymbol
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
-  class func buildMacro(arities: [SingleFn], name: String, ctx: Context) -> MacroCreationResult {
+  class func buildMacro(arities: [SingleFn], name: InternedSymbol, ctx: Context) -> MacroCreationResult {
     if arities.count == 0 {
       // Must have at least one arity
       return .Failure(.DefineFunctionError("macro must be defined with at least one arity"))
@@ -55,7 +55,7 @@ class Macro {
     return .Success(newMacro)
   }
   
-  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: String, ctx: Context) {
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: InternedSymbol, ctx: Context) {
     self.specificFns = specificFns
     self.variadic = variadic
     self.name = name

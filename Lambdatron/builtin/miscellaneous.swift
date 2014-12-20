@@ -21,7 +21,7 @@ func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
     case let .StringLiteral(s): return s
-    default: return v.description
+    default: return v.describe(ctx)
     }
   }
   let descs = args.map(toString)

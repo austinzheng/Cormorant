@@ -13,8 +13,6 @@ Lambdatron is an OS X command-line application written in Swift. You will need X
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
-Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting the Lambdatron process, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "Lambdatron" (it should show up under "Likely Targets").
-
 [Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the intended behavior of all included functions and special forms.
 
 Need ideas? Try:
@@ -46,6 +44,18 @@ Need ideas? Try:
 - ``(defmacro my-when [predicate then-do] `(if ~predicate ~then-do nil))``, then `(my-when (= 1 1) "good")` or `(my-when (= 1 2) (do (print "this shouldn't show up") "bad"))`
 
 
+### Debugging
+
+Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Lambdatron, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "Lambdatron" (it should show up under "Likely Targets").
+
+
+### Profiling
+
+Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "Lambdatron" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
+
+The current Xcode scheme is set to build an optimized version of Lambdatron when profiling (and a debug version when running normally). There is a significant performance difference between the two versions, be aware.
+
+
 ### Current Limitations
 
 Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
@@ -53,7 +63,6 @@ Lambdatron has a couple of limitations, due mostly to its work-in-progress statu
 - The REPL can only take one form at a time.
 - Large parts of the error handling system aren't implemented yet. Asserts will cause the REPL to quit if something goes wrong during evaluation.
 - There currently isn't any namespacing or symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
-- Macros are cumbersome to define since the syntax-quote system hasn't yet been implemented.
 
 These will disappear as the feature set is filled out.
 

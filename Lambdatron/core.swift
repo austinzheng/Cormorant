@@ -26,7 +26,7 @@ enum EvalEnvironment {
 }
 
 /// Represents a cons cell, an element in a linked list.
-class Cons : Hashable, Printable, DebugPrintable {
+class Cons : Hashable {
   var next : Cons?
   var value : ConsValue
   
@@ -199,47 +199,13 @@ class Cons : Hashable, Printable, DebugPrintable {
     }
     return symbolBuffer
   }
-  
-  // MARK: API - describe
-  
-  var description : String {
-    func collectDescriptions(firstItem : Cons?) -> [String] {
-      var descBuffer : [String] = []
-      var currentItem : Cons? = firstItem
-      while let actualItem = currentItem {
-        descBuffer.append(actualItem.value.description)
-        currentItem = actualItem.next
-      }
-      return descBuffer
-    }
-    
-    var descs = collectDescriptions(self)
-    let finalDesc = join(" ", descs)
-    return "(\(finalDesc))"
-  }
-  
-  var debugDescription : String {
-    func collectDescriptions(firstItem : Cons?) -> [String] {
-      var descBuffer : [String] = []
-      var currentItem : Cons? = firstItem
-      while let actualItem = currentItem {
-        descBuffer.append(actualItem.value.debugDescription)
-        currentItem = actualItem.next
-      }
-      return descBuffer
-    }
-    
-    var descs = collectDescriptions(self)
-    let finalDesc = join(" ", descs)
-    return "(\(finalDesc))"
-  }
 }
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms, collections, and sentinel
 /// values (which should never leak into a normal evaluation context).
-enum ConsValue : Hashable, Printable, DebugPrintable {
+enum ConsValue : Hashable {
   case None
-  case Symbol(String)
+  case Symbol(InternedSymbol)
   case Special(SpecialForm)
   case BuiltInFunction(BuiltIn)
   case ReaderMacro(ReaderForm)
@@ -285,7 +251,7 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     }
   }
   
-  func asSymbol() -> String? {
+  func asSymbol() -> InternedSymbol? {
     switch self {
     case let .Symbol(s): return s
     default: return nil
@@ -317,66 +283,6 @@ enum ConsValue : Hashable, Printable, DebugPrintable {
     switch self {
     case .RecurSentinel: return true
     default: return false
-    }
-  }
-
-  var description : String {
-    switch self {
-    case let Symbol(v): return v
-    case NilLiteral: return "nil"
-    case let BoolLiteral(b): return b.description
-    case let IntegerLiteral(v): return v.description
-    case let FloatLiteral(n): return n.description
-    case let StringLiteral(s): return "\"\(s)\""
-    case let ListLiteral(l): return l.description
-    case let VectorLiteral(v):
-      let internals = join(" ", v.map({$0.description}))
-      return "[\(internals)]"
-    case let MapLiteral(m):
-      var components : [String] = []
-      for (key, value) in m {
-        components.append(key.description)
-        components.append(value.description)
-      }
-      let internals = join(" ", components)
-      return "{\(internals)}"
-    case let FunctionLiteral(f): return f.description
-    case let Special(s): return s.rawValue
-    case let BuiltInFunction(bf): return bf.rawValue
-    case let ReaderMacro(r): return r.description
-    case None: return ""
-    case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
-    case let MacroArgument(ma): return ma.value.description
-    }
-  }
-  
-  var debugDescription : String {
-    switch self {
-    case let Symbol(v): return "ConsValue.Symbol(\(v))"
-    case NilLiteral: return "ConsValue.NilLiteral"
-    case let BoolLiteral(b): return "ConsValue.BoolLiteral(\(b))"
-    case let IntegerLiteral(v): return "ConsValue.IntegerLiteral(\(v))"
-    case let FloatLiteral(n): return "ConsValue.FloatLiteral(\(n))"
-    case let StringLiteral(s): return "ConsValue.StringLiteral(\"\(s)\")"
-    case let ListLiteral(l): return "ConsValue.ListLiteral(\(l.debugDescription))"
-    case let VectorLiteral(v):
-      let internals = join(" ", v.map({$0.debugDescription}))
-      return "ConsValue.VectorLiteral([\(internals)])"
-    case let MapLiteral(m):
-      var components : [String] = []
-      for (key, value) in m {
-        components.append(key.debugDescription)
-        components.append(value.debugDescription)
-      }
-      let internals = join(" ", components)
-      return "{\(internals)}"
-    case let FunctionLiteral(f): return "ConsValue.FunctionLiteral(\(f.description))"
-    case let Special(s): return "ConsValue.Special(\(s.rawValue))"
-    case let BuiltInFunction(bf): return "ConsValue.BuiltInFunction(\(bf.rawValue))"
-    case let ReaderMacro(r): return "ConsValue.ReaderMacro(\(r.description))"
-    case None: return "ConsValue.None"
-    case RecurSentinel: internalError("RecurSentinel should never be in a situation where its value can be printed")
-    case let MacroArgument(ma): return "ConsValue.MacroArgument-->(\(ma.value.debugDescription))"
     }
   }
 }

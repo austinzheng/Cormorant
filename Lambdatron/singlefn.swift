@@ -39,11 +39,11 @@ enum FnType {
   case Function, Macro
 }
 
-struct SingleFn : Printable {
+struct SingleFn {
   let fnType : FnType
-  let parameters : [String]
+  let parameters : [InternedSymbol]
   let forms : [ConsValue]
-  let variadicParameter : String?
+  let variadicParameter : InternedSymbol?
   var paramCount : Int {
     return parameters.count
   }
@@ -57,7 +57,7 @@ struct SingleFn : Printable {
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
       return nil
     }
-    var bindings : [String : Binding] = [:]
+    var bindings : [InternedSymbol : Binding] = [:]
     var i=0
     for ; i<parameters.count; i++ {
       bindings[parameters[i]] = {
@@ -114,20 +114,5 @@ struct SingleFn : Printable {
       }
       return .Failure(.ArityError)
     }
-  }
-
-  var description : String {
-    // Print out the description. For example, "[a b] (print a) (+ a b 1)"
-    let paramVector : [String] = {
-      if let v = self.variadicParameter {
-        return self.parameters + ["&", v]
-      }
-      return self.parameters
-      }()
-    let paramRaw = join(" ", paramVector)
-    let paramString = "[\(paramRaw)]"
-    let formsVector = forms.map({$0.description})
-    var finalVector = [paramString] + formsVector
-    return join(" ", finalVector)
   }
 }
