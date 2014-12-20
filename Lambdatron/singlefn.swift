@@ -88,7 +88,7 @@ struct SingleFn : Printable {
         }
       }
     }
-    let newContext = Context(parent: ctx, bindings: bindings)
+    let newContext = Context.instance(parent: ctx, bindings: bindings)
     return newContext
   }
 

@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// An enum representing the binding state and value for a particular symbol.
 enum Binding : Printable {
   case Invalid
   case Unbound
@@ -28,22 +29,25 @@ enum Binding : Printable {
   }
 }
 
+/// A class representing the lexical context of a function, loop, or 'let'-scoped block. Contexts chain together to form
+/// a 'spaghetti stack'.
 class Context {
-  // A dictionary of variable and function bindings.
   var bindings : [String : Binding] = [:]
   
-  let parent : Context?
-  var isTopLevel : Bool {
-    return parent == nil
+  func setTopLevelBinding(name: String, value: Binding) {
+    fatalError("Subclasses must override this")
   }
   
-  func setTopLevelBinding(name: String, value: Binding) {
-    if isTopLevel {
-      self[name] = value
-    }
-    else {
-      parent?.setTopLevelBinding(name, value: value)
-    }
+  /// Create a new global context. This is the baseline context which execution should begin with.
+  class func globalContextInstance() -> Context {
+    let context = BaseContext()
+    loadStdlibInto(context, stdlib_files)
+    return context
+  }
+  
+  /// Create a new instance of a context for a lexical scope.
+  class func instance(# parent: Context, bindings: [String : Binding]) -> Context {
+    return ChildContext(parent: parent, bindings: bindings)
   }
   
   func nameIsValid(name: String) -> Bool {
@@ -61,37 +65,42 @@ class Context {
     default: return false
     }
   }
-
+  
   subscript(x: String) -> Binding {
-    get {
-      if let value = bindings[x] {
-        return value
-      }
-      else if let actualParent = parent {
-        // Recursively search through the bindings hierarchy
-        return actualParent[x]
-      }
-      return .Invalid
-    }
-    set {
-      bindings[x] = newValue
-    }
+    get { fatalError("Subclasses must override this") }
+    set { bindings[x] = newValue }
+  }
+}
+
+/// A class representing the 'base' context - the one in which the standard library and global symbols are loaded.
+private class BaseContext : Context {
+  override func setTopLevelBinding(name: String, value: Binding) {
+    self[name] = value
   }
   
-  class func globalContextInstance() -> Context {
-    let context = Context()
-    loadStdlibInto(context, stdlib_files)
-    return context
+  override subscript(x: String) -> Binding {
+    get { return bindings[x] ?? .Invalid }
+    set { super[x] = newValue }
+  }
+}
+
+/// A class representing a context representing any lexical scope beneath the global scope.
+private class ChildContext : Context {
+  let parent : Context
+  
+  override func setTopLevelBinding(name: String, value: Binding) {
+    parent.setTopLevelBinding(name, value: value)
   }
   
-  private init() {
-    // Only used for creating the top-level session
-    self.parent = nil
+  override subscript(x: String) -> Binding {
+    get { return bindings[x] ?? parent[x] }
+    set { super[x] = newValue }
   }
   
   // Create a new session
   init(parent: Context, bindings: [String : Binding]) {
     self.parent = parent
+    super.init()
     self.bindings = bindings
   }
 }

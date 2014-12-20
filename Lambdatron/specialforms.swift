@@ -154,7 +154,7 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context(parent: ctx, bindings: newBindings), env)
+        let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings), env)
         newBindings[s] = .Literal(result)
       default:
         return .Failure(.InvalidArgumentError)
@@ -162,7 +162,7 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
       ctr += 2
     }
     // Create a new context, which is a child of the old context
-    let newContext = Context(parent: ctx, bindings: newBindings)
+    let newContext = Context.instance(parent: ctx, bindings: newBindings)
     
     // Create an implicit 'do' statement with the remainder of the args
     if args.count == 1 {
@@ -281,7 +281,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
       switch name {
       case let .Symbol(s):
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context(parent: ctx, bindings: bindings), env)
+        let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings), env)
         bindings[s] = .Literal(result)
         symbols.append(s)
       default:
@@ -291,7 +291,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
     }
     let forms = args.count > 1 ? Array(args[1..<args.count]) : []
     // Now, run the loop body
-    var context = bindings.count == 0 ? ctx : Context(parent: ctx, bindings: bindings)
+    var context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: bindings)
     while true {
       let result = sf_do(forms, context, env)
       switch result {
@@ -306,7 +306,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
           for (idx, newValue) in enumerate(newBindingValues) {
             newBindings[symbols[idx]] = .Literal(newValue)
           }
-          context = bindings.count == 0 ? ctx : Context(parent: ctx, bindings: newBindings)
+          context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: newBindings)
           continue
         default: return result
         }
