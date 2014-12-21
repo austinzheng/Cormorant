@@ -46,6 +46,14 @@ class Context {
     fatalError("Subclasses must override this")
   }
   
+  func nameForKeyword(keyword: InternedKeyword) -> String {
+    fatalError("Subclasses must override this")
+  }
+  
+  func keywordForName(name: String) -> InternedKeyword {
+    fatalError("Subclasses must override this")
+  }
+  
   private func retrieveBaseParent() -> BaseContext {
     fatalError("Subclasses must override this")
   }
@@ -91,7 +99,11 @@ private class BaseContext : Context {
   
   var namesToIds : [String : InternedSymbol] = [:]
   var idsToNames : [InternedSymbol : String] = [:]
-  var idCounter = 0
+  var symbolIdCounter = 0
+  
+  var keywordsToIds : [String : InternedKeyword] = [:]
+  var idsToKeywords : [InternedKeyword : String] = [:]
+  var keywordIdCounter = 0
   
   override func nameForSymbol(symbol: InternedSymbol) -> String {
     if let name = idsToNames[symbol] {
@@ -107,11 +119,32 @@ private class BaseContext : Context {
     }
     else {
       // We need to intern a new symbol
-      let newSymbol = InternedSymbol(idCounter)
-      idCounter++
+      let newSymbol = InternedSymbol(symbolIdCounter)
+      symbolIdCounter++
       namesToIds[name] = newSymbol
       idsToNames[newSymbol] = name
       return newSymbol
+    }
+  }
+  
+  override func nameForKeyword(keyword: InternedKeyword) -> String {
+    if let name = idsToKeywords[keyword] {
+      return name
+    }
+    fatalError("Subclasses must override this")
+  }
+  
+  override func keywordForName(name: String) -> InternedKeyword {
+    if let keyword = keywordsToIds[name] {
+      return keyword
+    }
+    else {
+      // We need to intern a new keyword
+      let newKeyword = InternedKeyword(keywordIdCounter)
+      keywordIdCounter++
+      keywordsToIds[name] = newKeyword
+      idsToKeywords[newKeyword] = name
+      return newKeyword
     }
   }
   
@@ -140,6 +173,14 @@ private class ChildContext : Context {
   
   override func symbolForName(name: String) -> InternedSymbol {
     return baseParent.symbolForName(name)
+  }
+  
+  override func nameForKeyword(keyword: InternedKeyword) -> String {
+    return baseParent.nameForKeyword(keyword)
+  }
+  
+  override func keywordForName(name: String) -> InternedKeyword {
+    return baseParent.keywordForName(name)
   }
   
   override func setTopLevelBinding(name: InternedSymbol, value: Binding) {

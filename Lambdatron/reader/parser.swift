@@ -154,7 +154,8 @@ func processTokenList(tokens: [LexToken], ctx: Context) -> [ConsValue]? {
     case let .Boolean(b):
       buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapStack))
     case let .Keyword(k):
-      fatal("TODO - support keywords")
+      let internedKeyword = ctx.keywordForName(k)
+      buffer.append(wrappedConsItem(.Keyword(internedKeyword), &wrapStack))
     case let .Identifier(r):
       let internedSymbol = ctx.symbolForName(r)
       buffer.append(wrappedConsItem(.Symbol(internedSymbol), &wrapStack))
@@ -296,7 +297,8 @@ func parse(tokens: [LexToken], ctx: Context) -> ConsValue? {
   case let .FlPtNumber(n): return .FloatLiteral(n)
   case let .Boolean(b): return .BoolLiteral(b)
   case let .Keyword(k):
-    fatal("TODO - support keywords")
+    let internedKeyword = ctx.keywordForName(k)
+    return .Keyword(internedKeyword)
   case let .Identifier(r):
     let internedSymbol = ctx.symbolForName(r)
     return .Symbol(internedSymbol)

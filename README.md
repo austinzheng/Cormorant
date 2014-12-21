@@ -86,7 +86,7 @@ Lambdatron has the following features:
 
 **Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
 
-**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`).
+**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`.
 
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` can be used to force evaluation of the unquote form, while `~@` can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
@@ -112,7 +112,6 @@ Lambdatron has the following features:
 - Expanding standard library
 - Support for character literals
 - Support for sets
-- Support for keywords
 - Basic namespacing
 - Better error handling than simply crashing the REPL
 - Ability to type in multiple forms at the top level

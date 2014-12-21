@@ -48,9 +48,13 @@ extension ConsValue {
         let name = ctx.nameForSymbol(v)
         return debug ? "ConsValue.Symbol(\(name))" : name
       }
-      else {
-        return debug ? "ConsValue.Symbol(id:\(v.identifier))" : "symbol:\(v.identifier)"
+      return debug ? "ConsValue.Symbol(id:\(v.identifier))" : "symbol:\(v.identifier)"
+    case let Keyword(v):
+      if let ctx = ctx {
+        let name = ctx.nameForKeyword(v)
+        return debug ? "ConsValue.Keyword(\(name))" : name
       }
+      return debug ? "ConsValue.Keyword(id:\(v.identifier))" : "keyword:\(v.identifier)"
     case NilLiteral:
       return debug ? "ConsValue.NilLiteral" : "nil"
     case let BoolLiteral(v):

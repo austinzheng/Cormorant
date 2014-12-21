@@ -71,6 +71,11 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .Symbol(v2): return v1 == v2  // Can happen if comparing two quoted symbols
     default: return false
     }
+  case let .Keyword(k1):
+    switch rhs {
+    case let .Keyword(k2): return k1 == k2
+    default: return false
+    }
   case let .Special(s1):
     switch rhs {
     case let .Special(s2): return s1 == s2

@@ -206,6 +206,7 @@ class Cons : Hashable {
 enum ConsValue : Hashable {
   case None
   case Symbol(InternedSymbol)
+  case Keyword(InternedKeyword)
   case Special(SpecialForm)
   case BuiltInFunction(BuiltIn)
   case ReaderMacro(ReaderForm)
@@ -227,6 +228,7 @@ enum ConsValue : Hashable {
     switch self {
     case None: return 0
     case let Symbol(s): return s.hashValue
+    case let Keyword(k): return k.hashValue
     case let Special(sf): return sf.hashValue
     case let BuiltInFunction(bf): return bf.hashValue
     case let ReaderMacro(rf): return rf.hashValue

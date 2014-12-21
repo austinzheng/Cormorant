@@ -14,7 +14,7 @@ struct InternedSymbol : Hashable {
   let identifier: Int
   // TODO: namespaces support would go here
   
-  init(_ identifier : Int) {
+  init(_ identifier: Int) {
     self.identifier = identifier
   }
   
@@ -24,5 +24,22 @@ struct InternedSymbol : Hashable {
 }
 
 func ==(lhs: InternedSymbol, rhs: InternedSymbol) -> Bool {
+  return lhs.identifier == rhs.identifier
+}
+
+/// A value representing an interned keyword.
+struct InternedKeyword : Hashable {
+  let identifier: Int
+  
+  init(_ identifier: Int) {
+    self.identifier = identifier
+  }
+  
+  var hashValue : Int {
+    return identifier.hashValue
+  }
+}
+
+func ==(lhs: InternedKeyword, rhs: InternedKeyword) -> Bool {
   return lhs.identifier == rhs.identifier
 }

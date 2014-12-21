@@ -124,7 +124,7 @@ extension ConsValue {
         return .MacroArgument(Box(mp))
       case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
       }
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral: return self
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Keyword: return self
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
       return l.evaluate(ctx, env)
