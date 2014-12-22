@@ -154,7 +154,7 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
   case let .VectorLiteral(bindingsVector):
     // The first argument is a vector, which is what we want
     if bindingsVector.count % 2 != 0 {
-      return .Failure(.CustomError("let binding vector must have an even number of elements"))
+      return .Failure(.BindingMismatchError)
     }
     // Create a bindings dictionary for our new context
     var newBindings : [InternedSymbol : Binding] = [:]
@@ -283,7 +283,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
     // The first argument must be a vector of bindings and values
     // Evaluate each binding's initializer and bind it to the corresponding symbol
     if bindingsVector.count % 2 != 0 {
-      return .Failure(.CustomError("loop binding vector must have an even number of elements"))
+      return .Failure(.BindingMismatchError)
     }
     var bindings : [InternedSymbol : Binding] = [:]
     var symbols : [InternedSymbol] = []

@@ -53,7 +53,7 @@ class replInstance {
               let n = re.evaluate(replContext, .Normal)
               switch n {
               case let .Success(n): println(n.describe(replContext))
-              case let .Failure(f): println("Evaluation error: \(f)")
+              case let .Failure(f): println("Evaluation error \(f)")
               }
             }
             else {

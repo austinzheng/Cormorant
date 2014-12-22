@@ -16,7 +16,7 @@ class Function {
   class func buildFunction(arities: [SingleFn], name: InternedSymbol?, ctx: Context) -> EvalResult {
     if arities.count == 0 {
       // Must have at least one arity
-      return .Failure(.DefineFunctionError("function must be defined with at least one arity"))
+      return .Failure(.NoFnAritiesError)
     }
     // Do validation
     var variadic : SingleFn? = nil
@@ -25,14 +25,14 @@ class Function {
       // 1. Only one variable arity definition
       if arity.isVariadic {
         if variadic != nil {
-          return .Failure(.DefineFunctionError("function can only be defined with at most one variadic arity"))
+          return .Failure(.MultipleVariadicAritiesError)
         }
         variadic = arity
       }
       // 2. Only one definition per fixed arity
       if !arity.isVariadic {
         if aritiesMap[arity.paramCount] != nil {
-          return .Failure(.DefineFunctionError("function can only be defined with one definition per fixed arity"))
+          return .Failure(.MultipleFnDefinitionsPerArityError)
         }
         aritiesMap[arity.paramCount] = arity
       }
@@ -41,7 +41,7 @@ class Function {
       for arity in arities {
         // 3. If variable arity definition, no fixed-arity definitions can have more params than the variable arity def
         if !arity.isVariadic && arity.paramCount > actualVariadic.paramCount {
-          return .Failure(.DefineFunctionError("function's fixed arities cannot have more params than variable arity"))
+          return .Failure(.FixedArityExceedsVariableArityError)
         }
       }
     }

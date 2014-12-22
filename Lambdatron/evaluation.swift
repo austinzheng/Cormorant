@@ -8,51 +8,6 @@
 
 import Foundation
 
-/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
-enum EvalError : Printable {
-  case ArityError
-  case InvalidArgumentError
-  case NotEvalableError
-  case DivideByZeroError
-  case InvalidSymbolError
-  case UnboundSymbolError
-  case RecurMisuseError
-  case EvaluatingMacroError
-  case EvaluatingSpecialFormError
-  case EvaluatingNoneError
-  case DefineFunctionError(String)
-  case RuntimeError(String?)
-  case CustomError(String)
-
-  var description : String {
-    switch self {
-    case ArityError:
-      return "ArityError: wrong number of arguments to macro, function, or special form"
-    case InvalidArgumentError:
-      return "InvalidArgumentError: invalid type or value for argument provided to macro, function, or special form"
-    case NotEvalableError:
-      return "NotEvalableError: item in function position is not something that can be evaluated"
-    case DivideByZeroError:
-      return "DivideByZeroError: attempted to divide by zero"
-    case InvalidSymbolError:
-      return "InvalidSymbolError: could not resolve the symbol"
-    case UnboundSymbolError:
-      return "UnboundSymbolError: symbol is unbound, and cannot be resolved"
-    case RecurMisuseError:
-      return "RecurMisuseError: didn't use recur in loop or fn, or used it as a non-final form inside a composite form"
-    case EvaluatingMacroError:
-      return "EvaluatingMacroError: can't take the value of a macro or reader macro"
-    case EvaluatingSpecialFormError:
-      return "EvaluatingSpecialFormError: can't take the value of a special form"
-    case EvaluatingNoneError:
-      return "EvaluatingNoneError: can't the the value of 'None'; this is a logic error"
-    case let DefineFunctionError(e): return e
-    case let RuntimeError(e): return e != nil ? "runtime error: \(e!)" : "runtime error"
-    case let CustomError(c): return c
-    }
-  }
-}
-
 /// The result of evaluating a function, macro, or special form. Successfully returned values or error messages are
 /// encapsulated in each case.
 enum EvalResult {
@@ -60,6 +15,7 @@ enum EvalResult {
   case Failure(EvalError)
 }
 
+/// The result of collecting arguments for function evaluation.
 enum CollectResult {
   case Success([ConsValue])
   case Failure(EvalError)

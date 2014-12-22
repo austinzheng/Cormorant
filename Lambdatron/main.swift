@@ -56,7 +56,7 @@ func main() {
         case let .Success(s):
           println(s.describe(ctx))
         case let .Failure(f):
-          println("Evaluation error: \(f.description)")
+          println("Evaluation error \(f.description)")
         }
       }
     }
