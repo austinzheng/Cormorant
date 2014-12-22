@@ -239,15 +239,19 @@ func parse(tokens: [LexToken], ctx: Context) -> ConsValue? {
   }
   // Figure out how to parse
   switch tokens[0] {
-  case .LeftParentheses where tokens.count > 1:
-    if let result = listWithTokens(collectTokens(tokens, &index, .List), ctx) {
-      return .ListLiteral(result)
+  case .LeftParentheses:
+    if tokens.count > 1 {
+      if let result = listWithTokens(collectTokens(tokens, &index, .List), ctx) {
+        return .ListLiteral(result)
+      }
     }
     return nil
   case .RightParentheses: return nil
-  case .LeftSquareBracket where tokens.count > 1:
-    if let result = vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
-      return .VectorLiteral(result)
+  case .LeftSquareBracket:
+    if tokens.count > 1 {
+      if let result = vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
+        return .VectorLiteral(result)
+      }
     }
     return nil
   case .RightSquareBracket: return nil
@@ -257,40 +261,47 @@ func parse(tokens: [LexToken], ctx: Context) -> ConsValue? {
     }
     return nil
   case .RightBrace: return nil
-  case .Quote where tokens.count > 1:
+  case .Quote:
     // The top-level expression can be a quoted thing.
-    var restTokens = tokens
-    restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens, ctx) {
-      wrapStack.append(.Quote)
-      return wrappedConsItem(restResult, &wrapStack)
+    if tokens.count > 1 {
+      var restTokens = tokens
+      restTokens.removeAtIndex(0)
+      if let restResult = parse(restTokens, ctx) {
+        wrapStack.append(.Quote)
+        return wrappedConsItem(restResult, &wrapStack)
+      }
     }
     return nil
-  case .Backquote where tokens.count > 1:
-    var restTokens = tokens
-    restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens, ctx) {
-      wrapStack.append(.SyntaxQuote)
-      return wrappedConsItem(restResult, &wrapStack)
+  case .Backquote:
+    if tokens.count > 1 {
+      var restTokens = tokens
+      restTokens.removeAtIndex(0)
+      if let restResult = parse(restTokens, ctx) {
+        wrapStack.append(.SyntaxQuote)
+        return wrappedConsItem(restResult, &wrapStack)
+      }
     }
     return nil
-  case .Tilde where tokens.count > 1:
-    var restTokens = tokens
-    restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens, ctx) {
-      wrapStack.append(.Unquote)
-      return wrappedConsItem(restResult, &wrapStack)
+  case .Tilde:
+    if tokens.count > 1 {
+      var restTokens = tokens
+      restTokens.removeAtIndex(0)
+      if let restResult = parse(restTokens, ctx) {
+        wrapStack.append(.Unquote)
+        return wrappedConsItem(restResult, &wrapStack)
+      }
     }
     return nil
-  case .TildeAt where tokens.count > 1:
-    var restTokens = tokens
-    restTokens.removeAtIndex(0)
-    if let restResult = parse(restTokens, ctx) {
-      wrapStack.append(.UnquoteSplice)
-      return wrappedConsItem(restResult, &wrapStack)
+  case .TildeAt:
+    if tokens.count > 1 {
+      var restTokens = tokens
+      restTokens.removeAtIndex(0)
+      if let restResult = parse(restTokens, ctx) {
+        wrapStack.append(.UnquoteSplice)
+        return wrappedConsItem(restResult, &wrapStack)
+      }
     }
     return nil
-  case _ where tokens.count > 1: return nil
   case .NilLiteral: return .NilLiteral
   case let .StringLiteral(s): return .StringLiteral(s)
   case let .Integer(v): return .IntegerLiteral(v)
@@ -303,6 +314,6 @@ func parse(tokens: [LexToken], ctx: Context) -> ConsValue? {
     let internedSymbol = ctx.symbolForName(r)
     return .Symbol(internedSymbol)
   case let .Special(s): return .Special(s)
-  default: internalError("parser is in an invalid state; this should never happen")
+  case let .BuiltInFunction(b): return .BuiltInFunction(b)
   }
 }
