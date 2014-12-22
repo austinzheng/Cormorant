@@ -61,7 +61,6 @@ The current Xcode scheme is set to build an optimized version of Lambdatron when
 Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
 
 - The REPL can only take one form at a time.
-- Large parts of the error handling system aren't implemented yet. Asserts will cause the REPL to quit if something goes wrong during evaluation.
 - There currently isn't any namespacing or symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
 
 These will disappear as the feature set is filled out.

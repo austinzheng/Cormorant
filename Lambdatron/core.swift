@@ -173,15 +173,18 @@ class Cons : Hashable {
   
   /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
   /// to perform argument evaluation as part of the process of calling a function.
-  class func collectValues(firstItem : Cons?, ctx: Context, env: EvalEnvironment) -> [ConsValue]? {
-    var valueBuffer : [ConsValue] = []
+  class func collectValues(firstItem : Cons?, ctx: Context, env: EvalEnvironment) -> CollectResult {
+    var buffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
     while let actualItem = currentItem {
       let thisValue = actualItem.value
-      valueBuffer.append(thisValue.evaluate(ctx, env))
+      switch thisValue.evaluate(ctx, env) {
+      case let .Success(result): buffer.append(result)
+      case let .Failure(f): return .Failure(f)
+      }
       currentItem = actualItem.next
     }
-    return valueBuffer
+    return .Success(buffer)
   }
   
   /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended

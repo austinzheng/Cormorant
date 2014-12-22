@@ -19,7 +19,13 @@ func loadStdlibInto(context: Context, files: [String]) {
           if let parsedData = parse(s, context) {
             // First, perform reader expansion
             let re = parsedData.readerExpand()
-            re.evaluate(context, .Normal)
+            switch re.evaluate(context, .Normal) {
+            case .Success: break
+            case let .Failure(f):
+              // Something is wrong with the stdlib
+              println("Unable to load stdlib: \(f)")
+              exit(EXIT_FAILURE)
+            }
           }
         }
       }

@@ -61,37 +61,46 @@ func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   if args.count != 2 && args.count != 3 {
     return .Failure(.ArityError)
   }
-  let test = args[0].evaluate(ctx, env)
-  let then = args[1]
-  let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
-  
-  // Decide what to do with test
-  let testIsTrue : Bool = {
-    switch test {
-    case .NilLiteral: return false
-    case let .BoolLiteral(x): return x
-    default: return true
+  let testResult = args[0].evaluate(ctx, env)
+
+  let result = next(testResult) { testForm in
+    let then = args[1]
+    let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
+
+    // Decide what to do with test
+    let testIsTrue : Bool = {
+      switch testForm {
+      case .NilLiteral: return false
+      case let .BoolLiteral(x): return x
+      default: return true
+      }
+      }()
+
+    if testIsTrue {
+      return then.evaluate(ctx, env)
     }
-    }()
-  
-  if testIsTrue {
-    return .Success(then.evaluate(ctx, env))
+    else if let otherwise = otherwise {
+      return otherwise.evaluate(ctx, env)
+    }
+    else {
+      return .Success(.NilLiteral)
+    }
   }
-  else if let actualOtherwise = otherwise {
-    return .Success(actualOtherwise.evaluate(ctx, env))
-  }
-  else {
-    return .Success(.NilLiteral)
-  }
+  return result
 }
 
 /// Evaluate all expressions, returning the value of the final expression.
 func sf_do(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
   var finalValue : ConsValue = .NilLiteral
   for (idx, expr) in enumerate(args) {
-    finalValue = expr.evaluate(ctx, env)
-    if idx != args.count - 1 && finalValue.isRecurSentinel {
-      return .Failure(.RecurMisuseError)
+    let result = expr.evaluate(ctx, env)
+    switch result {
+    case let .Success(result):
+      finalValue = result
+      if idx != args.count - 1 && finalValue.isRecurSentinel {
+        return .Failure(.RecurMisuseError)
+      }
+    case .Failure: return result
     }
   }
   return .Success(finalValue)
@@ -116,7 +125,10 @@ func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
     if let actualInit = initializer {
       // If a value is provided, always use that value
       let result = actualInit.evaluate(ctx, env)
-      ctx.setTopLevelBinding(s, value: .Literal(result))
+      switch result {
+      case let .Success(result): ctx.setTopLevelBinding(s, value: .Literal(result))
+      case .Failure: return result
+      }
     }
     else {
       // No value is provided
@@ -155,7 +167,10 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let expression = bindingsVector[ctr+1]
         let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings), env)
-        newBindings[s] = .Literal(result)
+        switch result {
+        case let .Success(result): newBindings[s] = .Literal(result)
+        default: return result
+        }
       default:
         return .Failure(.InvalidArgumentError)
       }
@@ -279,7 +294,10 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
       case let .Symbol(s):
         let expression = bindingsVector[ctr+1]
         let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings), env)
-        bindings[s] = .Literal(result)
+        switch result {
+        case let .Success(result): bindings[s] = .Literal(result)
+        case .Failure: return result
+        }
         symbols.append(s)
       default:
         return .Failure(.InvalidArgumentError)
@@ -323,7 +341,10 @@ func sf_recur(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   var newArgs : [ConsValue] = []
   for arg in args {
     let result = arg.evaluate(ctx, env)
-    newArgs.append(result)
+    switch result {
+    case let .Success(result): newArgs.append(result)
+    case .Failure: return result
+    }
   }
   return .Success(.RecurSentinel(newArgs))
 }
@@ -336,48 +357,59 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   // First argument must be a function, built-in, or special form
   // TODO: There should be a less ad-hoc way of determining whether the first argument is eval'able.
   let first = args[0].evaluate(ctx, env)
-  switch first {
-  case .FunctionLiteral, .BuiltInFunction, .Special, .MapLiteral, .Symbol: break
-  default: return .Failure(.InvalidArgumentError)
-  }
-  
-  // Straightforward implementation: build a list and then eval it
-  let head = Cons(first)
-  var this = head
-  
-  for var i=1; i<args.count - 1; i++ {
-    // Add all leading args (after being evaluated) to the list directly
-    let evaluatedResult = args[i].evaluate(ctx, env)
-    let next = Cons(evaluatedResult)
-    this.next = next
-    this = next
-  }
-  
-  // Evaluate the last argument, which should be some sort of collection.
-  // Note that, since there can never be zero arguments, last will always be non-nil.
-  let last = args.last!.evaluate(ctx, env)
-  switch last {
-  case let .ListLiteral(l) where !l.isEmpty:
-    this.next = l
-  case let .VectorLiteral(v):
-    for item in v {
-      let next = Cons(item)
-      this.next = next
-      this = next
+  let result = next(first) { first in
+    switch first {
+    case .FunctionLiteral, .BuiltInFunction, .Special, .MapLiteral, .Symbol: break
+    default: return .Failure(.InvalidArgumentError)
     }
-  case let .MapLiteral(m):
-    for (key, value) in m {
-      let next = Cons(.VectorLiteral([key, value]))
-      this.next = next
-      this = next
+
+    // Straightforward implementation: build a list and then eval it
+    let head = Cons(first)
+    var this = head
+
+    for var i=1; i<args.count - 1; i++ {
+      // Add all leading args (after being evaluated) to the list directly
+      let evaluatedResult = args[i].evaluate(ctx, env)
+      switch evaluatedResult {
+      case let .Success(evaluatedResult):
+        let next = Cons(evaluatedResult)
+        this.next = next
+        this = next
+      case .Failure: return evaluatedResult
+      }
     }
-  default:
-    return .Failure(.InvalidArgumentError)
+
+    // Evaluate the last argument, which should be some sort of collection.
+    // Note that, since there can never be zero arguments, last will always be non-nil.
+    let last = args.last!.evaluate(ctx, env)
+    switch last {
+    case let .Success(last):
+      switch last {
+      case let .ListLiteral(l) where !l.isEmpty:
+        this.next = l
+      case let .VectorLiteral(v):
+        for item in v {
+          let next = Cons(item)
+          this.next = next
+          this = next
+        }
+      case let .MapLiteral(m):
+        for (key, value) in m {
+          let next = Cons(.VectorLiteral([key, value]))
+          this.next = next
+          this = next
+        }
+      default:
+        return .Failure(.InvalidArgumentError)
+      }
+    case .Failure: return last
+    }
+
+    // With the entire list constructed, evaluate it as a function call and then return the result.
+    let result = head.evaluate(ctx, env)
+    return result
   }
-  
-  // With the entire list constructed, evaluate it as a function call and then return the result.
-  let result = head.evaluate(ctx, env)
-  return .Success(result)
+  return result
 }
 
 

@@ -8,33 +8,6 @@
 
 import Foundation
 
-/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
-enum EvalError : Printable {
-  case ArityError, InvalidArgumentError, DivideByZeroError, RecurMisuseError
-  case DefineFunctionError(String)
-  case RuntimeError(String?)
-  case CustomError(String)
-
-  var description : String {
-    switch self {
-    case ArityError: return "wrong number of arguments to macro, function, or special form"
-    case InvalidArgumentError: return "invalid argument provided to macro, function, or special form"
-    case DivideByZeroError: return "attempted to divide by zero"
-    case RecurMisuseError: return "didn't use recur in the correct position"
-    case let DefineFunctionError(e): return e
-    case let RuntimeError(e): return e != nil ? "runtime error: \(e!)" : "runtime error"
-    case let CustomError(c): return c
-    }
-  }
-}
-
-/// The result of evaluating a function, macro, or special form. Successfully returned values or error messages are
-/// encapsulated in each case.
-enum EvalResult {
-  case Success(ConsValue)
-  case Failure(EvalError)
-}
-
 enum FnType {
   case Function, Macro
 }

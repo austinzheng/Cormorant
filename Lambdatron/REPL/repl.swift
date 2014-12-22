@@ -51,7 +51,10 @@ class replInstance {
               let re = actualC.readerExpand()
 //              println("Your entry reader-expands to: \(re.description)")
               let n = re.evaluate(replContext, .Normal)
-              println(n.describe(replContext))
+              switch n {
+              case let .Success(n): println(n.describe(replContext))
+              case let .Failure(f): println("Evaluation error: \(f)")
+              }
             }
             else {
               println("Your entry didn't parse correctly")

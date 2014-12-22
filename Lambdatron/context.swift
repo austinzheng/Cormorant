@@ -35,27 +35,27 @@ class Context {
   var bindings : [InternedSymbol : Binding] = [:]
   
   func setTopLevelBinding(name: InternedSymbol, value: Binding) {
-    fatalError("Subclasses must override this")
+    internalError("Subclasses must override this")
   }
   
   func nameForSymbol(symbol: InternedSymbol) -> String {
-    fatalError("Subclasses must override this")
+    internalError("Subclasses must override this")
   }
   
   func symbolForName(name: String) -> InternedSymbol {
-    fatalError("Subclasses must override this")
+    internalError("Subclasses must override this")
   }
   
   func nameForKeyword(keyword: InternedKeyword) -> String {
-    fatalError("Subclasses must override this")
+    internalError("Subclasses must override this")
   }
   
   func keywordForName(name: String) -> InternedKeyword {
-    fatalError("Subclasses must override this")
+    internalError("Subclasses must override this")
   }
   
   private func retrieveBaseParent() -> BaseContext {
-    fatalError("Subclasses must override this")
+    internalError("Subclasses must override this")
   }
   
   /// Create a new global context. This is the baseline context which execution should begin with.
@@ -87,7 +87,7 @@ class Context {
   }
   
   subscript(x: InternedSymbol) -> Binding {
-    get { fatalError("Subclasses must override this") }
+    get { internalError("Subclasses must override this") }
     set { bindings[x] = newValue }
   }
 }
@@ -110,7 +110,7 @@ private class BaseContext : Context {
       return name
     }
     // If there is no name for an interned symbol, something is seriously wrong.
-    fatal("Previously interned symbol doesn't have a name")
+    internalError("Previously interned symbol doesn't have a name")
   }
   
   override func symbolForName(name: String) -> InternedSymbol {
@@ -131,7 +131,7 @@ private class BaseContext : Context {
     if let name = idsToKeywords[keyword] {
       return name
     }
-    fatalError("Subclasses must override this")
+    internalError("Previously interned keyword doesn't have a name")
   }
   
   override func keywordForName(name: String) -> InternedKeyword {

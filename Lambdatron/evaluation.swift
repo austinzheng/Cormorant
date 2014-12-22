@@ -8,10 +8,74 @@
 
 import Foundation
 
+/// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
+enum EvalError : Printable {
+  case ArityError
+  case InvalidArgumentError
+  case NotEvalableError
+  case DivideByZeroError
+  case InvalidSymbolError
+  case UnboundSymbolError
+  case RecurMisuseError
+  case EvaluatingMacroError
+  case EvaluatingSpecialFormError
+  case EvaluatingNoneError
+  case DefineFunctionError(String)
+  case RuntimeError(String?)
+  case CustomError(String)
+
+  var description : String {
+    switch self {
+    case ArityError:
+      return "ArityError: wrong number of arguments to macro, function, or special form"
+    case InvalidArgumentError:
+      return "InvalidArgumentError: invalid type or value for argument provided to macro, function, or special form"
+    case NotEvalableError:
+      return "NotEvalableError: item in function position is not something that can be evaluated"
+    case DivideByZeroError:
+      return "DivideByZeroError: attempted to divide by zero"
+    case InvalidSymbolError:
+      return "InvalidSymbolError: could not resolve the symbol"
+    case UnboundSymbolError:
+      return "UnboundSymbolError: symbol is unbound, and cannot be resolved"
+    case RecurMisuseError:
+      return "RecurMisuseError: didn't use recur in loop or fn, or used it as a non-final form inside a composite form"
+    case EvaluatingMacroError:
+      return "EvaluatingMacroError: can't take the value of a macro or reader macro"
+    case EvaluatingSpecialFormError:
+      return "EvaluatingSpecialFormError: can't take the value of a special form"
+    case EvaluatingNoneError:
+      return "EvaluatingNoneError: can't the the value of 'None'; this is a logic error"
+    case let DefineFunctionError(e): return e
+    case let RuntimeError(e): return e != nil ? "runtime error: \(e!)" : "runtime error"
+    case let CustomError(c): return c
+    }
+  }
+}
+
+/// The result of evaluating a function, macro, or special form. Successfully returned values or error messages are
+/// encapsulated in each case.
+enum EvalResult {
+  case Success(ConsValue)
+  case Failure(EvalError)
+}
+
+enum CollectResult {
+  case Success([ConsValue])
+  case Failure(EvalError)
+}
+
+func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
+  switch input {
+  case let .Success(s): return action(s)
+  case .Failure: return input
+  }
+}
+
 extension Cons {
   
   /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
-  func evaluate(ctx: Context, _ env: EvalEnvironment) -> ConsValue {
+  func evaluate(ctx: Context, _ env: EvalEnvironment) -> EvalResult {
     if let toExecuteSpecialForm = asSpecialForm() {
       logEval("evaluating as special form: \(self.description)")
       // Execute a special form
@@ -21,24 +85,15 @@ extension Cons {
       // 3. The special form returns a value
       let symbols = Cons.collectSymbols(next)
       let result = toExecuteSpecialForm.function(symbols, ctx, env)
-      switch result {
-      case let .Success(v): return v
-      case let .Failure(f): fatal("Something went wrong: \(f)")
-      }
+      return result
     }
     else if let toExecuteBuiltIn = asBuiltIn() {
       logEval("evaluating as built-in function: \(self.description)")
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
-      if let values = Cons.collectValues(next, ctx: ctx, env: env) {
-        let result = toExecuteBuiltIn(values, ctx)
-        switch result {
-        case let .Success(v): return v
-        case let .Failure(f): fatal("Something went wrong: \(f)")
-        }
-      }
-      else {
-        fatal("Could not collect values")
+      switch Cons.collectValues(next, ctx: ctx, env: env) {
+      case let .Success(values): return toExecuteBuiltIn(values, ctx)
+      case let .Failure(f): return .Failure(f)
       }
     }
     else if let toExpandMacro = asMacro(ctx) {
@@ -56,7 +111,7 @@ extension Cons {
         let macroArgsPurged = v.purgeMacroArgs()
         let result = macroArgsPurged.evaluate(ctx, env)
         return result
-      case let .Failure(f): fatal("Something went wrong: \(f)")
+      case .Failure: return expanded
       }
     }
     else if let toExecuteFunction = asFunction(ctx) {
@@ -66,15 +121,9 @@ extension Cons {
       // 1. Arguments are evaluated before the function is ever invoked
       // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
       // 3. The function returns a value
-      if let values = Cons.collectValues(next, ctx: ctx, env: env) {
-        let result = toExecuteFunction.evaluate(values, env: env)
-        switch result {
-        case let .Success(v): return v
-        case let .Failure(f): fatal("Something went wrong: \(f)")
-        }
-      }
-      else {
-        fatal("Could not collect values")
+      switch Cons.collectValues(next, ctx: ctx, env: env) {
+      case let .Success(values): return toExecuteFunction.evaluate(values, env: env)
+      case let .Failure(f): return .Failure(f)
       }
     }
     else if let toEvalMap = asMap(ctx) {
@@ -83,73 +132,79 @@ extension Cons {
       // How it works:
       // 1. (*map* *args*...) is translated into (get *map* *args*...).
       // 2. Normal function call
-      if let args = Cons.collectValues(self, ctx: ctx, env: env) {
-        let result = pr_get(args, ctx)
-        switch result {
-        case let .Success(v): return v
-        case let .Failure(f): fatal("Something went wrong: \(f)")
-        }
-      }
-      else {
-        fatal("Could not collect values")
+      switch Cons.collectValues(next, ctx: ctx, env: env) {
+      case let .Success(args): return pr_get(args, ctx)
+      case let .Failure(f): return .Failure(f)
       }
     }
     else {
-      fatal("Cannot call 'evaluate' on this cons list, \(self); first object isn't actually a function. Sorry.")
+      return .Failure(.NotEvalableError)
     }
   }
 }
 
 extension ConsValue {
   
-  func evaluate(ctx: Context, _ env: EvalEnvironment) -> ConsValue {
+  func evaluate(ctx: Context, _ env: EvalEnvironment) -> EvalResult {
     switch self {
-    case FunctionLiteral: return self
-    case BuiltInFunction: return self
+    case FunctionLiteral, BuiltInFunction: return .Success(self)
     case let Symbol(v):
       // Look up the value of v
       let binding = ctx[v]
       switch binding {
       case .Invalid:
         switch env {
-        case .Normal:
-          fatal("Error; symbol '\(v)' doesn't seem to be valid")
-        case .Macro:
-          return self
+        case .Normal: return .Failure(.InvalidSymbolError)
+        case .Macro: return .Success(self)
         }
-      case .Unbound: fatal("Figure out how to handle unbound vars in evaluation")
-      case let .Literal(l): return l
-      case let .FunctionParam(fp): return fp
+      case .Unbound: return .Failure(.UnboundSymbolError)
+      case let .Literal(l): return .Success(l)
+      case let .FunctionParam(fp): return .Success(fp)
       case let .MacroParam(mp):
-        return .MacroArgument(Box(mp))
-      case .BoundMacro: fatal("TODO - taking the value of a macro should be invalid; we'll return an error")
+        return .Success(.MacroArgument(Box(mp)))
+      case .BoundMacro: return .Failure(.EvaluatingMacroError)
       }
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Keyword: return self
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Keyword: return .Success(self)
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
       return l.evaluate(ctx, env)
     case let VectorLiteral(v):
       // Evaluate the value of the vector literal 'v'
-      return .VectorLiteral(v.map({$0.evaluate(ctx, env)}))
+      var buffer : [ConsValue] = []
+      for form in v {
+        let result = form.evaluate(ctx, env)
+        switch result {
+        case let .Success(result): buffer.append(result)
+        case .Failure: return result
+        }
+      }
+      return .Success(.VectorLiteral(buffer))
     case let MapLiteral(m):
       // Evaluate the value of the map literal 'm'
       var newMap : Map = [:]
       for (key, value) in m {
         let evaluatedKey = key.evaluate(ctx, env)
-        let evaluatedValue = value.evaluate(ctx, env)
-        newMap[evaluatedKey] = evaluatedValue
+        switch evaluatedKey {
+        case let .Success(k):
+          let evaluatedValue = value.evaluate(ctx, env)
+          switch evaluatedValue {
+          case let .Success(v): newMap[k] = v
+          case .Failure: return evaluatedValue
+          }
+        case .Failure: return evaluatedKey
+        }
       }
-      return .MapLiteral(newMap)
-    case Special: fatal("TODO - taking the value of a special form should be disallowed")
-    case ReaderMacro: internalError("reader macro should never be accessible at the eval stage")
-    case None: fatal("TODO - taking the value of None should be disallowed, since None is only valid for empty lists")
-    case RecurSentinel: return self
+      return .Success(.MapLiteral(newMap))
+    case Special: return .Failure(.EvaluatingSpecialFormError)
+    case ReaderMacro: return .Failure(.EvaluatingMacroError)
+    case None: return .Failure(.EvaluatingNoneError)
+    case RecurSentinel: return .Success(self)
     case let MacroArgument(ma):
       // A macro argument is either being evaluated in the environment of a macro definition (in which case it should be
       // not further evaluated), or in the normal environment (in which case it should be treated as a normal value)
       switch env {
       case .Normal: return ma.value.evaluate(ctx, env)
-      case .Macro: return ma.value
+      case .Macro: return .Success(ma.value)
       }
     }
   }
