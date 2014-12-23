@@ -13,14 +13,15 @@ enum LexResult {
   case Failure(LexError)
 }
 
-enum LexError : Printable {
-  case InvalidEscapeSequenceError
-  case NonTerminatedStringError
+enum LexError : String, Printable {
+  case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
+  case NonTerminatedStringError = "NonTerminatedStringError"
   
   var description : String {
+    let name = self.rawValue
     switch self {
-    case .InvalidEscapeSequenceError: return "invalid or unfinished escape sequence"
-    case .NonTerminatedStringError: return "strings weren't all terminated by end of input"
+    case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
+    case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
     }
   }
 }

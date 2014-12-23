@@ -16,20 +16,24 @@ private func fileDataForRawPath(p: String) -> String? {
   return nil
 }
 
-private func doFormForFileData(d: String, ctx: Context) -> [ConsValue]? {
+private enum DoFormFileDataResult {
+  case Success([ConsValue])
+  case NoDataFailure
+  case ParseFailure(ParseError)
+}
+
+private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult {
   if let segments = segmentsForFile(d) {
     var buffer : [ConsValue] = []
     for segment in segments {
-      if let parsedData = parse(segment, ctx) {
-        buffer.append(parsedData.readerExpand())
-      }
-      else {
-        return nil
+      switch parse(segment, ctx) {
+      case let .Success(parsedData): buffer.append(parsedData.readerExpand())
+      case let .Failure(f): return .ParseFailure(f)
       }
     }
-    return buffer
+    return .Success(buffer)
   }
-  return nil
+  return .NoDataFailure
 }
 
 // MARK: Entry point
@@ -50,14 +54,19 @@ func main() {
     let fileName = args[2]
     if let fileInput = fileDataForRawPath(fileName) {
       let ctx = Context.globalContextInstance()
-      if let forms = doFormForFileData(fileInput, ctx) {
+      switch doFormForFileData(fileInput, ctx) {
+      case let .Success(forms):
         let result = sf_do(forms, ctx, .Normal)
         switch result {
         case let .Success(s):
           println(s.describe(ctx))
         case let .Failure(f):
-          println("Evaluation error \(f.description)")
+          println("Evaluation error \(f)")
         }
+      case .NoDataFailure:
+        println("Couldn't read data from input file, or input file was empty")
+      case let .ParseFailure(f):
+        println("Parse error \(f)")
       }
     }
 

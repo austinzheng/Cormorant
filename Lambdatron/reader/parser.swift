@@ -8,11 +8,35 @@
 
 import Foundation
 
-enum TokenCollectionType {
+enum ParseError : String, Printable {
+  case EmptyInputError = "EmptyInputError"
+  case BadStartTokenError = "BadStartTokenError"
+  case MismatchedDelimiterError = "MismatchedDelimiterError"
+  case MismatchedReaderMacroError = "MismatchedReaderMacroError"
+  case MapKeyValueMismatchError = "MapKeyValueMismatchError"
+  
+  var description : String {
+    let name = self.rawValue
+    switch self {
+    case EmptyInputError:
+      return "(\(name)): empty input"
+    case BadStartTokenError:
+      return "(\(name)): collection or form started with invalid delimiter"
+    case MismatchedDelimiterError:
+      return "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
+    case MismatchedReaderMacroError:
+      return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
+    case MapKeyValueMismatchError:
+      return "(\(name)): map literal must be declared with an even number of forms"
+    }
+  }
+}
+
+private enum TokenCollectionType {
   case List, Vector, Map
 }
 
-enum NextFormTreatment {
+private enum NextFormTreatment {
   // This enum describes several special reader forms that affect the parsing of the form that follows immediately
   // afterwards. For example, something like '(1 2 3) should expand to (quote (1 2 3)).
   case None           // No special treatment
@@ -22,14 +46,19 @@ enum NextFormTreatment {
   case UnquoteSplice
 }
 
+enum TokenCollectionResult {
+  case Tokens([LexToken])
+  case Error(ParseError)
+}
+
 /// Collect a sequence of tokens representing a single collection type form (e.g. a single list).
-func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollectionType) -> [LexToken]? {
+private func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollectionType) -> TokenCollectionResult {
   // Check validity of first token
   switch tokens[counter] {
   case .LeftParentheses where type == .List: break
   case .LeftSquareBracket where type == .Vector: break
   case .LeftBrace where type == .Map: break
-  default: fatal("test1: token was \(tokens[counter]), type was \(type)") //return nil
+  default: return .Error(.BadStartTokenError)
   }
   var count = 1
   var buffer : [LexToken] = []
@@ -69,11 +98,11 @@ func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollection
       break
     }
   }
-  return count == 0 ? buffer : nil
+  return count == 0 ? .Tokens(buffer) : .Error(.MismatchedDelimiterError)
 }
 
 // Note that this function will *modify* wrapStack by removing elements.
-func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> ConsValue {
+private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> ConsValue {
   let wrapType : NextFormTreatment = wrapStack.last ?? .None
   let wrappedItem : ConsValue = {
     switch wrapType {
@@ -96,10 +125,15 @@ func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> C
   return wrappedItem
 }
 
+private enum TokenListResult {
+  case Success([ConsValue])
+  case Failure(ParseError)
+}
+
 /// Take a list of LexTokens and return a list of ConsValues which can be transformed into a list, a vector, or another
 /// collection type. This method recursively finds token sequences representing collections and calls the appropriate
 /// constructor to build a valid ConsValue for that form
-func processTokenList(tokens: [LexToken], ctx: Context) -> [ConsValue]? {
+private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResult {
   var wrapStack : [NextFormTreatment] = []
   
   // Create a new ConsValue array with all sub-structures properly processed
@@ -109,32 +143,29 @@ func processTokenList(tokens: [LexToken], ctx: Context) -> [ConsValue]? {
     let currentToken = tokens[counter]
     switch currentToken {
     case .LeftParentheses:
-      if let newList = listWithTokens(collectTokens(tokens, &counter, .List), ctx) {
-        buffer.append(wrappedConsItem(.ListLiteral(newList), &wrapStack))
-      }
-      else {
-        return nil
+      let list = listWithTokens(collectTokens(tokens, &counter, .List), ctx)
+      switch list {
+      case let .Success(list): buffer.append(wrappedConsItem(.ListLiteral(list), &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     case .RightParentheses:
-      return nil
+      return .Failure(.MismatchedDelimiterError)
     case .LeftSquareBracket:
-      if let newVector = vectorWithTokens(collectTokens(tokens, &counter, .Vector), ctx) {
-        buffer.append(wrappedConsItem(.VectorLiteral(newVector), &wrapStack))
-      }
-      else {
-        return nil
+      let vector = vectorWithTokens(collectTokens(tokens, &counter, .Vector), ctx)
+      switch vector {
+      case let .Success(vector): buffer.append(wrappedConsItem(.VectorLiteral(vector), &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     case .RightSquareBracket:
-      return nil
+      return .Failure(.MismatchedDelimiterError)
     case .LeftBrace:
-      if let newMap = mapWithTokens(collectTokens(tokens, &counter, .Map), ctx) {
-        buffer.append(wrappedConsItem(.MapLiteral(newMap), &wrapStack))
-      }
-      else {
-        return nil
+      let map = mapWithTokens(collectTokens(tokens, &counter, .Map), ctx)
+      switch map {
+      case let .Success(map): buffer.append(wrappedConsItem(.MapLiteral(map), &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     case .RightBrace:
-      return nil
+      return .Failure(.MismatchedDelimiterError)
     case .Quote:
       wrapStack.append(.Quote)
     case .Backquote:
@@ -166,16 +197,26 @@ func processTokenList(tokens: [LexToken], ctx: Context) -> [ConsValue]? {
     }
     counter++
   }
-  return buffer
+  return .Success(buffer)
 }
 
-func listWithTokens(tokens: [LexToken]?, ctx: Context) -> Cons? {
-  if let tokens = tokens {
+// We need all these small enums because "unimplemented IR generation feature non-fixed multi-payload enum layout" is
+// still, annoyingly, a thing.
+private enum ListResult {
+  case Success(Cons)
+  case Failure(ParseError)
+}
+
+private func listWithTokens(tokens: TokenCollectionResult, ctx: Context) -> ListResult {
+  switch tokens {
+  case let .Tokens(tokens):
     if tokens.count == 0 {
       // Empty list: ()
-      return Cons()
+      return .Success(Cons())
     }
-    if let processedForms = processTokenList(tokens, ctx) {
+    let processedForms = processTokenList(tokens, ctx)
+    switch processedForms {
+    case let .Success(processedForms):
       // Create the list itself
       let first = Cons(processedForms[0])
       var prev = first
@@ -184,136 +225,159 @@ func listWithTokens(tokens: [LexToken]?, ctx: Context) -> Cons? {
         prev.next = this
         prev = this
       }
-      return first
+      return .Success(first)
+    case let .Failure(f): return .Failure(f)
     }
-    return nil
+  case let .Error(e): return .Failure(e)
   }
-  return nil
 }
 
-func vectorWithTokens(tokens: [LexToken]?, ctx: Context) -> Vector? {
-  if let tokens = tokens {
+private enum VectorResult {
+  case Success([ConsValue])
+  case Failure(ParseError)
+}
+
+private func vectorWithTokens(tokens: TokenCollectionResult, ctx: Context) -> VectorResult {
+  switch tokens {
+  case let .Tokens(tokens):
     if tokens.count == 0 {
       // Empty vector: []
-      return []
+      return .Success([])
     }
-    if let processedForms = processTokenList(tokens, ctx) {
-      // Create the map itself
-      return processedForms
+    let processedForms = processTokenList(tokens, ctx)
+    switch processedForms {
+    case let .Success(processedForms): return .Success(processedForms)
+    case let .Failure(f): return .Failure(f)
     }
-    return nil
+  case let .Error(e): return .Failure(e)
   }
-  return nil
 }
 
-func mapWithTokens(tokens: [LexToken]?, ctx: Context) -> Map? {
-  if let tokens = tokens {
+private enum MapResult {
+  case Success(Map)
+  case Failure(ParseError)
+}
+
+private func mapWithTokens(tokens: TokenCollectionResult, ctx: Context) -> MapResult {
+  switch tokens {
+  case let .Tokens(tokens):
     if tokens.count == 0 {
       // Empty map: []
-      return [:]
+      return .Success([:])
     }
-    if let processedForms = processTokenList(tokens, ctx) {
+    let processedForms = processTokenList(tokens, ctx)
+    switch processedForms {
+    case let .Success(processedForms):
       // Create the vector itself
       var newMap : Map = [:]
       if processedForms.count % 2 != 0 {
         // Invalid; need an even number of tokens
-        return nil
+        return .Failure(.MapKeyValueMismatchError)
       }
       for var i=0; i<processedForms.count - 1; i += 2 {
         let key = processedForms[i]
         let value = processedForms[i+1]
         newMap[key] = value
       }
-      return newMap
+      return .Success(newMap)
+    case let .Failure(f): return .Failure(f)
     }
-    return nil
+  case let .Error(e): return .Failure(e)
   }
-  return nil
 }
 
-func parse(tokens: [LexToken], ctx: Context) -> ConsValue? {
+enum ParseResult {
+  case Success(ConsValue)
+  case Failure(ParseError)
+}
+
+func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   var index = 0
   var wrapStack : [NextFormTreatment] = []
   if tokens.count == 0 {
-    return nil
+    return .Failure(.EmptyInputError)
   }
   // Figure out how to parse
   switch tokens[0] {
   case .LeftParentheses:
-    if tokens.count > 1 {
-      if let result = listWithTokens(collectTokens(tokens, &index, .List), ctx) {
-        return .ListLiteral(result)
-      }
+    switch listWithTokens(collectTokens(tokens, &index, .List), ctx) {
+    case let .Success(result): return .Success(.ListLiteral(result))
+    case let .Failure(f): return .Failure(f)
     }
-    return nil
-  case .RightParentheses: return nil
+  case .RightParentheses: return .Failure(.BadStartTokenError)
   case .LeftSquareBracket:
-    if tokens.count > 1 {
-      if let result = vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
-        return .VectorLiteral(result)
-      }
+    switch vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
+    case let .Success(result): return .Success(.VectorLiteral(result))
+    case let .Failure(f): return .Failure(f)
     }
-    return nil
-  case .RightSquareBracket: return nil
+  case .RightSquareBracket: return .Failure(.BadStartTokenError)
   case .LeftBrace:
-    if let result = mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
-      return .MapLiteral(result)
+    switch mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
+    case let .Success(result): return .Success(.MapLiteral(result))
+    case let .Failure(f): return .Failure(f)
     }
-    return nil
-  case .RightBrace: return nil
+  case .RightBrace: return .Failure(.BadStartTokenError)
   case .Quote:
     // The top-level expression can be a quoted thing.
     if tokens.count > 1 {
       var restTokens = tokens
       restTokens.removeAtIndex(0)
-      if let restResult = parse(restTokens, ctx) {
+      switch parse(restTokens, ctx) {
+      case let .Success(result):
         wrapStack.append(.Quote)
-        return wrappedConsItem(restResult, &wrapStack)
+        return .Success(wrappedConsItem(result, &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     }
-    return nil
+    return .Failure(.MismatchedReaderMacroError)
   case .Backquote:
     if tokens.count > 1 {
       var restTokens = tokens
       restTokens.removeAtIndex(0)
-      if let restResult = parse(restTokens, ctx) {
+      switch parse(restTokens, ctx) {
+      case let .Success(result):
         wrapStack.append(.SyntaxQuote)
-        return wrappedConsItem(restResult, &wrapStack)
+        return .Success(wrappedConsItem(result, &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     }
-    return nil
+    return .Failure(.MismatchedReaderMacroError)
   case .Tilde:
     if tokens.count > 1 {
       var restTokens = tokens
       restTokens.removeAtIndex(0)
-      if let restResult = parse(restTokens, ctx) {
+      switch parse(restTokens, ctx) {
+      case let .Success(result):
         wrapStack.append(.Unquote)
-        return wrappedConsItem(restResult, &wrapStack)
+        return .Success(wrappedConsItem(result, &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     }
-    return nil
+    return .Failure(.MismatchedReaderMacroError)
   case .TildeAt:
     if tokens.count > 1 {
       var restTokens = tokens
       restTokens.removeAtIndex(0)
-      if let restResult = parse(restTokens, ctx) {
+      switch parse(restTokens, ctx) {
+      case let .Success(result):
         wrapStack.append(.UnquoteSplice)
-        return wrappedConsItem(restResult, &wrapStack)
+        return .Success(wrappedConsItem(result, &wrapStack))
+      case let .Failure(f): return .Failure(f)
       }
     }
-    return nil
-  case .NilLiteral: return .NilLiteral
-  case let .StringLiteral(s): return .StringLiteral(s)
-  case let .Integer(v): return .IntegerLiteral(v)
-  case let .FlPtNumber(n): return .FloatLiteral(n)
-  case let .Boolean(b): return .BoolLiteral(b)
+    return .Failure(.MismatchedReaderMacroError)
+  case .NilLiteral: return .Success(.NilLiteral)
+  case let .StringLiteral(s): return .Success(.StringLiteral(s))
+  case let .Integer(v): return .Success(.IntegerLiteral(v))
+  case let .FlPtNumber(n): return .Success(.FloatLiteral(n))
+  case let .Boolean(b): return .Success(.BoolLiteral(b))
   case let .Keyword(k):
     let internedKeyword = ctx.keywordForName(k)
-    return .Keyword(internedKeyword)
+    return .Success(.Keyword(internedKeyword))
   case let .Identifier(r):
     let internedSymbol = ctx.symbolForName(r)
-    return .Symbol(internedSymbol)
-  case let .Special(s): return .Special(s)
-  case let .BuiltInFunction(b): return .BuiltInFunction(b)
+    return .Success(.Symbol(internedSymbol))
+  case let .Special(s): return .Success(.Special(s))
+  case let .BuiltInFunction(b): return .Success(.BuiltInFunction(b))
   }
 }

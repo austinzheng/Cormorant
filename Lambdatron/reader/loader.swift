@@ -16,16 +16,21 @@ func loadStdlibInto(context: Context, files: [String]) {
       // Data loaded from file as string
       if let segments = segmentsForFile(data) {
         for s in segments {
-          if let parsedData = parse(s, context) {
-            // First, perform reader expansion
+          switch parse(s, context) {
+          case let .Success(parsedData):
+            // Data parsed successfully
             let re = parsedData.readerExpand()
             switch re.evaluate(context, .Normal) {
             case .Success: break
             case let .Failure(f):
-              // Something is wrong with the stdlib
+              // Stdlib file failed to evaluate successfully
               println("Unable to load stdlib: \(f)")
               exit(EXIT_FAILURE)
             }
+          case let .Failure(f):
+            // Data failed to parse
+            println("Unable to load stdlib: \(f)")
+            exit(EXIT_FAILURE)
           }
         }
       }

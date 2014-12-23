@@ -45,21 +45,21 @@ class replInstance {
           switch x {
           case let .Success(lexedData):
 //            println("Your entry lexes to: \(lexedData)")
-            let c = parse(lexedData, replContext)
-            if let actualC = c {
-//              println("Your entry parses to: \(actualC)")
-              let re = actualC.readerExpand()
+            let parsed = parse(lexedData, replContext)
+            switch parsed {
+            case let .Success(parsed):
+//              println("Your entry parses to: \(parsed)")
+              let re = parsed.readerExpand()
 //              println("Your entry reader-expands to: \(re.description)")
               let n = re.evaluate(replContext, .Normal)
               switch n {
               case let .Success(n): println(n.describe(replContext))
               case let .Failure(f): println("Evaluation error \(f)")
               }
+            case let .Failure(error):
+              println("Parsing error \(error)")
             }
-            else {
-              println("Your entry didn't parse correctly")
-            }
-          case let .Failure(error): println("Your entry didn't lex correctly (error: \(error.description))")
+          case let .Failure(error): println("Lexing error \(error)")
           }
         }
       }
