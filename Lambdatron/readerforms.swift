@@ -91,7 +91,9 @@ extension ConsValue {
   // NOTE: This will be the top-level reader expansion method
   func readerExpand() -> ConsValue {
     switch self {
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Symbol, Keyword, Special, BuiltInFunction:
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, None:
+      return self
+    case Symbol, Keyword, Special, BuiltInFunction:
       return self
     case let ListLiteral(l):
       // Only if the list literal is encapsulating a reader macro form does anything happen
@@ -136,7 +138,7 @@ extension ConsValue {
         newMap[expandedKey] = expandedValue
       }
       return .MapLiteral(newMap)
-    case FunctionLiteral, ReaderMacro, None, RecurSentinel, MacroArgument:
+    case FunctionLiteral, ReaderMacro, RecurSentinel, MacroArgument:
       fatal("Something has gone very wrong in ConsValue's readerExpand method")
     }
   }
