@@ -59,7 +59,7 @@ func main() {
         let result = sf_do(forms, ctx, .Normal)
         switch result {
         case let .Success(s):
-          println(s.describe(ctx))
+          println(s.isRecurSentinel ? "Evaluation error \(EvalError.RecurMisuseError)" : s.describe(ctx))
         case let .Failure(f):
           println("Evaluation error \(f)")
         }

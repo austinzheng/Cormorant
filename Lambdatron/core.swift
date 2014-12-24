@@ -179,7 +179,12 @@ class Cons : Hashable {
     while let actualItem = currentItem {
       let thisValue = actualItem.value
       switch thisValue.evaluate(ctx, env) {
-      case let .Success(result): buffer.append(result)
+      case let .Success(result):
+        if result.isRecurSentinel {
+          // Cannot use 'recur' as a function argument
+          return .Failure(.RecurMisuseError)
+        }
+        buffer.append(result)
       case let .Failure(f): return .Failure(f)
       }
       currentItem = actualItem.next

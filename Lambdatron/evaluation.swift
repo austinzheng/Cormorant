@@ -28,6 +28,15 @@ func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
   }
 }
 
+/// Evaluate a form and return either a success or failure
+func evaluate(topLevelForm: ConsValue, ctx: Context) -> EvalResult {
+  let result = topLevelForm.evaluate(ctx, .Normal)
+  switch result {
+  case let .Success(r): return r.isRecurSentinel ? .Failure(.RecurMisuseError) : result
+  case .Failure: return result
+  }
+}
+
 extension Cons {
   
   /// Evaluate this list, treating the first item in the list as something that can be eval'ed.

@@ -20,7 +20,7 @@ func loadStdlibInto(context: Context, files: [String]) {
           case let .Success(parsedData):
             // Data parsed successfully
             let re = parsedData.readerExpand()
-            switch re.evaluate(context, .Normal) {
+            switch evaluate(re, context) {
             case .Success: break
             case let .Failure(f):
               // Stdlib file failed to evaluate successfully

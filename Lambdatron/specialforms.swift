@@ -64,6 +64,10 @@ func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
   let testResult = args[0].evaluate(ctx, env)
 
   let result = next(testResult) { testForm in
+    if testForm.isRecurSentinel {
+      return .Failure(.RecurMisuseError)
+    }
+    
     let then = args[1]
     let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
 
@@ -122,11 +126,15 @@ func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
   switch symbol {
   case let .Symbol(s):
     // Do stuff
-    if let actualInit = initializer {
+    if let initializer = initializer {
       // If a value is provided, always use that value
-      let result = actualInit.evaluate(ctx, env)
+      let result = initializer.evaluate(ctx, env)
       switch result {
-      case let .Success(result): ctx.setTopLevelBinding(s, value: .Literal(result))
+      case let .Success(result):
+        if result.isRecurSentinel {
+          return .Failure(.RecurMisuseError)
+        }
+        ctx.setTopLevelBinding(s, value: .Literal(result))
       case .Failure: return result
       }
     }
@@ -168,7 +176,11 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
         let expression = bindingsVector[ctr+1]
         let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings), env)
         switch result {
-        case let .Success(result): newBindings[s] = .Literal(result)
+        case let .Success(result):
+          if result.isRecurSentinel {
+            return .Failure(.RecurMisuseError)
+          }
+          newBindings[s] = .Literal(result)
         default: return result
         }
       default:
@@ -295,7 +307,11 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
         let expression = bindingsVector[ctr+1]
         let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings), env)
         switch result {
-        case let .Success(result): bindings[s] = .Literal(result)
+        case let .Success(result):
+          if result.isRecurSentinel {
+            return .Failure(.RecurMisuseError)
+          }
+          bindings[s] = .Literal(result)
         case .Failure: return result
         }
         symbols.append(s)
@@ -360,6 +376,7 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
   let result = next(first) { first in
     switch first {
     case .FunctionLiteral, .BuiltInFunction, .Special, .MapLiteral, .Symbol: break
+    case .RecurSentinel: return .Failure(.RecurMisuseError)
     default: return .Failure(.InvalidArgumentError)
     }
 
