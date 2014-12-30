@@ -34,12 +34,12 @@ class ReaderMacroTest : LambdatronTest {
       switch parsed {
       case let .Success(parsed):
         let expanded = parsed.readerExpand()
-        let actualOutput = expanded.describe(context)
-        if actualOutput == output {
-          return .Pass
-        }
-        else {
-          return .Fail(expected: output, got: actualOutput)
+        switch expanded {
+        case let .Success(expanded):
+          let actualOutput = expanded.describe(context)
+          return actualOutput == output ? .Pass : .Fail(expected: output, got: actualOutput)
+        case let .Failure(f):
+          return .Error("expansion failure: \(f.description)")
         }
       case .Failure:
         return .Error("parse failure")

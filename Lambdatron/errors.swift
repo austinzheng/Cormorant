@@ -8,6 +8,27 @@
 
 import Foundation
 
+/// An enum describing errors that can happen while expanding reader macros.
+enum ReaderError : String, Printable {
+  case UnmatchedReaderMacroError = "UnmatchedReaderMacroError"
+  case IllegalFormError = "IllegalFormError"
+  case UnquoteSpliceMisuseError = "SyntaxQuoteMisuseError"
+  
+  var description : String {
+    let desc : String = {
+      switch self {
+      case UnmatchedReaderMacroError:
+        return "reader macro token present without corresponding form"
+      case IllegalFormError:
+        return "form of illegal type provided to reader macro (e.g. None)"
+      case UnquoteSpliceMisuseError:
+        return "~@ used improperly (outside the context of a collection)"
+      }
+    }()
+    return "(\(self.rawValue)): \(desc)"
+  }
+}
+
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
 enum EvalError : Printable {
   case ArityError

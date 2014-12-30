@@ -112,7 +112,6 @@ Lambdatron has the following features:
 - Support for character literals
 - Support for sets
 - Basic namespacing
-- Better error handling than simply crashing the REPL
 - Ability to type in multiple forms at the top level
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)

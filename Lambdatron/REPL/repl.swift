@@ -23,7 +23,6 @@ class replInstance {
     let prompt: LineReader = LineReader(argv0: C_ARGV[0])
     
     while true {
-      //print("> ")
       let rawData = prompt.gets()
       let optionalData : NSString? = NSString(CString: rawData, encoding: NSUTF8StringEncoding)
       if let data = optionalData {
@@ -50,11 +49,17 @@ class replInstance {
             case let .Success(parsed):
 //              println("Your entry parses to: \(parsed)")
               let re = parsed.readerExpand()
+              switch re {
+              case let .Success(re):
+                switch evaluate(re, replContext) {
+                case let .Success(n):
 //              println("Your entry reader-expands to: \(re.description)")
-              let n = evaluate(re, replContext)
-              switch n {
-              case let .Success(n): println(n.describe(replContext))
-              case let .Failure(f): println("Evaluation error \(f)")
+                  println(n.describe(replContext))
+                case let .Failure(f):
+                  println("Evaluation error \(f)")
+                }
+              case let .Failure(error):
+                println("Reader macro expansion error \(error)")
               }
             case let .Failure(error):
               println("Parsing error \(error)")
@@ -66,4 +71,3 @@ class replInstance {
     }
   }
 }
-

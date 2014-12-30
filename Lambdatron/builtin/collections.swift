@@ -342,9 +342,9 @@ func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
   
   switch args[0] {
   case let .StringLiteral(s):
-    fatal("Not yet implemented")
+    fatalError("Not yet implemented")
   case let .VectorLiteral(v):
-    fatal("Not yet implemented")
+    fatalError("Not yet implemented")
   case let .MapLiteral(m):
     return .Success(m[key] ?? fallback)
   default:
@@ -379,9 +379,9 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Success(.MapLiteral(newMap))
   case let .StringLiteral(s):
     // TODO: Implement string and vector support. This will require support for integers.
-    fatal("Implement me!")
+    fatalError("Not yet implemented")
   case let .VectorLiteral(v):
-    fatal("Implement me!")
+    fatalError("Not yet implemented")
   case let .MapLiteral(m):
     var newMap = m
     updateMapFromArray(rest, &newMap)

@@ -20,6 +20,7 @@ private enum DoFormFileDataResult {
   case Success([ConsValue])
   case NoDataFailure
   case ParseFailure(ParseError)
+  case ReaderExpandFailure(ReaderError)
 }
 
 private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult {
@@ -27,7 +28,12 @@ private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult 
     var buffer : [ConsValue] = []
     for segment in segments {
       switch parse(segment, ctx) {
-      case let .Success(parsedData): buffer.append(parsedData.readerExpand())
+      case let .Success(parsedData):
+        let expanded = parsedData.readerExpand()
+        switch expanded {
+        case let .Success(expanded): buffer.append(expanded)
+        case let .Failure(f): return .ReaderExpandFailure(f)
+        }
       case let .Failure(f): return .ParseFailure(f)
       }
     }
@@ -67,6 +73,8 @@ func main() {
         println("Couldn't read data from input file, or input file was empty")
       case let .ParseFailure(f):
         println("Parse error \(f)")
+      case let .ReaderExpandFailure(f):
+        println("Reader macro expansion error \(f)")
       }
     }
 
