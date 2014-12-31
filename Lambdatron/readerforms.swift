@@ -155,7 +155,7 @@ extension ConsValue {
             case .Quote:
               return next.value.expandQuotedItem()
             case .SyntaxQuote:
-              return next.value.expandSyntaxQuotedItem().expandQuotedItem()
+              return next.value.expandSyntaxQuotedItem()
             case .Unquote:
               return next.value
             case .UnquoteSplice:
