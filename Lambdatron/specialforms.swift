@@ -23,6 +23,7 @@ enum SpecialForm : String, Printable {
   case Loop = "loop"
   case Recur = "recur"
   case Apply = "apply"
+  case Attempt = "attempt"
   
   var function : LambdatronSpecialForm {
     switch self {
@@ -36,6 +37,7 @@ enum SpecialForm : String, Printable {
     case Loop: return sf_loop
     case Recur: return sf_recur
     case Apply: return sf_apply
+    case Attempt: return sf_attempt
     }
   }
   
@@ -427,6 +429,23 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
     return result
   }
   return result
+}
+
+/// Given at least one form, evaluate forms until one of them doesn't return an error, or return the error from the last
+/// form to be executed.
+func sf_attempt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  if args.count == 0 {
+    return .Failure(.ArityError)
+  }
+  var error : EvalError? = nil
+  for form in args {
+    let try = form.evaluate(ctx, env)
+    switch try {
+    case .Success: return try
+    case let .Failure(e): error = e
+    }
+  }
+  return .Failure(error!)
 }
 
 
