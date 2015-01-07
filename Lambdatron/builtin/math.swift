@@ -231,3 +231,38 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(.InvalidArgumentError)
   }
 }
+
+func pr_mod(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
+  
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.IntegerLiteral(v1 % v2))
+    case let .Float(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(Double(v1) % v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(v1 % Double(v2)))
+    case let .Float(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(v1 % v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}

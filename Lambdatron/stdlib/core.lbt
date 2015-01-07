@@ -63,6 +63,9 @@
   ([x y & rest] (.B/ x y rest))
 )
 
+; Return the modulo of x divided by y
+(defn mod [x y] (.mod x y))
+
 ; Return whether one or more numerical values are strictly monotonically increasing in value
 (defn <
   ([x] true)

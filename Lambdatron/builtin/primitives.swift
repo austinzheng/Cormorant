@@ -58,6 +58,7 @@ enum BuiltIn : String, Printable {
   case Minus = ".-"
   case Multiply = ".*"
   case Divide = "./"
+  case Mod = ".mod"
   
   // Miscellaneous
   case Fail = ".fail"
@@ -104,6 +105,7 @@ enum BuiltIn : String, Printable {
     case Minus: return pr_minus
     case Multiply: return pr_multiply
     case Divide: return pr_divide
+    case Mod: return pr_mod
     case Fail: return pr_fail
       
     // TEMPORARY
