@@ -96,7 +96,7 @@ Lambdatron has the following features:
 
 - Interpreter core
 - Lexer and parser
-- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`
+- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
 - Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `seq`, `get`, `assoc`, `dissoc`
 - I/O built-in functions: `print`
@@ -135,7 +135,7 @@ Differences From Clojure
 
 Aside from the (long) list of features not yet implemented (see the *Working On* and *Very Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
-* `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (e.g. interfaces) to define constructs that can be used in function position
+* `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (e.g. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
 
 
