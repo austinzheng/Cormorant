@@ -91,13 +91,30 @@ extension Cons {
       case let .Failure(f): return .Failure(f)
       }
     }
+    else if let toEvalVector = asVector(ctx) {
+      logEval("evaluating as function with vector in function position: \(self.description)")
+      // Evaluate a list with a vector in function position
+      // How it work:
+      // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
+      // 2. Normal function call
+      switch Cons.collectValues(self, ctx: ctx, env: env) {
+      case let .Success(args):
+        if args.count != 2 {
+          // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
+          // behavior.
+          return .Failure(.ArityError)
+        }
+        return pr_nth(args, ctx)
+      case let .Failure(f): return .Failure(f)
+      }
+    }
     else if let toEvalMap = asMap(ctx) {
       logEval("evaluating as function with map in function position: \(self.description)")
       // Execute a list with a map in function position
       // How it works:
       // 1. (*map* *args*...) is translated into (get *map* *args*...).
       // 2. Normal function call
-      switch Cons.collectValues(next, ctx: ctx, env: env) {
+      switch Cons.collectValues(self, ctx: ctx, env: env) {
       case let .Success(args): return pr_get(args, ctx)
       case let .Failure(f): return .Failure(f)
       }

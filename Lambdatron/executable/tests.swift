@@ -23,6 +23,12 @@ func +(lhs: OverallTestResults, rhs: OverallTestResults) -> OverallTestResults {
   return OverallTestResults(lhs.pass + rhs.pass, lhs.fail + rhs.fail)
 }
 
+func runAllTests() -> OverallTestResults {
+  var results = runTests(readerExpandTests())
+  results = results + runTests(collectionFnsTests())
+  return results
+}
+
 func runTests(tests: [LambdatronTest]) -> OverallTestResults {
   var pass = 0
   var fail = 0

@@ -22,6 +22,7 @@ enum BuiltIn : String, Printable {
   case Rest = ".rest"
   case Next = ".next"
   case Concat = ".concat"
+  case Nth = ".nth"
   case Seq = ".seq"
   case Get = ".get"
   case Assoc = ".assoc"
@@ -79,6 +80,7 @@ enum BuiltIn : String, Printable {
     case Rest: return pr_rest
     case Next: return pr_next
     case Concat: return pr_concat
+    case Nth: return pr_nth
     case Seq: return pr_seq
     case Get: return pr_get
     case Assoc: return pr_assoc

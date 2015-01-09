@@ -332,7 +332,60 @@ func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.ListLiteral(head))
 }
 
-/// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value
+/// Given a sequence and an index, return the item at that index, or return an optional 'not found' value.
+func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count < 2 || args.count > 3 {
+    return .Failure(.ArityError)
+  }
+  if let idx = args[1].asInteger() {
+    let fallback : ConsValue? = args.count == 3 ? args[2] : nil
+    if idx < 0 {
+      // Index can't be negative
+      if let fallback = fallback { return .Success(fallback) }
+      return .Failure(.OutOfBoundsError)
+    }
+    
+    switch args[0] {
+    case let .StringLiteral(s):
+      fatalError("Not yet implemented")
+    case let .ListLiteral(l):
+      // We have to walk the list
+      if !l.isEmpty {
+        var this : Cons? = l
+        for _ in 0..<idx {
+          this = this?.next
+        }
+        if let this = this {
+          return .Success(this.value)
+        }
+      }
+      // The list is empty, or we reached the end of the list prematurely.
+      if let fallback = fallback {
+        return .Success(fallback)
+      }
+      else {
+        return .Failure(.OutOfBoundsError)
+      }
+    case let .VectorLiteral(v):
+      if idx < v.count {
+        return .Success(v[idx])
+      }
+      else if let fallback = fallback {
+        return .Success(fallback)
+      }
+      else {
+        return .Failure(.OutOfBoundsError)
+      }
+    default:
+      // Not a valid type to call nth on.
+      return .Failure(.InvalidArgumentError)
+    }
+  }
+  // Second argument wasn't an integer.
+  return .Failure(.InvalidArgumentError)
+}
+
+/// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value.
 func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 2 || args.count > 3 {
     return .Failure(.ArityError)

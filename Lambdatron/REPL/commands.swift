@@ -48,7 +48,7 @@ internal enum SpecialCommand : String {
     case .RunTests:
       // Run unit tests
       println("Running unit tests...")
-      let results = runTests(readerExpandTests())
+      let results = runAllTests()
       println("RESULTS: \(results.pass) passed, \(results.fail) failed (\(results.total) total)")
       if results.total == 0 {
         println("Unit test error (no tests?)")

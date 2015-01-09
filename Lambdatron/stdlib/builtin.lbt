@@ -9,6 +9,7 @@
 (defmacro rest [x] `(.rest ~x))
 (defmacro next [x] `(.next ~x))
 (defmacro concat [& x] `(.concat ~@x))
+(defmacro nth [& x] `(.nth ~@x))
 (defmacro seq [x] `(.seq ~x))
 (defmacro get [& x] `(.get ~@x))
 (defmacro assoc [& x] `(.assoc ~@x))

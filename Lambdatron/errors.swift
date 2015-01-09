@@ -30,9 +30,10 @@ enum ReaderError : String, Printable {
 }
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
-enum EvalError : Printable {
+enum EvalError : Printable, Equatable {
   case ArityError
   case InvalidArgumentError
+  case OutOfBoundsError
   case NotEvalableError
   case DivideByZeroError
   case BindingMismatchError
@@ -52,6 +53,7 @@ enum EvalError : Printable {
     switch self {
     case ArityError: return "ArityError"
     case InvalidArgumentError: return "InvalidArgumentError"
+    case OutOfBoundsError: return "OutOfBoundsError"
     case NotEvalableError: return "NotEvalableError"
     case DivideByZeroError: return "DivideByZeroError"
     case BindingMismatchError: return "BindingMismatchError"
@@ -76,6 +78,8 @@ enum EvalError : Printable {
         return "wrong number of arguments to macro, function, or special form"
       case InvalidArgumentError:
         return "invalid type or value for argument provided to macro, function, or special form"
+      case OutOfBoundsError:
+        return "index to sequence was out of bounds"
       case NotEvalableError:
         return "item in function position is not something that can be evaluated"
       case DivideByZeroError:
@@ -107,5 +111,20 @@ enum EvalError : Printable {
       }
       }()
     return "(\(self.name)): \(desc)"
+  }
+}
+
+func ==(lhs: EvalError, rhs: EvalError) -> Bool {
+  switch lhs {
+  case let .RuntimeError(err1):
+    switch rhs {
+    case let .RuntimeError(err2): return err1 == err2
+    default: return false
+    }
+  default:
+    switch rhs {
+    case let .RuntimeError: return false
+    default: return lhs.name == rhs.name
+    }
   }
 }

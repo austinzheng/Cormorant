@@ -150,6 +150,23 @@ class Cons : Hashable {
     default: return nil
     }
   }
+  
+  func asVector(ctx: Context) -> Vector? {
+    switch value {
+    case let .Symbol(identifier):
+      let value = ctx[identifier]
+      switch value {
+      case let .Literal(l):
+        switch l {
+        case let .VectorLiteral(v): return v
+        default: return nil
+        }
+      case .Unbound, .Invalid, .BoundMacro, .FunctionParam, .MacroParam: return nil
+      }
+    case let .VectorLiteral(v): return v
+    default: return nil
+    }
+  }
 
   func asMap(ctx: Context) -> Map? {
     switch value {
@@ -251,6 +268,13 @@ enum ConsValue : Hashable {
     case let FunctionLiteral(f): return 0
     case RecurSentinel: return 0
     case let MacroArgument(ma): return ma.value.hashValue
+    }
+  }
+  
+  func asInteger() -> Int? {
+    switch self {
+    case let .IntegerLiteral(v): return v
+    default: return nil
     }
   }
   

@@ -80,9 +80,9 @@ func pr_isEvalable(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(.ArityError)
   }
   // User-defined functions, built-ins, and special forms are eval'able.
-  // TODO: vectors and sets should also be eval'able, as they are in Clojure
+  // TODO: sets should also be eval'able, as they are in Clojure
   switch args[0] {
-  case .FunctionLiteral, .MapLiteral, .Special, .BuiltInFunction: return .Success(.BoolLiteral(true))
+  case .FunctionLiteral, .VectorLiteral, .MapLiteral, .Special, .BuiltInFunction: return .Success(.BoolLiteral(true))
   default: return .Success(.BoolLiteral(false))
   }
 }
