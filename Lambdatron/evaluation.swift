@@ -42,7 +42,7 @@ extension Cons {
   /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
   func evaluate(ctx: Context, _ env: EvalEnvironment) -> EvalResult {
     if let toExecuteSpecialForm = asSpecialForm() {
-      logEval("evaluating as special form: \(self.description)")
+      logEval("evaluating as special form: \(self.describe(ctx))")
       // Execute a special form
       // How it works:
       // 1. Arguments are passed in as-is
@@ -53,7 +53,7 @@ extension Cons {
       return result
     }
     else if let toExecuteBuiltIn = asBuiltIn(ctx) {
-      logEval("evaluating as built-in function: \(self.description)")
+      logEval("evaluating as built-in function: \(self.describe(ctx))")
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
       switch Cons.collectValues(next, ctx: ctx, env: env) {
@@ -62,7 +62,7 @@ extension Cons {
       }
     }
     else if let toExpandMacro = asMacro(ctx) {
-      logEval("evaluating as macro expansion: \(self.description)")
+      logEval("evaluating as macro expansion: \(self.describe(ctx))")
       // Expand a macro
       // How it works:
       // 1. Arguments are passed in as-is
@@ -72,7 +72,7 @@ extension Cons {
       let expanded = toExpandMacro.macroexpand(symbols)
       switch expanded {
       case let .Success(v):
-        logEval("macroexpansion complete; new form: \(v.description)")
+        logEval("macroexpansion complete; new form: \(v.describe(ctx))")
         let macroArgsPurged = v.purgeMacroArgs()
         let result = macroArgsPurged.evaluate(ctx, env)
         return result
@@ -80,7 +80,7 @@ extension Cons {
       }
     }
     else if let toExecuteFunction = asFunction(ctx) {
-      logEval("evaluating as function: \(self.description)")
+      logEval("evaluating as function: \(self.describe(ctx))")
       // Execute a normal function
       // How it works:
       // 1. Arguments are evaluated before the function is ever invoked
@@ -92,7 +92,7 @@ extension Cons {
       }
     }
     else if let toEvalVector = asVector(ctx) {
-      logEval("evaluating as function with vector in function position: \(self.description)")
+      logEval("evaluating as function with vector in function position: \(self.describe(ctx))")
       // Evaluate a list with a vector in function position
       // How it work:
       // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
@@ -109,7 +109,7 @@ extension Cons {
       }
     }
     else if let toEvalMap = asMap(ctx) {
-      logEval("evaluating as function with map in function position: \(self.description)")
+      logEval("evaluating as function with map in function position: \(self.describe(ctx))")
       // Execute a list with a map in function position
       // How it works:
       // 1. (*map* *args*...) is translated into (get *map* *args*...).
