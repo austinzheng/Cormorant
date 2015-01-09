@@ -3,8 +3,6 @@ Lambdatron
 
 An interpreter for a Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/), and the interpreter endeavors to match Clojure's behavior as closely as possible. Eventual goal is a library that can be used independently of the REPL front-end.
 
-The name is provisional and will be changed once I come up with something better.
-
 
 Application
 -----------
@@ -21,7 +19,7 @@ Need ideas? Try:
 
 - `(+ (* 2 4) (- 8 6) (+ (+ 1 3) 4))`
 
-**Working with collectionss**
+**Working with collections**
 
 - `(cons 1 '(2 3 4))`
 - `(rest '(1 2 3 4 5))`
@@ -42,18 +40,6 @@ Need ideas? Try:
 **Creating and using a macro**
 
 - ``(defmacro my-when [predicate then-do] `(if ~predicate ~then-do nil))``, then `(my-when (= 1 1) "good")` or `(my-when (= 1 2) (do (print "this shouldn't show up") "bad"))`
-
-
-### Debugging
-
-Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Lambdatron, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "Lambdatron" (it should show up under "Likely Targets").
-
-
-### Profiling
-
-Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "Lambdatron" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
-
-The current Xcode scheme is set to build an optimized version of Lambdatron when profiling (and a debug version when running normally). There is a significant performance difference between the two versions, be aware.
 
 
 ### Current Limitations
@@ -91,11 +77,10 @@ Lambdatron has the following features:
 
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
 
+### Included
 
-### Completed
+These include special forms, reader macros, and built-in functions.
 
-- Interpreter core
-- Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
 - Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
@@ -106,7 +91,45 @@ Lambdatron has the following features:
 - Other built-in functions: `fail`
 
 
-### Working On
+Development
+-----------
+
+Some notes on Lambdatron development tools follow.
+
+### Debugging
+
+Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Lambdatron, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "Lambdatron" (it should show up under "Likely Targets").
+
+
+### Profiling
+
+Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "Lambdatron" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
+
+The current Xcode scheme is set to build an optimized version of Lambdatron when profiling (and a debug version when running normally). There is a significant performance difference between the two versions, be aware.
+
+
+### Logging
+
+Logging is in an embryonic state. In the REPL, type `?logging <DOMAIN> on` or `?logging <DOMAIN> off` to turn logging on or off for a given domain, or omit the `<DOMAIN>` argument to turn logging on or off globally.
+
+The only currently supported domain is `eval`. This logging domain prints out messages detailing how macros, functions, etc are evaluated, and can be useful to see exactly what the interpreter is doing when it evaluates a form.
+
+
+### Unit Tests
+
+Since Xcode's Unit Test targets seem to require a Cocoa application, unit tests are implemented as an application module inside the REPL. Type `?runtests` at the REPL prompt to run the unit test suite.
+
+Unit test code can be found in `tests.swift` and a number of similarly named files. All unit tests right now inherit from the abstract `LambdatronTest` class. Tests can be added by modifying `runAllTests()`.
+
+
+Development Objectives
+----------------------
+
+Development objectives can be divided into two categories.
+
+### Short Term
+
+These are objectives I am working on right now, or plan on doing in the near future.
 
 - Expanding standard library
 - Support for character literals
@@ -118,7 +141,9 @@ Lambdatron has the following features:
 - Full unit test suite (once development stabilizes)
 
 
-### Very Long Term Goals
+### (Very) Long Term
+
+These are objectives that are either too big in scope to schedule, too technically challenging at this time, or of uncertain utility.
 
 - Persistent data structures
 - Proper support for lazy collections
@@ -135,7 +160,7 @@ Differences From Clojure
 
 Aside from the (long) list of features not yet implemented (see the *Working On* and *Very Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
-* `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (e.g. interfaces) to define constructs that can be used in function position.
+* `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
 
 

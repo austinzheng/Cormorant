@@ -113,3 +113,12 @@
         (.= y (first more))
       )
       false)))
+
+; Given a filter function and a collection, return a sequence consisting of all elements that pass the filter.
+(defn filter [pred coll]
+  (when-let [s (seq coll)]
+   (let [f (first s) r (rest s)]
+     (if (pred f)
+       (cons f (filter pred r))
+       (filter pred r)))
+  ))
