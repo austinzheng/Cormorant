@@ -100,7 +100,7 @@ Lambdatron has the following features:
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
 - Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
 - I/O built-in functions: `print`
-- Type-checking built-in functions: `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`
+- Type-checking built-in functions: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`, `mod`
 - Comparison built-in functions: `=`, `==`, `<`, `>`
 - Other built-in functions: `fail`

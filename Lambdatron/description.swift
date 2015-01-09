@@ -10,6 +10,10 @@ import Foundation
 
 extension Cons {
 
+  func describe(ctx: Context?) -> String {
+    return describe(ctx, describer: { $0.0.describe(false, ctx: $0.1) })
+  }
+  
   private func describe(ctx: Context?, describer: (ConsValue, Context?) -> String) -> String {
     func collectDescriptions(firstItem : Cons?) -> [String] {
       var descBuffer : [String] = []

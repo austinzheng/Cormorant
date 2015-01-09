@@ -103,12 +103,17 @@ class Cons : Hashable {
     }
   }
 
-  func asBuiltIn() -> LambdatronBuiltIn? {
+  func asBuiltIn(ctx: Context) -> LambdatronBuiltIn? {
     switch value {
-    case let .BuiltInFunction(bf):
-      return bf.function
-    default:
-      return nil
+    case let .Symbol(identifier):
+      let symbolValue = ctx[identifier]
+      switch symbolValue {
+      case let .Literal(l): return l.asBuiltIn()
+      case let .MacroParam(p): return p.asBuiltIn()
+      case .Invalid, .Unbound, .BoundMacro: return nil
+      }
+    case let .BuiltInFunction(bf): return bf.function
+    default: return nil
     }
   }
   
@@ -128,11 +133,12 @@ class Cons : Hashable {
 
   func asFunction(ctx: Context) -> Function? {
     switch value {
-    case let .Symbol(name):
-      let fExpr = ctx[name]
-      switch fExpr {
+    case let .Symbol(identifier):
+      let symbolValue = ctx[identifier]
+      switch symbolValue {
       case let .Literal(l): return l.asFunction()
-      default: return nil
+      case let .MacroParam(p): return p.asFunction()
+      case .Invalid, .Unbound, .BoundMacro: return nil
       }
     case let .FunctionLiteral(f): return f
     default: return nil
@@ -141,11 +147,11 @@ class Cons : Hashable {
   
   func asMacro(ctx: Context) -> Macro? {
     switch value {
-    case let .Symbol(name):
-      let mExpr = ctx[name]
-      switch mExpr {
+    case let .Symbol(identifier):
+      let symbolValue = ctx[identifier]
+      switch symbolValue {
       case let .BoundMacro(m): return m
-      default: return nil
+      case .Invalid, .Unbound, .MacroParam, .Literal: return nil
       }
     default: return nil
     }
@@ -154,14 +160,11 @@ class Cons : Hashable {
   func asVector(ctx: Context) -> Vector? {
     switch value {
     case let .Symbol(identifier):
-      let value = ctx[identifier]
-      switch value {
-      case let .Literal(l):
-        switch l {
-        case let .VectorLiteral(v): return v
-        default: return nil
-        }
-      case .Unbound, .Invalid, .BoundMacro, .FunctionParam, .MacroParam: return nil
+      let symbolValue = ctx[identifier]
+      switch symbolValue {
+      case let .Literal(l): return l.asVector()
+      case let .MacroParam(p): return p.asVector()
+      case .Unbound, .Invalid, .BoundMacro: return nil
       }
     case let .VectorLiteral(v): return v
     default: return nil
@@ -170,15 +173,12 @@ class Cons : Hashable {
 
   func asMap(ctx: Context) -> Map? {
     switch value {
-    case let .Symbol(name):
-      let mExpr = ctx[name]
-      switch mExpr {
-      case let .Literal(l):
-        switch l {
-        case let .MapLiteral(m): return m
-        default: return nil
-        }
-      default: return nil
+    case let .Symbol(identifier):
+      let symbolValue = ctx[identifier]
+      switch symbolValue {
+      case let .Literal(l): return l.asMap()
+      case let .MacroParam(p): return p.asMap()
+      case .Invalid, .Unbound, .BoundMacro, .MacroParam: return nil
       }
     case let .MapLiteral(m): return m
     default: return nil
@@ -302,6 +302,20 @@ enum ConsValue : Hashable {
   func asVector() -> Vector? {
     switch self {
     case let .VectorLiteral(v): return v
+    default: return nil
+    }
+  }
+  
+  func asMap() -> Map? {
+    switch self {
+    case let .MapLiteral(m): return m
+    default: return nil
+    }
+  }
+  
+  func asBuiltIn() -> LambdatronBuiltIn? {
+    switch self {
+    case let .BuiltInFunction(b): return b.function
     default: return nil
     }
   }

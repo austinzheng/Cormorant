@@ -8,6 +8,17 @@
 
 import Foundation
 
+/// Return whether or not the argument is nil.
+func pr_isNil(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .NilLiteral: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
 /// Return whether or not the argument is a number of some sort.
 func pr_isNumber(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {

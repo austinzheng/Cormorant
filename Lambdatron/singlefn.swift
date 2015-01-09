@@ -35,7 +35,7 @@ struct SingleFn {
     for ; i<parameters.count; i++ {
       bindings[parameters[i]] = {
         switch self.fnType {
-        case .Function: return .FunctionParam(arguments[i])
+        case .Function: return .Literal(arguments[i])
         case .Macro: return .MacroParam(arguments[i])
         }
       }()

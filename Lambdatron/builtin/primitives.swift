@@ -16,7 +16,7 @@ enum BuiltIn : String, Printable {
   // Collection-related
   case List = ".list"
   case Vector = ".vector"
-  case Hashmap = ".hash-map"
+  case Hashmap = ".hashmap"
   case Cons = ".cons"
   case First = ".first"
   case Rest = ".rest"
@@ -32,6 +32,7 @@ enum BuiltIn : String, Printable {
   case Print = ".print"
   
   // Querying
+  case IsNil = ".nil?"
   case IsNumber = ".number?"
   case IsInteger = ".int?"
   case IsFloat = ".float?"
@@ -86,6 +87,7 @@ enum BuiltIn : String, Printable {
     case Assoc: return pr_assoc
     case Dissoc: return pr_dissoc
     case Print: return pr_print
+    case IsNil: return pr_isNil
     case IsNumber: return pr_isNumber
     case IsInteger: return pr_isInteger
     case IsFloat: return pr_isFloat

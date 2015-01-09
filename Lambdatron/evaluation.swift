@@ -52,7 +52,7 @@ extension Cons {
       let result = toExecuteSpecialForm.function(symbols, ctx, env)
       return result
     }
-    else if let toExecuteBuiltIn = asBuiltIn() {
+    else if let toExecuteBuiltIn = asBuiltIn(ctx) {
       logEval("evaluating as built-in function: \(self.description)")
       // Execute a built-in primitive
       // Works the exact same way as executing a normal function (see below)
@@ -141,7 +141,6 @@ extension ConsValue {
         }
       case .Unbound: return .Failure(.UnboundSymbolError)
       case let .Literal(l): return .Success(l)
-      case let .FunctionParam(fp): return .Success(fp)
       case let .MacroParam(mp):
         return .Success(.MacroArgument(Box(mp)))
       case .BoundMacro: return .Failure(.EvaluatingMacroError)
