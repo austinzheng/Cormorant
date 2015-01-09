@@ -73,7 +73,7 @@ Lambdatron has the following features:
 
 **Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `'()`. Or use the `list` function to create a list from zero or more arguments.
 
-**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`, or the `vector` function. Unlike lists, vectors can't be used to invoke functions.
+**Vectors**, declared using square brackets: `[1 2 true "Lisp"]`, or the `vector` function. Unlike lists, vectors can't be used to invoke functions. Vectors can be used in function position with an integer index argument.
 
 **Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function. Maps can be used in function position in order to get a value for a key.
 
@@ -98,7 +98,7 @@ Lambdatron has the following features:
 - Lexer and parser
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
-- Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `seq`, `get`, `assoc`, `dissoc`
+- Collection built-in functions: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
 - I/O built-in functions: `print`
 - Type-checking built-in functions: `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`
 - Arithmetic built-in functions: `+`, `-`, `*`, `/`, `mod`
