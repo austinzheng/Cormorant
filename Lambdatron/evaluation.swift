@@ -121,6 +121,25 @@ extension Cons {
     }
   }
   
+  /// Apply the values in the array 'args' to the function 'first'.
+  class func apply(first: ConsValue, args: [ConsValue], ctx: Context) -> EvalResult {
+    if let builtIn = first.asBuiltIn() {
+      return builtIn(args, ctx)
+    }
+    else if let function = first.asFunction() {
+      return function.evaluate(args)
+    }
+    else if let vector = first.asVector() {
+      return args.count == 2 ? pr_nth([first] + args, ctx) : .Failure(.ArityError)
+    }
+    else if let map = first.asMap() {
+      return pr_get([first] + args, ctx)
+    }
+    else {
+      return .Failure(.NotEvalableError)
+    }
+  }
+  
   /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
   func evaluate(ctx: Context) -> EvalResult {
     // This method is run in order to evaluate a list form (a b c d).

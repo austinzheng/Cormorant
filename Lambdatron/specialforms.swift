@@ -372,29 +372,17 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 2 {
     return .Failure(.ArityError)
   }
-  // First argument must be a function, built-in, or special form
-  // TODO: There should be a less ad-hoc way of determining whether the first argument is eval'able.
   let first = args[0].evaluate(ctx)
   let result = next(first) { first in
-    switch first {
-    case .FunctionLiteral, .BuiltInFunction, .Special, .MapLiteral, .Symbol: break
-    case .RecurSentinel: return .Failure(.RecurMisuseError)
-    default: return .Failure(.InvalidArgumentError)
-    }
-
-    // Straightforward implementation: build a list and then eval it
-    let head = Cons(first)
-    var this = head
-
+    // Collect all remaining args
+    var buffer : [ConsValue] = []
+    
+    // Add all leading args (after being evaluated) to the list directly
     for var i=1; i<args.count - 1; i++ {
-      // Add all leading args (after being evaluated) to the list directly
-      let evaluatedResult = args[i].evaluate(ctx)
-      switch evaluatedResult {
-      case let .Success(evaluatedResult):
-        let next = Cons(evaluatedResult)
-        this.next = next
-        this = next
-      case .Failure: return evaluatedResult
+      let res = args[i].evaluate(ctx)
+      switch res {
+      case let .Success(res): buffer.append(res)
+      case .Failure: return res
       }
     }
 
@@ -403,30 +391,29 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
     let last = args.last!.evaluate(ctx)
     switch last {
     case let .Success(last):
+      // If the result is a collection, add all items in the collection to the arguments buffer
       switch last {
       case let .ListLiteral(l) where !l.isEmpty:
-        this.next = l
-      case let .VectorLiteral(v):
-        for item in v {
-          let next = Cons(item)
-          this.next = next
-          this = next
+        buffer.append(l.value)
+        var this = l.next
+        while let actualThis = this {
+          buffer.append(actualThis.value)
+          this = actualThis.next
         }
+      case let .VectorLiteral(v):
+        buffer = buffer + v
       case let .MapLiteral(m):
         for (key, value) in m {
-          let next = Cons(.VectorLiteral([key, value]))
-          this.next = next
-          this = next
+          buffer.append(.VectorLiteral([key, value]))
         }
       default:
         return .Failure(.InvalidArgumentError)
       }
     case .Failure: return last
     }
-
-    // With the entire list constructed, evaluate it as a function call and then return the result.
-    let result = head.evaluate(ctx)
-    return result
+    
+    // Apply the function to the arguments in the buffer
+    return Cons.apply(first, args: buffer, ctx: ctx)
   }
   return result
 }
