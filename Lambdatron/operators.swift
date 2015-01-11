@@ -134,11 +134,6 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     default: return false
     }
   case .RecurSentinel: return false
-  case let .MacroArgument(ma1):
-    switch rhs {
-    case let .MacroArgument(ma2): return ma1.value == ma2.value
-    default: return ma1.value == rhs
-    }
   case .ReaderMacro: return false
   }
 }

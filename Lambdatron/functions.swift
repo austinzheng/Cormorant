@@ -61,7 +61,7 @@ class Function {
     }
   }
   
-  func evaluate(arguments: [ConsValue], env: EvalEnvironment) -> EvalResult {
+  func evaluate(arguments: [ConsValue]) -> EvalResult {
     // Note that this method doesn't take an external context. This is because there are only two possible contexts:
     //  1. the values bound to the formal parameters
     //  2. any values captured when the function was defined (NOT executed)
@@ -69,12 +69,12 @@ class Function {
     if let context = context {
       if let functionToUse = specificFns[arguments.count] {
         // We have a valid fixed arity definition to use; use it
-        return functionToUse.evaluate(arguments, ctx: context, env: env)
+        return functionToUse.evaluate(arguments, context)
       }
       else if let varargFunction = variadic {
         if arguments.count >= varargFunction.paramCount {
           // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
-          return varargFunction.evaluate(arguments, ctx: context, env: env)
+          return varargFunction.evaluate(arguments, context)
         }
       }
       return .Failure(.ArityError)

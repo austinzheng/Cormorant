@@ -95,9 +95,6 @@ extension ConsValue {
       return debug ? "ConsValue.None" : ""
     case RecurSentinel:
       internalError("RecurSentinel should never be in a situation where its value can be printed")
-    case let MacroArgument(ma):
-      let desc = ma.value.describe(debug, ctx: ctx)
-      return debug ? "ConsValue.MacroArgument-->\(desc)" : desc
     }
   }
   

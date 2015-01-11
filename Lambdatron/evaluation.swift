@@ -30,7 +30,7 @@ func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
 
 /// Evaluate a form and return either a success or failure
 func evaluate(topLevelForm: ConsValue, ctx: Context) -> EvalResult {
-  let result = topLevelForm.evaluate(ctx, .Normal)
+  let result = topLevelForm.evaluate(ctx)
   switch result {
   case let .Success(r): return r.isRecurSentinel ? .Failure(.RecurMisuseError) : result
   case .Failure: return result
@@ -39,121 +39,160 @@ func evaluate(topLevelForm: ConsValue, ctx: Context) -> EvalResult {
 
 extension Cons {
   
-  /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
-  func evaluate(ctx: Context, _ env: EvalEnvironment) -> EvalResult {
-    if let toExecuteSpecialForm = asSpecialForm() {
-      logEval("evaluating as special form: \(self.describe(ctx))")
-      // Execute a special form
-      // How it works:
-      // 1. Arguments are passed in as-is
-      // 2. The special form decides whether or not to evaluate or use the arguments
-      // 3. The special form returns a value
-      let symbols = Cons.collectSymbols(next)
-      let result = toExecuteSpecialForm.function(symbols, ctx, env)
+  /// Evaluate a special form.
+  private func evaluateSpecialForm(specialForm: SpecialForm, ctx: Context) -> EvalResult {
+    logEval("evaluating as special form: \(self.describe(ctx))")
+    // How it works:
+    // 1. Arguments are passed in as-is
+    // 2. The special form decides whether or not to evaluate or use the arguments
+    // 3. The special form returns a value
+    let symbols = Cons.collectSymbols(next)
+    let result = specialForm.function(symbols, ctx)
+    return result
+  }
+  
+  /// Evaluate a built-in function.
+  private func evaluateBuiltIn(builtIn: LambdatronBuiltIn, ctx: Context) -> EvalResult {
+    logEval("evaluating as built-in function: \(self.describe(ctx))")
+    switch Cons.collectValues(next, ctx) {
+    case let .Success(values): return builtIn(values, ctx)
+    case let .Failure(f): return .Failure(f)
+    }
+  }
+  
+  /// Expand and evaluate a macro.
+  private func evaluateMacro(macro: Macro, ctx: Context) -> EvalResult {
+    logEval("evaluating as macro expansion: \(self.describe(ctx))")
+    // How it works:
+    // 1. Arguments are passed in as-is
+    // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
+    // 3. This replacement form is then evaluated to return a value
+    let symbols = Cons.collectSymbols(next)
+    let expanded = macro.macroexpand(symbols)
+    switch expanded {
+    case let .Success(v):
+      logEval("macroexpansion complete; new form: \(v.describe(ctx))")
+      let result = v.evaluate(ctx)
       return result
+    case .Failure: return expanded
     }
-    else if let toExecuteBuiltIn = asBuiltIn(ctx) {
-      logEval("evaluating as built-in function: \(self.describe(ctx))")
-      // Execute a built-in primitive
-      // Works the exact same way as executing a normal function (see below)
-      switch Cons.collectValues(next, ctx: ctx, env: env) {
-      case let .Success(values): return toExecuteBuiltIn(values, ctx)
-      case let .Failure(f): return .Failure(f)
+  }
+  
+  /// Evaluate a user-defined function.
+  private func evaluateFunction(function: Function, ctx: Context) -> EvalResult {
+    logEval("evaluating as function: \(self.describe(ctx))")
+    // How it works:
+    // 1. Arguments are evaluated before the function is ever invoked
+    // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
+    // 3. The function returns a value
+    switch Cons.collectValues(next, ctx) {
+    case let .Success(values): return function.evaluate(values)
+    case let .Failure(f): return .Failure(f)
+    }
+  }
+  
+  /// Evaluate a list with a vector in function position.
+  private func evaluateVector(vector: Vector, ctx: Context) -> EvalResult {
+    logEval("evaluating as function with vector in function position: \(self.describe(ctx))")
+    // How it works:
+    // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
+    // 2. Normal function call
+    switch Cons.collectValues(self, ctx) {
+    case let .Success(args):
+      if args.count != 2 {
+        // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
+        // behavior.
+        return .Failure(.ArityError)
       }
+      return pr_nth(args, ctx)
+    case let .Failure(f): return .Failure(f)
     }
-    else if let toExpandMacro = asMacro(ctx) {
-      logEval("evaluating as macro expansion: \(self.describe(ctx))")
-      // Expand a macro
-      // How it works:
-      // 1. Arguments are passed in as-is
-      // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
-      // 3. This replacement form is then evaluated to return a value
-      let symbols = Cons.collectSymbols(next)
-      let expanded = toExpandMacro.macroexpand(symbols)
-      switch expanded {
-      case let .Success(v):
-        logEval("macroexpansion complete; new form: \(v.describe(ctx))")
-        let macroArgsPurged = v.purgeMacroArgs()
-        let result = macroArgsPurged.evaluate(ctx, env)
-        return result
-      case .Failure: return expanded
+  }
+  
+  /// Evaluate a list with a map in function position.
+  private func evaluateMap(map: Map, ctx: Context) -> EvalResult {
+    logEval("evaluating as function with map in function position: \(self.describe(ctx))")
+    // How it works:
+    // 1. (*map* *args*...) is translated into (get *map* *args*...).
+    // 2. Normal function call
+    switch Cons.collectValues(self, ctx) {
+    case let .Success(args): return pr_get(args, ctx)
+    case let .Failure(f): return .Failure(f)
+    }
+  }
+  
+  /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
+  func evaluate(ctx: Context) -> EvalResult {
+    // This method is run in order to evaluate a list form (a b c d).
+    // 'a' must resolve to something that can be used in function position. 'b', 'c', and 'd' are arguments to the
+    // function.
+    
+    // 1: Decide whether 'a' is either a special form or a reference to a macro.
+    if let specialForm = asSpecialForm() {
+      // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
+      return evaluateSpecialForm(specialForm, ctx: ctx)
+    }
+    else if let macro = asMacro(ctx) {
+      // Macros can't be returned by functions or other macros, nor can they be evaluated themselves.
+      return evaluateMacro(macro, ctx: ctx)
+    }
+    
+    // 2: Evaluate the form 'a'.
+    let fpItemResult = value.evaluate(ctx)
+    switch fpItemResult {
+    case let .Success(fpItem):
+      // 3: Decide whether or not the evaluated form of 'a' is something that can be used in function position.
+      if let builtIn = fpItem.asBuiltIn() {
+        return evaluateBuiltIn(builtIn, ctx: ctx)
       }
-    }
-    else if let toExecuteFunction = asFunction(ctx) {
-      logEval("evaluating as function: \(self.describe(ctx))")
-      // Execute a normal function
-      // How it works:
-      // 1. Arguments are evaluated before the function is ever invoked
-      // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
-      // 3. The function returns a value
-      switch Cons.collectValues(next, ctx: ctx, env: env) {
-      case let .Success(values): return toExecuteFunction.evaluate(values, env: env)
-      case let .Failure(f): return .Failure(f)
+      else if let function = fpItem.asFunction() {
+        return evaluateFunction(function, ctx: ctx)
       }
-    }
-    else if let toEvalVector = asVector(ctx) {
-      logEval("evaluating as function with vector in function position: \(self.describe(ctx))")
-      // Evaluate a list with a vector in function position
-      // How it work:
-      // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
-      // 2. Normal function call
-      switch Cons.collectValues(self, ctx: ctx, env: env) {
-      case let .Success(args):
-        if args.count != 2 {
-          // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
-          // behavior.
-          return .Failure(.ArityError)
-        }
-        return pr_nth(args, ctx)
-      case let .Failure(f): return .Failure(f)
+      else if let vector = fpItem.asVector() {
+        return evaluateVector(vector, ctx: ctx)
       }
-    }
-    else if let toEvalMap = asMap(ctx) {
-      logEval("evaluating as function with map in function position: \(self.describe(ctx))")
-      // Execute a list with a map in function position
-      // How it works:
-      // 1. (*map* *args*...) is translated into (get *map* *args*...).
-      // 2. Normal function call
-      switch Cons.collectValues(self, ctx: ctx, env: env) {
-      case let .Success(args): return pr_get(args, ctx)
-      case let .Failure(f): return .Failure(f)
+      else if let map = fpItem.asMap() {
+        return evaluateMap(map, ctx: ctx)
       }
-    }
-    else {
-      return .Failure(.NotEvalableError)
+      else {
+        // 3a: 'a' is not something that can be used in function position (e.g. nil)
+        return .Failure(.NotEvalableError)
+      }
+    case .Failure:
+      // 2a: Evaluating the form 'a' failed; for example, it was a function that threw some error.
+      return fpItemResult
     }
   }
 }
 
 extension ConsValue {
   
-  func evaluate(ctx: Context, _ env: EvalEnvironment) -> EvalResult {
+  func evaluate(ctx: Context) -> EvalResult {
     switch self {
     case FunctionLiteral, BuiltInFunction: return .Success(self)
     case let Symbol(v):
       // Look up the value of v
-      let binding = ctx[v]
-      switch binding {
+      switch ctx[v] {
       case .Invalid:
-        switch env {
-        case .Normal: return .Failure(.InvalidSymbolError)
-        case .Macro: return .Success(self)
-        }
-      case .Unbound: return .Failure(.UnboundSymbolError)
-      case let .Literal(l): return .Success(l)
-      case let .MacroParam(mp):
-        return .Success(.MacroArgument(Box(mp)))
-      case .BoundMacro: return .Failure(.EvaluatingMacroError)
+        return .Failure(.InvalidSymbolError)
+      case .Unbound:
+        return .Failure(.UnboundSymbolError)
+      case let .Literal(l):
+        return .Success(l)
+      case let .Param(p):
+        return .Success(p)
+      case .BoundMacro:
+        return .Failure(.EvaluatingMacroError)
       }
     case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Keyword: return .Success(self)
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
-      return l.evaluate(ctx, env)
+      return l.evaluate(ctx)
     case let VectorLiteral(v):
       // Evaluate the value of the vector literal 'v'
       var buffer : [ConsValue] = []
       for form in v {
-        let result = form.evaluate(ctx, env)
+        let result = form.evaluate(ctx)
         switch result {
         case let .Success(result): buffer.append(result)
         case .Failure: return result
@@ -164,10 +203,10 @@ extension ConsValue {
       // Evaluate the value of the map literal 'm'
       var newMap : Map = [:]
       for (key, value) in m {
-        let evaluatedKey = key.evaluate(ctx, env)
+        let evaluatedKey = key.evaluate(ctx)
         switch evaluatedKey {
         case let .Success(k):
-          let evaluatedValue = value.evaluate(ctx, env)
+          let evaluatedValue = value.evaluate(ctx)
           switch evaluatedValue {
           case let .Success(v): newMap[k] = v
           case .Failure: return evaluatedValue
@@ -180,13 +219,6 @@ extension ConsValue {
     case ReaderMacro: return .Failure(.EvaluatingMacroError)
     case None: return .Failure(.EvaluatingNoneError)
     case RecurSentinel: return .Success(self)
-    case let MacroArgument(ma):
-      // A macro argument is either being evaluated in the environment of a macro definition (in which case it should be
-      // not further evaluated), or in the normal environment (in which case it should be treated as a normal value)
-      switch env {
-      case .Normal: return ma.value.evaluate(ctx, env)
-      case .Macro: return .Success(ma.value)
-      }
     }
   }
 }

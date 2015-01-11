@@ -8,7 +8,7 @@
 
 import Foundation
 
-typealias LambdatronSpecialForm = ([ConsValue], Context, EvalEnvironment) -> EvalResult
+typealias LambdatronSpecialForm = ([ConsValue], Context) -> EvalResult
 
 /// An enum describing all the special forms recognized by the interpreter
 enum SpecialForm : String, Printable {
@@ -50,7 +50,7 @@ enum SpecialForm : String, Printable {
 // MARK: Special forms
 
 /// Return the argument as its literal value (without performing any evaluation).
-func sf_quote(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.NilLiteral)
   }
@@ -59,11 +59,11 @@ func sf_quote(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 }
 
 /// Evaluate a conditional, and evaluate one or one of two expressions based on its boolean value.
-func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 && args.count != 3 {
     return .Failure(.ArityError)
   }
-  let testResult = args[0].evaluate(ctx, env)
+  let testResult = args[0].evaluate(ctx)
 
   let result = next(testResult) { testForm in
     if testForm.isRecurSentinel {
@@ -83,10 +83,10 @@ func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
       }()
 
     if testIsTrue {
-      return then.evaluate(ctx, env)
+      return then.evaluate(ctx)
     }
     else if let otherwise = otherwise {
-      return otherwise.evaluate(ctx, env)
+      return otherwise.evaluate(ctx)
     }
     else {
       return .Success(.NilLiteral)
@@ -96,10 +96,10 @@ func sf_if(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
 }
 
 /// Evaluate all expressions, returning the value of the final expression.
-func sf_do(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
   var finalValue : ConsValue = .NilLiteral
   for (idx, expr) in enumerate(args) {
-    let result = expr.evaluate(ctx, env)
+    let result = expr.evaluate(ctx)
     switch result {
     case let .Success(result):
       finalValue = result
@@ -113,7 +113,7 @@ func sf_do(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
 }
 
 /// Bind or re-bind a global identifier, optionally assigning it a value.
-func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 1 {
     return .Failure(.ArityError)
   }
@@ -130,7 +130,7 @@ func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
     // Do stuff
     if let initializer = initializer {
       // If a value is provided, always use that value
-      let result = initializer.evaluate(ctx, env)
+      let result = initializer.evaluate(ctx)
       switch result {
       case let .Success(result):
         if result.isRecurSentinel {
@@ -155,7 +155,7 @@ func sf_def(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
 
 /// Create a new lexical scope in which zero or more symbols are bound to the results of corresponding forms; all forms
 /// after the binding vector are evaluated in an implicit 'do' form within the context of the new scope.
-func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -176,7 +176,7 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings), env)
+        let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings))
         switch result {
         case let .Success(result):
           if result.isRecurSentinel {
@@ -199,7 +199,7 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
       return .Success(.NilLiteral)
     }
     let restOfArgs = Array(args[1..<args.count])
-    let result = sf_do(restOfArgs, newContext, env)
+    let result = sf_do(restOfArgs, newContext)
     return result
   default:
     return .Failure(.InvalidArgumentError)
@@ -211,7 +211,7 @@ func sf_let(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult
 /// values are bound to the parameter symbols, and the body forms are evaluated in an implicit 'do' form. A name can
 /// optionally be provided before the argument vector or first arity list, allowing the function to be referenced from
 /// within itself.
-func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -241,7 +241,7 @@ func sf_fn(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult 
 
 /// Define a macro. A macro is defined in a similar manner to a function, except that macros must be bound to a global
 /// binding and cannot be treated as values.
-func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 2 {
     return .Failure(.ArityError)
   }
@@ -289,7 +289,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalR
 /// forms which are evaluated within an implicit 'do' form. The loop body may return either a normal value, in which
 /// case the loop terminates, or the value of a 'recur' form, in which case the new arguments are re-bound and the loop
 /// forms are evaluated again.
-func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
@@ -307,7 +307,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
       switch name {
       case let .Symbol(s):
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings), env)
+        let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings))
         switch result {
         case let .Success(result):
           if result.isRecurSentinel {
@@ -326,7 +326,7 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
     // Now, run the loop body
     var context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: bindings)
     while true {
-      let result = sf_do(forms, context, env)
+      let result = sf_do(forms, context)
       switch result {
       case let .Success(resultValue):
         switch resultValue {
@@ -353,12 +353,12 @@ func sf_loop(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResul
 /// When in the context of a function or a loop, indicate that execution of the current iteration has completed and
 /// provide updated bindings for re-running the function or loop as part of tail-call optimized recursion. Use outside
 /// these contexts is considered an error.
-func sf_recur(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_recur(args: [ConsValue], ctx: Context) -> EvalResult {
   // recur can *only* be used inside the context of a 'loop' or a fn declaration
   // Evaluate all arguments, and then create a sentinel value
   var newArgs : [ConsValue] = []
   for arg in args {
-    let result = arg.evaluate(ctx, env)
+    let result = arg.evaluate(ctx)
     switch result {
     case let .Success(result): newArgs.append(result)
     case .Failure: return result
@@ -368,13 +368,13 @@ func sf_recur(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 }
 
 /// Given a function, zero or more leading arguments, and a sequence of args, apply the function with the arguments.
-func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count < 2 {
     return .Failure(.ArityError)
   }
   // First argument must be a function, built-in, or special form
   // TODO: There should be a less ad-hoc way of determining whether the first argument is eval'able.
-  let first = args[0].evaluate(ctx, env)
+  let first = args[0].evaluate(ctx)
   let result = next(first) { first in
     switch first {
     case .FunctionLiteral, .BuiltInFunction, .Special, .MapLiteral, .Symbol: break
@@ -388,7 +388,7 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 
     for var i=1; i<args.count - 1; i++ {
       // Add all leading args (after being evaluated) to the list directly
-      let evaluatedResult = args[i].evaluate(ctx, env)
+      let evaluatedResult = args[i].evaluate(ctx)
       switch evaluatedResult {
       case let .Success(evaluatedResult):
         let next = Cons(evaluatedResult)
@@ -400,7 +400,7 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 
     // Evaluate the last argument, which should be some sort of collection.
     // Note that, since there can never be zero arguments, last will always be non-nil.
-    let last = args.last!.evaluate(ctx, env)
+    let last = args.last!.evaluate(ctx)
     switch last {
     case let .Success(last):
       switch last {
@@ -425,7 +425,7 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
     }
 
     // With the entire list constructed, evaluate it as a function call and then return the result.
-    let result = head.evaluate(ctx, env)
+    let result = head.evaluate(ctx)
     return result
   }
   return result
@@ -433,13 +433,13 @@ func sf_apply(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResu
 
 /// Given at least one form, evaluate forms until one of them doesn't return an error, or return the error from the last
 /// form to be executed.
-func sf_attempt(args: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+func sf_attempt(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(.ArityError)
   }
   var error : EvalError? = nil
   for form in args {
-    let try = form.evaluate(ctx, env)
+    let try = form.evaluate(ctx)
     switch try {
     case .Success: return try
     case let .Failure(e): error = e

@@ -65,43 +65,14 @@ class Macro {
   func macroexpand(arguments: [ConsValue]) -> EvalResult {
     if let functionToUse = specificFns[arguments.count] {
       // We have a valid fixed arity definition to use; use it
-      return functionToUse.evaluate(arguments, ctx: context, env: .Macro)
+      return functionToUse.evaluate(arguments, context)
     }
     else if let varargFunction = variadic {
       if arguments.count >= varargFunction.paramCount {
         // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
-        return varargFunction.evaluate(arguments, ctx: context, env: .Macro)
+        return varargFunction.evaluate(arguments, context)
       }
     }
     return .Failure(.ArityError)
-  }
-}
-
-extension Cons {
-  
-  class func purgeMacroArgs(start: Cons) -> ConsValue {
-    // Purge each arg
-    var this : Cons? = start
-    while let actualThis = this {
-      actualThis.value = actualThis.value.purgeMacroArgs()
-      this = actualThis.next
-    }
-    return .ListLiteral(start)
-  }
-}
-
-extension ConsValue {
-  
-  func purgeMacroArgs() -> ConsValue {
-    switch self {
-    case let .MacroArgument(m):
-      return m.value
-    case let .ListLiteral(l) where !l.isEmpty:
-      return Cons.purgeMacroArgs(l)
-    case let .VectorLiteral(v):
-      return .VectorLiteral(v.map({$0.purgeMacroArgs()}))
-    default:
-      return self
-    }
   }
 }

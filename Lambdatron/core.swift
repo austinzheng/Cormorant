@@ -11,20 +11,6 @@ import Foundation
 typealias Vector = [ConsValue]
 typealias Map = [ConsValue:ConsValue]
 
-/// A container class allowing for references to value types.
-class Box<T> {
-  let value : T
-  init(_ value: T) {
-    self.value = value
-  }
-}
-
-/// The environment under which an entity is executing. This might be either as a function call or a macro expansion.
-enum EvalEnvironment {
-  case Normal
-  case Macro
-}
-
 /// Represents a cons cell, an element in a linked list.
 class Cons : Hashable {
   var next : Cons?
@@ -89,9 +75,6 @@ class Cons : Hashable {
     self.value = value
   }
   
-  
-  // MARK: API
-  
   /// Whether or not this list is the empty list ().
   var isEmpty : Bool {
     if next != nil {
@@ -100,20 +83,6 @@ class Cons : Hashable {
     switch value {
     case .None: return true
     default: return false
-    }
-  }
-
-  func asBuiltIn(ctx: Context) -> LambdatronBuiltIn? {
-    switch value {
-    case let .Symbol(identifier):
-      let symbolValue = ctx[identifier]
-      switch symbolValue {
-      case let .Literal(l): return l.asBuiltIn()
-      case let .MacroParam(p): return p.asBuiltIn()
-      case .Invalid, .Unbound, .BoundMacro: return nil
-      }
-    case let .BuiltInFunction(bf): return bf.function
-    default: return nil
     }
   }
   
@@ -130,20 +99,6 @@ class Cons : Hashable {
     default: return nil
     }
   }
-
-  func asFunction(ctx: Context) -> Function? {
-    switch value {
-    case let .Symbol(identifier):
-      let symbolValue = ctx[identifier]
-      switch symbolValue {
-      case let .Literal(l): return l.asFunction()
-      case let .MacroParam(p): return p.asFunction()
-      case .Invalid, .Unbound, .BoundMacro: return nil
-      }
-    case let .FunctionLiteral(f): return f
-    default: return nil
-    }
-  }
   
   func asMacro(ctx: Context) -> Macro? {
     switch value {
@@ -151,51 +106,20 @@ class Cons : Hashable {
       let symbolValue = ctx[identifier]
       switch symbolValue {
       case let .BoundMacro(m): return m
-      case .Invalid, .Unbound, .MacroParam, .Literal: return nil
+      case .Invalid, .Unbound, .Param, .Literal: return nil
       }
     default: return nil
     }
   }
-  
-  func asVector(ctx: Context) -> Vector? {
-    switch value {
-    case let .Symbol(identifier):
-      let symbolValue = ctx[identifier]
-      switch symbolValue {
-      case let .Literal(l): return l.asVector()
-      case let .MacroParam(p): return p.asVector()
-      case .Unbound, .Invalid, .BoundMacro: return nil
-      }
-    case let .VectorLiteral(v): return v
-    default: return nil
-    }
-  }
-
-  func asMap(ctx: Context) -> Map? {
-    switch value {
-    case let .Symbol(identifier):
-      let symbolValue = ctx[identifier]
-      switch symbolValue {
-      case let .Literal(l): return l.asMap()
-      case let .MacroParam(p): return p.asMap()
-      case .Invalid, .Unbound, .BoundMacro, .MacroParam: return nil
-      }
-    case let .MapLiteral(m): return m
-    default: return nil
-    }
-  }
-  
-  
-  // MARK: API - helpers
   
   /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
   /// to perform argument evaluation as part of the process of calling a function.
-  class func collectValues(firstItem : Cons?, ctx: Context, env: EvalEnvironment) -> CollectResult {
+  class func collectValues(firstItem : Cons?, _ ctx: Context) -> CollectResult {
     var buffer : [ConsValue] = []
     var currentItem : Cons? = firstItem
     while let actualItem = currentItem {
       let thisValue = actualItem.value
-      switch thisValue.evaluate(ctx, env) {
+      switch thisValue.evaluate(ctx) {
       case let .Success(result):
         if result.isRecurSentinel {
           // Cannot use 'recur' as a function argument
@@ -246,8 +170,6 @@ enum ConsValue : Hashable {
   case FunctionLiteral(Function)
   // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
   case RecurSentinel([ConsValue])
-  // A special case only for use with macro arguments
-  case MacroArgument(Box<ConsValue>)
   
   var hashValue : Int {
     switch self {
@@ -267,7 +189,6 @@ enum ConsValue : Hashable {
     case let MapLiteral(m): return m.count
     case let FunctionLiteral(f): return 0
     case RecurSentinel: return 0
-    case let MacroArgument(ma): return ma.value.hashValue
     }
   }
   

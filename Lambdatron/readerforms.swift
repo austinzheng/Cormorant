@@ -177,7 +177,7 @@ extension ConsValue {
         }
       }
       return .Success(.MapLiteral(newMap))
-    case FunctionLiteral, ReaderMacro, RecurSentinel, MacroArgument:
+    case FunctionLiteral, ReaderMacro, RecurSentinel:
       return .Failure(.IllegalFormError)
     }
   }
@@ -276,7 +276,7 @@ extension ConsValue {
           case .Failure:
             return expanded
           }
-        case FunctionLiteral, ReaderMacro, None, RecurSentinel, MacroArgument:
+        case FunctionLiteral, ReaderMacro, None, RecurSentinel:
           return .Failure(.IllegalFormError)
         }
       }
@@ -302,7 +302,7 @@ extension ConsValue {
       return constructForm(expanded) {
         .ListLiteral(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Hashmap), next: Cons($0))))
       }
-    case FunctionLiteral, ReaderMacro, None, RecurSentinel, MacroArgument:
+    case FunctionLiteral, ReaderMacro, None, RecurSentinel:
       return .Failure(.IllegalFormError)
     }
   }

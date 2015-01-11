@@ -33,12 +33,7 @@ struct SingleFn {
     var bindings : [InternedSymbol : Binding] = [:]
     var i=0
     for ; i<parameters.count; i++ {
-      bindings[parameters[i]] = {
-        switch self.fnType {
-        case .Function: return .Literal(arguments[i])
-        case .Macro: return .MacroParam(arguments[i])
-        }
-      }()
+      bindings[parameters[i]] = .Param(arguments[i])
     }
     if let variadicParameter = variadicParameter {
       if asRecur {
@@ -65,12 +60,12 @@ struct SingleFn {
     return newContext
   }
 
-  func evaluate(arguments: [ConsValue], ctx: Context, env: EvalEnvironment) -> EvalResult {
+  func evaluate(arguments: [ConsValue], _ ctx: Context) -> EvalResult {
     // Create the context, then perform a 'do' with the body of the function
     var possibleContext : Context? = bindToNewContext(arguments, ctx: ctx, asRecur: false)
     while true {
       if let newContext = possibleContext {
-        let result = sf_do(forms, newContext, env)
+        let result = sf_do(forms, newContext)
         switch result {
         case let .Success(resultValue):
           switch resultValue {

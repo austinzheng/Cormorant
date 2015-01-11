@@ -62,7 +62,7 @@ func main() {
       let ctx = Context.globalContextInstance()
       switch doFormForFileData(fileInput, ctx) {
       case let .Success(forms):
-        let result = sf_do(forms, ctx, .Normal)
+        let result = sf_do(forms, ctx)
         switch result {
         case let .Success(s):
           println(s.isRecurSentinel ? "Evaluation error \(EvalError.RecurMisuseError)" : s.describe(ctx))

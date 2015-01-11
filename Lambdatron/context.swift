@@ -13,15 +13,15 @@ enum Binding : Printable {
   case Invalid
   case Unbound
   case Literal(ConsValue)
-  case MacroParam(ConsValue)
+  case Param(ConsValue)     // Currently treated no differently than Literal, but here for future optimization
   case BoundMacro(Macro)
   
   var description : String {
     switch self {
     case Invalid: return "invalid"
     case Unbound: return "unbound"
-    case let Literal(l): return "literal or fn parameter: \(l.description)"
-    case let MacroParam(mp): return "macro parameter: \(mp.description)"
+    case let Literal(l): return "literal: \(l.description)"
+    case let Param(mp): return "function/macro parameter: \(mp.description)"
     case let BoundMacro(m): return "macro:'\(m.name)'"
     }
   }
