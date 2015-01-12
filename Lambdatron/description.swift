@@ -67,6 +67,9 @@ extension ConsValue {
       return debug ? "ConsValue.IntegerLiteral(\(v))" : v.description
     case let FloatLiteral(v):
       return debug ? "ConsValue.FloatLiteral(\(v)" : v.description
+    case let CharacterLiteral(v):
+      let desc = charLiteralDesc(v)
+      return debug ? "ConsValue.CharacterLiteral(\(desc))" : "\(desc)"
     case let StringLiteral(v):
       return debug ? "ConsValue.StringLiteral(\"\(v)\")" : "\"\(v)\""
     case let ListLiteral(v):
@@ -180,4 +183,18 @@ extension SingleFn {
   var description : String {
     return describe(nil)
   }
+}
+
+/// Return the Clojure-style description of a character literal.
+private func charLiteralDesc(char: Character) -> String {
+  let name : String = {
+    switch char {
+    case "\n": return "newline"
+    case "\r": return "return"
+    case " ": return "space"
+    case "\t": return "tab"
+    default: return "\(char)"
+    }
+    }()
+  return "\\" + name
 }

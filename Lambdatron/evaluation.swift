@@ -203,7 +203,8 @@ extension ConsValue {
       case .BoundMacro:
         return .Failure(.EvaluatingMacroError)
       }
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Keyword: return .Success(self)
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Keyword:
+      return .Success(self)
     case let ListLiteral(l):
       // Evaluate the value of the list 'l'
       return l.evaluate(ctx)

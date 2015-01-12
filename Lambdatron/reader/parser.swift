@@ -176,6 +176,8 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       wrapStack.append(.UnquoteSplice)
     case .NilLiteral:
       buffer.append(wrappedConsItem(.NilLiteral, &wrapStack))
+    case let .CharLiteral(c):
+      buffer.append(wrappedConsItem(.CharacterLiteral(c), &wrapStack))
     case let .StringLiteral(s):
       buffer.append(wrappedConsItem(.StringLiteral(s), &wrapStack))
     case let .Integer(v):
@@ -367,6 +369,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
     }
     return .Failure(.MismatchedReaderMacroError)
   case .NilLiteral: return .Success(.NilLiteral)
+  case let .CharLiteral(c): return .Success(.CharacterLiteral(c))
   case let .StringLiteral(s): return .Success(.StringLiteral(s))
   case let .Integer(v): return .Success(.IntegerLiteral(v))
   case let .FlPtNumber(n): return .Success(.FloatLiteral(n))

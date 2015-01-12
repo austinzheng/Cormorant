@@ -111,7 +111,7 @@ extension ConsValue {
   // NOTE: This will be the top-level reader expansion method
   func readerExpand() -> ExpandResult {
     switch self {
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, None:
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, None:
       return .Success(self)
     case Symbol, Keyword, Special, BuiltInFunction:
       return .Success(self)
@@ -215,7 +215,7 @@ extension ConsValue {
   func expandSyntaxQuotedItem() -> ExpandResult {
     // ` differs in behavior depending on exactly what a is; it is most complex when a is a sequence
     switch self {
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Keyword:
+    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Keyword:
       // Expanding (` LIT) always results in LIT
       return .Success(self)
     case Symbol, Special, BuiltInFunction:
@@ -250,7 +250,7 @@ extension ConsValue {
       var expansionBuffer : [ConsValue] = []
       for symbol in symbols {
         switch symbol {
-        case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, StringLiteral, Symbol, Keyword, Special, BuiltInFunction:
+        case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Symbol, Keyword, Special, BuiltInFunction:
           // A literal or symbol in the list is recursively syntax-quoted
           let expanded = symbol.expandSyntaxQuotedItem()
           switch expanded {

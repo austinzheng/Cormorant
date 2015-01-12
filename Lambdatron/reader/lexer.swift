@@ -15,12 +15,14 @@ enum LexResult {
 
 enum LexError : String, Printable {
   case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
+  case InvalidCharacterError = "InvalidCharacterError"
   case NonTerminatedStringError = "NonTerminatedStringError"
-  
+
   var description : String {
     let name = self.rawValue
     switch self {
     case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
+    case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
     case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
     }
   }
@@ -39,6 +41,7 @@ enum LexToken : Printable {
   case Tilde                      // tilde '~'
   case TildeAt                    // tilde followed by at '~@'
   case NilLiteral                 // nil
+  case CharLiteral(Character)     // character literal
   case StringLiteral(String)      // string (denoted by double quotes)
   case Integer(Int)               // integer number
   case FlPtNumber(Double)         // floating-point number
@@ -60,6 +63,7 @@ enum LexToken : Printable {
     case .Backquote: return "Backquote <`>"
     case .Tilde: return "Tilde <~>"
     case .TildeAt: return "TildeAt <~@>"
+    case let .CharLiteral(c): return "Character \"\(c)\""
     case let .StringLiteral(x): return "String \"\(x)\""
     case let .NilLiteral: return "Nil"
     case let .Integer(v): return "Integer <\(v)>"
@@ -71,6 +75,22 @@ enum LexToken : Printable {
     case let .BuiltInFunction(x): return "BuiltIn <\(x.rawValue)>"
     }
   }
+}
+
+private enum RawLexToken {
+  case LeftP
+  case RightP
+  case LeftSqBr
+  case RightSqBr
+  case LeftBrace
+  case RightBrace
+  case Quote
+  case Backquote
+  case Tilde
+  case TildeAt
+  case CharLiteral(Character)
+  case StringLiteral(String)
+  case Unknown(String)
 }
 
 func processEscape(sequence: String) -> String? {
@@ -86,21 +106,6 @@ func processEscape(sequence: String) -> String? {
 
 /// Given a raw input (as a string), lex it into individual tokens.
 func lex(raw: String) -> LexResult {
-  enum RawLexToken {
-    case LeftP
-    case RightP
-    case LeftSqBr
-    case RightSqBr
-    case LeftBrace
-    case RightBrace
-    case Quote
-    case Backquote
-    case Tilde
-    case TildeAt
-    case StringLiteral(String)
-    case Unknown(String)
-  }
-  
   enum State {
     case Normal, String, Comment
   }
@@ -182,6 +187,17 @@ func lex(raw: String) -> LexResult {
         else {
           rawTokenBuffer.append(.Tilde)
         }
+      case "\\":
+        flushTokenToBuffer()                          // Backslash represents a character literal
+        if let result = parseCharacterLiteral(idx, rawAsNSString) {
+          let (token, skip) = result
+          rawTokenBuffer.append(token)
+          skipCount = skip
+        }
+        else {
+          // Backslash without anything following it, or invalid character literal name
+          return .Failure(.InvalidCharacterError)
+        }
       case _ where wsSet.characterIsMember(tChar) || otherWsSet.characterIsMember(tChar):
         flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
       default:
@@ -246,6 +262,7 @@ func lex(raw: String) -> LexResult {
     case .Backquote: tokenBuffer.append(.Backquote)
     case .Tilde: tokenBuffer.append(.Tilde)
     case .TildeAt: tokenBuffer.append(.TildeAt)
+    case let .CharLiteral(cl): tokenBuffer.append(.CharLiteral(cl))
     case let .StringLiteral(sl): tokenBuffer.append(.StringLiteral(sl))
     case let .Unknown(u):
       // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string
@@ -291,6 +308,7 @@ func lex(raw: String) -> LexResult {
 
 // Immutable utility items
 private let nf = NSNumberFormatter()
+private let nonTerminationSet = NSCharacterSet.lowercaseLetterCharacterSet()
 
 func buildNumberFromString(str: String) -> LexToken? {
   enum NumberMode {
@@ -324,4 +342,57 @@ func buildNumberFromString(str: String) -> LexToken? {
     }
   }
   return nil
+}
+
+private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int)? {
+  // Precondition: start is the index of the "\" character in str that starts the character literal
+  let strAsUtf16 = NSString(string: str)
+  let strLength = strAsUtf16.length
+  // Reject any character literals started at the end of the string
+  if start == strLength - 1 {
+    return nil
+  }
+  // Take single character
+  if strAsUtf16.characterAtIndex(start + 1) == NSString(string: "\\").characterAtIndex(0) {
+    // Special case: user entered "\\", which indicates the backslash literal
+    return (.CharLiteral("\\"), 1)
+  }
+  else if start == strAsUtf16.length - 2 || !nonTerminationSet.characterIsMember(strAsUtf16.characterAtIndex(start + 2)) {
+    // Single-character literal: either the character after the next terminates the literal, or it's at end of string
+    // Note that single-character literals can be numbers, letters, or symbols (e.g. "\."), but multi-character literals
+    //  always have names comprised of lowercase letters. Therefore, if we detect the prospective second character in
+    //  the literal name to be a lowercase letter, then we scan for a literal name. Otherwise, we consider the literal
+    //  a single-character literal.
+    let rawUnichar = strAsUtf16.characterAtIndex(start + 1)
+    let asStr = strAsUtf16.substringWithRange(NSRange(location: start + 1, length: 1))
+    let character = Character(asStr)
+    return (.CharLiteral(character), 1)
+  }
+
+  // Character literal with a character name (e.g. 'newline')
+  var idx = start + 2
+  while idx < strLength {
+    if !nonTerminationSet.characterIsMember(strAsUtf16.characterAtIndex(idx)) {
+      break
+    }
+    idx++
+  }
+  // The actual end is one prior to the end of the string or the termination character.
+  idx -= 1
+  let literalLength = idx - start
+  assert(literalLength > 1)
+  let literalName = strAsUtf16.substringWithRange(NSRange(location: start + 1, length: literalLength))
+
+  switch literalName {
+  case "space":
+    return (.CharLiteral(" "), literalLength)
+  case "tab":
+    return (.CharLiteral("\t"), literalLength)
+  case "newline":
+    return (.CharLiteral("\n"), literalLength)
+  case "return":
+    return (.CharLiteral("\r"), literalLength)
+  default:
+    return nil
+  }
 }

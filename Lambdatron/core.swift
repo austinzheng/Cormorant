@@ -163,6 +163,7 @@ enum ConsValue : Hashable {
   case BoolLiteral(Bool)
   case IntegerLiteral(Int)
   case FloatLiteral(Double)
+  case CharacterLiteral(Character)
   case StringLiteral(String)
   case ListLiteral(Cons)
   case VectorLiteral(Vector)
@@ -183,6 +184,7 @@ enum ConsValue : Hashable {
     case let BoolLiteral(b): return b.hashValue
     case let IntegerLiteral(v): return v.hashValue
     case let FloatLiteral(d): return d.hashValue
+    case let CharacterLiteral(c): return c.hashValue
     case let StringLiteral(s): return s.hashValue
     case let ListLiteral(l): return l.hashValue
     case let VectorLiteral(v): return v.count == 0 ? 0 : v[0].hashValue

@@ -106,6 +106,11 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .FloatLiteral(n2): return n1 == n2
     default: return false
     }
+  case let .CharacterLiteral(c1):
+    switch rhs {
+    case let .CharacterLiteral(c2): return c1 == c2
+    default: return false
+    }
   case let .StringLiteral(s1):
     switch rhs {
     case let .StringLiteral(s2): return s1 == s2

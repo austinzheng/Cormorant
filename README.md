@@ -71,15 +71,13 @@ Lambdatron has the following features:
 
 **Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
 
-**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and string literals (e.g. `"this is a string literal"`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`.
+**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`), and string literals (e.g. `"this is a string literal"`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`. 
 
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` can be used to force evaluation of the unquote form, while `~@` can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
 
-### Included
-
-These include special forms, reader macros, and built-in functions.
+The following special forms, reader macros, and functions are built into the interpreter:
 
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
@@ -127,7 +125,7 @@ Development Objectives
 
 Development objectives can be divided into two categories.
 
-### Short Term
+### Working On
 
 These are objectives I am working on right now, or plan on doing in the near future.
 
@@ -141,7 +139,7 @@ These are objectives I am working on right now, or plan on doing in the near fut
 - Full unit test suite (once development stabilizes)
 
 
-### (Very) Long Term
+### (Very) Long Term Goals
 
 These are objectives that are either too big in scope to schedule, too technically challenging at this time, or of uncertain utility.
 
@@ -158,7 +156,7 @@ These are objectives that are either too big in scope to schedule, too technical
 Differences From Clojure
 ------------------------
 
-Aside from the (long) list of features not yet implemented (see the *Working On* and *Very Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
+Aside from the (long) list of features not yet implemented (see the *Working On* and *(Very) Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
 * `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
