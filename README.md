@@ -1,7 +1,7 @@
 Lambdatron
 ==========
 
-An interpreter for a Lisp dialect, implemented in Swift. Syntax and conventions are modeled off [Clojure's](http://clojure.org/), and the interpreter endeavors to match Clojure's behavior as closely as possible. Eventual goal is a library that can be used independently of the REPL front-end.
+An interpreter for a non-trivial subset of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
 
 Application
@@ -146,6 +146,7 @@ These are objectives that are either too big in scope to schedule, too technical
 - Persistent data structures
 - Proper support for lazy collections
 - STM and support for multithreading
+- Metadata
 - Destructuring via pattern matching
 - Interpreter rewrite (compile to bytecode rather than direct interpretation) - probably as a separate project
 - Full Foundation/Cocoa bindings
