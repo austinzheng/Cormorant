@@ -232,7 +232,7 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
-func pr_mod(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
   }

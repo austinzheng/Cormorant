@@ -17,6 +17,8 @@
 
 (def print .print)
 
+(def rem .rem)
+
 (def nil? .nil?)
 (def number? .number?)
 (def int? .int?)
