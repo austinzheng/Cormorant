@@ -278,7 +278,7 @@ func lex(raw: String) -> LexResult {
       }
       else if tValue.characterAtIndex(0) == UInt16(UnicodeScalar(":").value) && tValue.length > 1 {
         // This is a keyword (starts with ":" and has at least one other character)
-        tokenBuffer.append(.Keyword(u))
+        tokenBuffer.append(.Keyword(u.substringWithRange(u.startIndex.successor()..<u.endIndex)))
       }
       else if tValue == "nil" {
         // Literal nil

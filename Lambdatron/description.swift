@@ -56,7 +56,7 @@ extension ConsValue {
     case let Keyword(v):
       if let ctx = ctx {
         let name = ctx.nameForKeyword(v)
-        return debug ? "ConsValue.Keyword(\(name))" : name
+        return debug ? "ConsValue.Keyword(:\(name))" : ":" + name
       }
       return debug ? "ConsValue.Keyword(id:\(v.identifier))" : "keyword:\(v.identifier)"
     case NilLiteral:

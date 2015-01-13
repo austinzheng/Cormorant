@@ -75,20 +75,21 @@ Lambdatron has the following features:
 
 **Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`.
 
-**Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` can be used to force evaluation of the unquote form, while `~@` can be used to force evaluation of a form to a collection whose elements are then spliced in.
+**Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` (unquote) can be used to force evaluation of the unquote form, while `~@` (unquote-splice) can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
 
 The following special forms, reader macros, and functions are built into the interpreter:
 
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
-- Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
+- Reader macros: `'`, `` ` ``, `~`, `~@`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
+- Primitive manipulation: `symbol`, `keyword`, `int`, `double`
 - I/O: `print`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `>`
-- Miscellaneous: `int`, `double`, `eval`, `fail`
+- Miscellaneous: `eval`, `fail`
 
 
 Development
@@ -165,6 +166,7 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
 * The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.
 * The `subnormal?`, `infinite?`, and `nan?` functions return false for integer arguments, and can be used to test whether floating point numbers are subnormal, infinite, or NaN (respectively).
+* `keyword` returns `nil` if given an empty string as an argument, not an invalid empty symbol.
 
 
 License

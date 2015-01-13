@@ -15,6 +15,11 @@
 (def assoc .assoc)
 (def dissoc .dissoc)
 
+(def symbol .symbol)
+(def keyword .keyword)
+(def int .int)
+(def double .double)
+
 (def print .print)
 
 (def rem .rem)
@@ -40,7 +45,5 @@
 (def infinite? .infinite?)
 (def nan? .nan?)
 
-(def int .int)
-(def double .double)
 (def eval .eval)
 (def fail .fail)
