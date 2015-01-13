@@ -70,6 +70,8 @@ enum BuiltIn : String, Printable {
   case Quotient = ".quot"
   
   // Miscellaneous
+  case Int = ".int"
+  case Double = ".double"
   case Fail = ".fail"
   
   // TEMPORARY BOOTSTRAP
@@ -124,6 +126,8 @@ enum BuiltIn : String, Printable {
     case Divide: return pr_divide
     case Remainder: return pr_rem
     case Quotient: return pr_quot
+    case Int: return pr_toInt
+    case Double: return pr_toDouble
     case Fail: return pr_fail
       
     // TEMPORARY

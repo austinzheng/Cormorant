@@ -88,7 +88,7 @@ The following special forms, reader macros, and functions are built into the int
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `>`
-- Miscellaneous: `fail`
+- Miscellaneous: `int`, `double`, `fail`
 
 
 Development
@@ -163,6 +163,7 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 
 * `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
+* The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.
 * The `subnormal?`, `infinite?`, and `nan?` functions return false for integer arguments, and can be used to test whether floating point numbers are subnormal, infinite, or NaN (respectively).
 
 

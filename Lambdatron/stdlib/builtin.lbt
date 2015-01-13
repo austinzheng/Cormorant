@@ -40,4 +40,6 @@
 (def infinite? .infinite?)
 (def nan? .nan?)
 
+(def int .int)
+(def double .double)
 (def fail .fail)
