@@ -54,6 +54,10 @@ func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
   case .NilLiteral:
     // Create a new list consisting of just the first object
     return .Success(.ListLiteral(Cons(first)))
+  case let .StringLiteral(s):
+    // Create a new list consisting of the first object, followed by the seq of the string
+    let list = listFromString(s)
+    return pr_cons([first, list], ctx)
   case let .ListLiteral(l):
     // Create a new list consisting of the first object, followed by the second list (if not empty)
     return .Success(.ListLiteral(l.isEmpty ? Cons(first) : Cons(first, next: l)))
@@ -97,6 +101,8 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
   switch first {
   case .NilLiteral:
     return .Success(.NilLiteral)
+  case let .StringLiteral(s):
+    return pr_first([listFromString(s)], ctx)
   case let .ListLiteral(l):
     return .Success(l.isEmpty ? .NilLiteral : l.value)
   case let .VectorLiteral(v):
@@ -121,10 +127,12 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
   let first = args[0]
   switch first {
   case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case let .StringLiteral(s):
+    return pr_rest([listFromString(s)], ctx)
   case let .ListLiteral(l):
-    if let actualNext = l.next {
+    if let next = l.next {
       // List has more than one item
-      return .Success(.ListLiteral(actualNext))
+      return .Success(.ListLiteral(next))
     }
     else {
       // List has zero or one items, return the empty list
@@ -181,6 +189,8 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
   let first = args[0]
   switch first {
   case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case let .StringLiteral(s):
+    return pr_next([listFromString(s)], ctx)
   case let .ListLiteral(l):
     if let actualNext = l.next {
       // List has more than one item
@@ -237,6 +247,8 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   switch args[0] {
   case .NilLiteral: return .Success(args[0])
+  case let .StringLiteral(s):
+    return .Success(listFromString(s))
   case let .ListLiteral(l):
     return .Success(l.isEmpty ? .NilLiteral : .ListLiteral(l))
   case let .VectorLiteral(v):
@@ -278,29 +290,40 @@ func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.ListLiteral(Cons()))
   }
-  // TODO: Support strings (which should concat into characters)
   var headInitialized = false
   var head = Cons()
   var this = head
+
+  // A helper function responsible for concatenating a list to the in-progress result list starting at 'head'.
+  func concatList(list: Cons) {
+    if list.isEmpty {
+      return
+    }
+    var head : Cons? = list
+    while let actualHead = head {
+      if !headInitialized {
+        this.value = actualHead.value
+        headInitialized = true
+      }
+      else {
+        let next = Cons(actualHead.value)
+        this.next = next
+        this = next
+      }
+      head = actualHead.next
+    }
+  }
+
   for arg in args {
     switch arg {
     case .NilLiteral: continue
-    case let .ListLiteral(l):
-      if !l.isEmpty {
-        var listHead : Cons? = l
-        while let actualHead = listHead {
-          if !headInitialized {
-            this.value = actualHead.value
-            headInitialized = true
-          }
-          else {
-            let next = Cons(actualHead.value)
-            this.next = next
-            this = next
-          }
-          listHead = actualHead.next
-        }
+    case let .StringLiteral(s):
+      if let list = listFromString(s).asList() {
+        concatList(list)
       }
+      // Otherwise, if nil just skip this string
+    case let .ListLiteral(l):
+      concatList(l)
     case let .VectorLiteral(v):
       for item in v {
         if !headInitialized {
@@ -344,10 +367,19 @@ func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
       if let fallback = fallback { return .Success(fallback) }
       return .Failure(.OutOfBoundsError)
     }
-    
+
     switch args[0] {
     case let .StringLiteral(s):
-      fatalError("Not yet implemented")
+      // We have to walk the string
+      if let character = characterAtIndex(s, idx) {
+        return .Success(.CharacterLiteral(character))
+      }
+      else if let fallback = fallback {
+        return .Success(fallback)
+      }
+      else {
+        return .Failure(.OutOfBoundsError)
+      }
     case let .ListLiteral(l):
       // We have to walk the list
       if !l.isEmpty {
@@ -395,9 +427,19 @@ func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
   
   switch args[0] {
   case let .StringLiteral(s):
-    fatalError("Not yet implemented")
+    if let idx = key.asInteger() {
+      if let character = characterAtIndex(s, idx) {
+        return .Success(.CharacterLiteral(character))
+      }
+    }
+    return .Success(fallback)
   case let .VectorLiteral(v):
-    fatalError("Not yet implemented")
+    if let idx = key.asInteger() {
+      if idx >= 0 && idx < v.count {
+        return .Success(v[idx])
+      }
+    }
+    return .Success(fallback)
   case let .MapLiteral(m):
     return .Success(m[key] ?? fallback)
   default:
@@ -414,6 +456,26 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
       starting[key] = value
     }
   }
+
+  func updateVectorFromArray(raw: [ConsValue], inout buffer: Vector, count: Int) -> EvalError? {
+    for var i=0; i<raw.count - 1; i += 2 {
+      let idx = raw[i]
+      if let idx = idx.asInteger() {
+        if idx >= 0 && idx < count {
+          let value = raw[i+1]
+          buffer[idx] = value
+        }
+        else {
+          return .OutOfBoundsError
+        }
+      }
+      else {
+        return .InvalidArgumentError
+      }
+    }
+    return nil
+  }
+
   // This function requires at least one collection/nil and one key/index-value pair
   if args.count < 3 {
     return .Failure(.ArityError)
@@ -430,11 +492,14 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
     var newMap : Map = [:]
     updateMapFromArray(rest, &newMap)
     return .Success(.MapLiteral(newMap))
-  case let .StringLiteral(s):
-    // TODO: Implement string and vector support. This will require support for integers.
-    fatalError("Not yet implemented")
   case let .VectorLiteral(v):
-    fatalError("Not yet implemented")
+    // Each pair is an index and a new value. Update a copy of the vector and return that.
+    var newVector = v
+    let possibleError = updateVectorFromArray(rest, &newVector, v.count)
+    if let error = possibleError {
+      return .Failure(error)
+    }
+    return .Success(.VectorLiteral(newVector))
   case let .MapLiteral(m):
     var newMap = m
     updateMapFromArray(rest, &newMap)

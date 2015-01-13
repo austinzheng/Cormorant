@@ -63,6 +63,8 @@ Lambdatron has the following features:
 
 **Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function. Maps can be used in function position in order to get a value for a key.
 
+**Strings**, declared using double quotes: `"this is a string literal"`. Strings can be manipulated using `first`, `rest`, etc.
+
 **Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Or create a function bound to a global name using `defn`. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
 **Macros** are like functions, except that their arguments aren't evaluated before being passed in and the output is intended to be a form which can be further evaluated at runtime. Like functions, macros capture their (non parameter binding) context. Create them using `defmacro`. Macros can be defined with multiple arities and/or varargs.
@@ -71,7 +73,7 @@ Lambdatron has the following features:
 
 **Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
 
-**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`), and string literals (e.g. `"this is a string literal"`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`. 
+**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`.
 
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` can be used to force evaluation of the unquote form, while `~@` can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
@@ -130,7 +132,6 @@ Development objectives can be divided into two categories.
 These are objectives I am working on right now, or plan on doing in the near future.
 
 - Expanding standard library
-- Support for character literals
 - Support for sets
 - Basic namespacing
 - Ability to type in multiple forms at the top level

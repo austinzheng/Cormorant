@@ -14,3 +14,42 @@ import Foundation
   println("Internal error: \(message())")
   exit(EXIT_FAILURE)
 }
+
+// Swift string helpers
+
+/// Retrieve a character within a Swift string, or nil if the provided index is out of bounds. This is an O(n)
+/// operation with respect to the length of the string.
+func characterAtIndex(s: String, idx: Int) -> Character? {
+  for (stringIdx, character) in enumerate(s) {
+    if stringIdx == idx {
+      return character
+    }
+  }
+  return nil
+}
+
+/// Retrieve the first character in a Swift string.
+func firstCharacter(s: String) -> Character {
+  // Precondition: string is not empty
+  assert(!s.isEmpty)
+  return characterAtIndex(s, 0)!
+}
+
+/// Build a list out of a string, or return the nil literal if the string is empty.
+func listFromString(s: String) -> ConsValue {
+  if s.isEmpty {
+    return .NilLiteral
+  }
+  let head = Cons(.CharacterLiteral(firstCharacter(s)))
+  var this = head
+  for (idx, character) in enumerate(s) {
+    if idx == 0 {
+      // Skip the first character, since we already processed it above
+      continue
+    }
+    let next = Cons(.CharacterLiteral(character))
+    this.next = next
+    this = next
+  }
+  return .ListLiteral(head)
+}
