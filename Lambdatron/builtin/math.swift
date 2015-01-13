@@ -112,7 +112,8 @@ func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v1):
     switch num1 {
     case let .Integer(v2):
-      return .Success(.IntegerLiteral(v1 + v2))
+      let (sum, overflow) = Int.addWithOverflow(v1, v2)
+      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(sum))
     case let .Float(v2):
       return .Success(.FloatLiteral(Double(v1) + v2))
     case .Invalid:
@@ -144,7 +145,8 @@ func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v1):
     switch num1 {
     case let .Integer(v2):
-      return .Success(.IntegerLiteral(v1 - v2))
+      let (difference, overflow) = Int.subtractWithOverflow(v1, v2)
+      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(difference))
     case let .Float(v2):
       return .Success(.FloatLiteral(Double(v1) - v2))
     case .Invalid:
@@ -176,7 +178,8 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v1):
     switch num1 {
     case let .Integer(v2):
-      return .Success(.IntegerLiteral(v1 * v2))
+      let (product, overflow) = Int.multiplyWithOverflow(v1, v2)
+      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(product))
     case let .Float(v2):
       return .Success(.FloatLiteral(Double(v1) * v2))
     case .Invalid:
@@ -196,7 +199,7 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
-/// Take one or more numbers and return their quotient. If only one number, returns 1/arg[0].
+/// Take two numbers and return the result of dividing the first by the second.
 func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)
@@ -208,8 +211,17 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v1):
     switch num1 {
     case let .Integer(v2):
+      // In lieu of support for rationals (at this time), we return an Int if the two numbers are evenly divisible, a
+      //  Double otherwise.
       if v2 == 0 { return .Failure(.DivideByZeroError) }
-      return .Success(.FloatLiteral(Double(v1) / Double(v2)))
+      let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
+      if !overflow && remainder == 0 {
+        let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
+        return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(quotient))
+      }
+      else {
+        return .Success(.FloatLiteral(Double(v1) / Double(v2)))
+      }
     case let .Float(v2):
       if v2 == 0 { return .Failure(.DivideByZeroError) }
       return .Success(.FloatLiteral(Double(v1) / v2))
@@ -245,7 +257,8 @@ func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       if v2 == 0 { return .Failure(.DivideByZeroError) }
-      return .Success(.IntegerLiteral(v1 % v2))
+      let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
+      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(remainder))
     case let .Float(v2):
       if v2 == 0 { return .Failure(.DivideByZeroError) }
       return .Success(.FloatLiteral(Double(v1) % v2))
@@ -260,6 +273,43 @@ func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Float(v2):
       if v2 == 0 { return .Failure(.DivideByZeroError) }
       return .Success(.FloatLiteral(v1 % v2))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Take two numbers and return their quotient.
+func pr_quot(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(.ArityError)
+  }
+  let num0 = extractNumber(args[0])
+  let num1 = extractNumber(args[1])
+
+  switch num0 {
+  case let .Integer(v1):
+    switch num1 {
+    case let .Integer(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
+      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(quotient))
+    case let .Float(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(floor(Double(v1) / v2)))
+    case .Invalid:
+      return .Failure(.InvalidArgumentError)
+    }
+  case let .Float(v1):
+    switch num1 {
+    case let .Integer(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(floor(v1 / Double(v2))))
+    case let .Float(v2):
+      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      return .Success(.FloatLiteral(floor(v1 / v2)))
     case .Invalid:
       return .Failure(.InvalidArgumentError)
     }

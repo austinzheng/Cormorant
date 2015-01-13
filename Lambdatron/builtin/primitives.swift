@@ -49,6 +49,9 @@ enum BuiltIn : String, Printable {
   case IsPos = ".pos?"
   case IsNeg = ".neg?"
   case IsZero = ".zero?"
+  case IsSubnormal = ".subnormal?"
+  case IsInfinite = ".infinite?"
+  case IsNaN = ".nan?"
   
   // Identity comparison
   case Equals = ".="
@@ -64,6 +67,7 @@ enum BuiltIn : String, Printable {
   case Multiply = ".*"
   case Divide = "./"
   case Remainder = ".rem"
+  case Quotient = ".quot"
   
   // Miscellaneous
   case Fail = ".fail"
@@ -107,6 +111,9 @@ enum BuiltIn : String, Printable {
     case IsPos: return pr_isPos
     case IsNeg: return pr_isNeg
     case IsZero: return pr_isZero
+    case IsSubnormal: return pr_isSubnormal
+    case IsInfinite: return pr_isInfinite
+    case IsNaN: return pr_isNaN
     case Equals: return pr_equals
     case NumericEquals: return pr_numericEquals
     case GreaterThan: return pr_gt
@@ -116,6 +123,7 @@ enum BuiltIn : String, Printable {
     case Multiply: return pr_multiply
     case Divide: return pr_divide
     case Remainder: return pr_rem
+    case Quotient: return pr_quot
     case Fail: return pr_fail
       
     // TEMPORARY

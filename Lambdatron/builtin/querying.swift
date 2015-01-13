@@ -174,7 +174,7 @@ func pr_isPos(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v):
     return .Success(.BoolLiteral(v > 0))
   case let .Float(v):
-    return .Success(.BoolLiteral(v > 0.0))
+    return .Success(.BoolLiteral(!v.isSignMinus && !v.isZero))
   case .Invalid:
     return .Failure(.InvalidArgumentError)
   }
@@ -190,7 +190,7 @@ func pr_isNeg(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v):
     return .Success(.BoolLiteral(v < 0))
   case let .Float(v):
-    return .Success(.BoolLiteral(v < 0.0))
+    return .Success(.BoolLiteral(v.isSignMinus && !v.isZero))
   case .Invalid:
     return .Failure(.InvalidArgumentError)
   }
@@ -206,7 +206,55 @@ func pr_isZero(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v):
     return .Success(.BoolLiteral(v == 0))
   case let .Float(v):
-    return .Success(.BoolLiteral(v == 0.0))
+    return .Success(.BoolLiteral(v.isZero))
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Return whether or not a number is floating-point and subnormal (indicating underflow).
+func pr_isSubnormal(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let num = extractNumber(args[0])
+  switch num {
+  case let .Integer(v):
+    return .Success(.BoolLiteral(false))
+  case let .Float(v):
+    return .Success(.BoolLiteral(v.isSubnormal))
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Return whether or not a number is floating-point and infinite.
+func pr_isInfinite(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let num = extractNumber(args[0])
+  switch num {
+  case let .Integer(v):
+    return .Success(.BoolLiteral(false))
+  case let .Float(v):
+    return .Success(.BoolLiteral(v.isInfinite))
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Return whether or not a number is floating-point and a NaN.
+func pr_isNaN(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let num = extractNumber(args[0])
+  switch num {
+  case let .Integer(v):
+    return .Success(.BoolLiteral(false))
+  case let .Float(v):
+    return .Success(.BoolLiteral(v.isNaN))
   case .Invalid:
     return .Failure(.InvalidArgumentError)
   }

@@ -18,6 +18,7 @@
 (def print .print)
 
 (def rem .rem)
+(def quot .quot)
 
 (def nil? .nil?)
 (def number? .number?)
@@ -35,5 +36,8 @@
 (def pos? .pos?)
 (def neg? .neg?)
 (def zero? .zero?)
+(def subnormal? .subnormal?)
+(def infinite? .infinite?)
+(def nan? .nan?)
 
 (def fail .fail)

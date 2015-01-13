@@ -36,6 +36,7 @@ enum EvalError : Printable, Equatable {
   case OutOfBoundsError
   case NotEvalableError
   case DivideByZeroError
+  case IntegerOverflowError
   case BindingMismatchError
   case InvalidSymbolError
   case UnboundSymbolError
@@ -56,6 +57,7 @@ enum EvalError : Printable, Equatable {
     case OutOfBoundsError: return "OutOfBoundsError"
     case NotEvalableError: return "NotEvalableError"
     case DivideByZeroError: return "DivideByZeroError"
+    case IntegerOverflowError: return "IntegerOverflowError"
     case BindingMismatchError: return "BindingMismatchError"
     case InvalidSymbolError: return "InvalidSymbolError"
     case UnboundSymbolError: return "UnboundSymbolError"
@@ -84,6 +86,8 @@ enum EvalError : Printable, Equatable {
         return "item in function position is not something that can be evaluated"
       case DivideByZeroError:
         return "attempted to divide by zero"
+      case IntegerOverflowError:
+        return "arithmetic operation resulted in overflow"
       case BindingMismatchError:
         return "let or loop binding vector must have an even number of elements"
       case InvalidSymbolError:
