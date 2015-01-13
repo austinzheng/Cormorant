@@ -88,7 +88,7 @@ The following special forms, reader macros, and functions are built into the int
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `>`
-- Miscellaneous: `int`, `double`, `fail`
+- Miscellaneous: `int`, `double`, `eval`, `fail`
 
 
 Development

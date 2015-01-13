@@ -42,4 +42,5 @@
 
 (def int .int)
 (def double .double)
+(def eval .eval)
 (def fail .fail)

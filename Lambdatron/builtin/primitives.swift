@@ -72,6 +72,7 @@ enum BuiltIn : String, Printable {
   // Miscellaneous
   case Int = ".int"
   case Double = ".double"
+  case Eval = ".eval"
   case Fail = ".fail"
   
   // TEMPORARY BOOTSTRAP
@@ -128,6 +129,7 @@ enum BuiltIn : String, Printable {
     case Quotient: return pr_quot
     case Int: return pr_toInt
     case Double: return pr_toDouble
+    case Eval: return pr_eval
     case Fail: return pr_fail
       
     // TEMPORARY

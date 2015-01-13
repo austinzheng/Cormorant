@@ -76,6 +76,14 @@ func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Success(.NilLiteral)
 }
 
+/// Evaluate a given form and return the result.
+func pr_eval(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  return args[0].evaluate(ctx)
+}
+
 /// Force a failure. Call with zero arguments or a string containing an error message.
 func pr_fail(args: [ConsValue], ctx: Context) -> EvalResult {
   return .Failure(.RuntimeError(args.count > 0 ? args[0].asStringLiteral() : nil))
