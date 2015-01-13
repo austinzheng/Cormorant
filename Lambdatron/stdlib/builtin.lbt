@@ -32,5 +32,8 @@
 (def vector? .vector?)
 (def map? .map?)
 (def seq? .seq?)
+(def pos? .pos?)
+(def neg? .neg?)
+(def zero? .zero?)
 
 (def fail .fail)

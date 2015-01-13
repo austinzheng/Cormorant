@@ -163,3 +163,51 @@ func pr_isSeq(args: [ConsValue], ctx: Context) -> EvalResult {
   default: return .Success(.BoolLiteral(false))
   }
 }
+
+/// Return whether or not a number is positive.
+func pr_isPos(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let num = extractNumber(args[0])
+  switch num {
+  case let .Integer(v):
+    return .Success(.BoolLiteral(v > 0))
+  case let .Float(v):
+    return .Success(.BoolLiteral(v > 0.0))
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Return whether or not a number is negative.
+func pr_isNeg(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let num = extractNumber(args[0])
+  switch num {
+  case let .Integer(v):
+    return .Success(.BoolLiteral(v < 0))
+  case let .Float(v):
+    return .Success(.BoolLiteral(v < 0.0))
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}
+
+/// Return whether or not a number is zero.
+func pr_isZero(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  let num = extractNumber(args[0])
+  switch num {
+  case let .Integer(v):
+    return .Success(.BoolLiteral(v == 0))
+  case let .Float(v):
+    return .Success(.BoolLiteral(v == 0.0))
+  case .Invalid:
+    return .Failure(.InvalidArgumentError)
+  }
+}

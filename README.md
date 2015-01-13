@@ -85,7 +85,7 @@ The following special forms, reader macros, and functions are built into the int
 - Reader macros: `'` (normal quote), `` ` `` (syntax-quote), `~` (unquote), `~@` (unquote-splice) 
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
 - I/O: `print`
-- Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`
+- Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`
 - Comparison: `=`, `==`, `<`, `>`
 - Miscellaneous: `fail`
@@ -149,6 +149,7 @@ These are objectives that are either too big in scope to schedule, too technical
 - STM and support for multithreading
 - Metadata
 - Destructuring via pattern matching
+- Rationals and bignums (may need to wait for a suitable Swift library handling these first)
 - Interpreter rewrite (compile to bytecode rather than direct interpretation) - probably as a separate project
 - Full Foundation/Cocoa bindings
 - Better Swift runtime interop (if proper reflection support ever comes to Swift)

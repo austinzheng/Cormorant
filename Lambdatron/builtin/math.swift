@@ -232,6 +232,7 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Take the remainder of two numbers.
 func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(.ArityError)

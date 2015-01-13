@@ -8,7 +8,7 @@
 
 import Foundation
 
-let stdlib_files = ["core", "builtin", "flow"]
+let stdlib_files = ["core", "builtin", "flow", "math"]
 
 func loadStdlibInto(context: Context, files: [String]) {
   for file in files {

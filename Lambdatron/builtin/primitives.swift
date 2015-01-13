@@ -46,6 +46,9 @@ enum BuiltIn : String, Printable {
   case IsVector = ".vector?"
   case IsMap = ".map?"
   case IsSeq = ".seq?"
+  case IsPos = ".pos?"
+  case IsNeg = ".neg?"
+  case IsZero = ".zero?"
   
   // Identity comparison
   case Equals = ".="
@@ -101,6 +104,9 @@ enum BuiltIn : String, Printable {
     case IsVector: return pr_isVector
     case IsMap: return pr_isMap
     case IsSeq: return pr_isSeq
+    case IsPos: return pr_isPos
+    case IsNeg: return pr_isNeg
+    case IsZero: return pr_isZero
     case Equals: return pr_equals
     case NumericEquals: return pr_numericEquals
     case GreaterThan: return pr_gt
