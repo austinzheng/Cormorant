@@ -73,7 +73,13 @@ Lambdatron has the following features:
 
 **Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
 
-**Basic types** include booleans (`true` and `false`), `nil`, integers, floating-point numbers (e.g. `1.234`), and character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`). Keywords can also be defined by specifying a name prefixed by a leading colon: `:else`.
+**Basic types** include:
+* Booleans (`true` and `false`)
+* `nil`
+* integers
+* floating-point numbers (e.g. `1.234`)
+* character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`), which can be used in function position
+* keywords (`:else`), which can be used in function position
 
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` (unquote) can be used to force evaluation of the unquote form, while `~@` (unquote-splice) can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
@@ -167,6 +173,7 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.
 * The `subnormal?`, `infinite?`, and `nan?` functions return false for integer arguments, and can be used to test whether floating point numbers are subnormal, infinite, or NaN (respectively).
 * `keyword` returns `nil` if given an empty string as an argument, not an invalid empty symbol.
+* Only the `\return`, `\newline`, `\tab`, and `\space` special character literals are supported. The `\uNNNN` and `\oNNN` forms are not supported.
 
 
 License

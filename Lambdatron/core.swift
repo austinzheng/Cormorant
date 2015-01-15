@@ -214,6 +214,13 @@ enum ConsValue : Hashable {
     default: return nil
     }
   }
+
+  func asKeyword() -> InternedKeyword? {
+    switch self {
+    case let .Keyword(k): return k
+    default: return nil
+    }
+  }
   
   func asList() -> Cons? {
     switch self {

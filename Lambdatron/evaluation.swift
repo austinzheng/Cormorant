@@ -123,6 +123,23 @@ extension Cons {
     case let .Failure(f): return .Failure(f)
     }
   }
+
+  /// Evaluate a list with a symbol or keyword in function position.
+  private func evaluateKeyType(key: ConsValue, ctx: Context) -> EvalResult {
+    logEval("evaluating as function with symbol or keyword in function position: \(self.describe(ctx))")
+    // How it works:
+    // 1. (*key* *map* *fallback*) is translated into (get *map* *key* *fallback*).
+    // 2. Normal function call
+    switch Cons.collectValues(next, ctx) {
+    case let .Success(args):
+      if !(args.count == 1 || args.count == 2) {
+        return .Failure(.ArityError)
+      }
+      let allArgs : [ConsValue] = [args[0], key] + (args.count == 2 ? [args[1]] : [])
+      return pr_get(allArgs, ctx)
+    case let .Failure(f): return .Failure(f)
+    }
+  }
   
   /// Apply the values in the array 'args' to the function 'first'.
   class func apply(first: ConsValue, args: [ConsValue], ctx: Context) -> EvalResult {
@@ -132,11 +149,14 @@ extension Cons {
     else if let function = first.asFunction() {
       return function.evaluate(args)
     }
-    else if let vector = first.asVector() {
+    else if first.asVector() != nil {
       return args.count == 2 ? pr_nth([first] + args, ctx) : .Failure(.ArityError)
     }
-    else if let map = first.asMap() {
+    else if first.asMap() != nil {
       return pr_get([first] + args, ctx)
+    }
+    else if first.asSymbol() != nil || first.asKeyword() != nil {
+      return pr_get([args[0], first] + (args.count == 2 ? [args[1]] : []), ctx)
     }
     else {
       return .Failure(.NotEvalableError)
@@ -175,6 +195,12 @@ extension Cons {
       }
       else if let map = fpItem.asMap() {
         return evaluateMap(map, ctx: ctx)
+      }
+      else if let symbol = fpItem.asSymbol() {
+        return evaluateKeyType(.Symbol(symbol), ctx: ctx)
+      }
+      else if let keyword = fpItem.asKeyword() {
+        return evaluateKeyType(.Keyword(keyword), ctx: ctx)
       }
       else {
         // 3a: 'a' is not something that can be used in function position (e.g. nil)
