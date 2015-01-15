@@ -97,14 +97,15 @@ extension Cons {
     // How it works:
     // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
     // 2. Normal function call
-    switch Cons.collectValues(self, ctx) {
+    switch Cons.collectValues(next, ctx) {
     case let .Success(args):
       if args.count != 2 {
         // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
         // behavior.
         return .Failure(.ArityError)
       }
-      return pr_nth(args, ctx)
+      let allArgs : [ConsValue] = [.VectorLiteral(vector)] + args
+      return pr_nth(allArgs, ctx)
     case let .Failure(f): return .Failure(f)
     }
   }
@@ -115,8 +116,10 @@ extension Cons {
     // How it works:
     // 1. (*map* *args*...) is translated into (get *map* *args*...).
     // 2. Normal function call
-    switch Cons.collectValues(self, ctx) {
-    case let .Success(args): return pr_get(args, ctx)
+    switch Cons.collectValues(next, ctx) {
+    case let .Success(args):
+      let allArgs : [ConsValue] = [.MapLiteral(map)] + args
+      return pr_get(allArgs, ctx)
     case let .Failure(f): return .Failure(f)
     }
   }
