@@ -99,7 +99,7 @@ extension Cons {
     // 2. Normal function call
     switch Cons.collectValues(next, ctx) {
     case let .Success(args):
-      if args.count != 2 {
+      if args.count != 1 {
         // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
         // behavior.
         return .Failure(.ArityError)
