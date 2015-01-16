@@ -6,6 +6,9 @@
 (defmacro defn [fnname & fnargs]
   `(def ~fnname (fn ~@fnargs)))
 
+; Return the argument.
+(defn identity [x] x)
+
 ; Return the logical opposite of the argument
 (defn not [x]
   (if x false true))
@@ -123,6 +126,36 @@
         (.= y (first more))
       )
       false)))
+
+; Given a collection, return true iff (pred x) is logical true for every x in the collection.
+(defn every? [pred coll]
+  (cond
+    (nil? (seq coll)) true
+    (pred (first coll)) (recur pred (next coll))
+    :else false))
+
+; Given a function and a collection(s), create new collections by mapping all elements of the input collections.
+; TODO: Replace the (fn [a]... with an inline function
+(defn map
+  ([f coll]
+    (when-let [s (seq coll)]
+      (cons (f (first s)) (map f (rest s)))))
+  ([f c1 c2]
+    (let [s1 (seq c1) s2 (seq c2)]
+      (when (and s1 s2)
+        (cons (f (first s1) (first s2))
+          (map f (rest s1) (rest s2))))))
+  ([f c1 c2 c3]
+    (let [s1 (seq c1) s2 (seq c2) s3 (seq c3)]
+      (when (and  s1 s2 s3)
+        (cons (f (first s1) (first s2) (first s3))
+          (map f (rest s1) (rest s2) (rest s3))))))
+  ([f c1 c2 c3 & colls]
+    (let [step (fn step [cs]
+                 (let [ss (map seq cs)]
+                   (when (every? identity ss)
+                     (cons (map first ss) (step (map rest ss))))))]
+            (map (fn [a] (apply f a)) (step (conj colls c3 c2 c1))))))
 
 ; Given a filter function and a collection, return a sequence consisting of all elements that pass the filter.
 (defn filter [pred coll]
