@@ -41,7 +41,7 @@ extension Cons {
   
   /// Evaluate a special form.
   private func evaluateSpecialForm(specialForm: SpecialForm, ctx: Context) -> EvalResult {
-    logEval("evaluating as special form: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as special form: \(describe(ctx))")
     // How it works:
     // 1. Arguments are passed in as-is
     // 2. The special form decides whether or not to evaluate or use the arguments
@@ -53,7 +53,7 @@ extension Cons {
   
   /// Evaluate a built-in function.
   private func evaluateBuiltIn(builtIn: LambdatronBuiltIn, ctx: Context) -> EvalResult {
-    logEval("evaluating as built-in function: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as built-in function: \(describe(ctx))")
     switch Cons.collectValues(next, ctx) {
     case let .Success(values): return builtIn(values, ctx)
     case let .Failure(f): return .Failure(f)
@@ -62,7 +62,7 @@ extension Cons {
   
   /// Expand and evaluate a macro.
   private func evaluateMacro(macro: Macro, ctx: Context) -> EvalResult {
-    logEval("evaluating as macro expansion: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as macro expansion: \(describe(ctx))")
     // How it works:
     // 1. Arguments are passed in as-is
     // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
@@ -71,7 +71,7 @@ extension Cons {
     let expanded = macro.macroexpand(symbols)
     switch expanded {
     case let .Success(v):
-      logEval("macroexpansion complete; new form: \(v.describe(ctx))")
+      ctx.log(.Eval, message: "macroexpansion complete; new form: \(v.describe(ctx))")
       let result = v.evaluate(ctx)
       return result
     case .Failure: return expanded
@@ -80,7 +80,7 @@ extension Cons {
   
   /// Evaluate a user-defined function.
   private func evaluateFunction(function: Function, ctx: Context) -> EvalResult {
-    logEval("evaluating as function: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as function: \(describe(ctx))")
     // How it works:
     // 1. Arguments are evaluated before the function is ever invoked
     // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
@@ -93,7 +93,7 @@ extension Cons {
   
   /// Evaluate a list with a vector in function position.
   private func evaluateVector(vector: Vector, ctx: Context) -> EvalResult {
-    logEval("evaluating as function with vector in function position: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as function with vector in function position: \(describe(ctx))")
     // How it works:
     // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
     // 2. Normal function call
@@ -112,7 +112,7 @@ extension Cons {
   
   /// Evaluate a list with a map in function position.
   private func evaluateMap(map: Map, ctx: Context) -> EvalResult {
-    logEval("evaluating as function with map in function position: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as function with map in function position: \(describe(ctx))")
     // How it works:
     // 1. (*map* *args*...) is translated into (get *map* *args*...).
     // 2. Normal function call
@@ -126,7 +126,7 @@ extension Cons {
 
   /// Evaluate a list with a symbol or keyword in function position.
   private func evaluateKeyType(key: ConsValue, ctx: Context) -> EvalResult {
-    logEval("evaluating as function with symbol or keyword in function position: \(self.describe(ctx))")
+    ctx.log(.Eval, message: "evaluating as function with symbol or keyword in function position: \(describe(ctx))")
     // How it works:
     // 1. (*key* *map* *fallback*) is translated into (get *map* *key* *fallback*).
     // 2. Normal function call

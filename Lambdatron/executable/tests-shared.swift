@@ -24,23 +24,23 @@ class SucceedOnEvalTest : LambdatronTest {
   
   override func run(ctx: Context) -> TestResult {
     // TODO: we need to NOT make a new global context instance every time a single test is run.
-    let context = Context.globalContextInstance()
+    let i = Interpreter()
     let lexed = lex(input)
     switch lexed {
     case let .Success(lexed):
-      let parsed = parse(lexed, context)
+      let parsed = parse(lexed, i.context)
       switch parsed {
       case let .Success(parsed):
         let expanded = parsed.readerExpand()
         switch expanded {
         case let .Success(expanded):
-          let evaled = evaluate(expanded, ctx)
+          let evaled = evaluate(expanded, i.context)
           switch evaled {
           case let .Success(actual):
             return expected == actual
               ? .Pass
-              : .Fail(expected: "\(expected.describe(ctx))", got: "\(actual.describe(ctx))")
-          case let .Failure(e): return .Fail(expected: "\(expected.describe(ctx))", got: "error (\(e.name))")
+              : .Fail(expected: "\(expected.describe(i.context))", got: "\(actual.describe(i.context))")
+          case let .Failure(e): return .Fail(expected: "\(expected.describe(i.context))", got: "error (\(e.name))")
           }
         case .Failure:
           return .Error("expansion failure")
@@ -71,17 +71,17 @@ class FailOnEvalTest : LambdatronTest {
   
   override func run(ctx: Context) -> TestResult {
     // TODO: we need to NOT make a new global context instance every time a single test is run.
-    let context = Context.globalContextInstance()
+    let i = Interpreter()
     let lexed = lex(input)
     switch lexed {
     case let .Success(lexed):
-      let parsed = parse(lexed, context)
+      let parsed = parse(lexed, i.context)
       switch parsed {
       case let .Success(parsed):
         let expanded = parsed.readerExpand()
         switch expanded {
         case let .Success(expanded):
-          let evaled = evaluate(expanded, ctx)
+          let evaled = evaluate(expanded, i.context)
           switch evaled {
           case let .Success(s): return .Fail(expected: "error (\(error.name))", got: "\(s.describe(ctx))")
           case let .Failure(e):

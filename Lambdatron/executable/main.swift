@@ -59,13 +59,13 @@ func main() {
     // Execute a file
     let fileName = args[2]
     if let fileInput = fileDataForRawPath(fileName) {
-      let ctx = Context.globalContextInstance()
-      switch doFormForFileData(fileInput, ctx) {
+      let i = Interpreter()
+      switch doFormForFileData(fileInput, i.context) {
       case let .Success(forms):
-        let result = sf_do(forms, ctx)
+        let result = sf_do(forms, i.context)
         switch result {
         case let .Success(s):
-          println(s.isRecurSentinel ? "Evaluation error \(EvalError.RecurMisuseError)" : s.describe(ctx))
+          println(s.isRecurSentinel ? "Evaluation error \(EvalError.RecurMisuseError)" : s.describe(i.context))
         case let .Failure(f):
           println("Evaluation error \(f)")
         }

@@ -10,7 +10,8 @@ import Foundation
 
 class replInstance {
   let descriptor : NSFileHandle
-  internal var replContext = Context.globalContextInstance()
+  private var interpreter = Interpreter()
+  let logger = LoggingManager()
 
   init(descriptor: NSFileHandle) {
     self.descriptor = descriptor
@@ -18,6 +19,8 @@ class replInstance {
 
   func run() -> Bool {
     println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
+    interpreter.setLoggingFunction(.Eval, function: logger.logEval)
+
     // from http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application
     // TODO use capabilities of EditLine
     let prompt: LineReader = LineReader(argv0: C_ARGV[0])
@@ -34,7 +37,7 @@ class replInstance {
         // Remove the trailing newline
         let trimmedData = data.substringToIndex(data.length-1)
         if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
-          let shouldReturn = command.execute(args, ctx: &replContext)
+          let shouldReturn = command.execute(args, logger: logger, interpreter: &interpreter)
           if shouldReturn {
             return true
           }
@@ -44,17 +47,17 @@ class replInstance {
           switch x {
           case let .Success(lexedData):
 //            println("Your entry lexes to: \(lexedData)")
-            let parsed = parse(lexedData, replContext)
+            let parsed = parse(lexedData, interpreter.context)
             switch parsed {
             case let .Success(parsed):
 //              println("Your entry parses to: \(parsed)")
               let re = parsed.readerExpand()
               switch re {
               case let .Success(re):
-                switch evaluate(re, replContext) {
+                switch evaluate(re, interpreter.context) {
                 case let .Success(n):
 //              println("Your entry reader-expands to: \(re.description)")
-                  println(n.describe(replContext))
+                  println(n.describe(interpreter.context))
                 case let .Failure(f):
                   println("Evaluation error \(f)")
                 }

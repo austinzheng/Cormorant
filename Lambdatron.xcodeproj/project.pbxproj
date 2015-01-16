@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A0B02C81A68F96F007EF0F2 /* interpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02C71A68F96F007EF0F2 /* interpreter.swift */; };
 		1A22BCB51A25B02A00D34872 /* lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A22BCB21A25B02A00D34872 /* lexer.swift */; };
 		1A22BCB61A25B02A00D34872 /* loader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A22BCB31A25B02A00D34872 /* loader.swift */; };
 		1A22BCB71A25B02A00D34872 /* parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A22BCB41A25B02A00D34872 /* parser.swift */; };
@@ -67,6 +68,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A0B02C71A68F96F007EF0F2 /* interpreter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = interpreter.swift; sourceTree = "<group>"; };
 		1A22BCB21A25B02A00D34872 /* lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = lexer.swift; path = reader/lexer.swift; sourceTree = "<group>"; };
 		1A22BCB31A25B02A00D34872 /* loader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = loader.swift; path = reader/loader.swift; sourceTree = "<group>"; };
 		1A22BCB41A25B02A00D34872 /* parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = parser.swift; path = reader/parser.swift; sourceTree = "<group>"; };
@@ -163,6 +165,7 @@
 		1A73F0D719F7138100F266DA /* Lambdatron */ = {
 			isa = PBXGroup;
 			children = (
+				1A0B02C71A68F96F007EF0F2 /* interpreter.swift */,
 				1A24D9CB19F71645003980C1 /* core.swift */,
 				1AFF755E1A48D7D000F6BDD9 /* errors.swift */,
 				1AFB727C1A2DAE1400A0CB69 /* evaluation.swift */,
@@ -298,6 +301,7 @@
 				1AC8D30C1A3F639000B72D49 /* temp_bootstrap.swift in Sources */,
 				1ACD33191A4500E700A75CAE /* interned.swift in Sources */,
 				1ADAAD9C1A11E2FB00C2223E /* specialforms.swift in Sources */,
+				1A0B02C81A68F96F007EF0F2 /* interpreter.swift in Sources */,
 				1A7D81591A5FAF460049A47A /* tests-shared.swift in Sources */,
 				1AC8D30A1A3F636800B72D49 /* builtin.swift in Sources */,
 				1A2BA9D71A537E0100E73A17 /* tests.swift in Sources */,

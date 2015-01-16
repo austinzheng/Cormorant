@@ -32,9 +32,9 @@ func runAllTests() -> OverallTestResults {
 func runTests(tests: [LambdatronTest]) -> OverallTestResults {
   var pass = 0
   var fail = 0
-  let context = Context.globalContextInstance()
+  let i = Interpreter()
   for test in tests {
-    let result = test.run(context)
+    let result = test.run(i.context)
     switch result {
     case .Pass:
       println("PASSED (\(test.name))")

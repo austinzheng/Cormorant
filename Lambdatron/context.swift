@@ -55,12 +55,9 @@ class Context {
   private func retrieveBaseParent() -> BaseContext {
     internalError("Subclasses must override this")
   }
-  
-  /// Create a new global context. This is the baseline context which execution should begin with.
-  class func globalContextInstance() -> Context {
-    let context = BaseContext()
-    loadStdlibInto(context, stdlib_files)
-    return context
+
+  func log(domain: LogDomain, message: String) {
+    retrieveBaseParent().interpreter.log(domain, message: message)
   }
   
   /// Create a new instance of a context for a lexical scope.
@@ -91,9 +88,11 @@ class Context {
 }
 
 /// A class representing the 'base' context - the one in which the standard library and global symbols are loaded.
-private class BaseContext : Context {
+class BaseContext : Context {
   // The base context is responsible for maintaining the table that maps symbol names (e.g. "foo") to their interned
   //  identifiers, as well as building new gensyms.
+
+  unowned let interpreter : Interpreter
   
   var namesToIds : [String : InternedSymbol] = [:]
   var idsToNames : [InternedSymbol : String] = [:]
@@ -102,6 +101,10 @@ private class BaseContext : Context {
   var keywordsToIds : [String : InternedKeyword] = [:]
   var idsToKeywords : [InternedKeyword : String] = [:]
   var keywordIdCounter = 0
+
+  init(interpreter: Interpreter) {
+    self.interpreter = interpreter
+  }
   
   override func nameForSymbol(symbol: InternedSymbol) -> String {
     if let name = idsToNames[symbol] {

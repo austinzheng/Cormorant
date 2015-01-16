@@ -31,14 +31,14 @@ internal enum SpecialCommand : String {
     return nil
   }
 
-  func execute(args: [String], inout ctx: Context) -> Bool {
+  func execute(args: [String], logger: LoggingManager, inout interpreter: Interpreter) -> Bool {
     switch self {
     case .Quit:
       println("Goodbye")
       return true
     case .Reset:
       println("Environment reset")
-      ctx = Context.globalContextInstance()
+      interpreter = Interpreter()
     case .Help:
       println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
       println("Special commands are:")
@@ -61,19 +61,19 @@ internal enum SpecialCommand : String {
         // Global turning logging on or off
         processOnOff(args[0],
           { println("Turning all logging on")
-            LoggingManager.sharedInstance.setAllLogging(true) },
+            logger.setAllLogging(true) },
           { println("Turning all logging off")
-            LoggingManager.sharedInstance.setAllLogging(false) },
+            logger.setAllLogging(false) },
           { println("Error: specify either 'on' or 'off', or a domain and 'on' or 'off'.") })
       }
       else if args.count > 1 {
         // Turning logging on or off for a specific domain
-        if let domain = LoggingDomain(rawValue: args[0]) {
+        if let domain = LogDomain(rawValue: args[0]) {
           processOnOff(args[1],
             { println("Turning logging for domain '\(args[0])' on");
-              LoggingManager.sharedInstance.setLoggingForDomain(domain, enabled: true) },
+              logger.setLoggingForDomain(domain, enabled: true) },
             { println("Turning logging for domain '\(args[0])' off")
-              LoggingManager.sharedInstance.setLoggingForDomain(domain, enabled: false) },
+              logger.setLoggingForDomain(domain, enabled: false) },
             { println("Error: specify either 'on' or 'off'.") })
           return false
         }
