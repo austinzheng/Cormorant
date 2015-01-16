@@ -24,8 +24,7 @@ func +(lhs: OverallTestResults, rhs: OverallTestResults) -> OverallTestResults {
 }
 
 func runAllTests() -> OverallTestResults {
-  var results = runTests(readerExpandTests())
-  results = results + runTests(collectionFnsTests())
+  var results = runTests(collectionFnsTests())
   return results
 }
 
