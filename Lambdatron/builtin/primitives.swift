@@ -54,12 +54,9 @@ func pr_int(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .CharacterLiteral(v):
     // Note: this function assumes that characters being stored consist of a single Unicode code point. If the character
     //  consists of multiple code points, only the first will be cast to an integer.
-    let castValue : UnicodeScalar = {
-      for scalar in String(v).unicodeScalars {
-        return scalar
-      }
-      internalError("Control flow should never reach here...")
-      }()
+    var generator = String(v).unicodeScalars.generate()
+    // FORCE UNWRAP: the string must always have at least one character, by definition
+    let castValue = generator.next()!
     return .Success(.IntegerLiteral(Int(castValue.value)))
   case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
     return .Failure(.InvalidArgumentError)

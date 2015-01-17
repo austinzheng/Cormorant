@@ -122,11 +122,11 @@ extension Function : Printable {
           return v.describe(ctx)
         }
         else {
-          for (_, item) in self.specificFns {
-            return item.describe(ctx)
-          }
+          var generator = self.specificFns.generate()
+          // FORCE UNWRAP: self.specificFns must have at least one object for this block to be run.
+          let item = generator.next()!.1
+          return item.describe(ctx)
         }
-        internalError("an array with no objects reported itself as having at least one object")
         }()
       return "(fn \(funcString))"
     }

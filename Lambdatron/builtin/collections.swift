@@ -108,13 +108,12 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .VectorLiteral(v):
     return .Success(v.count == 0 ? .NilLiteral : v[0])
   case let .MapLiteral(m):
-    if m.count == 0 {
-      return .Success(.NilLiteral)
-    }
-    for (key, value) in m {
+    // Use a generator to get the first element out of the map.
+    var generator = m.generate()
+    if let (key, value) = generator.next() {
       return .Success(.VectorLiteral([key, value]))
     }
-    internalError("Cannot ever reach this point")
+    return .Success(.NilLiteral)
   default: return .Failure(.InvalidArgumentError)
   }
 }

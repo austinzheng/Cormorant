@@ -9,7 +9,7 @@
 import Foundation
 
 public class Function {
-  let context : Context?
+  let context : Context!
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
@@ -66,19 +66,16 @@ public class Function {
     //  1. the values bound to the formal parameters
     //  2. any values captured when the function was defined (NOT executed)
     // Get the correct function
-    if let context = context {
-      if let functionToUse = specificFns[arguments.count] {
-        // We have a valid fixed arity definition to use; use it
-        return functionToUse.evaluate(arguments, context)
-      }
-      else if let varargFunction = variadic {
-        if arguments.count >= varargFunction.paramCount {
-          // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
-          return varargFunction.evaluate(arguments, context)
-        }
-      }
-      return .Failure(.ArityError)
+    if let functionToUse = specificFns[arguments.count] {
+      // We have a valid fixed arity definition to use; use it
+      return functionToUse.evaluate(arguments, context)
     }
-    internalError("evaluating fn or macro with nil context")
+    else if let varargFunction = variadic {
+      if arguments.count >= varargFunction.paramCount {
+        // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
+        return varargFunction.evaluate(arguments, context)
+      }
+    }
+    return .Failure(.ArityError)
   }
 }
