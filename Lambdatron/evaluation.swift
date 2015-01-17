@@ -12,6 +12,7 @@ import Foundation
 /// encapsulated in each case.
 enum EvalResult {
   case Success(ConsValue)
+  case Recur([ConsValue])
   case Failure(EvalError)
 }
 
@@ -24,7 +25,7 @@ enum CollectResult {
 func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
   switch input {
   case let .Success(s): return action(s)
-  case .Failure: return input
+  case .Recur, .Failure: return input
   }
 }
 
@@ -32,7 +33,8 @@ func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
 func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
   let result = form.evaluate(ctx)
   switch result {
-  case let .Success(r): return r.isRecurSentinel ? .Failure(.RecurMisuseError) : result
+  case .Success: return result
+  case .Recur: return .Failure(.RecurMisuseError)
   case .Failure: return result
   }
 }
@@ -74,7 +76,7 @@ extension Cons {
       ctx.log(.Eval, message: "macroexpansion complete; new form: \(v.describe(ctx))")
       let result = v.evaluate(ctx)
       return result
-    case .Failure: return expanded
+    case .Recur, .Failure: return expanded
     }
   }
   
@@ -206,8 +208,11 @@ extension Cons {
         // 3a: 'a' is not something that can be used in function position (e.g. nil)
         return .Failure(.NotEvalableError)
       }
+    case .Recur:
+      // 2a: Evaluating the form 'a' resulted in a recur sentinel; this is not acceptable.
+      return .Failure(.RecurMisuseError)
     case .Failure:
-      // 2a: Evaluating the form 'a' failed; for example, it was a function that threw some error.
+      // 2b: Evaluating the form 'a' failed; for example, it was a function that threw some error.
       return fpItemResult
     }
   }
@@ -244,6 +249,7 @@ extension ConsValue {
         let result = form.evaluate(ctx)
         switch result {
         case let .Success(result): buffer.append(result)
+        case .Recur: return .Failure(.RecurMisuseError)
         case .Failure: return result
         }
       }
@@ -258,8 +264,10 @@ extension ConsValue {
           let evaluatedValue = value.evaluate(ctx)
           switch evaluatedValue {
           case let .Success(v): newMap[k] = v
+          case .Recur: return .Failure(.RecurMisuseError)
           case .Failure: return evaluatedValue
           }
+        case .Recur: return .Failure(.RecurMisuseError)
         case .Failure: return evaluatedKey
         }
       }
@@ -267,7 +275,6 @@ extension ConsValue {
     case Special: return .Failure(.EvaluatingSpecialFormError)
     case ReaderMacro: return .Failure(.EvaluatingMacroError)
     case None: return .Failure(.EvaluatingNoneError)
-    case RecurSentinel: return .Success(self)
     }
   }
 }

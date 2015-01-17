@@ -124,12 +124,12 @@ public class Cons : Hashable {
       let thisValue = actualItem.value
       switch thisValue.evaluate(ctx) {
       case let .Success(result):
-        if result.isRecurSentinel {
-          // Cannot use 'recur' as a function argument
-          return .Failure(.RecurMisuseError)
-        }
         buffer.append(result)
-      case let .Failure(f): return .Failure(f)
+      case .Recur:
+        // Cannot use 'recur' as a function argument
+        return .Failure(.RecurMisuseError)
+      case let .Failure(f):
+        return .Failure(f)
       }
       currentItem = actualItem.next
     }
@@ -172,8 +172,6 @@ public enum ConsValue : Hashable {
   case VectorLiteral(Vector)
   case MapLiteral(Map)
   case FunctionLiteral(Function)
-  // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
-  case RecurSentinel([ConsValue])
   
   public var hashValue : Int {
     switch self {
@@ -193,7 +191,6 @@ public enum ConsValue : Hashable {
     case let VectorLiteral(v): return v.count == 0 ? 0 : v[0].hashValue
     case let MapLiteral(m): return m.count
     case let FunctionLiteral(f): return 0
-    case RecurSentinel: return 0
     }
   }
   
@@ -257,13 +254,6 @@ public enum ConsValue : Hashable {
     switch self {
     case let .FunctionLiteral(f): return f
     default: return nil
-    }
-  }
-  
-  var isRecurSentinel : Bool {
-    switch self {
-    case .RecurSentinel: return true
-    default: return false
     }
   }
 }

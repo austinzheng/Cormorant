@@ -45,6 +45,7 @@ public class Interpreter {
           let result = evaluateForm(expanded, baseContext)
           switch result {
           case let .Success(s): return .Success(s)
+          case .Recur: return .EvalFailure(.RecurMisuseError)
           case let .Failure(f): return .EvalFailure(f)
           }
         case let .Failure(f): return .ReaderFailure(f)

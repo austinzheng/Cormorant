@@ -67,16 +67,11 @@ struct SingleFn {
       if let newContext = possibleContext {
         let result = sf_do(forms, newContext)
         switch result {
-        case let .Success(resultValue):
-          switch resultValue {
-          case let .RecurSentinel(newBindings):
-            // If result is 'recur', we need to rebind and run the function again from the start.
-            possibleContext = bindToNewContext(newBindings, ctx: ctx, asRecur: true)
-            continue
-          default:
-            return result
-          }
-        case .Failure:
+        case let .Recur(newBindings):
+          // If result is 'recur', we need to rebind and run the function again from the start.
+          possibleContext = bindToNewContext(newBindings, ctx: ctx, asRecur: true)
+          continue
+        case .Success, .Failure:
           return result
         }
       }

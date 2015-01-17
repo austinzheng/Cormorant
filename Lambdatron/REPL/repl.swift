@@ -58,6 +58,8 @@ class replInstance {
                 case let .Success(n):
 //              println("Your entry reader-expands to: \(re.description)")
                   println(n.describe(interpreter.context))
+                case .Recur:
+                  println("Recur misuse")
                 case let .Failure(f):
                   println("Evaluation error \(f)")
                 }

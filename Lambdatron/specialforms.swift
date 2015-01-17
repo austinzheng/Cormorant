@@ -66,10 +66,6 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
   let testResult = args[0].evaluate(ctx)
 
   let result = next(testResult) { testForm in
-    if testForm.isRecurSentinel {
-      return .Failure(.RecurMisuseError)
-    }
-    
     let then = args[1]
     let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
 
@@ -103,10 +99,10 @@ func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
     switch result {
     case let .Success(result):
       finalValue = result
-      if idx != args.count - 1 && finalValue.isRecurSentinel {
-        return .Failure(.RecurMisuseError)
-      }
-    case .Failure: return result
+    case .Recur:
+      return (idx == args.count - 1) ? result : .Failure(.RecurMisuseError)
+    case .Failure:
+      return result
     }
   }
   return .Success(finalValue)
@@ -133,11 +129,11 @@ func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
       let result = initializer.evaluate(ctx)
       switch result {
       case let .Success(result):
-        if result.isRecurSentinel {
-          return .Failure(.RecurMisuseError)
-        }
         ctx.setTopLevelBinding(s, value: .Literal(result))
-      case .Failure: return result
+      case .Recur:
+        return .Failure(.RecurMisuseError)
+      case .Failure:
+        return result
       }
     }
     else {
@@ -179,9 +175,6 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
         let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings))
         switch result {
         case let .Success(result):
-          if result.isRecurSentinel {
-            return .Failure(.RecurMisuseError)
-          }
           newBindings[s] = .Literal(result)
         default: return result
         }
@@ -310,11 +303,11 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
         let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings))
         switch result {
         case let .Success(result):
-          if result.isRecurSentinel {
-            return .Failure(.RecurMisuseError)
-          }
           bindings[s] = .Literal(result)
-        case .Failure: return result
+        case .Recur:
+          return .Failure(.RecurMisuseError)
+        case .Failure:
+          return result
         }
         symbols.append(s)
       default:
@@ -328,22 +321,19 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
     while true {
       let result = sf_do(forms, context)
       switch result {
-      case let .Success(resultValue):
-        switch resultValue {
-        case let .RecurSentinel(newBindingValues):
-          // If result is 'recur', we need to rebind and run the loop again from the start.
-          if newBindingValues.count != symbols.count {
-            return .Failure(.ArityError)
-          }
-          var newBindings : [InternedSymbol : Binding] = [:]
-          for (idx, newValue) in enumerate(newBindingValues) {
-            newBindings[symbols[idx]] = .Literal(newValue)
-          }
-          context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: newBindings)
-          continue
-        default: return result
+      case let .Recur(newBindingValues):
+        // If result is 'recur', we need to rebind and run the loop again from the start.
+        if newBindingValues.count != symbols.count {
+          return .Failure(.ArityError)
         }
-      default: return result
+        var newBindings : [InternedSymbol : Binding] = [:]
+        for (idx, newValue) in enumerate(newBindingValues) {
+          newBindings[symbols[idx]] = .Literal(newValue)
+        }
+        context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: newBindings)
+        continue
+      case .Success, .Failure:
+        return result
       }
     }
   }
@@ -356,15 +346,16 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
 func sf_recur(args: [ConsValue], ctx: Context) -> EvalResult {
   // recur can *only* be used inside the context of a 'loop' or a fn declaration
   // Evaluate all arguments, and then create a sentinel value
-  var newArgs : [ConsValue] = []
+  var buffer : [ConsValue] = []
   for arg in args {
     let result = arg.evaluate(ctx)
     switch result {
-    case let .Success(result): newArgs.append(result)
+    case let .Success(result): buffer.append(result)
+    case .Recur: return .Failure(.RecurMisuseError)
     case .Failure: return result
     }
   }
-  return .Success(.RecurSentinel(newArgs))
+  return .Recur(buffer)
 }
 
 /// Given a function, zero or more leading arguments, and a sequence of args, apply the function with the arguments.
@@ -382,6 +373,7 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
       let res = args[i].evaluate(ctx)
       switch res {
       case let .Success(res): buffer.append(res)
+      case let .Recur: return .Failure(.RecurMisuseError)
       case .Failure: return res
       }
     }
@@ -409,6 +401,7 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
       default:
         return .Failure(.InvalidArgumentError)
       }
+    case .Recur: return .Failure(.RecurMisuseError)
     case .Failure: return last
     }
     
@@ -428,7 +421,7 @@ func sf_attempt(args: [ConsValue], ctx: Context) -> EvalResult {
   for form in args {
     let try = form.evaluate(ctx)
     switch try {
-    case .Success: return try
+    case .Success, .Recur: return try
     case let .Failure(e): error = e
     }
   }

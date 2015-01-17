@@ -138,7 +138,6 @@ public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .FunctionLiteral(f2): return f1 === f2
     default: return false
     }
-  case .RecurSentinel: return false
   case .ReaderMacro: return false
   }
 }

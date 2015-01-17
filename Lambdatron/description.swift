@@ -96,8 +96,6 @@ extension ConsValue {
       return debug ? "ConsValue.ReaderMacro(\(v.description))" : v.description
     case None:
       return debug ? "ConsValue.None" : ""
-    case RecurSentinel:
-      internalError("RecurSentinel should never be in a situation where its value can be printed")
     }
   }
   

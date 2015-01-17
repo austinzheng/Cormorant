@@ -60,7 +60,7 @@ func pr_int(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Success(.IntegerLiteral(Int(castValue.value)))
   case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
     return .Failure(.InvalidArgumentError)
-  case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral, .RecurSentinel:
+  case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
     return .Failure(.InvalidArgumentError)
   }
 }
@@ -79,7 +79,7 @@ func pr_double(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(.InvalidArgumentError)
   case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
     return .Failure(.InvalidArgumentError)
-  case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral, .RecurSentinel:
+  case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
     return .Failure(.InvalidArgumentError)
   }
 }

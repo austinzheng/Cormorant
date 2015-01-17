@@ -10,6 +10,7 @@ import Foundation
 
 let stdlib_files = ["core", "builtin", "flow", "math"]
 
+// TODO: rewrite this.
 func loadStdlibInto(context: Context, files: [String]) {
   for file in files {
     if let data = stringDataForBundledFile(file) {
@@ -24,6 +25,10 @@ func loadStdlibInto(context: Context, files: [String]) {
             case let .Success(re):
               switch evaluateForm(re, context) {
               case .Success: break
+              case .Recur:
+                // Stdlib file failed to evaluate successfully
+                println("Unable to load stdlib: recur failure")
+                exit(EXIT_FAILURE)
               case let .Failure(f):
                 // Stdlib file failed to evaluate successfully
                 println("Unable to load stdlib: \(f)")
