@@ -8,7 +8,7 @@
 
 import Foundation
 
-func ==(lhs: Cons, rhs: Cons) -> Bool {
+public func ==(lhs: Cons, rhs: Cons) -> Bool {
   var this = lhs
   var that = rhs
   // We have to walk through the lists
@@ -59,7 +59,7 @@ func ==(lhs: Cons, rhs: Vector) -> Bool {
   return true
 }
 
-func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
+public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
   switch lhs {
   case .None:
     switch rhs {

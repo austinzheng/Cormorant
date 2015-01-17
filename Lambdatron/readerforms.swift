@@ -8,14 +8,14 @@
 
 import Foundation
 
-/// An enum describing all the reader forms recognized by the interpreter
-enum ReaderForm : Printable {
+/// An enum describing all the reader forms recognized by the interpreter.
+public enum ReaderForm : Printable {
   case Quote
   case SyntaxQuote
   case Unquote
   case UnquoteSplice
   
-  var description : String {
+  public var description : String {
     switch self {
     case Quote: return "q*"
     case SyntaxQuote: return "syntax-quote*"

@@ -124,9 +124,7 @@ The only currently supported domain is `eval`. This logging domain prints out me
 
 ### Unit Tests
 
-Since Xcode's Unit Test targets seem to require a Cocoa application, unit tests are implemented as an application module inside the REPL. Type `?runtests` at the REPL prompt to run the unit test suite.
-
-Unit test code can be found in `tests.swift` and a number of similarly named files. All unit tests right now inherit from the abstract `LambdatronTest` class. Tests can be added by modifying `runAllTests()`.
+Lambdatron has a unit test target. Run the unit tests from within Xcode.
 
 
 Development Objectives

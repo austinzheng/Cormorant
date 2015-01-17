@@ -54,7 +54,7 @@ class replInstance {
               let re = parsed.readerExpand()
               switch re {
               case let .Success(re):
-                switch evaluate(re, interpreter.context) {
+                switch evaluateForm(re, interpreter.context) {
                 case let .Success(n):
 //              println("Your entry reader-expands to: \(re.description)")
                   println(n.describe(interpreter.context))

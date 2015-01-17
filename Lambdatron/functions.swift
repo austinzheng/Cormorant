@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Function {
+public class Function {
   let context : Context?
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]

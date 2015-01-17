@@ -10,8 +10,8 @@ import Foundation
 
 typealias LambdatronSpecialForm = ([ConsValue], Context) -> EvalResult
 
-/// An enum describing all the special forms recognized by the interpreter
-enum SpecialForm : String, Printable {
+/// An enum describing all the special forms recognized by the interpreter.
+public enum SpecialForm : String, Printable {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
   case Quote = "quote"
   case If = "if"
@@ -40,8 +40,8 @@ enum SpecialForm : String, Printable {
     case Attempt: return sf_attempt
     }
   }
-  
-  var description : String {
+
+  public var description : String {
     return self.rawValue
   }
 }

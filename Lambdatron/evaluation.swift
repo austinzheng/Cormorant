@@ -29,8 +29,8 @@ func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
 }
 
 /// Evaluate a form and return either a success or failure
-func evaluate(topLevelForm: ConsValue, ctx: Context) -> EvalResult {
-  let result = topLevelForm.evaluate(ctx)
+func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
+  let result = form.evaluate(ctx)
   switch result {
   case let .Success(r): return r.isRecurSentinel ? .Failure(.RecurMisuseError) : result
   case .Failure: return result

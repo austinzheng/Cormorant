@@ -11,7 +11,7 @@ import Foundation
 typealias LambdatronBuiltIn = ([ConsValue], Context) -> EvalResult
 
 /// An enum describing every built-in function included with the interpreter.
-enum BuiltIn : String, Printable {
+public enum BuiltIn : String, Printable {
   
   // Collection-related
   case List = ".list"
@@ -146,7 +146,7 @@ enum BuiltIn : String, Printable {
     }
   }
   
-  var description : String {
+  public var description : String {
     return self.rawValue
   }
 }

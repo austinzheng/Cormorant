@@ -22,7 +22,7 @@ func loadStdlibInto(context: Context, files: [String]) {
             let re = parsedData.readerExpand()
             switch re {
             case let .Success(re):
-              switch evaluate(re, context) {
+              switch evaluateForm(re, context) {
               case .Success: break
               case let .Failure(f):
                 // Stdlib file failed to evaluate successfully

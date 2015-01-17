@@ -10,7 +10,7 @@ import Foundation
 
 /// An value representing an interned symbol. This is a lightweight fixed-size struct. There is a one-to-one mapping
 /// between every symbol name used in the program (no matter the context) and a distinct InternedSymbol value.
-struct InternedSymbol : Hashable {
+public struct InternedSymbol : Hashable {
   let identifier: Int
   // TODO: namespaces support would go here
   
@@ -18,28 +18,28 @@ struct InternedSymbol : Hashable {
     self.identifier = identifier
   }
   
-  var hashValue : Int {
+  public var hashValue : Int {
     return identifier.hashValue
   }
 }
 
-func ==(lhs: InternedSymbol, rhs: InternedSymbol) -> Bool {
+public func ==(lhs: InternedSymbol, rhs: InternedSymbol) -> Bool {
   return lhs.identifier == rhs.identifier
 }
 
 /// A value representing an interned keyword.
-struct InternedKeyword : Hashable {
+public struct InternedKeyword : Hashable {
   let identifier: Int
   
   init(_ identifier: Int) {
     self.identifier = identifier
   }
   
-  var hashValue : Int {
+  public var hashValue : Int {
     return identifier.hashValue
   }
 }
 
-func ==(lhs: InternedKeyword, rhs: InternedKeyword) -> Bool {
+public func ==(lhs: InternedKeyword, rhs: InternedKeyword) -> Bool {
   return lhs.identifier == rhs.identifier
 }

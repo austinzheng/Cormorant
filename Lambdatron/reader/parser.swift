@@ -8,14 +8,15 @@
 
 import Foundation
 
-enum ParseError : String, Printable {
+/// An enum describing errors that can cause parsing to fail.
+public enum ParseError : String, Printable {
   case EmptyInputError = "EmptyInputError"
   case BadStartTokenError = "BadStartTokenError"
   case MismatchedDelimiterError = "MismatchedDelimiterError"
   case MismatchedReaderMacroError = "MismatchedReaderMacroError"
   case MapKeyValueMismatchError = "MapKeyValueMismatchError"
   
-  var description : String {
+  public var description : String {
     let name = self.rawValue
     switch self {
     case EmptyInputError:

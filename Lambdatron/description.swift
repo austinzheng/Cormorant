@@ -143,7 +143,7 @@ extension Function : Printable {
     }
   }
   
-  var description : String {
+  public var description : String {
     return describe(nil)
   }
 }

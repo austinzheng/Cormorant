@@ -12,11 +12,10 @@ internal enum SpecialCommand : String {
   case Quit = "?quit"
   case Reset = "?reset"
   case Help = "?help"
-  case RunTests = "?runtests"
   case Logging = "?logging"
 
   var allCommands : [SpecialCommand] {
-    return [.Quit, .Reset, .Help, .RunTests, .Logging]
+    return [.Quit, .Reset, .Help, .Logging]
   }
 
   static func instanceWith(input: String) -> (SpecialCommand, [String])? {
@@ -44,17 +43,6 @@ internal enum SpecialCommand : String {
       println("Special commands are:")
       for command in allCommands {
         println("  \(command.rawValue): \(command.helpText)")
-      }
-    case .RunTests:
-      // Run unit tests
-      println("Running unit tests...")
-      let results = runAllTests()
-      println("RESULTS: \(results.pass) passed, \(results.fail) failed (\(results.total) total)")
-      if results.total == 0 {
-        println("Unit test error (no tests?)")
-      }
-      else {
-        println(results.fail > 0  ? "Unit tests failed" : "Unit tests passed")
       }
     case .Logging:
       if args.count == 1 {
@@ -93,7 +81,6 @@ internal enum SpecialCommand : String {
     case .Quit: return "Quits the REPL."
     case .Reset: return "Resets the environment, clearing anything defined using 'def', 'defmacro', etc."
     case .Help: return "Prints a brief description of the REPL."
-    case .RunTests: return "Run the built-in unit test suite for Lambdatron."
     case .Logging: return "Turns logging for a given domain on or off. Call with <domain> and either 'on' or 'off'."
     }
   }

@@ -9,12 +9,12 @@
 import Foundation
 
 /// An enum describing errors that can happen while expanding reader macros.
-enum ReaderError : String, Printable {
+public enum ReaderError : String, Printable {
   case UnmatchedReaderMacroError = "UnmatchedReaderMacroError"
   case IllegalFormError = "IllegalFormError"
   case UnquoteSpliceMisuseError = "SyntaxQuoteMisuseError"
   
-  var description : String {
+  public var description : String {
     let desc : String = {
       switch self {
       case UnmatchedReaderMacroError:
@@ -30,7 +30,7 @@ enum ReaderError : String, Printable {
 }
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
-enum EvalError : Printable, Equatable {
+public enum EvalError : Printable, Equatable {
   case ArityError
   case InvalidArgumentError
   case OutOfBoundsError
@@ -73,7 +73,7 @@ enum EvalError : Printable, Equatable {
     }
   }
 
-  var description : String {
+  public var description : String {
     let desc : String = {
       switch self {
       case ArityError:
@@ -118,7 +118,7 @@ enum EvalError : Printable, Equatable {
   }
 }
 
-func ==(lhs: EvalError, rhs: EvalError) -> Bool {
+public func ==(lhs: EvalError, rhs: EvalError) -> Bool {
   switch lhs {
   case let .RuntimeError(err1):
     switch rhs {

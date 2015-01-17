@@ -13,12 +13,13 @@ enum LexResult {
   case Failure(LexError)
 }
 
-enum LexError : String, Printable {
+/// An enum describing errors that can cause lexing of the input string to fail.
+public enum LexError : String, Printable {
   case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
   case InvalidCharacterError = "InvalidCharacterError"
   case NonTerminatedStringError = "NonTerminatedStringError"
 
-  var description : String {
+  public var description : String {
     let name = self.rawValue
     switch self {
     case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"

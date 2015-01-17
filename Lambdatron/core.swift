@@ -8,15 +8,18 @@
 
 import Foundation
 
-typealias Vector = [ConsValue]
-typealias Map = [ConsValue:ConsValue]
+/// An opaque type representing a Vector data structure.
+public typealias Vector = [ConsValue]
 
-/// Represents a cons cell, an element in a linked list.
-class Cons : Hashable {
+/// An opaque type representing a Map data structure.
+public typealias Map = [ConsValue:ConsValue]
+
+/// A class that represents a cons cell, an element in a linked list.
+public class Cons : Hashable {
   var next : Cons?
   var value : ConsValue
   
-  var hashValue : Int {
+  public var hashValue : Int {
     return value.hashValue
   }
   
@@ -152,7 +155,7 @@ class Cons : Hashable {
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms, collections, and sentinel
 /// values (which should never leak into a normal evaluation context).
-enum ConsValue : Hashable {
+public enum ConsValue : Hashable {
   case None
   case Symbol(InternedSymbol)
   case Keyword(InternedKeyword)
@@ -172,7 +175,7 @@ enum ConsValue : Hashable {
   // A special sentinel case only to be used by the 'recur' special form. Its contents are new bindings.
   case RecurSentinel([ConsValue])
   
-  var hashValue : Int {
+  public var hashValue : Int {
     switch self {
     case None: return 0
     case let Symbol(s): return s.hashValue

@@ -8,6 +8,16 @@
 
 import Foundation
 
+/// An enum describing possible results from evaluating an input to the interpreter.
+public enum Result {
+  case Success(ConsValue)
+  case LexFailure(LexError)
+  case ParseFailure(ParseError)
+  case ReaderFailure(ReaderError)
+  case EvalFailure(EvalError)
+}
+
+/// An enum describing logging domains that can be individually enabled or disabled as necessary.
 public enum LogDomain : String {
   case Eval = "eval"
 }
@@ -21,6 +31,29 @@ public class Interpreter {
 
   // Logging functions
   internal var evalLogging : LoggingFunction? = nil
+
+  public func evaluate(form: String) -> Result {
+    let lexed = lex(form)
+    switch lexed {
+    case let .Success(lexed):
+      let parsed = parse(lexed, baseContext)
+      switch parsed {
+      case let .Success(parsed):
+        let expanded = parsed.readerExpand()
+        switch expanded {
+        case let .Success(expanded):
+          let result = evaluateForm(expanded, baseContext)
+          switch result {
+          case let .Success(s): return .Success(s)
+          case let .Failure(f): return .EvalFailure(f)
+          }
+        case let .Failure(f): return .ReaderFailure(f)
+        }
+      case let .Failure(f): return .ParseFailure(f)
+      }
+    case let .Failure(f): return .LexFailure(f)
+    }
+  }
 
   /// Given a domain and a message, pass the message on to the appropriate logging function (if one exists).
   internal func log(domain: LogDomain, message: String) {
