@@ -37,39 +37,21 @@ class replInstance {
         // Remove the trailing newline
         let trimmedData = data.substringToIndex(data.length-1)
         if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
+          // REPL special command
           let shouldReturn = command.execute(args, logger: logger, interpreter: &interpreter)
           if shouldReturn {
             return true
           }
         }
         else {
-          let x = lex(trimmedData)
-          switch x {
-          case let .Success(lexedData):
-//            println("Your entry lexes to: \(lexedData)")
-            let parsed = parse(lexedData, interpreter.context)
-            switch parsed {
-            case let .Success(parsed):
-//              println("Your entry parses to: \(parsed)")
-              let re = parsed.readerExpand()
-              switch re {
-              case let .Success(re):
-                switch evaluateForm(re, interpreter.context) {
-                case let .Success(n):
-//              println("Your entry reader-expands to: \(re.description)")
-                  println(n.describe(interpreter.context))
-                case .Recur:
-                  println("Recur misuse")
-                case let .Failure(f):
-                  println("Evaluation error \(f)")
-                }
-              case let .Failure(error):
-                println("Reader macro expansion error \(error)")
-              }
-            case let .Failure(error):
-              println("Parsing error \(error)")
-            }
-          case let .Failure(error): println("Lexing error \(error)")
+          // Language form
+          let result = interpreter.evaluate(trimmedData)
+          switch result {
+          case let .Success(v): println(interpreter.describe(v))
+          case let .LexFailure(f): println("Lexing error \(f)")
+          case let .ParseFailure(f): println("Parsing error \(f)")
+          case let .ReaderFailure(f): println("Reader expansion error \(f)")
+          case let .EvalFailure(f): println("Evaluation error \(f)")
           }
         }
       }

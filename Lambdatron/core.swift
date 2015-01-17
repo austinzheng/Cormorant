@@ -153,8 +153,7 @@ public class Cons : Hashable {
   }
 }
 
-/// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms, collections, and sentinel
-/// values (which should never leak into a normal evaluation context).
+/// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
 public enum ConsValue : Hashable {
   case None
   case Symbol(InternedSymbol)

@@ -32,6 +32,7 @@ public class Interpreter {
   // Logging functions
   internal var evalLogging : LoggingFunction? = nil
 
+  /// Given a string, evaluate it as Lambdatron code and return a successful result or error.
   public func evaluate(form: String) -> Result {
     let lexed = lex(form)
     switch lexed {
@@ -54,6 +55,11 @@ public class Interpreter {
       }
     case let .Failure(f): return .LexFailure(f)
     }
+  }
+
+  /// Given a Lambdatron form, return a prettified description.
+  public func describe(form: ConsValue) -> String {
+    return form.describe(baseContext)
   }
 
   /// Given a domain and a message, pass the message on to the appropriate logging function (if one exists).
