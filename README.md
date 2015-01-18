@@ -91,7 +91,7 @@ The following special forms, reader macros, and functions are built into the int
 - Reader macros: `'`, `` ` ``, `~`, `~@`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
-- I/O: `print`
+- I/O: `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `>`

@@ -21,6 +21,7 @@
 (def double .double)
 
 (def print .print)
+(def println .println)
 
 (def rem .rem)
 (def quot .quot)

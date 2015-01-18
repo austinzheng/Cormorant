@@ -36,6 +36,7 @@ public enum BuiltIn : String, Printable {
 
   // I/O
   case Print = ".print"
+  case Println = ".println"
   
   // Querying
   case IsNil = ".nil?"
@@ -105,6 +106,7 @@ public enum BuiltIn : String, Printable {
     case Int: return pr_int
     case Double: return pr_double
     case Print: return pr_print
+    case Println: return pr_println
     case IsNil: return pr_isNil
     case IsNumber: return pr_isNumber
     case IsInteger: return pr_isInteger
