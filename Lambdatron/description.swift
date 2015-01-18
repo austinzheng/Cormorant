@@ -19,7 +19,7 @@ extension Cons {
       var descBuffer : [String] = []
       var currentItem : Cons? = firstItem
       while let actualItem = currentItem {
-        let description = actualItem.describe(ctx, debug: debug)
+        let description = actualItem.value.describe(ctx, debug: debug)
         descBuffer.append(description)
         currentItem = actualItem.next
       }
