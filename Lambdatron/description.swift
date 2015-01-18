@@ -11,15 +11,16 @@ import Foundation
 extension Cons {
 
   func describe(ctx: Context?) -> String {
-    return describe(ctx, describer: { $0.0.describe(false, ctx: $0.1) })
+    return describe(ctx, debug: false)
   }
   
-  private func describe(ctx: Context?, describer: (ConsValue, Context?) -> String) -> String {
+  func describe(ctx: Context?, debug: Bool) -> String {
     func collectDescriptions(firstItem : Cons?) -> [String] {
       var descBuffer : [String] = []
       var currentItem : Cons? = firstItem
       while let actualItem = currentItem {
-        descBuffer.append(describer(actualItem.value, ctx))
+        let description = actualItem.describe(ctx, debug: debug)
+        descBuffer.append(description)
         currentItem = actualItem.next
       }
       return descBuffer
@@ -29,23 +30,15 @@ extension Cons {
     let finalDesc = join(" ", descs)
     return "(\(finalDesc))"
   }
-  
-  var description : String {
-    return describe(nil, describer: { $0.0.describe(false, ctx: $0.1) })
-  }
-  
-  var debugDescription : String {
-    return describe(nil, describer: { $0.0.describe(true, ctx: $0.1) })
-  }
 }
 
 extension ConsValue {
-  
+
   func describe(ctx: Context?) -> String {
-    return describe(false, ctx: ctx)
+    return describe(ctx, debug: false)
   }
-  
-  private func describe(debug: Bool, ctx: Context?) -> String {
+
+  func describe(ctx: Context?, debug: Bool) -> String {
     switch self {
     case let Symbol(v):
       if let ctx = ctx {
@@ -73,16 +66,16 @@ extension ConsValue {
     case let StringLiteral(v):
       return debug ? "ConsValue.StringLiteral(\"\(v)\")" : "\"\(v)\""
     case let ListLiteral(v):
-      let desc = v.describe(ctx, describer: { $0.0.describe(debug, ctx: $0.1) })
+      let desc = v.describe(ctx, debug: debug)
       return debug ? "ConsValue.ListLiteral(\(desc))" : desc
     case let VectorLiteral(v):
-      let internals = join(" ", v.map({$0.describe(debug, ctx: ctx)}))
+      let internals = join(" ", v.map({$0.describe(ctx, debug: debug)}))
       return debug ? "ConsValue.VectorLiteral([\(internals)])" : "[\(internals)]"
     case let MapLiteral(m):
       var components : [String] = []
       for (key, value) in m {
-        components.append(key.describe(debug, ctx: ctx))
-        components.append(value.describe(debug, ctx: ctx))
+        components.append(key.describe(ctx, debug: debug))
+        components.append(value.describe(ctx, debug: debug))
       }
       let internals = join(" ", components)
       return debug ? "ConsValue.MapLiteral({\(internals)})" : "{\(internals)}"
@@ -98,17 +91,9 @@ extension ConsValue {
       return debug ? "ConsValue.None" : ""
     }
   }
-  
-  var description : String {
-    return describe(false, ctx: nil)
-  }
-  
-  var debugDescription : String {
-    return describe(true, ctx: nil)
-  }
 }
 
-extension Function : Printable {
+extension Function {
   
   func describe(ctx: Context?) -> String {
     var count = variadic == nil ? 0 : 1
@@ -140,10 +125,6 @@ extension Function : Printable {
       return "(fn \(joined))"
     }
   }
-  
-  public var description : String {
-    return describe(nil)
-  }
 }
 
 extension SingleFn {
@@ -173,7 +154,7 @@ extension SingleFn {
     
     let paramRaw = join(" ", paramVector)
     let paramString = "[\(paramRaw)]"
-    let formsVector = forms.map({$0.describe(false, ctx: ctx)})
+    let formsVector = forms.map({$0.describe(ctx)})
     var finalVector = [paramString] + formsVector
     return join(" ", finalVector)
   }

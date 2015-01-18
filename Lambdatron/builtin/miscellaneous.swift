@@ -26,7 +26,7 @@ func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   let descs = args.map(toString)
   let outStr = descs.count > 0 ? join(" ", descs) : ""
-  print(outStr)
+  ctx.writeOutput?(outStr)
   return .Success(.NilLiteral)
 }
 

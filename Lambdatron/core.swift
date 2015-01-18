@@ -15,7 +15,7 @@ public typealias Vector = [ConsValue]
 public typealias Map = [ConsValue:ConsValue]
 
 /// A class that represents a cons cell, an element in a linked list.
-public class Cons : Hashable {
+public class Cons : Printable, Hashable {
   var next : Cons?
   var value : ConsValue
   
@@ -151,10 +151,18 @@ public class Cons : Hashable {
     }
     return symbolBuffer
   }
+
+  public var description : String {
+    return describe(nil)
+  }
+
+  var debugDescription : String {
+    return describe(nil, debug: true)
+  }
 }
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
-public enum ConsValue : Hashable {
+public enum ConsValue : Printable, Hashable {
   case None
   case Symbol(InternedSymbol)
   case Keyword(InternedKeyword)
@@ -254,5 +262,13 @@ public enum ConsValue : Hashable {
     case let .FunctionLiteral(f): return f
     default: return nil
     }
+  }
+
+  public var description : String {
+    return describe(nil)
+  }
+
+  var debugDescription : String {
+    return describe(nil, debug: true)
   }
 }

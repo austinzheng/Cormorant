@@ -24,26 +24,40 @@ public enum LogDomain : String {
 
 typealias LoggingFunction = (String) -> ()
 
+/// An opaque type representing a function allowing the interpreter to write output.
+public typealias OutputFunction = (String) -> ()
+
+/// An opaque type representing a function allowing the intepreter to read input.
+public typealias InputFunction = () -> String
+
 /// A class representing a Lambdatron interpreter.
 public class Interpreter {
   // TODO: Any way to do this without the (implicitly unwrapped) optional?
-  private let baseContext : Context!
+  let context : Context!
 
   // Logging functions
-  internal var evalLogging : LoggingFunction? = nil
+  var evalLogging : LoggingFunction? = nil
+
+  // IO functions
+
+  /// A function that the interpreter calls in order to write out data. Defaults to 'print'.
+  public var writeOutput : OutputFunction? = print
+
+  /// A function that the interpreter calls in order to read in data.
+  public var readInput : InputFunction? = nil
 
   /// Given a string, evaluate it as Lambdatron code and return a successful result or error.
   public func evaluate(form: String) -> Result {
     let lexed = lex(form)
     switch lexed {
     case let .Success(lexed):
-      let parsed = parse(lexed, baseContext)
+      let parsed = parse(lexed, context)
       switch parsed {
       case let .Success(parsed):
         let expanded = parsed.readerExpand()
         switch expanded {
         case let .Success(expanded):
-          let result = evaluateForm(expanded, baseContext)
+          let result = evaluateForm(expanded, context)
           switch result {
           case let .Success(s): return .Success(s)
           case .Recur: return .EvalFailure(.RecurMisuseError)
@@ -59,19 +73,15 @@ public class Interpreter {
 
   /// Given a Lambdatron form, return a prettified description.
   public func describe(form: ConsValue) -> String {
-    return form.describe(baseContext)
+    return form.describe(context)
   }
 
   /// Given a domain and a message, pass the message on to the appropriate logging function (if one exists).
-  internal func log(domain: LogDomain, message: String) {
+  func log(domain: LogDomain, message: String) {
     switch domain {
     case .Eval:
       evalLogging?(message)
     }
-  }
-
-  var context : Context {
-    return baseContext
   }
 
   /// Given a domain and a function, set the function as a designated handler for logging messages in the domain.
@@ -83,7 +93,7 @@ public class Interpreter {
   }
 
   init() {
-    baseContext = BaseContext(interpreter: self)
-    loadStdlibInto(baseContext, stdlib_files)
+    context = BaseContext(interpreter: self)
+    loadStdlibInto(context, stdlib_files)
   }
 }

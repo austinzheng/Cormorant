@@ -8,7 +8,8 @@
 
 import Foundation
 
-public class Function {
+/// An opaque class describing a user-defined Lambdatron function.
+public class Function : Printable {
   let context : Context!
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
@@ -77,5 +78,9 @@ public class Function {
       }
     }
     return .Failure(.ArityError)
+  }
+
+  public var description : String {
+    return describe(nil)
   }
 }

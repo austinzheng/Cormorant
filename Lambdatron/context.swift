@@ -59,6 +59,14 @@ class Context {
   func log(domain: LogDomain, message: String) {
     retrieveBaseParent().interpreter.log(domain, message: message)
   }
+
+  var readInput : InputFunction? {
+    return retrieveBaseParent().interpreter.readInput
+  }
+
+  var writeOutput : OutputFunction? {
+    return retrieveBaseParent().interpreter.writeOutput
+  }
   
   /// Create a new instance of a context for a lexical scope.
   class func instance(# parent: Context, bindings: [InternedSymbol : Binding]) -> Context {
