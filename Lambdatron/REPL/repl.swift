@@ -8,7 +8,7 @@
 
 import Foundation
 
-class replInstance {
+class ReadEvaluatePrintLoop {
   let descriptor : NSFileHandle
   private var interpreter = Interpreter()
   let logger = LoggingManager()
@@ -24,7 +24,12 @@ class replInstance {
     // from http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application
     // TODO use capabilities of EditLine
     let prompt: LineReader = LineReader(argv0: C_ARGV[0])
-    
+
+    func getString() -> String {
+      return prompt.gets() ?? ""
+    }
+    interpreter.readInput = getString
+
     while true {
       let rawData = prompt.gets()
       let optionalData : NSString? = NSString(CString: rawData, encoding: NSUTF8StringEncoding)

@@ -51,7 +51,7 @@ func main() {
   if args.count == 1 {
     // Run the REPL
     let handle = NSFileHandle.fileHandleWithStandardInput()
-    let repl = replInstance(descriptor: handle)
+    let repl = ReadEvaluatePrintLoop(descriptor: handle)
     let result = repl.run()
     exit(result ? EXIT_SUCCESS : EXIT_FAILURE)
   }

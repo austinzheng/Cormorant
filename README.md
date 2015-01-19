@@ -91,11 +91,11 @@ The following special forms, reader macros, and functions are built into the int
 - Reader macros: `'`, `` ` ``, `~`, `~@`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
-- I/O: `print`, `println`
+- I/O: `read`, `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `symbol?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `>`
-- Miscellaneous: `eval`, `fail`
+- Miscellaneous: `read-string`, `eval`, `fail`
 
 
 Development
@@ -171,7 +171,8 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.
 * The `subnormal?`, `infinite?`, and `nan?` functions return false for integer arguments, and can be used to test whether floating point numbers are subnormal, infinite, or NaN (respectively).
 * `keyword` returns `nil` if given an empty string as an argument, not an invalid empty symbol.
-* Only the `\return`, `\newline`, `\tab`, and `\space` special character literals are supported. The `\uNNNN` and `\oNNN` forms are not supported.
+* Only the `\return`, `\newline`, `\tab`, and `\space` special character literals are currently supported. The `\uNNNN` and `\oNNN` forms are not yet supported. This will probably change.
+* `read` does not take an optional argument representing a reader object.
 
 
 License

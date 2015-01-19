@@ -20,6 +20,8 @@
 (def int .int)
 (def double .double)
 
+(def read .read)
+(def read-string .read-string)
 (def print .print)
 (def println .println)
 

@@ -35,6 +35,8 @@ public enum BuiltIn : String, Printable {
   case Double = ".double"
 
   // I/O
+  case Read = ".read"
+  case ReadString = ".read-string"
   case Print = ".print"
   case Println = ".println"
   
@@ -105,6 +107,8 @@ public enum BuiltIn : String, Printable {
     case Keyword: return pr_keyword
     case Int: return pr_int
     case Double: return pr_double
+    case Read: return pr_read
+    case ReadString: return pr_readString
     case Print: return pr_print
     case Println: return pr_println
     case IsNil: return pr_isNil

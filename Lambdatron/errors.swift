@@ -48,6 +48,7 @@ public enum EvalError : Printable, Equatable {
   case MultipleVariadicAritiesError
   case MultipleFnDefinitionsPerArityError
   case FixedArityExceedsVariableArityError
+  case ReadError
   case RuntimeError(String?)
 
   var name : String {
@@ -69,6 +70,7 @@ public enum EvalError : Printable, Equatable {
     case MultipleVariadicAritiesError: return "MultipleVariadicAritiesError"
     case MultipleFnDefinitionsPerArityError: return "MultipleFnDefinitionsPerArityError"
     case FixedArityExceedsVariableArityError: return "FixedArityExceedsVariableArityError"
+    case ReadError: return "ReadError"
     case RuntimeError: return "RuntimeError"
     }
   }
@@ -110,6 +112,8 @@ public enum EvalError : Printable, Equatable {
         return "function or macro can only be defined with one definition per fixed arity"
       case FixedArityExceedsVariableArityError:
         return "fixed arities cannot have more params than a function or macro's variable arity"
+      case ReadError:
+        return "failed to lex, parse, or expand raw input"
       case let RuntimeError(e):
         return e != nil ? "\(e!)" : "(no message specified)"
       }
