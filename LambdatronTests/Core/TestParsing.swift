@@ -63,37 +63,98 @@ class TestStringParsing : InterpreterTest {
 }
 
 class TestCharacterParsing : InterpreterTest {
+  /// Characters should be properly parsed.
   func testParsingBasicCharacter() {
     expectThat("\\z", shouldEvalTo: .CharacterLiteral("z"))
   }
 
+  /// The backslash character '\\' should be properly parsed.
   func testParsingBackslash() {
     expectThat("\\\\", shouldEvalTo: .CharacterLiteral("\\"))
   }
 
+  /// The tab character should be properly parsed.
   func testParsingTab() {
     expectThat("\\tab", shouldEvalTo: .CharacterLiteral("\t"))
   }
 
+  /// The space character should be properly parsed.
   func testParsingSpace() {
     expectThat("\\space", shouldEvalTo: .CharacterLiteral(" "))
   }
 
+  /// The newline character should be properly parsed.
   func testParsingNewline() {
     expectThat("\\newline", shouldEvalTo: .CharacterLiteral("\n"))
   }
 
+  /// The return character should be properly parsed.
   func testParsingReturn() {
     expectThat("\\return", shouldEvalTo: .CharacterLiteral("\r"))
   }
 }
 
 class TestListParsing : InterpreterTest {
-  // TODO
+  func testParsingEmptyList() {
+    expectThat("'()", shouldEvalTo: .ListLiteral(Cons()))
+  }
+
+  func testParsingNilList() {
+    expectThat("'(nil)", shouldEvalTo: .ListLiteral(Cons(.NilLiteral)))
+  }
+
+  /// Single element lists should be properly parsed.
+  func testParsingSingleElementList() {
+    expectThat("'(\"hello world\")", shouldEvalTo: .ListLiteral(Cons(.StringLiteral("hello world"))))
+  }
+
+  func testParsingMultiElementList() {
+    expectThat("'(true false nil)",
+      shouldEvalTo: .ListLiteral(Cons(.BoolLiteral(true), next: Cons(.BoolLiteral(false), next: Cons(.NilLiteral)))))
+  }
+
+  func testParsingNestedList() {
+    // Piece together the final list, since it's too ugly to be constructed as a single literal
+    // The target list is ((1 2) (3.14 (4 5) 6) 7)
+    let oneTwoList = Cons(.IntegerLiteral(1), next: Cons(.IntegerLiteral(2)))
+    let fourFiveList = Cons(.IntegerLiteral(4), next: Cons(.IntegerLiteral(5)))
+    let piList = Cons(.FloatLiteral(3.14), next: Cons(.ListLiteral(fourFiveList), next: Cons(.IntegerLiteral(6))))
+    let fullList = Cons(.ListLiteral(oneTwoList), next: Cons(.ListLiteral(piList), next: Cons(.IntegerLiteral(7))))
+
+    expectThat("'((1 2) (3.14 (4 5) 6) 7)", shouldEvalTo: .ListLiteral(fullList))
+  }
 }
 
 class TestVectorParsing : InterpreterTest {
-  // TODO
+  func testParsingEmptyVector() {
+    expectThat("[]", shouldEvalTo: .VectorLiteral([]))
+  }
+
+  func testParsingSingleElementVector() {
+    expectThat("[123]", shouldEvalTo: .VectorLiteral([.IntegerLiteral(123)]))
+  }
+
+  func testParsingMultiElementVector() {
+    expectThat("[1 2 nil true \"hello\" \\c]",
+      shouldEvalTo: .VectorLiteral(
+        [.IntegerLiteral(1),
+          .IntegerLiteral(2),
+          .NilLiteral,
+          .BoolLiteral(true),
+          .StringLiteral("hello"),
+          .CharacterLiteral("c")]))
+  }
+
+  func testParsingNestedVector() {
+    expectThat("[[1 2] [3.14 [4 5] 6] 7]",
+      shouldEvalTo: .VectorLiteral(
+        [.VectorLiteral([.IntegerLiteral(1), .IntegerLiteral(2)]),
+          .VectorLiteral(
+            [.FloatLiteral(3.14),
+              .VectorLiteral([.IntegerLiteral(4), .IntegerLiteral(5)]),
+              .IntegerLiteral(6)]),
+          .IntegerLiteral(7)]))
+  }
 }
 
 class TestMapParsing : InterpreterTest {
