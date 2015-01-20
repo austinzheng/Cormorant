@@ -52,13 +52,24 @@ func pr_isFloat(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
-/// Return whether or not the argument is a string literal.
+/// Return whether or not the argument is a string.
 func pr_isString(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
   switch args[0] {
   case .StringLiteral: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
+/// Return whether or not the argument is a character.
+func pr_isChar(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .CharacterLiteral: return .Success(.BoolLiteral(true))
   default: return .Success(.BoolLiteral(false))
   }
 }
@@ -74,13 +85,24 @@ func pr_isSymbol(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
-/// Return whether or not the argument is a user-defined function.
+/// Return whether or not the argument is a keyword.
+func pr_isKeyword(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 1 {
+    return .Failure(.ArityError)
+  }
+  switch args[0] {
+  case .Keyword: return .Success(.BoolLiteral(true))
+  default: return .Success(.BoolLiteral(false))
+  }
+}
+
+/// Return whether or not the argument is a user-defined or built-in function.
 func pr_isFunction(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(.ArityError)
   }
   switch args[0] {
-  case .FunctionLiteral: return .Success(.BoolLiteral(true))
+  case .FunctionLiteral, .BuiltInFunction: return .Success(.BoolLiteral(true))
   default: return .Success(.BoolLiteral(false))
   }
 }

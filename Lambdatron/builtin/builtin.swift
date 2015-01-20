@@ -46,7 +46,9 @@ public enum BuiltIn : String, Printable {
   case IsInteger = ".int?"
   case IsFloat = ".float?"
   case IsString = ".string?"
+  case IsChar = ".char?"
   case IsSymbol = ".symbol?"
+  case IsKeyword = ".keyword?"
   case IsFn = ".fn?"
   case IsEvalable = ".eval?"
   case IsTrue = ".true?"
@@ -116,7 +118,9 @@ public enum BuiltIn : String, Printable {
     case IsInteger: return pr_isInteger
     case IsFloat: return pr_isFloat
     case IsString: return pr_isString
+    case IsChar: return pr_isChar
     case IsSymbol: return pr_isSymbol
+    case IsKeyword: return pr_isKeyword
     case IsFn: return pr_isFunction
     case IsEvalable: return pr_isEvalable
     case IsTrue: return pr_isTrue

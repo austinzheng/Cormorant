@@ -27,6 +27,7 @@ class testIsNil : InterpreterTest {
     expectThat("(.nil? [])", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.nil? '())", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.nil? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.nil? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.nil? (fn [] nil))", shouldEvalTo: .BoolLiteral(false))
   }
 }
@@ -62,6 +63,7 @@ class testIsNumber : InterpreterTest {
     expectThat("(.number? [])", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.number? '())", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.number? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.number? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.number? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
   }
 }
@@ -97,6 +99,7 @@ class testIsInt : InterpreterTest {
     expectThat("(.int? [])", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.int? '())", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.int? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.int? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.int? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
   }
 }
@@ -132,6 +135,7 @@ class testIsFloat : InterpreterTest {
     expectThat("(.float? [])", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.float? '())", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.float? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.float? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.float? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
   }
 }
@@ -140,12 +144,117 @@ class testIsString : InterpreterTest {
   // TODO
 }
 
+class testIsChar : InterpreterTest {
+  /// char? should return true for characters.
+  func testIsCharWithCharacter() {
+    runCode("(def a \\a)")
+    expectThat("(.char? \\a)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.char? \\newline)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.char? a)", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  /// char? should return false for any non-character type.
+  func testIsCharWithOthers() {
+    expectThat("(.char? 1025)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? 3.141592)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? true)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? false)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? \"\")", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? 'a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? :a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? .cons)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.char? (fn [a b] :hello))", shouldEvalTo: .BoolLiteral(false))
+  }
+}
+
 class testIsSymbol : InterpreterTest {
-  // TODO
+  /// symbol? should return true for symbols.
+  func testIsSymbolWithSymbol() {
+    runCode("(def a 'b)")
+    expectThat("(.symbol? 'a)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.symbol? 'mysymbol)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.symbol? a)", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  /// symbol? should return false for any non-symbol type.
+  func testIsSymbolWithOthers() {
+    expectThat("(.symbol? 1025)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? 3.141592)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? true)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? false)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? \"\")", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? \\a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? :a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? .cons)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.symbol? (fn [a b] :hello))", shouldEvalTo: .BoolLiteral(false))
+  }
+}
+
+class testIsKeyword : InterpreterTest {
+  /// keyword? should return true for keywords.
+  func testIsKeywordWithKeyword() {
+    runCode("(def a :some-keyword)")
+    expectThat("(.keyword? :a)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.keyword? :else)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.keyword? a)", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  /// keyword? should return false for any non-keyword type.
+  func testIsKeywordWithOthers() {
+    expectThat("(.keyword? 1025)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? 3.141592)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? true)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? false)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? \"\")", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? \\a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? 'a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? .cons)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.keyword? (fn [a b] :hello))", shouldEvalTo: .BoolLiteral(false))
+  }
 }
 
 class testIsFn : InterpreterTest {
-  // TODO
+  /// fn? should return true for user-defined functions.
+  func testIsFnWithUserDefined() {
+    expectThat("(.fn? (fn [a b] (.+ a b)))", shouldEvalTo: .BoolLiteral(true))
+    runCode("(def testfn (fn [a b] (.+ 1 2 a b)))")
+    expectThat("(.fn? testfn)", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  /// fn? should return true for built-in functions.
+  func testIsFnWithBuiltIns() {
+    expectThat("(.fn? .+)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.fn? .fn?)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.fn? .cons)", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  /// fn? should return false for any non-function type.
+  func testIsFnWithOthers() {
+    expectThat("(.fn? 1025)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? 3.141592)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? true)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? false)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? \"\")", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? \\a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? 'a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? :a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.fn? {})", shouldEvalTo: .BoolLiteral(false))
+  }
 }
 
 class testIsEval : InterpreterTest {
