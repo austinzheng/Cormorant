@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Test the 'if' special form'
+/// Test the 'if' special form.
 class TestIf : InterpreterTest {
 
   override func setUp() {

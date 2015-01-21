@@ -15,6 +15,8 @@
 		1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1687741A6DDF4800DB26E2 /* TestEvaluating.swift */; };
 		1A1687781A6DE1EF00DB26E2 /* TestIf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1687771A6DE1EF00DB26E2 /* TestIf.swift */; };
 		1A16877A1A6DE49100DB26E2 /* TestQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1687791A6DE49100DB26E2 /* TestQueries.swift */; };
+		1A16877C1A6F347C00DB26E2 /* TestQuote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A16877B1A6F347C00DB26E2 /* TestQuote.swift */; };
+		1A16877F1A6F362F00DB26E2 /* TestDo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A16877E1A6F362F00DB26E2 /* TestDo.swift */; };
 		1A22BCB51A25B02A00D34872 /* lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A22BCB21A25B02A00D34872 /* lexer.swift */; };
 		1A22BCB61A25B02A00D34872 /* loader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A22BCB31A25B02A00D34872 /* loader.swift */; };
 		1A22BCB71A25B02A00D34872 /* parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A22BCB41A25B02A00D34872 /* parser.swift */; };
@@ -103,6 +105,8 @@
 		1A1687741A6DDF4800DB26E2 /* TestEvaluating.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestEvaluating.swift; path = Core/TestEvaluating.swift; sourceTree = "<group>"; };
 		1A1687771A6DE1EF00DB26E2 /* TestIf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestIf.swift; path = SpecialForms/TestIf.swift; sourceTree = "<group>"; };
 		1A1687791A6DE49100DB26E2 /* TestQueries.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestQueries.swift; path = Builtins/TestQueries.swift; sourceTree = "<group>"; };
+		1A16877B1A6F347C00DB26E2 /* TestQuote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestQuote.swift; path = SpecialForms/TestQuote.swift; sourceTree = "<group>"; };
+		1A16877E1A6F362F00DB26E2 /* TestDo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDo.swift; path = SpecialForms/TestDo.swift; sourceTree = "<group>"; };
 		1A22BCB21A25B02A00D34872 /* lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = lexer.swift; path = reader/lexer.swift; sourceTree = "<group>"; };
 		1A22BCB31A25B02A00D34872 /* loader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = loader.swift; path = reader/loader.swift; sourceTree = "<group>"; };
 		1A22BCB41A25B02A00D34872 /* parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = parser.swift; path = reader/parser.swift; sourceTree = "<group>"; };
@@ -186,7 +190,9 @@
 		1A1687761A6DE1C400DB26E2 /* SpecialForms */ = {
 			isa = PBXGroup;
 			children = (
+				1A16877B1A6F347C00DB26E2 /* TestQuote.swift */,
 				1A1687771A6DE1EF00DB26E2 /* TestIf.swift */,
+				1A16877E1A6F362F00DB26E2 /* TestDo.swift */,
 			);
 			name = SpecialForms;
 			sourceTree = "<group>";
@@ -470,6 +476,7 @@
 				1AAC2DCC1A68EB540019A5DD /* temp_bootstrap.swift in Sources */,
 				1AAC2DC31A68E8860019A5DD /* querying.swift in Sources */,
 				1AAC2DBF1A68E8830019A5DD /* loader.swift in Sources */,
+				1A16877F1A6F362F00DB26E2 /* TestDo.swift in Sources */,
 				1A0B02D61A69E328007EF0F2 /* TestFnPosition.swift in Sources */,
 				1AAC2DB81A68E8780019A5DD /* macros.swift in Sources */,
 				1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */,
@@ -484,6 +491,7 @@
 				1AAC2DB11A68E8780019A5DD /* errors.swift in Sources */,
 				1AAC2DBB1A68E8780019A5DD /* operators.swift in Sources */,
 				1AAC2DB71A68E8780019A5DD /* functions.swift in Sources */,
+				1A16877C1A6F347C00DB26E2 /* TestQuote.swift in Sources */,
 				1AAC2DB41A68E8780019A5DD /* readerforms.swift in Sources */,
 				1AAC2DB21A68E8780019A5DD /* evaluation.swift in Sources */,
 				1AAC2DBD1A68E8830019A5DD /* lexer.swift in Sources */,
