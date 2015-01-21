@@ -30,14 +30,14 @@ internal enum SpecialCommand : String {
     return nil
   }
 
-  func execute(args: [String], logger: LoggingManager, inout interpreter: Interpreter) -> Bool {
+  func execute(args: [String], logger: LoggingManager, interpreter: Interpreter) -> Bool {
     switch self {
     case .Quit:
       println("Goodbye")
       return true
     case .Reset:
       println("Environment reset")
-      interpreter = Interpreter()
+      interpreter.reset()
     case .Help:
       println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
       println("Special commands are:")

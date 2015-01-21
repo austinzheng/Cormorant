@@ -12,6 +12,7 @@ import Foundation
 class TestIf : InterpreterTest {
 
   override func setUp() {
+    super.setUp()
     clearOutputBuffer()
     interpreter.writeOutput = writeToBuffer
   }

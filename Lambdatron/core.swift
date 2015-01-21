@@ -15,7 +15,7 @@ public typealias Vector = [ConsValue]
 public typealias Map = [ConsValue:ConsValue]
 
 /// A class that represents a cons cell, an element in a linked list.
-public class Cons : Printable, Hashable {
+final public class Cons : Printable, Hashable {
   var next : Cons?
   var value : ConsValue
   

@@ -13,6 +13,11 @@ import XCTest
 class InterpreterTest : XCTestCase {
   var interpreter = Interpreter()
 
+  override func setUp() {
+    super.setUp()
+    interpreter.reset()
+  }
+
   // Run some input, discarding the output and expecting no errors.
   func runCode(input: String) {
     let result = interpreter.evaluate(input)

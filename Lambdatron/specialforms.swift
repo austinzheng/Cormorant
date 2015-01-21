@@ -129,7 +129,7 @@ func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
       let result = initializer.evaluate(ctx)
       switch result {
       case let .Success(result):
-        ctx.setTopLevelBinding(s, value: .Literal(result))
+        ctx.setVar(s, value: .Literal(result))
       case .Recur:
         return .Failure(.RecurMisuseError)
       case .Failure:
@@ -139,8 +139,8 @@ func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
     else {
       // No value is provided
       // If invalid, create the var as unbound
-      if !ctx.symbolIsValid(s) {
-        ctx.setTopLevelBinding(s, value: .Unbound)
+      if !ctx.varIsValid(s) {
+        ctx.setVar(s, value: .Unbound)
       }
     }
     return .Success(symbol)
@@ -172,7 +172,7 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context.instance(parent: ctx, bindings: newBindings))
+        let result = expression.evaluate(buildContext(parent: ctx, bindings: newBindings))
         switch result {
         case let .Success(result):
           newBindings[s] = .Literal(result)
@@ -184,7 +184,7 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
       ctr += 2
     }
     // Create a new context, which is a child of the old context
-    let newContext = Context.instance(parent: ctx, bindings: newBindings)
+    let newContext = buildContext(parent: ctx, bindings: newBindings)
     
     // Create an implicit 'do' statement with the remainder of the args
     if args.count == 1 {
@@ -248,7 +248,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
         case let .Success(macro):
-          ctx.setTopLevelBinding(name, value: .BoundMacro(macro))
+          ctx.setVar(name, value: .BoundMacro(macro))
           return .Success(args[0])
         case let .Failure(f):
           return .Failure(f)
@@ -268,7 +268,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
       let macroResult = Macro.buildMacro(arityBuffer, name: name, ctx: ctx)
       switch macroResult {
       case let .Success(macro):
-        ctx.setTopLevelBinding(name, value: .BoundMacro(macro))
+        ctx.setVar(name, value: .BoundMacro(macro))
         return .Success(args[0])
       case let .Failure(f):
         return .Failure(f)
@@ -300,7 +300,7 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
       switch name {
       case let .Symbol(s):
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(Context.instance(parent: ctx, bindings: bindings))
+        let result = expression.evaluate(buildContext(parent: ctx, bindings: bindings))
         switch result {
         case let .Success(result):
           bindings[s] = .Literal(result)
@@ -317,7 +317,7 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
     }
     let forms = args.count > 1 ? Array(args[1..<args.count]) : []
     // Now, run the loop body
-    var context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: bindings)
+    var context = bindings.count == 0 ? ctx : buildContext(parent: ctx, bindings: bindings)
     while true {
       let result = sf_do(forms, context)
       switch result {
@@ -330,7 +330,7 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
         for (idx, newValue) in enumerate(newBindingValues) {
           newBindings[symbols[idx]] = .Literal(newValue)
         }
-        context = bindings.count == 0 ? ctx : Context.instance(parent: ctx, bindings: newBindings)
+        context = bindings.count == 0 ? ctx : buildContext(parent: ctx, bindings: newBindings)
         continue
       case .Success, .Failure:
         return result

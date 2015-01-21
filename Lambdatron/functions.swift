@@ -55,7 +55,7 @@ public class Function : Printable {
     self.variadic = variadic
     // Bind the context, based on whether or not we provided an actual name
     if let actualName = name {
-      context = Context.instance(parent: ctx, bindings: [actualName : .Literal(.FunctionLiteral(self))])
+      context = buildContext(parent: ctx, bindings: [actualName : .Literal(.FunctionLiteral(self))])
     }
     else {
       context = ctx

@@ -56,7 +56,7 @@ struct SingleFn {
         }
       }
     }
-    let newContext = Context.instance(parent: ctx, bindings: bindings)
+    let newContext = buildContext(parent: ctx, bindings: bindings)
     return newContext
   }
 

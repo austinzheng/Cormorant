@@ -43,7 +43,7 @@ class ReadEvaluatePrintLoop {
         let trimmedData = data.substringToIndex(data.length-1)
         if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
           // REPL special command
-          let shouldReturn = command.execute(args, logger: logger, interpreter: &interpreter)
+          let shouldReturn = command.execute(args, logger: logger, interpreter: interpreter)
           if shouldReturn {
             return true
           }

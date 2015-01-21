@@ -33,7 +33,7 @@ public typealias InputFunction = () -> String
 /// A class representing a Lambdatron interpreter.
 public class Interpreter {
   // TODO: Any way to do this without the (implicitly unwrapped) optional?
-  let context : Context!
+  var context : Context!
 
   // Logging functions
   var evalLogging : LoggingFunction? = nil
@@ -76,6 +76,12 @@ public class Interpreter {
     return form.describe(context)
   }
 
+  /// Reset the interpreter, removing any Vars or other state. This does not affect the logging, input, or output
+  /// functions.
+  public func reset() {
+    context = buildRootContext(interpreter: self)
+  }
+
   /// Given a domain and a message, pass the message on to the appropriate logging function (if one exists).
   func log(domain: LogDomain, message: String) {
     switch domain {
@@ -93,7 +99,6 @@ public class Interpreter {
   }
 
   init() {
-    context = BaseContext(interpreter: self)
-    loadStdlibInto(context, stdlib_files)
+    context = buildRootContext(interpreter: self)
   }
 }
