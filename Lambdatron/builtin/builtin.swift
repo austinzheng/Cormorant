@@ -81,6 +81,7 @@ public enum BuiltIn : String, Printable {
   case Quotient = ".quot"
   
   // Miscellaneous
+  case Rand = ".rand"
   case Eval = ".eval"
   case Fail = ".fail"
   
@@ -145,6 +146,7 @@ public enum BuiltIn : String, Printable {
     case Divide: return pr_divide
     case Remainder: return pr_rem
     case Quotient: return pr_quot
+    case Rand: return pr_rand
     case Eval: return pr_eval
     case Fail: return pr_fail
       

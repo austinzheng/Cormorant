@@ -26,8 +26,13 @@
     `(let [__MACRO_orValue ~x]
       (if __MACRO_orValue __MACRO_orValue (or ~@next)))))
 
-; Returns the second item in a collection
+; Return the second item in a collection.
 (defn second [x] (first (next x)))
+
+; Return a random number between 0 (inclusive) and n (defaults to 1) (exclusive).
+(defn rand
+  ([] (.rand))
+  ([n] (* n (.rand))))
 
 ; Return the sum of zero or more numeric values
 ; TODO: Remove dependence on bootstrap function

@@ -12,6 +12,7 @@
 		1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */; };
 		1A0B02D61A69E328007EF0F2 /* TestFnPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D51A69E328007EF0F2 /* TestFnPosition.swift */; };
 		1A0B02D81A69E357007EF0F2 /* InterpreterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D71A69E357007EF0F2 /* InterpreterTest.swift */; };
+		1A1579791A6FA45B0013D21B /* TestRand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1579781A6FA45B0013D21B /* TestRand.swift */; };
 		1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1687741A6DDF4800DB26E2 /* TestEvaluating.swift */; };
 		1A1687781A6DE1EF00DB26E2 /* TestIf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1687771A6DE1EF00DB26E2 /* TestIf.swift */; };
 		1A16877A1A6DE49100DB26E2 /* TestQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1687791A6DE49100DB26E2 /* TestQueries.swift */; };
@@ -103,6 +104,7 @@
 		1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNth.swift; path = Builtins/TestNth.swift; sourceTree = "<group>"; };
 		1A0B02D51A69E328007EF0F2 /* TestFnPosition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFnPosition.swift; path = Core/TestFnPosition.swift; sourceTree = "<group>"; };
 		1A0B02D71A69E357007EF0F2 /* InterpreterTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InterpreterTest.swift; sourceTree = "<group>"; };
+		1A1579781A6FA45B0013D21B /* TestRand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestRand.swift; path = Builtins/TestRand.swift; sourceTree = "<group>"; };
 		1A1687741A6DDF4800DB26E2 /* TestEvaluating.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestEvaluating.swift; path = Core/TestEvaluating.swift; sourceTree = "<group>"; };
 		1A1687771A6DE1EF00DB26E2 /* TestIf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestIf.swift; path = SpecialForms/TestIf.swift; sourceTree = "<group>"; };
 		1A1687791A6DE49100DB26E2 /* TestQueries.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestQueries.swift; path = Builtins/TestQueries.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 			children = (
 				1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */,
 				1A1687791A6DE49100DB26E2 /* TestQueries.swift */,
+				1A1579781A6FA45B0013D21B /* TestRand.swift */,
 			);
 			name = Builtins;
 			sourceTree = "<group>";
@@ -483,6 +486,7 @@
 				1A0B02D61A69E328007EF0F2 /* TestFnPosition.swift in Sources */,
 				1AF4FC531A6F3BDD00AE218E /* TestDef.swift in Sources */,
 				1AAC2DB81A68E8780019A5DD /* macros.swift in Sources */,
+				1A1579791A6FA45B0013D21B /* TestRand.swift in Sources */,
 				1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */,
 				1A2FDF4F1A6B928800E627A2 /* TestParsing.swift in Sources */,
 				1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */,

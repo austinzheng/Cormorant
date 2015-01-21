@@ -53,6 +53,15 @@ func pr_println(args: [ConsValue], ctx: Context) -> EvalResult {
   return printOrPrintln(args, ctx, true)
 }
 
+/// Return a random number between 0 (inclusive) and 1 (exclusive).
+func pr_rand(args: [ConsValue], ctx: Context) -> EvalResult {
+  if args.count != 0 {
+    return .Failure(.ArityError)
+  }
+  let randomNumber = Double(arc4random_uniform(UInt32.max - 1))
+  return .Success(.FloatLiteral(randomNumber / Double(UInt32.max)))
+}
+
 /// Evaluate a given form and return the result.
 func pr_eval(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 1 {
