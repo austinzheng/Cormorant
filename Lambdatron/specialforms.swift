@@ -110,7 +110,7 @@ func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Bind or re-bind a global identifier, optionally assigning it a value.
 func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
-  if args.count < 1 {
+  if args.count == 0 || args.count > 2 {
     return .Failure(.ArityError)
   }
   let symbol = args[0]

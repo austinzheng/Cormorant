@@ -30,6 +30,11 @@ class testIsNil : InterpreterTest {
     expectThat("(.nil? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.nil? (fn [] nil))", shouldEvalTo: .BoolLiteral(false))
   }
+
+  func testIsNilArity() {
+    expectArityErrorFrom("(.nil?)")
+    expectArityErrorFrom("(.nil? nil nil)")
+  }
 }
 
 class testIsNumber : InterpreterTest {
@@ -65,6 +70,11 @@ class testIsNumber : InterpreterTest {
     expectThat("(.number? {})", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.number? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.number? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  func testIsNumberArity() {
+    expectArityErrorFrom("(.number?)")
+    expectArityErrorFrom("(.number? 0 0)")
   }
 }
 
@@ -102,6 +112,11 @@ class testIsInt : InterpreterTest {
     expectThat("(.int? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.int? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
   }
+
+  func testIsIntArity() {
+    expectArityErrorFrom("(.int?)")
+    expectArityErrorFrom("(.int? 1 1)")
+  }
 }
 
 class testIsFloat : InterpreterTest {
@@ -138,10 +153,42 @@ class testIsFloat : InterpreterTest {
     expectThat("(.float? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.float? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
   }
+
+  func testIsFloatArity() {
+    expectArityErrorFrom("(.float?)")
+    expectArityErrorFrom("(.float? 1.1 1.1)")
+  }
 }
 
 class testIsString : InterpreterTest {
-  // TODO
+  /// string? should return true for strings.
+  func testIsStringWithString() {
+    expectThat("(.string? \"\")", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.string? \"foobar\")", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.string? \"hello \\n world!!\")", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  /// string? should return false for any non-string type.
+  func testIsStringWithOthers() {
+    expectThat("(.string? 10)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? 515.15151)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? true)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? false)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? \\a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? 'a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? :a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? .cons)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.string? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  func testIsStringArity() {
+    expectArityErrorFrom("(.string?)")
+    expectArityErrorFrom("(.string? \"foo\" \"bar\")")
+  }
 }
 
 class testIsChar : InterpreterTest {
@@ -168,6 +215,11 @@ class testIsChar : InterpreterTest {
     expectThat("(.char? {})", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.char? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.char? (fn [a b] :hello))", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  func testIsCharArity() {
+    expectArityErrorFrom("(.char?)")
+    expectArityErrorFrom("(.char? \\\\ \\a)")
   }
 }
 
@@ -196,6 +248,11 @@ class testIsSymbol : InterpreterTest {
     expectThat("(.symbol? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.symbol? (fn [a b] :hello))", shouldEvalTo: .BoolLiteral(false))
   }
+
+  func testIsSymbolArity() {
+    expectArityErrorFrom("(.symbol?)")
+    expectArityErrorFrom("(.symbol? 'a 'a)")
+  }
 }
 
 class testIsKeyword : InterpreterTest {
@@ -222,6 +279,11 @@ class testIsKeyword : InterpreterTest {
     expectThat("(.keyword? {})", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.keyword? .cons)", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.keyword? (fn [a b] :hello))", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  func testIsKeywordArity() {
+    expectArityErrorFrom("(.keyword?)")
+    expectArityErrorFrom("(.keyword? :a :a)")
   }
 }
 
@@ -255,6 +317,11 @@ class testIsFn : InterpreterTest {
     expectThat("(.fn? '())", shouldEvalTo: .BoolLiteral(false))
     expectThat("(.fn? {})", shouldEvalTo: .BoolLiteral(false))
   }
+
+  func testIsFnArity() {
+    expectArityErrorFrom("(.fn?)")
+    expectArityErrorFrom("(.fn? .+ .+)")
+  }
 }
 
 class testIsEval : InterpreterTest {
@@ -262,11 +329,61 @@ class testIsEval : InterpreterTest {
 }
 
 class testIsTrue : InterpreterTest {
-  // TODO
+  // true? should return true for the value true.
+  func testIsTrueWithBooleans() {
+    expectThat("(.true? true)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.true? false)", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  // true? should return false for any value that isn't exactly true.
+  func testIsTrueWithOthers() {
+    expectThat("(.true? 0)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? 0.0)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? \"\")", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? \\a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? 'a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? :a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.true? .+)", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  func testIsTrueArity() {
+    expectArityErrorFrom("(.true?)")
+    expectArityErrorFrom("(.true? true true)")
+  }
 }
 
 class testIsFalse : InterpreterTest {
-  // TODO
+  // false? should return true for the value false.
+  func testIsFalseWithBooleans() {
+    expectThat("(.false? true)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? false)", shouldEvalTo: .BoolLiteral(true))
+  }
+
+  // false? should return false for any value that isn't exactly false.
+  func testIsFalseWithOthers() {
+    expectThat("(.false? 0)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? 0.0)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? nil)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? \"\")", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? \\a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? 'a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? :a)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? [])", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? '())", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? {})", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? (fn [] 0))", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.false? .+)", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  func testIsFalseArity() {
+    expectArityErrorFrom("(.false?)")
+    expectArityErrorFrom("(.false? false false)")
+  }
 }
 
 class testIsList : InterpreterTest {
@@ -294,7 +411,36 @@ class testIsNeg : InterpreterTest {
 }
 
 class testIsZero : InterpreterTest {
-  // TODO
+  // zero? should return true for numerical zero values.
+  func testIsZeroWithNumbers() {
+    expectThat("(.zero? 0)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.zero? 0.0)", shouldEvalTo: .BoolLiteral(true))
+    expectThat("(.zero? 1)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.zero? -999)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.zero? 0.00001)", shouldEvalTo: .BoolLiteral(false))
+    expectThat("(.zero? -1293.58812)", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  // zero? should fail for any non-number type.
+  func testIsZeroWithOthers() {
+    expectThat("(.zero? nil)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? true)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? false)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? \"\")", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? \\a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? 'a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? :a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? [])", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? '())", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? {})", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.zero? .+)", shouldFailAs: .InvalidArgumentError)
+  }
+
+  func testIsZeroArity() {
+    expectArityErrorFrom("(.zero?)")
+    expectArityErrorFrom("(.zero? 0 0)")
+  }
 }
 
 class testIsSubnormal : InterpreterTest {
