@@ -345,6 +345,10 @@ func buildNumberFromString(str: String) -> LexToken? {
   return nil
 }
 
+/// Given an input string, as well as a start index marking the position of a token within that string that starts with
+/// a backslash (e.g. "hello world \a" and 12), try to parse the token into a character literal, and return either nil
+/// (if the token can't be parsed correctly) or a tuple containing the character literal token and an index from whence
+/// to resume parsing.
 private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int)? {
   // Precondition: start is the index of the "\" character in str that starts the character literal
   let strAsUtf16 = NSString(string: str)
@@ -393,6 +397,12 @@ private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int
     return (.CharLiteral("\n"), literalLength)
   case "return":
     return (.CharLiteral("\r"), literalLength)
+  case "backspace":
+    let backspace = Character(UnicodeScalar(8))
+    return (.CharLiteral(backspace), literalLength)
+  case "formfeed":
+    let formfeed = Character(UnicodeScalar(12))
+    return (.CharLiteral(formfeed), literalLength)
   default:
     return nil
   }

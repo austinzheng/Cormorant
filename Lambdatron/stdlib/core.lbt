@@ -124,3 +124,20 @@
        (cons f (filter pred r))
        (filter pred r)))
   ))
+
+; Returns name string for character, or nil if none.
+(def char-name-string
+  {\newline "newline"
+   \tab "tab"
+   \space "space"
+   \backspace "backspace"
+   \formfeed "formfeed"
+   \return "return"})
+
+; Returns escape string for character, or nil if none.
+(def char-escape-string
+  {\newline "\\n"
+   \tab  "\\t"
+   \return "\\r"
+   \" "\\\""
+   \\  "\\\\"})

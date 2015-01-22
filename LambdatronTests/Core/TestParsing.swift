@@ -92,6 +92,18 @@ class TestCharacterParsing : InterpreterTest {
   func testParsingReturn() {
     expectThat("\\return", shouldEvalTo: .CharacterLiteral("\r"))
   }
+
+  /// The formfeed character should be properly parsed.
+  func testParsingFormfeed() {
+    let formfeed = Character(UnicodeScalar(12))
+    expectThat("\\formfeed", shouldEvalTo: .CharacterLiteral(formfeed))
+  }
+
+  /// The backspace character should be properly parsed.
+  func testParsingBackspace() {
+    let backspace = Character(UnicodeScalar(8))
+    expectThat("\\backspace", shouldEvalTo: .CharacterLiteral(backspace))
+  }
 }
 
 class TestListParsing : InterpreterTest {

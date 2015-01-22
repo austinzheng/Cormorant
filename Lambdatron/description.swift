@@ -166,12 +166,16 @@ extension SingleFn {
 
 /// Return the Clojure-style description of a character literal.
 private func charLiteralDesc(char: Character) -> String {
+  let backspace = Character(UnicodeScalar(8))
+  let formfeed = Character(UnicodeScalar(12))
   let name : String = {
     switch char {
     case "\n": return "newline"
     case "\r": return "return"
     case " ": return "space"
     case "\t": return "tab"
+    case backspace: return "backspace"
+    case formfeed: return "formfeed"
     default: return "\(char)"
     }
     }()

@@ -95,7 +95,7 @@ The following special forms, reader macros, and functions are built into the int
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `>`
-- Miscellaneous: `read-string`, `eval`, `fail`
+- Miscellaneous: `read-string`, `rand`, `eval`, `fail`
 
 
 Development
@@ -143,6 +143,8 @@ These are objectives I am working on right now, or plan on doing in the near fut
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)
 - Full unit test suite (once development stabilizes)
+- Custom types (e.g. `deftype`) and multimethods
+- Support for `\uNNNN` and `\oNNN` character literals
 
 
 ### (Very) Long Term Goals
@@ -171,9 +173,8 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.
 * The `subnormal?`, `infinite?`, and `nan?` functions return false for integer arguments, and can be used to test whether floating point numbers are subnormal, infinite, or NaN (respectively).
 * `keyword` returns `nil` if given an empty string as an argument, not an invalid empty symbol.
-* Only the `\return`, `\newline`, `\tab`, and `\space` special character literals are currently supported. The `\uNNNN` and `\oNNN` forms are not yet supported. This will probably change.
 * `read` does not take an optional argument representing a reader object.
-
+* `char-escape-string` returns `nil` for the `\formfeed` and `\backspace` arguments, since Swift does not recognize the `\f` and `\b` escape sequences.
 
 License
 -------
