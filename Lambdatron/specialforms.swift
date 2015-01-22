@@ -212,7 +212,7 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   let rest = (name == nil) ? args : Array(args[1..<args.count])
   if rest[0].asVector() != nil {
     // Single arity
-    let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Function, ctx: ctx)
+    let singleArity = buildSingleFnFor(.VectorLiteral(rest), ctx: ctx)
     if let actualSingleArity = singleArity {
       return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
     }
@@ -220,7 +220,7 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   else {
     var arityBuffer : [SingleFn] = []
     for potential in rest {
-      if let nextFn = buildSingleFnFor(potential, type: .Function, ctx: ctx) {
+      if let nextFn = buildSingleFnFor(potential, ctx: ctx) {
         arityBuffer.append(nextFn)
       }
       else {
@@ -243,7 +243,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     let rest = Array(args[1..<args.count])
     if rest[0].asVector() != nil {
       // Single arity
-      let singleArity = buildSingleFnFor(.VectorLiteral(rest), type: .Macro, ctx: ctx)
+      let singleArity = buildSingleFnFor(.VectorLiteral(rest), ctx: ctx)
       if let actualSingleArity = singleArity {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
@@ -258,7 +258,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     else {
       var arityBuffer : [SingleFn] = []
       for potential in rest {
-        if let nextFn = buildSingleFnFor(potential, type: .Macro, ctx: ctx) {
+        if let nextFn = buildSingleFnFor(potential, ctx: ctx) {
           arityBuffer.append(nextFn)
         }
         else {
@@ -459,7 +459,7 @@ private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSym
 
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
 /// SingleFn instance.
-private func buildSingleFnFor(item: ConsValue, #type: FnType, #ctx: Context) -> SingleFn? {
+private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
   let itemAsVector : Vector? = {
     switch item {
     case let .ListLiteral(l): return Cons.collectSymbols(l)
@@ -477,7 +477,7 @@ private func buildSingleFnFor(item: ConsValue, #type: FnType, #ctx: Context) -> 
         // Now we've taken out the parameters (they are symbols in a vector
         let (paramNames, variadic) = paramTuple
         let forms = vector.count > 1 ? Array(vector[1..<vector.count]) : []
-        return SingleFn(fnType: type, parameters: paramNames, forms: forms, variadicParameter: variadic)
+        return SingleFn(parameters: paramNames, forms: forms, variadicParameter: variadic)
       }
     }
   }
