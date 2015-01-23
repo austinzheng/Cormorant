@@ -108,7 +108,7 @@ class TestCharacterParsing : InterpreterTest {
 
 class TestListParsing : InterpreterTest {
   func testParsingEmptyList() {
-    expectThat("'()", shouldEvalTo: .ListLiteral(Cons()))
+    expectThat("()", shouldEvalTo: .ListLiteral(Cons()))
   }
 
   func testParsingNilList() {

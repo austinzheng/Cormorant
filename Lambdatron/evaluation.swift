@@ -170,6 +170,11 @@ extension Cons {
     // This method is run in order to evaluate a list form (a b c d).
     // 'a' must resolve to something that can be used in function position. 'b', 'c', and 'd' are arguments to the
     // function.
+
+    // 0: An empty list just returns itself.
+    if self.isEmpty {
+      return .Success(.ListLiteral(self))
+    }
     
     // 1: Decide whether 'a' is either a special form or a reference to a macro.
     if let specialForm = asSpecialForm() {
