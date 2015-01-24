@@ -15,7 +15,7 @@ public typealias Vector = [ConsValue]
 public typealias Map = [ConsValue:ConsValue]
 
 /// A class that represents a cons cell, an element in a linked list.
-final public class Cons : Printable, Hashable {
+final public class Cons : Printable, Hashable, SequenceType {
   var next : Cons?
   var value : ConsValue
   
@@ -114,43 +114,6 @@ final public class Cons : Printable, Hashable {
     default: return nil
     }
   }
-  
-  /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
-  /// to perform argument evaluation as part of the process of calling a function.
-  class func collectValues(firstItem : Cons?, _ ctx: Context) -> CollectResult {
-    var buffer : [ConsValue] = []
-    var currentItem : Cons? = firstItem
-    while let actualItem = currentItem {
-      let thisValue = actualItem.value
-      switch thisValue.evaluate(ctx) {
-      case let .Success(result):
-        buffer.append(result)
-      case .Recur:
-        // Cannot use 'recur' as a function argument
-        return .Failure(.RecurMisuseError)
-      case let .Failure(f):
-        return .Failure(f)
-      }
-      currentItem = actualItem.next
-    }
-    return .Success(buffer)
-  }
-  
-  /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended
-  /// to collect symbols as part of the process of calling a macro or special form.
-  class func collectSymbols(firstItem: Cons?) -> [ConsValue] {
-    var symbolBuffer : [ConsValue] = []
-    var currentItem : Cons? = firstItem
-    while let actualItem = currentItem {
-      let value = actualItem.value
-      switch value {
-      case .None: break
-      default: symbolBuffer.append(actualItem.value)
-      }
-      currentItem = actualItem.next
-    }
-    return symbolBuffer
-  }
 
   public var description : String {
     return describe(nil)
@@ -159,7 +122,36 @@ final public class Cons : Printable, Hashable {
   var debugDescription : String {
     return describe(nil, debug: true)
   }
+
+  // Generator
+  public func generate() -> ConsGenerator {
+    return isEmpty ? ConsGenerator() : ConsGenerator(head: self)
+  }
 }
+
+/// A struct representing a generator for the Cons type.
+public struct ConsGenerator : GeneratorType {
+  var currentNode : Cons?
+
+  /// Construct a generator for the empty list ().
+  init() {
+    currentNode = nil
+  }
+
+  /// Construct a generator for a non-empty list.
+  init(head: Cons) {
+    currentNode = head
+  }
+
+  public mutating func next() -> ConsValue? {
+    if let value = currentNode?.value {
+      currentNode = currentNode?.next
+      return value
+    }
+    return nil
+  }
+}
+
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
 public enum ConsValue : Printable, Hashable {

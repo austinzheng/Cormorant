@@ -380,14 +380,9 @@ func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
         return .Failure(.OutOfBoundsError)
       }
     case let .ListLiteral(l):
-      // We have to walk the list
-      if !l.isEmpty {
-        var this : Cons? = l
-        for _ in 0..<idx {
-          this = this?.next
-        }
-        if let this = this {
-          return .Success(this.value)
+      for (ctr, item) in enumerate(l) {
+        if ctr == idx {
+          return .Success(item)
         }
       }
       // The list is empty, or we reached the end of the list prematurely.

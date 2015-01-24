@@ -40,7 +40,41 @@ func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
 }
 
 extension Cons {
-  
+
+  /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
+  /// to perform argument evaluation as part of the process of calling a function.
+  class func collectValues(list : Cons?, _ ctx: Context) -> CollectResult {
+    var buffer : [ConsValue] = []
+    if let list = list {
+      assert(list.isEmpty == false, "The list of parameters given to a function should never be empty.")
+      for param in list {
+        switch param.evaluate(ctx) {
+        case let .Success(result):
+          buffer.append(result)
+        case .Recur:
+          // Cannot use 'recur' as a function argument
+          return .Failure(.RecurMisuseError)
+        case let .Failure(f):
+          return .Failure(f)
+        }
+      }
+    }
+    return .Success(buffer)
+  }
+
+  /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended
+  /// to collect symbols as part of the process of calling a macro or special form.
+  class func collectSymbols(list: Cons?) -> [ConsValue] {
+    var buffer : [ConsValue] = []
+    if let list = list {
+      assert(list.isEmpty == false, "The list of parameters given to a macro should never be empty.")
+      for param in list {
+        buffer.append(param)
+      }
+    }
+    return buffer
+  }
+
   /// Evaluate a special form.
   private func evaluateSpecialForm(specialForm: SpecialForm, ctx: Context) -> EvalResult {
     ctx.log(.Eval, message: "evaluating as special form: \(describe(ctx))")
@@ -52,7 +86,7 @@ extension Cons {
     let result = specialForm.function(symbols, ctx)
     return result
   }
-  
+
   /// Evaluate a built-in function.
   private func evaluateBuiltIn(builtIn: LambdatronBuiltIn, ctx: Context) -> EvalResult {
     ctx.log(.Eval, message: "evaluating as built-in function: \(describe(ctx))")
@@ -61,7 +95,7 @@ extension Cons {
     case let .Failure(f): return .Failure(f)
     }
   }
-  
+
   /// Expand and evaluate a macro.
   private func evaluateMacro(macro: Macro, ctx: Context) -> EvalResult {
     ctx.log(.Eval, message: "evaluating as macro expansion: \(describe(ctx))")
@@ -79,7 +113,7 @@ extension Cons {
     case .Recur, .Failure: return expanded
     }
   }
-  
+
   /// Evaluate a user-defined function.
   private func evaluateFunction(function: Function, ctx: Context) -> EvalResult {
     ctx.log(.Eval, message: "evaluating as function: \(describe(ctx))")
@@ -92,7 +126,7 @@ extension Cons {
     case let .Failure(f): return .Failure(f)
     }
   }
-  
+
   /// Evaluate a list with a vector in function position.
   private func evaluateVector(vector: Vector, ctx: Context) -> EvalResult {
     ctx.log(.Eval, message: "evaluating as function with vector in function position: \(describe(ctx))")
@@ -111,7 +145,7 @@ extension Cons {
     case let .Failure(f): return .Failure(f)
     }
   }
-  
+
   /// Evaluate a list with a map in function position.
   private func evaluateMap(map: Map, ctx: Context) -> EvalResult {
     ctx.log(.Eval, message: "evaluating as function with map in function position: \(describe(ctx))")
@@ -142,7 +176,7 @@ extension Cons {
     case let .Failure(f): return .Failure(f)
     }
   }
-  
+
   /// Apply the values in the array 'args' to the function 'first'.
   class func apply(first: ConsValue, args: [ConsValue], ctx: Context) -> EvalResult {
     if let builtIn = first.asBuiltIn() {
@@ -164,7 +198,7 @@ extension Cons {
       return .Failure(.NotEvalableError)
     }
   }
-  
+
   /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
   func evaluate(ctx: Context) -> EvalResult {
     // This method is run in order to evaluate a list form (a b c d).
