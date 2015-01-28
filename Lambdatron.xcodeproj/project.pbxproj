@@ -29,6 +29,7 @@
 		1A2BA9CA1A537BD300E73A17 /* util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2BA9C91A537BD300E73A17 /* util.swift */; };
 		1A2BA9D61A537E0100E73A17 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2BA9D41A537E0100E73A17 /* main.swift */; };
 		1A2FDF4F1A6B928800E627A2 /* TestParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2FDF4E1A6B928800E627A2 /* TestParsing.swift */; };
+		1A4618D91A78C91700B63550 /* TestLet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4618D81A78C91700B63550 /* TestLet.swift */; };
 		1A5530511A45168B00947751 /* description.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5530501A45168B00947751 /* description.swift */; };
 		1A5DE9731A1D8D1400973951 /* operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DE9721A1D8D1400973951 /* operators.swift */; };
 		1A7D4BC61A64F97500EAF676 /* math.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A7D4BC51A64F97500EAF676 /* math.lbt */; };
@@ -119,6 +120,7 @@
 		1A2BA9C91A537BD300E73A17 /* util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = util.swift; sourceTree = "<group>"; };
 		1A2BA9D41A537E0100E73A17 /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = main.swift; path = executable/main.swift; sourceTree = "<group>"; };
 		1A2FDF4E1A6B928800E627A2 /* TestParsing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestParsing.swift; path = Core/TestParsing.swift; sourceTree = "<group>"; };
+		1A4618D81A78C91700B63550 /* TestLet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLet.swift; path = SpecialForms/TestLet.swift; sourceTree = "<group>"; };
 		1A5530501A45168B00947751 /* description.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = description.swift; sourceTree = "<group>"; };
 		1A5DE9721A1D8D1400973951 /* operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = operators.swift; sourceTree = "<group>"; };
 		1A73F0D519F7138100F266DA /* Lambdatron */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Lambdatron; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -199,6 +201,7 @@
 				1A1687771A6DE1EF00DB26E2 /* TestIf.swift */,
 				1A16877E1A6F362F00DB26E2 /* TestDo.swift */,
 				1AF4FC521A6F3BDD00AE218E /* TestDef.swift */,
+				1A4618D81A78C91700B63550 /* TestLet.swift */,
 			);
 			name = SpecialForms;
 			sourceTree = "<group>";
@@ -496,6 +499,7 @@
 				1AAC2DB11A68E8780019A5DD /* errors.swift in Sources */,
 				1AAC2DBB1A68E8780019A5DD /* operators.swift in Sources */,
 				1AAC2DB71A68E8780019A5DD /* fns.swift in Sources */,
+				1A4618D91A78C91700B63550 /* TestLet.swift in Sources */,
 				1A16877C1A6F347C00DB26E2 /* TestQuote.swift in Sources */,
 				1AAC2DB41A68E8780019A5DD /* readerforms.swift in Sources */,
 				1AAC2DB21A68E8780019A5DD /* evaluation.swift in Sources */,
