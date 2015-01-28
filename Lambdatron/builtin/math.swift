@@ -215,7 +215,10 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
       //  Double otherwise.
       if v2 == 0 { return .Failure(.DivideByZeroError) }
       let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
-      if !overflow && remainder == 0 {
+      if overflow {
+        return .Failure(.IntegerOverflowError)
+      }
+      else if remainder == 0 {
         let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
         return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(quotient))
       }

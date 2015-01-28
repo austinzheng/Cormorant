@@ -32,6 +32,7 @@
 		1A4618D91A78C91700B63550 /* TestLet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4618D81A78C91700B63550 /* TestLet.swift */; };
 		1A5530511A45168B00947751 /* description.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5530501A45168B00947751 /* description.swift */; };
 		1A5DE9731A1D8D1400973951 /* operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DE9721A1D8D1400973951 /* operators.swift */; };
+		1A7AF6C91A78D811006FC934 /* TestArithmetic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */; };
 		1A7D4BC61A64F97500EAF676 /* math.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A7D4BC51A64F97500EAF676 /* math.lbt */; };
 		1A7D4BC71A64F9CD00EAF676 /* math.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A7D4BC51A64F97500EAF676 /* math.lbt */; };
 		1A942AE11A35A94D0036BF5A /* builtin.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A942AE01A35A94D0036BF5A /* builtin.lbt */; };
@@ -124,6 +125,7 @@
 		1A5530501A45168B00947751 /* description.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = description.swift; sourceTree = "<group>"; };
 		1A5DE9721A1D8D1400973951 /* operators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = operators.swift; sourceTree = "<group>"; };
 		1A73F0D519F7138100F266DA /* Lambdatron */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Lambdatron; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestArithmetic.swift; path = Builtins/TestArithmetic.swift; sourceTree = "<group>"; };
 		1A7D4BC51A64F97500EAF676 /* math.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = math.lbt; path = stdlib/math.lbt; sourceTree = "<group>"; };
 		1A942AE01A35A94D0036BF5A /* builtin.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = builtin.lbt; path = stdlib/builtin.lbt; sourceTree = "<group>"; };
 		1A98B10C1A1C79F300019DB4 /* core.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = core.lbt; path = stdlib/core.lbt; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 				1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */,
 				1A15797A1A71FF290013D21B /* TestPrimitiveManip.swift */,
 				1A1687791A6DE49100DB26E2 /* TestQueries.swift */,
+				1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */,
 				1A1579781A6FA45B0013D21B /* TestRand.swift */,
 			);
 			name = Builtins;
@@ -490,6 +493,7 @@
 				1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */,
 				1A2FDF4F1A6B928800E627A2 /* TestParsing.swift in Sources */,
 				1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */,
+				1A7AF6C91A78D811006FC934 /* TestArithmetic.swift in Sources */,
 				1A1687781A6DE1EF00DB26E2 /* TestIf.swift in Sources */,
 				1AAC2DC51A68E8860019A5DD /* miscellaneous.swift in Sources */,
 				1AAC2DB51A68E8780019A5DD /* specialforms.swift in Sources */,

@@ -60,6 +60,30 @@ class TestFunctionEvaluation : InterpreterTest {
       shouldEvalTo: .NilLiteral)
     expectOutputBuffer(toBe: "arg1arg2arg3arg4")
   }
+
+  /// Vars and unshadowed let bindings should be available within a function body.
+  func testBindingHierarchy() {
+    runCode("(def a 187)")
+    runCode("(let [b 51] (def testFunc (fn [c] (.+ (.+ a b) c))))")
+    expectThat("(testFunc 91200)", shouldEvalTo: .IntegerLiteral(91438))
+  }
+
+  /// A function's arguments should shadow any vars or let bindings.
+  func testBindingShadowing() {
+    runCode("(def a 187)")
+    runCode("(let [b 51] (def testFunc (fn [a b c] (.+ (.+ a b) c))))")
+    expectThat("(testFunc 100 201 512)", shouldEvalTo: .IntegerLiteral(813))
+  }
+
+  /// A function should not capture a var's value at creation time.
+  func testFunctionVarCapture() {
+    // Define a function that returns a var
+    runCode("(def testFunc (fn [] a))")
+    runCode("(def a 500)")
+    expectThat("(testFunc)", shouldEvalTo: .IntegerLiteral(500))
+    runCode("(def a false)")
+    expectThat("(testFunc)", shouldEvalTo: .BoolLiteral(false))
+  }
 }
 
 /// Test the way macros are evaluated.
@@ -117,5 +141,53 @@ class TestMacroEvaluation : InterpreterTest {
     runCode("(defmacro testMacro [pred then else] (if pred then else))")
     expectThat("(testMacro true (do (.print \"good\") 123) (.print \"bad\"))", shouldEvalTo: .IntegerLiteral(123))
     expectOutputBuffer(toBe: "good")
+  }
+
+  /// Vars and unshadowed let bindings should be available within a macro body.
+  func testBindingHierarchy() {
+    runCode("(def a 187)")
+    runCode("(let [b 51] (defmacro testMacro [c] (.+ (.+ a b) c)))")
+    expectThat("(testMacro 91200)", shouldEvalTo: .IntegerLiteral(91438))
+  }
+
+  /// A macro's arguments should shadow any vars or let bindings.
+  func testBindingShadowing() {
+    runCode("(def a 187)")
+    runCode("(let [b 51] (defmacro testMacro [a b c] (.+ (.+ a b) c)))")
+    expectThat("(testMacro 100 201 512)", shouldEvalTo: .IntegerLiteral(813))
+  }
+
+  /// A macro should not capture a var's value at creation time.
+  func testMacroVarCapture() {
+    // Define a function that returns a var
+    runCode("(defmacro testMacro [] a)")
+    runCode("(def a 500)")
+    expectThat("(testMacro)", shouldEvalTo: .IntegerLiteral(500))
+    runCode("(def a false)")
+    expectThat("(testMacro)", shouldEvalTo: .BoolLiteral(false))
+  }
+
+  /// If a symbol in a macro is not part of the lexical context, lookup at expansion time should evaluate to a var.
+  func testMacroSymbolCapture() {
+    runCode("(def b \"hello\")")
+    // note the lexical context: no definition for 'b'
+    runCode("(defmacro testMacro [a] (.list .+ a b))")
+    runCode("(def b 125)")
+    // testMacro, when run, must resort to getting the var named 'b'
+    expectThat("(testMacro 6)", shouldEvalTo: .IntegerLiteral(131))
+    runCode("(def b 918)")
+    expectThat("(testMacro 6)", shouldEvalTo: .IntegerLiteral(924))
+  }
+
+  /// A macro should capture its lexical context and bind valid symbols to items in that context as necessary.
+  func testMacroBindingCapture() {
+    // This unit test is actually similar to 'testBindingShadowing' above, but more explicit.
+    // note the lexical context: definition for 'b'
+    runCode("(let [b 51] (defmacro testMacro [a] (.list .+ a b)))")
+    runCode("(def b 125)")
+    // testMacro, when run, always resolves 'b' to its binding when the macro was defined
+    expectThat("(testMacro 6)", shouldEvalTo: .IntegerLiteral(57))
+    runCode("(def b 918)")
+    expectThat("(testMacro 6)", shouldEvalTo: .IntegerLiteral(57))
   }
 }
