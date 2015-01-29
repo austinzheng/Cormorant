@@ -18,8 +18,8 @@ private enum RawLexResult {
   case Failure(LexError)
 }
 
-/// Tokens that come out of the lex() function
-enum LexToken : Printable {
+/// Tokens representing special syntax characters
+enum SyntaxToken {
   case LeftParentheses            // left parentheses '('
   case RightParentheses           // right parentheses ')'
   case LeftSquareBracket          // left square bracket '['
@@ -30,6 +30,11 @@ enum LexToken : Printable {
   case Backquote                  // isolate grave accent '`'
   case Tilde                      // tilde '~'
   case TildeAt                    // tilde followed by at '~@'
+}
+
+/// Tokens that come out of the lex() function
+enum LexToken {
+  case Syntax(SyntaxToken)
   case NilLiteral                 // nil
   case CharLiteral(Character)     // character literal
   case StringLiteral(String)      // string (denoted by double quotes)
@@ -40,35 +45,52 @@ enum LexToken : Printable {
   case Identifier(String)         // unknown identifier (function or variable name)
   case Special(SpecialForm)       // a special form (e.g. 'quote')
   case BuiltInFunction(BuiltIn)   // a built-in function
-  
-  var description : String {
+
+  var isLeftParentheses : Bool {
     switch self {
-    case .LeftParentheses: return "LeftP <(>"
-    case .RightParentheses: return "RightP <)>"
-    case .LeftSquareBracket: return "LeftSqBr <[>"
-    case .RightSquareBracket: return "RightSqBr <]>"
-    case .LeftBrace: return "LeftBrace <{>"
-    case .RightBrace: return "RightBrace <}>"
-    case .Quote: return "Quote <'>"
-    case .Backquote: return "Backquote <`>"
-    case .Tilde: return "Tilde <~>"
-    case .TildeAt: return "TildeAt <~@>"
-    case let .CharLiteral(c): return "Character \"\(c)\""
-    case let .StringLiteral(x): return "String \"\(x)\""
-    case let .NilLiteral: return "Nil"
-    case let .Integer(v): return "Integer <\(v)>"
-    case let .FlPtNumber(x): return "FlPtNumber <\(x)>"
-    case let .Boolean(x): return "Boolean <\(x)>"
-    case let .Keyword(x): return "Keyword \(x)"
-    case let .Identifier(x): return "Identifier <\(x)>"
-    case let .Special(x): return "Special <\(x.rawValue)>"
-    case let .BuiltInFunction(x): return "BuiltIn <\(x.rawValue)>"
+    case let .Syntax(s): switch s { case .LeftParentheses: return true; default: return false }
+    default: return false
+    }
+  }
+
+  var isRightParentheses : Bool {
+    switch self {
+    case let .Syntax(s): switch s { case .RightParentheses: return true; default: return false }
+    default: return false
+    }
+  }
+
+  var isLeftSquareBracket : Bool {
+    switch self {
+    case let .Syntax(s): switch s { case .LeftSquareBracket: return true; default: return false }
+    default: return false
+    }
+  }
+
+  var isRightSquareBracket : Bool {
+    switch self {
+    case let .Syntax(s): switch s { case .RightSquareBracket: return true; default: return false }
+    default: return false
+    }
+  }
+
+  var isLeftBrace : Bool {
+    switch self {
+    case let .Syntax(s): switch s { case .LeftBrace: return true; default: return false }
+    default: return false
+    }
+  }
+
+  var isRightBrace : Bool {
+    switch self {
+    case let .Syntax(s): switch s { case .RightBrace: return true; default: return false }
+    default: return false
     }
   }
 }
 
 private enum RawLexToken {
-  case LeftP, RightP, LeftSqBr, RightSqBr, LeftBrace, RightBrace, Quote, Backquote, Tilde, TildeAt
+  case Syntax(SyntaxToken)
   case CharLiteral(Character)
   case StringLiteral(String)
   case Unknown(String)
@@ -125,37 +147,37 @@ private func lex1(raw: String) -> RawLexResult {
         state = .String
       case "(":
         flushTokenToBuffer()                          // Left parentheses
-        rawTokenBuffer.append(.LeftP)
+        rawTokenBuffer.append(.Syntax(.LeftParentheses))
       case ")":
         flushTokenToBuffer()                          // Right parentheses
-        rawTokenBuffer.append(.RightP)
+        rawTokenBuffer.append(.Syntax(.RightParentheses))
       case "[":
         flushTokenToBuffer()                          // Left square bracket
-        rawTokenBuffer.append(.LeftSqBr)
+        rawTokenBuffer.append(.Syntax(.LeftSquareBracket))
       case "]":
         flushTokenToBuffer()                          // Right square bracket
-        rawTokenBuffer.append(.RightSqBr)
+        rawTokenBuffer.append(.Syntax(.RightSquareBracket))
       case "{":
         flushTokenToBuffer()                          // Left brace
-        rawTokenBuffer.append(.LeftBrace)
+        rawTokenBuffer.append(.Syntax(.LeftBrace))
       case "}":
         flushTokenToBuffer()                          // Right brace
-        rawTokenBuffer.append(.RightBrace)
+        rawTokenBuffer.append(.Syntax(.RightBrace))
       case "'":
         flushTokenToBuffer()                          // Single quote
-        rawTokenBuffer.append(.Quote)
+        rawTokenBuffer.append(.Syntax(.Quote))
       case "`":
         flushTokenToBuffer()                          // Backquote
-        rawTokenBuffer.append(.Backquote)
+        rawTokenBuffer.append(.Syntax(.Backquote))
       case "~":
         flushTokenToBuffer()                          // Tilde can either signify ~ or ~@
         if idx < rawAsNSString.length - 1 {
           let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
-          rawTokenBuffer.append(nextChar == "@" ? .TildeAt : .Tilde)
+          rawTokenBuffer.append(.Syntax(nextChar == "@" ? .TildeAt : .Tilde))
           skipCount = nextChar == "@" ? 1 : 0
         }
         else {
-          rawTokenBuffer.append(.Tilde)
+          rawTokenBuffer.append(.Syntax(.Tilde))
         }
       case "\\":
         flushTokenToBuffer()                          // Backslash represents a character literal
@@ -227,16 +249,7 @@ private func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
   var tokenBuffer : [LexToken] = []
   for rawToken in rawTokenBuffer {
     switch rawToken {
-    case .LeftP: tokenBuffer.append(.LeftParentheses)
-    case .RightP: tokenBuffer.append(.RightParentheses)
-    case .LeftSqBr: tokenBuffer.append(.LeftSquareBracket)
-    case .RightSqBr: tokenBuffer.append(.RightSquareBracket)
-    case .LeftBrace: tokenBuffer.append(.LeftBrace)
-    case .RightBrace: tokenBuffer.append(.RightBrace)
-    case .Quote: tokenBuffer.append(.Quote)
-    case .Backquote: tokenBuffer.append(.Backquote)
-    case .Tilde: tokenBuffer.append(.Tilde)
-    case .TildeAt: tokenBuffer.append(.TildeAt)
+    case let .Syntax(s): tokenBuffer.append(.Syntax(s))
     case let .CharLiteral(cl): tokenBuffer.append(.CharLiteral(cl))
     case let .StringLiteral(sl): tokenBuffer.append(.StringLiteral(sl))
     case let .Unknown(u):

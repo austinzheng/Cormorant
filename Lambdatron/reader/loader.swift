@@ -89,11 +89,11 @@ func segment(input: [LexToken]) -> [[LexToken]] {
     switch state {
     case .SingleToken:
       switch token {
-      case .LeftParentheses:
+      case _ where token.isLeftParentheses:
         flushCurrentSegment()
         count = 1
         state = .List
-      case .LeftSquareBracket:
+      case _ where token.isRightParentheses:
         flushCurrentSegment()
         count = 1
         state = .Vector
@@ -103,10 +103,10 @@ func segment(input: [LexToken]) -> [[LexToken]] {
       currentSegment.append(token)
     case .List:
       switch token {
-      case .LeftParentheses:
+      case _ where token.isLeftParentheses:
         count += 1
         currentSegment.append(token)
-      case .RightParentheses:
+      case _ where token.isRightParentheses:
         count -= 1
         currentSegment.append(token)
         if count == 0 {
@@ -118,10 +118,10 @@ func segment(input: [LexToken]) -> [[LexToken]] {
       }
     case .Vector:
       switch token {
-      case .LeftSquareBracket:
+      case _ where token.isLeftSquareBracket:
         count += 1
         currentSegment.append(token)
-      case .RightSquareBracket:
+      case _ where token.isRightSquareBracket:
         count -= 1
         currentSegment.append(token)
         if count == 0 {

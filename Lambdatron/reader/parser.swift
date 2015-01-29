@@ -31,9 +31,9 @@ enum TokenCollectionResult {
 private func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCollectionType) -> TokenCollectionResult {
   // Check validity of first token
   switch tokens[counter] {
-  case .LeftParentheses where type == .List: break
-  case .LeftSquareBracket where type == .Vector: break
-  case .LeftBrace where type == .Map: break
+  case let x where x.isLeftParentheses && type == .List: break
+  case let x where x.isLeftSquareBracket && type == .Vector: break
+  case let x where x.isLeftBrace && type == .Map: break
   default: return .Error(.BadStartTokenError)
   }
   var count = 1
@@ -43,26 +43,26 @@ private func collectTokens(tokens: [LexToken], inout counter: Int, type: TokenCo
     counter = i
     var currentToken = tokens[i]
     switch currentToken {
-    case .LeftParentheses where type == .List:
+    case let x where x.isLeftParentheses && type == .List:
       count++
       buffer.append(currentToken)
-    case .RightParentheses where type == .List:
+    case let x where x.isRightParentheses && type == .List:
       count--
       if count > 0 {
         buffer.append(currentToken)
       }
-    case .LeftSquareBracket where type == .Vector:
+    case let x where x.isLeftSquareBracket && type == .Vector:
       count++
       buffer.append(currentToken)
-    case .RightSquareBracket where type == .Vector:
+    case let x where x.isRightSquareBracket && type == .Vector:
       count--
       if count > 0 {
         buffer.append(currentToken)
       }
-    case .LeftBrace where type == .Map:
+    case let x where x.isLeftBrace && type == .Map:
       count++
       buffer.append(currentToken)
-    case .RightBrace where type == .Map:
+    case let x where x.isRightBrace && type == .Map:
       count--
       if count > 0 {
         buffer.append(currentToken)
@@ -118,38 +118,41 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
   while counter < tokens.count {
     let currentToken = tokens[counter]
     switch currentToken {
-    case .LeftParentheses:
-      let list = listWithTokens(collectTokens(tokens, &counter, .List), ctx)
-      switch list {
-      case let .Success(list): buffer.append(wrappedConsItem(.ListLiteral(list), &wrapStack))
-      case let .Failure(f): return .Failure(f)
+    case let .Syntax(s):
+      switch s {
+      case .LeftParentheses:
+        let list = listWithTokens(collectTokens(tokens, &counter, .List), ctx)
+        switch list {
+        case let .Success(list): buffer.append(wrappedConsItem(.ListLiteral(list), &wrapStack))
+        case let .Failure(f): return .Failure(f)
+        }
+      case .RightParentheses:
+        return .Failure(.MismatchedDelimiterError)
+      case .LeftSquareBracket:
+        let vector = vectorWithTokens(collectTokens(tokens, &counter, .Vector), ctx)
+        switch vector {
+        case let .Success(vector): buffer.append(wrappedConsItem(.VectorLiteral(vector), &wrapStack))
+        case let .Failure(f): return .Failure(f)
+        }
+      case .RightSquareBracket:
+        return .Failure(.MismatchedDelimiterError)
+      case .LeftBrace:
+        let map = mapWithTokens(collectTokens(tokens, &counter, .Map), ctx)
+        switch map {
+        case let .Success(map): buffer.append(wrappedConsItem(.MapLiteral(map), &wrapStack))
+        case let .Failure(f): return .Failure(f)
+        }
+      case .RightBrace:
+        return .Failure(.MismatchedDelimiterError)
+      case .Quote:
+        wrapStack.append(.Quote)
+      case .Backquote:
+        wrapStack.append(.SyntaxQuote)
+      case .Tilde:
+        wrapStack.append(.Unquote)
+      case .TildeAt:
+        wrapStack.append(.UnquoteSplice)
       }
-    case .RightParentheses:
-      return .Failure(.MismatchedDelimiterError)
-    case .LeftSquareBracket:
-      let vector = vectorWithTokens(collectTokens(tokens, &counter, .Vector), ctx)
-      switch vector {
-      case let .Success(vector): buffer.append(wrappedConsItem(.VectorLiteral(vector), &wrapStack))
-      case let .Failure(f): return .Failure(f)
-      }
-    case .RightSquareBracket:
-      return .Failure(.MismatchedDelimiterError)
-    case .LeftBrace:
-      let map = mapWithTokens(collectTokens(tokens, &counter, .Map), ctx)
-      switch map {
-      case let .Success(map): buffer.append(wrappedConsItem(.MapLiteral(map), &wrapStack))
-      case let .Failure(f): return .Failure(f)
-      }
-    case .RightBrace:
-      return .Failure(.MismatchedDelimiterError)
-    case .Quote:
-      wrapStack.append(.Quote)
-    case .Backquote:
-      wrapStack.append(.SyntaxQuote)
-    case .Tilde:
-      wrapStack.append(.Unquote)
-    case .TildeAt:
-      wrapStack.append(.UnquoteSplice)
     case .NilLiteral:
       buffer.append(wrappedConsItem(.NilLiteral, &wrapStack))
     case let .CharLiteral(c):
@@ -275,75 +278,56 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   if tokens.count == 0 {
     return .Failure(.EmptyInputError)
   }
+
+  /// Parse the entire top-level form and wrap it inside a reader macro.
+  func createTopLevelReaderMacro(macroType: NextFormTreatment) -> ParseResult {
+    if tokens.count > 1 {
+      var restTokens = tokens
+      restTokens.removeAtIndex(0)
+      switch parse(restTokens, ctx) {
+      case let .Success(result):
+        wrapStack.append(macroType)
+        return .Success(wrappedConsItem(result, &wrapStack))
+      case let .Failure(f): return .Failure(f)
+      }
+    }
+    return .Failure(.MismatchedReaderMacroError)
+  }
+
   // Figure out how to parse
   switch tokens[0] {
-  case .LeftParentheses:
-    switch listWithTokens(collectTokens(tokens, &index, .List), ctx) {
-    case let .Success(result): return .Success(.ListLiteral(result))
-    case let .Failure(f): return .Failure(f)
-    }
-  case .RightParentheses: return .Failure(.BadStartTokenError)
-  case .LeftSquareBracket:
-    switch vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
-    case let .Success(result): return .Success(.VectorLiteral(result))
-    case let .Failure(f): return .Failure(f)
-    }
-  case .RightSquareBracket: return .Failure(.BadStartTokenError)
-  case .LeftBrace:
-    switch mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
-    case let .Success(result): return .Success(.MapLiteral(result))
-    case let .Failure(f): return .Failure(f)
-    }
-  case .RightBrace: return .Failure(.BadStartTokenError)
-  case .Quote:
-    // The top-level expression can be a quoted thing.
-    if tokens.count > 1 {
-      var restTokens = tokens
-      restTokens.removeAtIndex(0)
-      switch parse(restTokens, ctx) {
-      case let .Success(result):
-        wrapStack.append(.Quote)
-        return .Success(wrappedConsItem(result, &wrapStack))
+  case let .Syntax(s):
+    switch s {
+    case .LeftParentheses:
+      switch listWithTokens(collectTokens(tokens, &index, .List), ctx) {
+      case let .Success(result): return .Success(.ListLiteral(result))
       case let .Failure(f): return .Failure(f)
       }
-    }
-    return .Failure(.MismatchedReaderMacroError)
-  case .Backquote:
-    if tokens.count > 1 {
-      var restTokens = tokens
-      restTokens.removeAtIndex(0)
-      switch parse(restTokens, ctx) {
-      case let .Success(result):
-        wrapStack.append(.SyntaxQuote)
-        return .Success(wrappedConsItem(result, &wrapStack))
+    case .RightParentheses:
+      return .Failure(.BadStartTokenError)
+    case .LeftSquareBracket:
+      switch vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
+      case let .Success(result): return .Success(.VectorLiteral(result))
       case let .Failure(f): return .Failure(f)
       }
-    }
-    return .Failure(.MismatchedReaderMacroError)
-  case .Tilde:
-    if tokens.count > 1 {
-      var restTokens = tokens
-      restTokens.removeAtIndex(0)
-      switch parse(restTokens, ctx) {
-      case let .Success(result):
-        wrapStack.append(.Unquote)
-        return .Success(wrappedConsItem(result, &wrapStack))
+    case .RightSquareBracket:
+      return .Failure(.BadStartTokenError)
+    case .LeftBrace:
+      switch mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
+      case let .Success(result): return .Success(.MapLiteral(result))
       case let .Failure(f): return .Failure(f)
       }
+    case .RightBrace:
+      return .Failure(.BadStartTokenError)
+    case .Quote:
+      return createTopLevelReaderMacro(.Quote)
+    case .Backquote:
+      return createTopLevelReaderMacro(.SyntaxQuote)
+    case .Tilde:
+      return createTopLevelReaderMacro(.Unquote)
+    case .TildeAt:
+      return createTopLevelReaderMacro(.UnquoteSplice)
     }
-    return .Failure(.MismatchedReaderMacroError)
-  case .TildeAt:
-    if tokens.count > 1 {
-      var restTokens = tokens
-      restTokens.removeAtIndex(0)
-      switch parse(restTokens, ctx) {
-      case let .Success(result):
-        wrapStack.append(.UnquoteSplice)
-        return .Success(wrappedConsItem(result, &wrapStack))
-      case let .Failure(f): return .Failure(f)
-      }
-    }
-    return .Failure(.MismatchedReaderMacroError)
   case .NilLiteral: return .Success(.NilLiteral)
   case let .CharLiteral(c): return .Success(.CharacterLiteral(c))
   case let .StringLiteral(s): return .Success(.StringLiteral(s))
