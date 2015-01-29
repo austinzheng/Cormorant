@@ -13,20 +13,9 @@ enum LexResult {
   case Failure(LexError)
 }
 
-/// An enum describing errors that can cause lexing of the input string to fail.
-public enum LexError : String, Printable {
-  case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
-  case InvalidCharacterError = "InvalidCharacterError"
-  case NonTerminatedStringError = "NonTerminatedStringError"
-
-  public var description : String {
-    let name = self.rawValue
-    switch self {
-    case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
-    case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
-    case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
-    }
-  }
+private enum RawLexResult {
+  case Success([RawLexToken])
+  case Failure(LexError)
 }
 
 /// Tokens that come out of the lex() function
@@ -79,50 +68,30 @@ enum LexToken : Printable {
 }
 
 private enum RawLexToken {
-  case LeftP
-  case RightP
-  case LeftSqBr
-  case RightSqBr
-  case LeftBrace
-  case RightBrace
-  case Quote
-  case Backquote
-  case Tilde
-  case TildeAt
+  case LeftP, RightP, LeftSqBr, RightSqBr, LeftBrace, RightBrace, Quote, Backquote, Tilde, TildeAt
   case CharLiteral(Character)
   case StringLiteral(String)
   case Unknown(String)
 }
 
-func processEscape(sequence: String) -> String? {
-  switch sequence {
-    case "r": return "\r"
-    case "n": return "\n"
-    case "t": return "\t"
-    case "\"": return "\""
-    case "\\": return "\\"
-  default: return nil
-  }
-}
-
-/// Given a raw input (as a string), lex it into individual tokens.
-func lex(raw: String) -> LexResult {
+/// Perform the first phase of lexing. This takes in a string representing source code, and returns an array of
+/// RawLexTokens.
+private func lex1(raw: String) -> RawLexResult {
   enum State {
     case Normal, String, Comment
   }
-  
+
   // Whitespace character set; 'otherWsSet' is used for characters that should be ignored like whitespace
   let wsSet = NSCharacterSet.whitespaceAndNewlineCharacterSet()
   let otherWsSet = NSCharacterSet(charactersInString: ",")
   // Newline character set; only used for finding the newlines that terminate single-line comments
   let nlSet = NSCharacterSet.newlineCharacterSet()
-  
-  // PHASE 1: raw lex
+
   var rawTokenBuffer : [RawLexToken] = []
-  
+
   // currentToken can only contain either a StringLiteral or an Unknown token
   var currentToken : NSMutableString = ""
-  
+
   /// Helper function - flush the current-in-progress token to the token buffer
   func flushTokenToBuffer() {
     if currentToken.length > 0 {
@@ -130,9 +99,9 @@ func lex(raw: String) -> LexResult {
     }
     currentToken = ""
   }
-  
+
   var state : State = .Normal
-  
+
   var skipCount = 0
   let rawAsNSString = NSString(string: raw)
   for (idx, char) in enumerate(raw) {
@@ -141,10 +110,10 @@ func lex(raw: String) -> LexResult {
       skipCount--
       continue
     }
-    
+
     // Horrible, horrible hacks to turn a Character into a unichar
     var tChar = NSString(string: String(char)).characterAtIndex(0)
-    
+
     switch state {
     case .Normal:
       switch char {
@@ -241,15 +210,20 @@ func lex(raw: String) -> LexResult {
       }
     }
   }
-  
+
   if state == .String {
     // This is bad; a string was left dangling
     return .Failure(.NonTerminatedStringError)
   }
   // If there's another token left, flush it
   flushTokenToBuffer()
-  
-  // PHASE 2: identify 'unknowns'
+  // Return the buffer
+  return .Success(rawTokenBuffer)
+}
+
+/// Perform the second phase of lexing, taking RawLexTokens and turning them into LexTokens. This may involve taking
+/// Unknown tokens and figuring out if they correspond to literals or other privileged forms.
+private func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
   var tokenBuffer : [LexToken] = []
   for rawToken in rawTokenBuffer {
     switch rawToken {
@@ -303,8 +277,17 @@ func lex(raw: String) -> LexResult {
       }
     }
   }
-  
   return .Success(tokenBuffer)
+}
+
+/// Given a raw input (as a string), lex it into individual tokens.
+func lex(raw: String) -> LexResult {
+  let result = lex1(raw)
+  switch result {
+  case let .Success(rawTokenBuffer):
+    return lex2(rawTokenBuffer)
+  case let .Failure(f): return .Failure(f)
+  }
 }
 
 // Immutable utility items
@@ -343,6 +326,19 @@ func buildNumberFromString(str: String) -> LexToken? {
     }
   }
   return nil
+}
+
+/// Given the second character in a two-character escape sequence (e.g. "n" in "\n"), return the character the escape
+/// sequence corresponds to (if one exists).
+private func processEscape(sequence: String) -> String? {
+  switch sequence {
+  case "r": return "\r"
+  case "n": return "\n"
+  case "t": return "\t"
+  case "\"": return "\""
+  case "\\": return "\\"
+  default: return nil
+  }
 }
 
 /// Given an input string, as well as a start index marking the position of a token within that string that starts with

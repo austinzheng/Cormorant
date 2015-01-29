@@ -8,6 +8,47 @@
 
 import Foundation
 
+/// An enum describing errors that can cause lexing of the input string to fail.
+public enum LexError : String, Printable {
+  case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
+  case InvalidCharacterError = "InvalidCharacterError"
+  case NonTerminatedStringError = "NonTerminatedStringError"
+
+  public var description : String {
+    let name = self.rawValue
+    switch self {
+    case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
+    case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
+    case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
+    }
+  }
+}
+
+/// An enum describing errors that can cause parsing to fail.
+public enum ParseError : String, Printable {
+  case EmptyInputError = "EmptyInputError"
+  case BadStartTokenError = "BadStartTokenError"
+  case MismatchedDelimiterError = "MismatchedDelimiterError"
+  case MismatchedReaderMacroError = "MismatchedReaderMacroError"
+  case MapKeyValueMismatchError = "MapKeyValueMismatchError"
+
+  public var description : String {
+    let name = self.rawValue
+    switch self {
+    case EmptyInputError:
+      return "(\(name)): empty input"
+    case BadStartTokenError:
+      return "(\(name)): collection or form started with invalid delimiter"
+    case MismatchedDelimiterError:
+      return "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
+    case MismatchedReaderMacroError:
+      return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
+    case MapKeyValueMismatchError:
+      return "(\(name)): map literal must be declared with an even number of forms"
+    }
+  }
+}
+
 /// An enum describing errors that can happen while expanding reader macros.
 public enum ReaderError : String, Printable {
   case UnmatchedReaderMacroError = "UnmatchedReaderMacroError"

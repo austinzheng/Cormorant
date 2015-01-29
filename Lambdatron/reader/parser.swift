@@ -8,31 +8,6 @@
 
 import Foundation
 
-/// An enum describing errors that can cause parsing to fail.
-public enum ParseError : String, Printable {
-  case EmptyInputError = "EmptyInputError"
-  case BadStartTokenError = "BadStartTokenError"
-  case MismatchedDelimiterError = "MismatchedDelimiterError"
-  case MismatchedReaderMacroError = "MismatchedReaderMacroError"
-  case MapKeyValueMismatchError = "MapKeyValueMismatchError"
-  
-  public var description : String {
-    let name = self.rawValue
-    switch self {
-    case EmptyInputError:
-      return "(\(name)): empty input"
-    case BadStartTokenError:
-      return "(\(name)): collection or form started with invalid delimiter"
-    case MismatchedDelimiterError:
-      return "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
-    case MismatchedReaderMacroError:
-      return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
-    case MapKeyValueMismatchError:
-      return "(\(name)): map literal must be declared with an even number of forms"
-    }
-  }
-}
-
 private enum TokenCollectionType {
   case List, Vector, Map
 }
