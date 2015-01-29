@@ -8,28 +8,14 @@
 
 import Foundation
 
-extension Cons {
-
-  func describe(ctx: Context?) -> String {
-    return describe(ctx, debug: false)
+/// Given a list of ConsValue items, return a description (e.g. "(a b c d e)" for a five-item list).
+func describeList(list: List<ConsValue>, ctx: Context?, debug: Bool = false) -> String {
+  var descBuffer : [String] = []
+  for item in list {
+    descBuffer.append(item.describe(ctx, debug: debug))
   }
-  
-  func describe(ctx: Context?, debug: Bool) -> String {
-    func collectDescriptions(firstItem : Cons?) -> [String] {
-      var descBuffer : [String] = []
-      var currentItem : Cons? = firstItem
-      while let actualItem = currentItem {
-        let description = actualItem.value.describe(ctx, debug: debug)
-        descBuffer.append(description)
-        currentItem = actualItem.next
-      }
-      return descBuffer
-    }
-    
-    var descs = collectDescriptions(self)
-    let finalDesc = join(" ", descs)
-    return "(\(finalDesc))"
-  }
+  let finalDesc = join(" ", descBuffer)
+  return "(\(finalDesc))"
 }
 
 extension ConsValue {
@@ -65,8 +51,8 @@ extension ConsValue {
       return debug ? "ConsValue.CharacterLiteral(\(desc))" : "\(desc)"
     case let StringLiteral(v):
       return debug ? "ConsValue.StringLiteral(\"\(v)\")" : "\"\(v)\""
-    case let ListLiteral(v):
-      let desc = v.describe(ctx, debug: debug)
+    case let ListLiteral(list):
+      let desc = describeList(list, ctx, debug: debug)
       return debug ? "ConsValue.ListLiteral(\(desc))" : desc
     case let VectorLiteral(v):
       let internals = join(" ", v.map({$0.describe(ctx, debug: debug)}))
@@ -87,11 +73,12 @@ extension ConsValue {
       return debug ? "ConsValue.BuiltInFunction(\(v.rawValue))" : v.rawValue
     case let ReaderMacro(v):
       return debug ? "ConsValue.ReaderMacro(\(v.description))" : v.description
-    case None:
-      return debug ? "ConsValue.None" : ""
     }
   }
 }
+
+
+// MARK: Functions
 
 extension Function {
   

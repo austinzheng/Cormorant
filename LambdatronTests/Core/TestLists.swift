@@ -14,7 +14,7 @@ class TestListBasics : XCTestCase {
 
   /// An empty Cons should work properly in the context of a for-in loop.
   func testEmptyConsIteration() {
-    var emptyCons = Cons()
+    var emptyCons : List<ConsValue> = Empty()
     var untouched = true
     for item in emptyCons {
       untouched = false

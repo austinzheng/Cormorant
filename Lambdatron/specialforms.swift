@@ -404,12 +404,10 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Success(last):
       // If the result is a collection, add all items in the collection to the arguments buffer
       switch last {
-      case let .ListLiteral(l) where !l.isEmpty:
-        buffer.append(l.value)
-        var this = l.next
-        while let actualThis = this {
-          buffer.append(actualThis.value)
-          this = actualThis.next
+      case let .NilLiteral: break
+      case let .ListLiteral(l):
+        for item in l {
+          buffer.append(item)
         }
       case let .VectorLiteral(v):
         buffer = buffer + v
@@ -419,14 +417,14 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
         }
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
-          message: "last argument must be a collection"))
+          message: "last argument must be a collection or nil"))
       }
     case .Recur: return .Failure(EvalError(.RecurMisuseError, fn))
     case .Failure: return last
     }
     
     // Apply the function to the arguments in the buffer
-    return Cons.apply(first, args: buffer, ctx: ctx)
+    return apply(first, buffer, ctx, fn)
   }
   return result
 }
@@ -483,7 +481,7 @@ private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSym
 private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
   let itemAsVector : Vector? = {
     switch item {
-    case let .ListLiteral(l): return Cons.collectSymbols(l)
+    case let .ListLiteral(l): return collectSymbols(l)
     case let .VectorLiteral(v): return v
     default: return nil
     }

@@ -11,15 +11,8 @@ import XCTest
 
 /// Convenience function: given a bunch of ConsValues, return a list.
 func listWithItems(items: ConsValue...) -> ConsValue {
-  if items.count == 0 {
-    return .ListLiteral(Cons())
-  }
-  var head = Cons(items[items.count - 1])
-  for var i=items.count - 2; i >= 0; i-- {
-    let this = Cons(items[i], next: head)
-    head = this
-  }
-  return .ListLiteral(head)
+  let list = listFromCollection(items, prefix: nil, postfix: nil)
+  return .ListLiteral(list)
 }
 
 /// Convenience functions: given a bunch of ConsValues, return a vector.
@@ -79,24 +72,26 @@ class InterpreterTest : XCTestCase {
 
   /// Given an input string and a string describing an expected form, evaluate both and compare for equality.
   func expectThat(input: String, shouldEvalTo form: String) {
-    let expected = interpreter.evaluate(form)
-    switch expected {
-    case let .Success(expected):
-      let actual = interpreter.evaluate(input)
-      switch actual {
-      case let .Success(actual):
+    // Evaluate the test form first
+    let actual = interpreter.evaluate(input)
+    switch actual {
+    case let .Success(actual):
+      // Then evaluate the reference form
+      let expected = interpreter.evaluate(form)
+      switch expected {
+      case let .Success(expected):
         XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
-      case .LexFailure:
-        XCTFail("lexer error")
-      case .ParseFailure:
-        XCTFail("parser error")
-      case .ReaderFailure:
-        XCTFail("reader error")
-      case let .EvalFailure(f):
-        XCTFail("evaluation error: \(f.description)")
+      default:
+        XCTFail("reference form failed to evaluate successfully; this is a problem with the unit test")
       }
-    default:
-      XCTFail("reference form failed to evaluate successfully; this is a problem with the unit test")
+    case .LexFailure:
+      XCTFail("lexer error")
+    case .ParseFailure:
+      XCTFail("parser error")
+    case .ReaderFailure:
+      XCTFail("reader error")
+    case let .EvalFailure(f):
+      XCTFail("evaluation error: \(f.description)")
     }
   }
 

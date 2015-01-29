@@ -12,23 +12,23 @@ class TestRestBuiltin : InterpreterTest {
 
   /// .rest should return the empty list if passed in nil.
   func testWithNil() {
-    expectThat("(.rest nil)", shouldEvalTo: .ListLiteral(Cons()))
+    expectThat("(.rest nil)", shouldEvalTo: .ListLiteral(Empty()))
   }
 
   /// .rest should return the empty list for empty collections.
   func testWithEmptyCollections() {
-    expectThat("(.rest \"\")", shouldEvalTo: .ListLiteral(Cons()))
-    expectThat("(.rest ())", shouldEvalTo: .ListLiteral(Cons()))
-    expectThat("(.rest [])", shouldEvalTo: .ListLiteral(Cons()))
-    expectThat("(.rest {})", shouldEvalTo: .ListLiteral(Cons()))
+    expectThat("(.rest \"\")", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("(.rest ())", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("(.rest [])", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("(.rest {})", shouldEvalTo: .ListLiteral(Empty()))
   }
 
   /// .rest should return the empty list for single-element collections.
   func testWithOneElement() {
-    expectThat("(.rest \"a\")", shouldEvalTo: .ListLiteral(Cons()))
-    expectThat("(.rest '(:a))", shouldEvalTo: .ListLiteral(Cons()))
-    expectThat("(.rest [\\a])", shouldEvalTo: .ListLiteral(Cons()))
-    expectThat("(.rest {'a 10})", shouldEvalTo: .ListLiteral(Cons()))
+    expectThat("(.rest \"a\")", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("(.rest '(:a))", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("(.rest [\\a])", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("(.rest {'a 10})", shouldEvalTo: .ListLiteral(Empty()))
   }
 
   /// .rest should return a sequence comprised of the rest of the characters of a string.

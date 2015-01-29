@@ -108,7 +108,7 @@ class TestCharacterParsing : InterpreterTest {
 
 class TestListParsing : InterpreterTest {
   func testParsingEmptyList() {
-    expectThat("()", shouldEvalTo: .ListLiteral(Cons()))
+    expectThat("()", shouldEvalTo: .ListLiteral(Empty()))
   }
 
   func testParsingNilList() {
@@ -128,10 +128,12 @@ class TestListParsing : InterpreterTest {
   func testParsingNestedList() {
     // Piece together the final list, since it's too ugly to be constructed as a single literal
     // The target list is ((1 2) (3.14 (4 5) 6) 7)
-    let oneTwoList = Cons(.IntegerLiteral(1), next: Cons(.IntegerLiteral(2)))
-    let fourFiveList = Cons(.IntegerLiteral(4), next: Cons(.IntegerLiteral(5)))
-    let piList = Cons(.FloatLiteral(3.14), next: Cons(.ListLiteral(fourFiveList), next: Cons(.IntegerLiteral(6))))
-    let fullList = Cons(.ListLiteral(oneTwoList), next: Cons(.ListLiteral(piList), next: Cons(.IntegerLiteral(7))))
+    let oneTwoList : List<ConsValue> = Cons(.IntegerLiteral(1), next: Cons(.IntegerLiteral(2)))
+    let fourFiveList : List<ConsValue> = Cons(.IntegerLiteral(4), next: Cons(.IntegerLiteral(5)))
+    let piList : List<ConsValue> = Cons(.FloatLiteral(3.14),
+      next: Cons(.ListLiteral(fourFiveList), next: Cons(.IntegerLiteral(6))))
+    let fullList : List<ConsValue> = Cons(.ListLiteral(oneTwoList),
+      next: Cons(.ListLiteral(piList), next: Cons(.IntegerLiteral(7))))
 
     expectThat("'((1 2) (3.14 (4 5) 6) 7)", shouldEvalTo: .ListLiteral(fullList))
   }

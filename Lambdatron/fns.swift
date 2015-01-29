@@ -90,7 +90,7 @@ struct SingleFn {
         // Add the rest of the arguments (if any) to the vararg vector
         if arguments.count > parameters.count {
           let rest = Array(arguments[i..<arguments.count])
-          bindings[variadicParameter] = .Literal(.ListLiteral(Cons.listFromVector(rest)))
+          bindings[variadicParameter] = .Literal(.ListLiteral(listFromCollection(rest)))
         }
         else {
           bindings[variadicParameter] = .Literal(.NilLiteral)

@@ -65,7 +65,7 @@ func pr_int(args: [ConsValue], ctx: Context) -> EvalResult {
     // FORCE UNWRAP: the string must always have at least one character, by definition
     let castValue = generator.next()!
     return .Success(.IntegerLiteral(Int(castValue.value)))
-  case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
+  case .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
     fallthrough
   case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
     return .Failure(EvalError.invalidArgumentError(fn,
@@ -86,7 +86,7 @@ func pr_double(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Success(args[0])
   case .CharacterLiteral:
     fallthrough
-  case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
+  case .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
     fallthrough
   case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
     return .Failure(EvalError.nonNumericArgumentError(fn))

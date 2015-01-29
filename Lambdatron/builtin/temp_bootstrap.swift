@@ -13,7 +13,7 @@ import Swift
 // lbt code efficiently, and potentially other bootstrap code. It will eventually be deleted.
 
 func bootstrap_preprocess(args: [ConsValue]) -> [ConsValue] {
-  return args[0..<args.count - 1] + Cons.collectSymbols(args[args.count - 1].asList()!)
+  return args[0..<args.count - 1] + collectSymbols(args[args.count - 1].asList()!)
 }
 
 /// Build initial state for first argument for a mathematical operation. This method returns a tuple containing an

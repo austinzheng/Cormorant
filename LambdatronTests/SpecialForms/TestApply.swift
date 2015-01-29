@@ -23,6 +23,12 @@ class TestApply : InterpreterTest {
     interpreter.writeOutput = print
   }
 
+  /// apply must take at least two arguments.
+  func testApplyArity() {
+    expectArityErrorFrom("(apply)")
+    expectArityErrorFrom("(apply .+)")
+  }
+
   /// apply should work when invoked upon zero-arity functions using an empty sequence.
   func testApplyWithNoArgs() {
     expectThat("(apply (fn [] true) nil)", shouldEvalTo: .BoolLiteral(true))
@@ -63,18 +69,24 @@ class TestApply : InterpreterTest {
     expectThat("(apply .concat [1 2] [3 4] [5 6] nil)", shouldEvalTo: "'(1 2 3 4 5 6)")
   }
 
-  /// apply should work when invoked with leading arguments before a non-nil final sequence.
-  func testLeadingArgumentsNoNil() {
+  /// apply should work when invoked with leading arguments before a non-nil final list.
+  func testLeadingArgsThenList() {
     expectThat("(apply .+ 15 '(28))", shouldEvalTo: .IntegerLiteral(43))
     expectThat("(apply .+ 15 28 ())", shouldEvalTo: .IntegerLiteral(43))
     expectThat("(apply .concat [1] [2] [3] '([4 5] [6 7]))", shouldEvalTo: "'(1 2 3 4 5 6 7)")
     expectThat("(apply .concat [1] [2] [3] [4 5] [6 7] ())", shouldEvalTo: "'(1 2 3 4 5 6 7)")
+  }
 
+  /// apply should work when invoked with leading arguments before a non-nil final vector.
+  func testLeadingArgsThenVector() {
     expectThat("(apply .+ 15 [28])", shouldEvalTo: .IntegerLiteral(43))
     expectThat("(apply .+ 15 28 [])", shouldEvalTo: .IntegerLiteral(43))
     expectThat("(apply .concat '(1) '(2) '(3) ['(4 5) '(6 7)])", shouldEvalTo: "'(1 2 3 4 5 6 7)")
     expectThat("(apply .concat '(1) '(2) '(3) '(4 5) '(6 7) [])", shouldEvalTo: "'(1 2 3 4 5 6 7)")
+  }
 
+  /// apply should work when invoked with leading arguments before a non-nil final map.
+  func testLeadingArgsThenMap() {
     expectThat("(apply .concat [1 2] [3 4] {:a 15 :b 16})", shouldEvalTo: "'(1 2 3 4 :b 16 :a 15)")
     expectThat("(apply .concat [1 2] [3 4] [:a 15 :b 16] {})", shouldEvalTo: "'(1 2 3 4 :a 15 :b 16)")
   }
@@ -147,8 +159,8 @@ class TestApply : InterpreterTest {
     expectThat("(apply \"foobar\" ())", shouldFailAs: .NotEvalableError)
   }
 
-  /// apply should reject a last argument that isn't nil or a valid sequence.
-  func testNonSeqLastArg() {
+  /// apply should reject an only argument that isn't nil or a valid sequence.
+  func testNonSeqOnlyArg() {
     expectThat("(apply .print true)", shouldFailAs: .InvalidArgumentError)
     expectThat("(apply .print false)", shouldFailAs: .InvalidArgumentError)
     expectThat("(apply .print 152)", shouldFailAs: .InvalidArgumentError)
@@ -158,7 +170,10 @@ class TestApply : InterpreterTest {
     expectThat("(apply .print 'c)", shouldFailAs: .InvalidArgumentError)
     expectThat("(apply .print :c)", shouldFailAs: .InvalidArgumentError)
     expectThat("(apply .print .print)", shouldFailAs: .InvalidArgumentError)
+  }
 
+  /// apply should reject a last argument that isn't nil or a valid sequence.
+  func testNonSeqLastArg() {
     expectThat("(apply .print \"foo\" \"bar\" true)", shouldFailAs: .InvalidArgumentError)
     expectThat("(apply .print \"foo\" \"bar\" false)", shouldFailAs: .InvalidArgumentError)
     expectThat("(apply .print \"foo\" \"bar\" 152)", shouldFailAs: .InvalidArgumentError)
@@ -191,7 +206,7 @@ class TestApply : InterpreterTest {
     // This should evaluate to nil
     expectThat("(apply (fn [a b & c] c) 1 2 nil)", shouldEvalTo: .NilLiteral)
     // This should evaluate to "(3)"
-    expectThat("(apply (fn [a b & c] c) 1 2 3)", shouldEvalTo: "'(3)")
+    expectThat("(apply (fn [a b & c] c) 1 2 3 nil)", shouldEvalTo: "'(3)")
     // This should evaluate to "(3 4 5)"
     expectThat("(apply (fn [a b & c] c) 1 2 3 4 5 nil)", shouldEvalTo: "'(3 4 5)")
     // This should evaluate to "(3 4 5 6 7)"

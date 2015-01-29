@@ -36,20 +36,11 @@ func firstCharacter(s: String) -> Character {
 }
 
 /// Build a list out of a string, or return the nil literal if the string is empty.
-func listFromString(s: String) -> ConsValue {
+func listFromString(s: String, postfix: List<ConsValue>? = nil) -> ConsValue {
   if s.isEmpty {
     return .NilLiteral
   }
-  let head = Cons(.CharacterLiteral(firstCharacter(s)))
-  var this = head
-  for (idx, character) in enumerate(s) {
-    if idx == 0 {
-      // Skip the first character, since we already processed it above
-      continue
-    }
-    let next = Cons(.CharacterLiteral(character))
-    this.next = next
-    this = next
-  }
-  return .ListLiteral(head)
+  // The 'map' takes each character and wraps it in a CharacterLiteral().
+  let list : List<ConsValue> = listFromMappedCollection(s, postfix: postfix) { .CharacterLiteral($0) }
+  return .ListLiteral(list)
 }

@@ -11,16 +11,10 @@ import Foundation
 /// Given zero or more arguments, construct a list whose components are the arguments (or the empty list).
 func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
-    return .Success(.ListLiteral(Cons()))
+    return .Success(.ListLiteral(Empty()))
   }
-  let first = Cons(args[0])
-  var current = first
-  for var i=1; i<args.count; i++ {
-    let this = Cons(args[i])
-    current.next = this
-    current = this
-  }
-  return .Success(.ListLiteral(first))
+  let list = listFromCollection(args)
+  return .Success(.ListLiteral(list))
 }
 
 /// Given zero or more arguments, construct a vector whose components are the arguments (or the empty vector).
@@ -61,35 +55,20 @@ func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
     let list = listFromString(s)
     return pr_cons([first, list], ctx)
   case let .ListLiteral(l):
-    // Create a new list consisting of the first object, followed by the second list (if not empty)
-    return .Success(.ListLiteral(l.isEmpty ? Cons(first) : Cons(first, next: l)))
+    // Create a new list consisting of the first object followed by the second list (which can be empty)
+    return .Success(.ListLiteral(Cons(first, next: l)))
   case let .VectorLiteral(v):
     // Create a new list consisting of the first object, followed by a list comprised of the vector's items
-    if v.count == 0 {
-      return .Success(.ListLiteral(Cons(first)))
-    }
-    let head = Cons(first)
-    var this = head
-    for item in v {
-      let next = Cons(item)
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
+    let list = listFromCollection(v, prefix: first)
+    return .Success(.ListLiteral(list))
   case let .MapLiteral(m):
     // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
     //  key-value pairs
-    if m.count == 0 {
-      return .Success(.ListLiteral(Cons(first)))
+    let list : List<ConsValue> = listFromMappedCollection(m, postfix: nil) {
+      let (key, value) = $0
+      return .VectorLiteral([key, value])
     }
-    let head = Cons(first)
-    var this = head
-    for (key, value) in m {
-      let next = Cons(.VectorLiteral([key, value]))
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
+    return .Success(.ListLiteral(Cons(first, next: list)))
   default: return .Failure(EvalError.invalidArgumentError(fn,
     message: "second argument must be a string, list, vector, map, or nil"))
   }
@@ -108,7 +87,7 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .StringLiteral(s):
     return pr_first([listFromString(s)], ctx)
   case let .ListLiteral(l):
-    return .Success(l.isEmpty ? .NilLiteral : l.value)
+    return .Success(l.getValue() ?? .NilLiteral)
   case let .VectorLiteral(v):
     return .Success(v.count == 0 ? .NilLiteral : v[0])
   case let .MapLiteral(m):
@@ -132,54 +111,40 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   let first = args[0]
   switch first {
-  case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case .NilLiteral: return .Success(.ListLiteral(Empty()))
   case let .StringLiteral(s):
     return pr_rest([listFromString(s)], ctx)
-  case let .ListLiteral(l):
-    if let next = l.next {
-      // List has more than one item
-      return .Success(.ListLiteral(next))
+  case let .ListLiteral(list):
+    switch list {
+    case let list as Cons<ConsValue>:
+      // List has one or more item; return 'next'
+      return .Success(.ListLiteral(list.next))
+    default:
+      // List has zero items; return the empty list.
+      return .Success(.ListLiteral(Empty()))
     }
-    else {
-      // List has zero or one items, return the empty list
-      return .Success(.ListLiteral(Cons()))
-    }
-  case let .VectorLiteral(v):
-    if v.count < 2 {
+  case let .VectorLiteral(vector):
+    if vector.count < 2 {
       // Vector has zero or one items
-      return .Success(.ListLiteral(Cons()))
+      return .Success(.ListLiteral(Empty()))
     }
-    let head = Cons(v[1])
-    var this = head
-    for var i=2; i<v.count; i++ {
-      let next = Cons(v[i])
-      this.next = next
-      this = next
+    // Build a list out of the rest of the collection.
+    let list = listFromCollection(vector[1..<vector.count])
+    return .Success(.ListLiteral(list))
+  case let .MapLiteral(map):
+    // Make a list containing all values...
+    let list : List<ConsValue> = listFromMappedCollection(map, postfix: nil) {
+      let (key, value) = $0
+      return .VectorLiteral([key, value])
     }
-    return .Success(.ListLiteral(head))
-  case let .MapLiteral(m):
-    if m.count < 2 {
-      // Map has zero or one items
-      return .Success(.ListLiteral(Cons()))
+    // ...then return the second (throwing away the first)
+    switch list {
+    case let list as Cons<ConsValue>:
+      return .Success(.ListLiteral(list.next))
+    default:
+      // Map has zero items
+      return .Success(.ListLiteral(Empty()))
     }
-    var head : Cons? = nil
-    var this = head
-    var skippedFirst = false
-    for (key, value) in m {
-      if !skippedFirst {
-        skippedFirst = true
-        continue
-      }
-      let next = Cons(.VectorLiteral([key, value]))
-      if let this = this {
-        this.next = next
-      }
-      else {
-        head = next
-      }
-      this = next
-    }
-    return .Success(.ListLiteral(head!))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a string, list, vector, map, or nil"))
@@ -188,10 +153,10 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given a sequence, return the sequence comprised of all items but the first, or nil if there are no more items.
 func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
-  // NOTE: This function appears identical to pr_rest, except for returning .NilLiteral instead of Cons() when there are
-  // no more items. I expect this code to diverge if/when lazy seqs are ever implemented, and so it is copied over
-  // verbatim rather than being refactored.
   let fn = ".next"
+  // NOTE: This function appears identical to pr_rest, except for returning .NilLiteral instead of the empty list when
+  //  there are no more items. I expect this code to diverge if/when lazy seqs are ever implemented, and so it is copied
+  //  over verbatim rather than being refactored.
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
@@ -200,51 +165,39 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
   case .NilLiteral: return .Success(.NilLiteral)
   case let .StringLiteral(s):
     return pr_next([listFromString(s)], ctx)
-  case let .ListLiteral(l):
-    if let actualNext = l.next {
-      // List has more than one item
-      return .Success(.ListLiteral(actualNext))
-    }
-    else {
-      // List has zero or one items, return nil
+  case let .ListLiteral(list):
+    switch list {
+    case let list as Cons<ConsValue>:
+      return .Success(list.next.isEmpty ? .NilLiteral : .ListLiteral(list.next))
+    default:
+      // List has zero items; return the empty list.
       return .Success(.NilLiteral)
     }
-  case let .VectorLiteral(v):
-    if v.count < 2 {
+  case let .VectorLiteral(vector):
+    if vector.count < 2 {
       // Vector has zero or one items
       return .Success(.NilLiteral)
     }
-    let head = Cons(v[1])
-    var this = head
-    for var i=2; i<v.count; i++ {
-      let next = Cons(v[i])
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
-  case let .MapLiteral(m):
-    if m.count < 2 {
-      // Map has zero or one items
+    // Build a list out of the rest of the collection.
+    let list = listFromCollection(vector[1..<vector.count])
+    return .Success(.ListLiteral(list))
+  case let .MapLiteral(map):
+    if map.count < 2 {
       return .Success(.NilLiteral)
     }
-    var head : Cons? = nil
-    var this = head
-    var skippedFirst = false
-    for (key, value) in m {
-      if !skippedFirst {
-        skippedFirst = true
-        continue
-      }
-      let next = Cons(.VectorLiteral([key, value]))
-      if let this = this {
-        this.next = next
-      }
-      else {
-        head = next
-      }
-      this = next
+    // Make a list containing all values...
+    let list : List<ConsValue> = listFromMappedCollection(map, postfix: nil) {
+      let (key, value) = $0
+      return .VectorLiteral([key, value])
     }
-    return .Success(.ListLiteral(head!))
+    // ...then return the second
+    switch list {
+    case let list as Cons<ConsValue>:
+      return .Success(.ListLiteral(list.next))
+    default:
+      // Map has zero items
+      return .Success(.ListLiteral(Empty()))
+    }
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a string, list, vector, map, or nil"))
@@ -258,41 +211,22 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .NilLiteral: return .Success(args[0])
+  case .NilLiteral: return .Success(.NilLiteral)
   case let .StringLiteral(s):
     return .Success(listFromString(s))
   case let .ListLiteral(l):
     return .Success(l.isEmpty ? .NilLiteral : .ListLiteral(l))
-  case let .VectorLiteral(v):
+  case let .VectorLiteral(vector):
     // Turn the vector into a list
-    if v.count == 0 {
-      return .Success(.NilLiteral)
-    }
-    let head = Cons(v[0])
-    var this = head
-    for var i=1; i<v.count; i++ {
-      var next = Cons(v[i])
-      this.next = next
-      this = next
-    }
-    return .Success(.ListLiteral(head))
+    return .Success(vector.isEmpty ? .NilLiteral : .ListLiteral(listFromCollection(vector)))
   case let .MapLiteral(m):
-    if m.count == 0 {
-      return .Success(.NilLiteral)
+    // Turn the map into a list
+    if m.isEmpty { return .Success(.NilLiteral) }
+    let list : List<ConsValue> = listFromMappedCollection(m, postfix: nil) {
+      let (key, value) = $0
+      return .VectorLiteral([key, value])
     }
-    var head : Cons? = nil
-    var this = head
-    for (key, value) in m {
-      let next = Cons(.VectorLiteral([key, value]))
-      if let this = this {
-        this.next = next
-      }
-      else {
-        head = next
-      }
-      this = next
-    }
-    return .Success(.ListLiteral(head!))
+    return .Success(.ListLiteral(list))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a string, list, vector, map, or nil"))
@@ -303,65 +237,31 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
 func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
   let fn = ".concat"
   if args.count == 0 {
-    return .Success(.ListLiteral(Cons()))
+    return .Success(.ListLiteral(Empty()))
   }
-  var headInitialized = false
-  var head = Cons()
-  var this = head
+  var head : List<ConsValue> = Empty()
 
-  // A helper function responsible for concatenating a list to the in-progress result list starting at 'head'.
-  func concatList(list: Cons) {
-    if list.isEmpty {
-      return
-    }
-    var head : Cons? = list
-    while let actualHead = head {
-      if !headInitialized {
-        this.value = actualHead.value
-        headInitialized = true
-      }
-      else {
-        let next = Cons(actualHead.value)
-        this.next = next
-        this = next
-      }
-      head = actualHead.next
-    }
-  }
-
-  for arg in args {
-    switch arg {
+  // Go through the arguments in *reverse* order
+  for item in lazy(reverse(args)) {
+    switch item {
     case .NilLiteral: continue
     case let .StringLiteral(s):
-      if let list = listFromString(s).asList() {
-        concatList(list)
+      // Attempt to take the string and turn it into a list which precedes whatever we've built so far.
+      if let list = listFromString(s, postfix: head).asList() {
+        head = list
       }
       // Otherwise, if nil just skip this string
-    case let .ListLiteral(l):
-      concatList(l)
-    case let .VectorLiteral(v):
-      for item in v {
-        if !headInitialized {
-          this.value = item
-          headInitialized = true
-        }
-        else {
-          let next = Cons(item)
-          this.next = next
-          this = next
-        }
-      }
-    case let .MapLiteral(m):
-      for (key, value) in m {
-        if !headInitialized {
-          this.value = .VectorLiteral([key, value])
-          headInitialized = true
-        }
-        else {
-          let next = Cons(.VectorLiteral([key, value]))
-          this.next = next
-          this = next
-        }
+    case let .ListLiteral(list):
+      // Make a copy of this list, connected to our in-progress list.
+      head = list.copy(postfix: head)
+    case let .VectorLiteral(vector):
+      // Add all the items in the vector to our in-progress list.
+      head = listFromCollection(vector, prefix: nil, postfix: head)
+    case let .MapLiteral(map):
+      // Add all the key-value pairs in the map to our in-progress list.
+      head = listFromMappedCollection(map, postfix: head) {
+        let (key, value) = $0
+        return .VectorLiteral([key, value])
       }
     default:
       return .Failure(EvalError.invalidArgumentError(fn,

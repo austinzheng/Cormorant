@@ -8,64 +8,55 @@
 
 import Foundation
 
-public func ==(lhs: Cons, rhs: Cons) -> Bool {
-  var this = lhs
-  var that = rhs
-  // We have to walk through the lists
+public func ==<T>(lhs: List<T>, rhs: List<T>) -> Bool {
+  if lhs.isEmpty && rhs.isEmpty {
+    return true
+  }
+  else if lhs.isEmpty || rhs.isEmpty {
+    // One list is not empty
+    return false
+  }
+  // Walk through the lists
+  var leftGenerator = lhs.generate()
+  var rightGenerator = rhs.generate()
   while true {
-    if this.value != that.value {
-      // Different values
-      return false
-    }
-    if this.next != nil && that.next == nil || this.next == nil && that.next != nil {
-      // Different lengths
-      return false
-    }
-    if this.next == nil && that.next == nil {
-      // Same length, end of both lists
+    let left = leftGenerator.next()
+    let right = rightGenerator.next()
+    if left == nil && right == nil {
+      // Reached the end of both lists
       return true
     }
-    this = this.next!
-    that = that.next!
+    if let left = left {
+      if let right = right {
+        if left != right {
+          return false
+        }
+        continue
+      }
+    }
+    // One is nil, the other isn't
+    return false
   }
 }
 
-func ==(lhs: Cons, rhs: Vector) -> Bool {
+func ==(lhs: List<ConsValue>, rhs: Vector) -> Bool {
   if rhs.count == 0 {
     return lhs.isEmpty
   }
-
-  var that : Cons = lhs
-  // Walk through the list
-  for var i=0; i<rhs.count; i++ {
-    if that.value != rhs[i] {
-      // Different values
+  var idx = 0
+  for item in lhs {
+    if idx == rhs.count || item != rhs[idx] {
+      // No more items in the array, or unequal items
       return false
     }
-    if let next = lhs.next {
-      that = next
-    }
-    else {
-      if i < rhs.count - 1 {
-        // List is shorter than vector
-        return false
-      }
-    }
+    idx += 1
   }
-  if that.next != nil {
-    // List is longer than vector
-    return false
-  }
-  return true
+  // There can't be any more elements in the array
+  return idx == (rhs.count - 1)
 }
 
 public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
   switch lhs {
-  case .None:
-    switch rhs {
-    case .None: return true
-    default: return false
-    }
   case let .Symbol(v1):
     switch rhs {
     case let .Symbol(v2): return v1 == v2  // Can happen if comparing two quoted symbols

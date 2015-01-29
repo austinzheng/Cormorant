@@ -156,4 +156,8 @@ class TestSyntaxQuote : XCTestCase {
   func testDoubleSyntaxQuoteDeeplyNested3() {
     test("`(a `(b ~c ~~d))", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote b)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (quote c))))) (.list (.seq (.concat (.list (quote .list)) (.list d))))))))))))")
   }
+
+  func testDefnMix() {
+    test("`(a ~b (c ~@d))", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list b) (.list (.seq (.concat (.list (quote c)) d)))))")
+  }
 }

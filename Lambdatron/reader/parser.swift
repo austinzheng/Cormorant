@@ -184,7 +184,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
 // We need all these small enums because "unimplemented IR generation feature non-fixed multi-payload enum layout" is
 // still, annoyingly, a thing.
 private enum ListResult {
-  case Success(Cons)
+  case Success(List<ConsValue>)
   case Failure(ParseError)
 }
 
@@ -193,20 +193,18 @@ private func listWithTokens(tokens: TokenCollectionResult, ctx: Context) -> List
   case let .Tokens(tokens):
     if tokens.count == 0 {
       // Empty list: ()
-      return .Success(Cons())
+      return .Success(Empty())
     }
     let processedForms = processTokenList(tokens, ctx)
     switch processedForms {
     case let .Success(processedForms):
       // Create the list itself
-      let first = Cons(processedForms[0])
-      var prev = first
-      for var i=1; i<processedForms.count; i++ {
-        let this = Cons(processedForms[i])
-        prev.next = this
-        prev = this
+      var head : List<ConsValue> = Empty()
+      for var i=processedForms.count - 1; i >= 0; i-- {
+        let next = Cons(processedForms[i], next: head)
+        head = next
       }
-      return .Success(first)
+      return .Success(head)
     case let .Failure(f): return .Failure(f)
     }
   case let .Error(e): return .Failure(e)
