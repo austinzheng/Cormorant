@@ -7,9 +7,52 @@
 //
 
 import Foundation
+import XCTest
 
 class TestSymbolBuiltin : InterpreterTest {
-  // TODO
+
+  /// .symbol should properly return a novel symbol when given a symbol argument.
+  func testWithNewSymbol() {
+    let value = runCode("(.symbol 'foobar)")
+    let expected = interpreter.context.symbolForName("foobar")
+    if let value = value {
+      XCTAssert(value.asSymbol()? == expected, ".symbol should properly return a not-before-defined symbol")
+    }
+  }
+
+  /// .symbol should properly return an existing interned symbol when given an appropriate symbol argument.
+  func testWithExistingSymbol() {
+    runCode("(def foobar)")
+    let value = runCode("(.symbol 'foobar)")
+    let expected = interpreter.context.symbolForName("foobar")
+    if let value = value {
+      XCTAssert(value.asSymbol()? == expected, ".symbol should properly return a previously defined symbol")
+    }
+  }
+
+  /// .symbol should return nil if given an empty string.
+  func testWithEmptyString() {
+    expectThat("(.symbol \"\")", shouldEvalTo: .NilLiteral)
+  }
+
+  /// .symbol should properly return a novel symbol when given a string argument.
+  func testWithNewSymbolString() {
+    let value = runCode("(.symbol \"foobar\")")
+    let expected = interpreter.context.symbolForName("foobar")
+    if let value = value {
+      XCTAssert(value.asSymbol()? == expected, ".symbol should properly return a novel symbol from a string")
+    }
+  }
+
+  /// .symbol should properly return an existing interned symbol when given an appropriate string argument.
+  func testWithExistingSymbolString() {
+    runCode("(def foobar)")
+    let value = runCode("(.symbol \"foobar\")")
+    let expected = interpreter.context.symbolForName("foobar")
+    if let value = value {
+      XCTAssert(value.asSymbol()? == expected, ".symbol should properly return a previously defined symbol")
+    }
+  }
 }
 
 class TestKeywordBuiltin : InterpreterTest {
@@ -18,22 +61,22 @@ class TestKeywordBuiltin : InterpreterTest {
 
 class TestIntBuiltin : InterpreterTest {
 
-  /// int should return integer values unchanged.
+  /// .int should return integer values unchanged.
   func testWithInt() {
     expectThat("(.int 51222)", shouldEvalTo: .IntegerLiteral(51222))
   }
 
-  /// int should coerce and truncate floating-point values to integers.
+  /// .int should coerce and truncate floating-point values to integers.
   func testWithDouble() {
     expectThat("(.int 1.99912)", shouldEvalTo: .IntegerLiteral(1))
   }
 
-  /// int should coerce characters to their raw values.
+  /// .int should coerce characters to their raw values.
   func testWithChar() {
     expectThat("(.int \\g)", shouldEvalTo: .IntegerLiteral(103))
   }
 
-  /// int should fail with any non-numeric argument.
+  /// .int should fail with any non-numeric argument.
   func testWithInvalidArguments() {
     expectThat("(.int nil)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.int true)", shouldFailAs: .InvalidArgumentError)
@@ -48,7 +91,7 @@ class TestIntBuiltin : InterpreterTest {
     expectThat("(.int .+)", shouldFailAs: .InvalidArgumentError)
   }
 
-  /// int should not take more or fewer than one argument.
+  /// .int should not take more or fewer than one argument.
   func testArity() {
     expectArityErrorFrom("(.int)")
     expectArityErrorFrom("(.int 0 1)")
@@ -57,17 +100,17 @@ class TestIntBuiltin : InterpreterTest {
 
 class TestDoubleBuiltin : InterpreterTest {
 
-  /// double should return floating-point number arguments unchanged.
+  /// .double should return floating-point number arguments unchanged.
   func testWithDouble() {
     expectThat("(.double 12.12355)", shouldEvalTo: .FloatLiteral(12.12355))
   }
 
-  /// double should coerce integer arguments to floating-point values.
+  /// .double should coerce integer arguments to floating-point values.
   func testWithInt() {
     expectThat("(.double 19012)", shouldEvalTo: .FloatLiteral(19012.0))
   }
 
-  /// double should fail with any non-numeric argument.
+  /// .double should fail with any non-numeric argument.
   func testWithInvalidArguments() {
     expectThat("(.double nil)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.double true)", shouldFailAs: .InvalidArgumentError)
@@ -83,7 +126,7 @@ class TestDoubleBuiltin : InterpreterTest {
     expectThat("(.double .+)", shouldFailAs: .InvalidArgumentError)
   }
 
-  /// double should not take more or fewer than one argument.
+  /// .double should not take more or fewer than one argument.
   func testArity() {
     expectArityErrorFrom("(.double)")
     expectArityErrorFrom("(.double 0 1)")

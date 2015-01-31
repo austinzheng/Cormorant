@@ -42,7 +42,30 @@ class TestPlus : InterpreterTest {
 }
 
 class TestMinus : InterpreterTest {
-  // TODO
+
+  /// Subtraction with integers should work.
+  func testInts() {
+    expectThat("(.- 1 89)", shouldEvalTo: .IntegerLiteral(-88))
+    expectThat("(.- -123 -9812)", shouldEvalTo: .IntegerLiteral(9689))
+  }
+
+  /// Subtraction with floats should work.
+  func testFloats() {
+    expectThat("(.- 0.5921 0.2102)", shouldEvalTo: .FloatLiteral(0.5921 - 0.2102))
+    expectThat("(.- 2.19591 999123.5990712)", shouldEvalTo: .FloatLiteral(2.19591 - 999123.5990712))
+  }
+
+  /// Subtraction with mixed types should work.
+  func testMixed() {
+    expectThat("(.- 915 1.112)", shouldEvalTo: .FloatLiteral(913.888))
+    expectThat("(.- 1.112 915)", shouldEvalTo: .FloatLiteral(-913.888))
+  }
+
+  /// Integer subtraction should trap overflow.
+  func testOverflow() {
+    expectThat("(.- 9223372036854775807 -1)", shouldFailAs: .IntegerOverflowError)
+    expectThat("(.- -9223372036854775808 1)", shouldFailAs: .IntegerOverflowError)
+  }
 
   /// Built-in subtraction function should only take two arguments.
   func testArity() {
@@ -52,7 +75,30 @@ class TestMinus : InterpreterTest {
 }
 
 class TestMultiply : InterpreterTest {
-  // TODO
+
+  /// Multiplication with integers should work.
+  func testInts() {
+    expectThat("(.* 20 31)", shouldEvalTo: .IntegerLiteral(620))
+    expectThat("(.* 59 -929)", shouldEvalTo: .IntegerLiteral(-54811))
+  }
+
+  /// Multiplication with floats should work.
+  func testFloats() {
+    expectThat("(.* 0.2003 159892.129)", shouldEvalTo: .FloatLiteral(0.2003 * 159892.129))
+    expectThat("(.* -9297.00028 1.00001289)", shouldEvalTo: .FloatLiteral(-9297.00028 * 1.00001289))
+  }
+
+  /// Multiplication with mixed types should work.
+  func testMixed() {
+    expectThat("(.* 105 2.897)", shouldEvalTo: .FloatLiteral(304.185))
+    expectThat("(.* 2.897 105)", shouldEvalTo: .FloatLiteral(304.185))
+  }
+
+  /// Integer multiplication should trap overflow.
+  func testOverflow() {
+    expectThat("(.* 9223372036854775807 2)", shouldFailAs: .IntegerOverflowError)
+    expectThat("(.* -9223372036854775808 2)", shouldFailAs: .IntegerOverflowError)
+  }
 
   /// Built-in multiplication function should only take two arguments.
   func testArity() {

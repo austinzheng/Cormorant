@@ -18,14 +18,15 @@ class InterpreterTest : XCTestCase {
     interpreter.reset()
   }
 
-  // Run some input, discarding the output and expecting no errors.
-  func runCode(input: String) {
+  // Run some input, expecting no errors.
+  func runCode(input: String) -> ConsValue? {
     let result = interpreter.evaluate(input)
     switch result {
-    case let .Success:
-      return
+    case let .Success(s):
+      return s
     default:
       XCTFail("runCode did not successfully evaluate the input code")
+      return nil
     }
   }
 
