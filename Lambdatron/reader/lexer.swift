@@ -96,16 +96,19 @@ private enum RawLexToken {
   case Unknown(String)
 }
 
+private func characterIsWhitespace(item: unichar) -> Bool {
+  // Whitespace character set; 'misc' is used for characters that should be ignored like whitespace
+  let ws = NSCharacterSet.whitespaceAndNewlineCharacterSet()
+  let misc = NSCharacterSet(charactersInString: ",")
+  return ws.characterIsMember(item) || misc.characterIsMember(item)
+}
+
 /// Perform the first phase of lexing. This takes in a string representing source code, and returns an array of
 /// RawLexTokens.
 private func lex1(raw: String) -> RawLexResult {
   enum State {
     case Normal, String, Comment
   }
-
-  // Whitespace character set; 'otherWsSet' is used for characters that should be ignored like whitespace
-  let wsSet = NSCharacterSet.whitespaceAndNewlineCharacterSet()
-  let otherWsSet = NSCharacterSet(charactersInString: ",")
   // Newline character set; only used for finding the newlines that terminate single-line comments
   let nlSet = NSCharacterSet.newlineCharacterSet()
 
@@ -190,7 +193,7 @@ private func lex1(raw: String) -> RawLexResult {
           // Backslash without anything following it, or invalid character literal name
           return .Failure(.InvalidCharacterError)
         }
-      case _ where wsSet.characterIsMember(tChar) || otherWsSet.characterIsMember(tChar):
+      case _ where characterIsWhitespace(tChar):
         flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
       default:
         currentToken.appendString(String(char))       // Any other valid character
@@ -366,9 +369,29 @@ private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int
   if start == strLength - 1 {
     return nil
   }
+
+  /// Check whether a character at a certain position is whitespace (if it exists). Returns true if the character is out
+  /// of bounds.
+  func isWhitespace(pos: Int) -> Bool {
+    if pos >= strLength { return true }
+    // A character can be adjacent to:
+    // * Another character (e.g. \a\a)
+    // * The start or end of a list (e.g. (\a))
+    // * The start or end of a vector (e.g. \a[])
+    // * The start or end of a bracketed form (e.g. \a{})
+    // * The start of a string (e.g. \a"hello")
+    // * The macro symbols `, @, or ~
+    //
+    // A character cannot touch a keyword (:), literal quote ('), hash (#), number, true, false, or nil.
+    let canTouch = NSCharacterSet(charactersInString: "\\()[]{}\"`@~")
+    let char = strAsUtf16.characterAtIndex(pos)
+    return characterIsWhitespace(char) || canTouch.characterIsMember(char)
+  }
+
   // Take single character
   if strAsUtf16.characterAtIndex(start + 1) == NSString(string: "\\").characterAtIndex(0) {
     // Special case: user entered "\\", which indicates the backslash literal
+    if !isWhitespace(start + 2) { return nil }
     return (.CharLiteral("\\"), 1)
   }
   else if start == strAsUtf16.length - 2 || !nonTerminationSet.characterIsMember(strAsUtf16.characterAtIndex(start + 2)) {
@@ -377,6 +400,7 @@ private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int
     //  always have names comprised of lowercase letters. Therefore, if we detect the prospective second character in
     //  the literal name to be a lowercase letter, then we scan for a literal name. Otherwise, we consider the literal
     //  a single-character literal.
+    if !isWhitespace(start + 2) { return nil }
     let rawUnichar = strAsUtf16.characterAtIndex(start + 1)
     let asStr = strAsUtf16.substringWithRange(NSRange(location: start + 1, length: 1))
     let character = Character(asStr)
@@ -392,6 +416,7 @@ private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int
     idx++
   }
   // The actual end is one prior to the end of the string or the termination character.
+  if !isWhitespace(idx) { return nil }
   idx -= 1
   let literalLength = idx - start
   assert(literalLength > 1)
