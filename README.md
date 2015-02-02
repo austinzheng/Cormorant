@@ -168,6 +168,7 @@ Differences From Clojure
 
 Aside from the (long) list of features not yet implemented (see the *Working On* and *(Very) Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
+* Hashmap iteration is not guaranteed to traverse the elements in the same order as in Clojure. No guarantees are made on hashmap iteration except that each key-value pair is visited exactly once. This has implications for any function that converts a map into an ordered sequence.
 * `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
 * The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.

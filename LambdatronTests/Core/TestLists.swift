@@ -1,5 +1,5 @@
 //
-//  TestCons.swift
+//  TestLists.swift
 //  Lambdatron
 //
 //  Created by Austin Zheng on 1/23/15.
@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 
 /// Test Cons's built-in functionality.
-class TestConsBasics : XCTestCase {
+class TestListBasics : XCTestCase {
 
   /// An empty Cons should work properly in the context of a for-in loop.
   func testEmptyConsIteration() {
