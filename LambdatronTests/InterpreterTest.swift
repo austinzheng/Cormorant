@@ -9,6 +9,36 @@
 import Foundation
 import XCTest
 
+/// Convenience function: given a bunch of ConsValues, return a list.
+func listWithItems(items: ConsValue...) -> ConsValue {
+  if items.count == 0 {
+    return .ListLiteral(Cons())
+  }
+  var head = Cons(items[items.count - 1])
+  for var i=items.count - 2; i >= 0; i-- {
+    let this = Cons(items[i], next: head)
+    head = this
+  }
+  return .ListLiteral(head)
+}
+
+/// Convenience functions: given a bunch of ConsValues, return a vector.
+func vectorWithItems(items: ConsValue...) -> ConsValue {
+  return .VectorLiteral(items)
+}
+
+/// Convenience function: given a bunch of ConsValue key-value pairs, return a map.
+func mapWithItems(items: (ConsValue, ConsValue)...) -> ConsValue {
+  if items.count == 0 {
+    return .MapLiteral([:])
+  }
+  var buffer : Map = [:]
+  for (key, value) in items {
+    buffer[key] = value
+  }
+  return .MapLiteral(buffer)
+}
+
 /// An abstract superclass intended for various interpreter tests.
 class InterpreterTest : XCTestCase {
   var interpreter = Interpreter()
