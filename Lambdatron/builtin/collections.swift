@@ -30,9 +30,10 @@ func pr_vector(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given zero or more arguments, construct a map whose components are the keys and values (or the empty map).
 func pr_hashmap(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".hashmap"
   if args.count % 2 != 0 {
     // Must have an even number of arguments
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.arityError("even number", actual: args.count, fn))
   }
   var buffer : Map = [:]
   for var i=0; i<args.count-1; i += 2 {
@@ -45,8 +46,9 @@ func pr_hashmap(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given a prefix and a list argument, return a new list where the prefix is followed by the list argument.
 func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".cons"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let first = args[0]
   let second = args[1]
@@ -88,14 +90,16 @@ func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
       this = next
     }
     return .Success(.ListLiteral(head))
-  default: return .Failure(.InvalidArgumentError)
+  default: return .Failure(EvalError.invalidArgumentError(fn,
+    message: "second argument must be a string, list, vector, map, or nil"))
   }
 }
 
 /// Given a sequence, return the first item.
 func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".first"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
@@ -114,14 +118,17 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
       return .Success(.VectorLiteral([key, value]))
     }
     return .Success(.NilLiteral)
-  default: return .Failure(.InvalidArgumentError)
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "first argument must be a string, list, vector, map, or nil"))
   }
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first.
 func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".rest"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
@@ -173,7 +180,9 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
       this = next
     }
     return .Success(.ListLiteral(head!))
-  default: return .Failure(.InvalidArgumentError)
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "argument must be a string, list, vector, map, or nil"))
   }
 }
 
@@ -182,8 +191,9 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
   // NOTE: This function appears identical to pr_rest, except for returning .NilLiteral instead of Cons() when there are
   // no more items. I expect this code to diverge if/when lazy seqs are ever implemented, and so it is copied over
   // verbatim rather than being refactored.
+  let fn = ".next"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
@@ -235,14 +245,17 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
       this = next
     }
     return .Success(.ListLiteral(head!))
-  default: return .Failure(.InvalidArgumentError)
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "argument must be a string, list, vector, map, or nil"))
   }
 }
 
 /// Given a single sequence, return nil (if empty) or a list built out of that sequence.
 func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".seq"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
   case .NilLiteral: return .Success(args[0])
@@ -280,12 +293,15 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
       this = next
     }
     return .Success(.ListLiteral(head!))
-  default: return .Failure(.InvalidArgumentError)
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "argument must be a string, list, vector, map, or nil"))
   }
 }
 
 /// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
 func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".concat"
   if args.count == 0 {
     return .Success(.ListLiteral(Cons()))
   }
@@ -348,7 +364,8 @@ func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
         }
       }
     default:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.invalidArgumentError(fn,
+        message: "arguments must be strings, lists, vectors, maps, or nil"))
     }
   }
   return .Success(.ListLiteral(head))
@@ -356,15 +373,16 @@ func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given a sequence and an index, return the item at that index, or return an optional 'not found' value.
 func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".nth"
   if args.count < 2 || args.count > 3 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
   if let idx = args[1].asInteger() {
     let fallback : ConsValue? = args.count == 3 ? args[2] : nil
     if idx < 0 {
       // Index can't be negative
       if let fallback = fallback { return .Success(fallback) }
-      return .Failure(.OutOfBoundsError)
+      return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
     }
 
     switch args[0] {
@@ -377,7 +395,7 @@ func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
         return .Success(fallback)
       }
       else {
-        return .Failure(.OutOfBoundsError)
+        return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
       }
     case let .ListLiteral(l):
       for (ctr, item) in enumerate(l) {
@@ -390,7 +408,7 @@ func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
         return .Success(fallback)
       }
       else {
-        return .Failure(.OutOfBoundsError)
+        return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
       }
     case let .VectorLiteral(v):
       if idx < v.count {
@@ -400,21 +418,24 @@ func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
         return .Success(fallback)
       }
       else {
-        return .Failure(.OutOfBoundsError)
+        return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
       }
     default:
       // Not a valid type to call nth on.
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.invalidArgumentError(fn,
+        message: "first argument must be a string, list, or vector"))
     }
   }
   // Second argument wasn't an integer.
-  return .Failure(.InvalidArgumentError)
+  return .Failure(EvalError.invalidArgumentError(fn,
+    message: "second argument must be an integer"))
 }
 
 /// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value.
 func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".get"
   if args.count < 2 || args.count > 3 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
   let key = args[1]
   let fallback : ConsValue = args.count == 3 ? args[2] : .NilLiteral
@@ -443,6 +464,7 @@ func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given a supported collection and one or more key-value pairs, associate the new values with the keys.
 func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".assoc"
   func updateMapFromArray(raw: [ConsValue], inout starting: Map) {
     for var i=0; i<raw.count - 1; i += 2 {
       let key = raw[i]
@@ -460,11 +482,12 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
           buffer[idx] = value
         }
         else {
-          return .OutOfBoundsError
+          return EvalError.outOfBoundsError(fn, idx: idx)
         }
       }
       else {
-        return .InvalidArgumentError
+        return EvalError.invalidArgumentError(fn,
+          message: "key arguments must be integers if .assoc is called on a vector")
       }
     }
     return nil
@@ -472,13 +495,13 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
 
   // This function requires at least one collection/nil and one key/index-value pair
   if args.count < 3 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("3 or more", actual: args.count, fn))
   }
   // Collect all arguments after the first one
   let rest = Array(args[1..<args.count])
   if rest.count % 2 != 0 {
     // Must have an even number of key/index-value pairs
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("even number", actual: args.count, fn))
   }
   switch args[0] {
   case .NilLiteral:
@@ -499,14 +522,16 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
     updateMapFromArray(rest, &newMap)
     return .Success(.MapLiteral(newMap))
   default:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "first argument must be a vector, map, or nil"))
   }
 }
 
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
 func pr_dissoc(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".dissoc"
   if args.count < 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("> 1", actual: args.count, fn))
   }
   switch args[0] {
   case .NilLiteral:
@@ -518,6 +543,6 @@ func pr_dissoc(args: [ConsValue], ctx: Context) -> EvalResult {
     }
     return .Success(.MapLiteral(newMap))
   default:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a map"))
   }
 }

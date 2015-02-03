@@ -41,8 +41,8 @@ class TestHashmapBuiltin : InterpreterTest {
 
   /// .hashmap invoked with an odd number of arguments should return an error.
   func testUnmatchedKeys() {
-    expectThat("(.hashmap :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.hashmap :a :b :c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.hashmap :a \\b :c \\d :e)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.hashmap :a)", shouldFailAs: .ArityError)
+    expectThat("(.hashmap :a :b :c)", shouldFailAs: .ArityError)
+    expectThat("(.hashmap :a \\b :c \\d :e)", shouldFailAs: .ArityError)
   }
 }

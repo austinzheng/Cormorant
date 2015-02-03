@@ -10,8 +10,11 @@ import Foundation
 
 /// Given a symbol or string, return a corresponding symbol.
 func pr_symbol(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".symbol"
   if args.count != 1 {
-    return .Failure(args.count == 2 ? .RuntimeError("namespaces are not (yet) supported") : .ArityError)
+    return .Failure(args.count == 2
+      ? EvalError.runtimeError(fn, message: "namespaces are not (yet) supported")
+      : EvalError.arityError("1 or 2", actual: args.count, fn))
   }
   switch args[0] {
   case .Symbol:
@@ -19,14 +22,17 @@ func pr_symbol(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .StringLiteral(s):
     return .Success(s.isEmpty ? .NilLiteral : .Symbol(ctx.symbolForName(s)))
   default:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol or string"))
   }
 }
 
 /// Given a symbol, string, or keyword, return a corresponding keyword; otherwise, return nil.
 func pr_keyword(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".keyword"
   if args.count != 1 {
-    return .Failure(args.count == 2 ? .RuntimeError("namespaces are not (yet) supported") : .ArityError)
+    return .Failure(args.count == 2
+      ? EvalError.runtimeError(fn, message: "namespaces are not (yet) supported")
+      : EvalError.arityError("1 or 2", actual: args.count, fn))
   }
   switch args[0] {
   case let .Symbol(s):
@@ -43,8 +49,9 @@ func pr_keyword(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Cast an argument to an integer.
 func pr_int(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".int"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
   case let .IntegerLiteral(v):
@@ -59,16 +66,18 @@ func pr_int(args: [ConsValue], ctx: Context) -> EvalResult {
     let castValue = generator.next()!
     return .Success(.IntegerLiteral(Int(castValue.value)))
   case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
-    return .Failure(.InvalidArgumentError)
+    fallthrough
   case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "argument must be a number or a character"))
   }
 }
 
 /// Cast an argument to a float.
 func pr_double(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".double"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
   case let .IntegerLiteral(v):
@@ -76,10 +85,10 @@ func pr_double(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .FloatLiteral(v):
     return .Success(args[0])
   case .CharacterLiteral:
-    return .Failure(.InvalidArgumentError)
+    fallthrough
   case .None, .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
-    return .Failure(.InvalidArgumentError)
+    fallthrough
   case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

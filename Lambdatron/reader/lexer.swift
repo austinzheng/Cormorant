@@ -191,7 +191,7 @@ private func lex1(raw: String) -> RawLexResult {
         }
         else {
           // Backslash without anything following it, or invalid character literal name
-          return .Failure(.InvalidCharacterError)
+          return .Failure(LexError(.InvalidCharacterError))
         }
       case _ where characterIsWhitespace(tChar):
         flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
@@ -209,7 +209,7 @@ private func lex1(raw: String) -> RawLexResult {
       else if (char == "\\") {
         if idx == rawAsNSString.length - 1 {
           // An escape character cannot be the last character in the input
-          return .Failure(.InvalidEscapeSequenceError)
+          return .Failure(LexError(.InvalidEscapeSequenceError))
         }
         skipCount = 1
         // Get the next character
@@ -218,7 +218,7 @@ private func lex1(raw: String) -> RawLexResult {
           currentToken.appendString(escapeSeq)
         }
         else {
-          return .Failure(.InvalidEscapeSequenceError)
+          return .Failure(LexError(.InvalidEscapeSequenceError))
         }
       }
       else {
@@ -238,7 +238,7 @@ private func lex1(raw: String) -> RawLexResult {
 
   if state == .String {
     // This is bad; a string was left dangling
-    return .Failure(.NonTerminatedStringError)
+    return .Failure(LexError(.NonTerminatedStringError))
   }
   // If there's another token left, flush it
   flushTokenToBuffer()

@@ -60,7 +60,8 @@ public class Interpreter {
           let result = evaluateForm(expanded, context)
           switch result {
           case let .Success(s): return .Success(s)
-          case .Recur: return .EvalFailure(.RecurMisuseError)
+          case .Recur:
+            return .EvalFailure(EvalError(.RecurMisuseError, message: "recur object was returned to the top level"))
           case let .Failure(f): return .EvalFailure(f)
           }
         case let .Failure(f): return .ReaderFailure(f)

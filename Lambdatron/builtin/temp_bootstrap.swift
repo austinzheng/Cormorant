@@ -60,7 +60,7 @@ func bootstrap_plus(args: [ConsValue], ctx: Context) -> EvalResult {
         floatAccum += v
       }
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
     }
   }
   switch mode {
@@ -74,14 +74,14 @@ func bootstrap_plus(args: [ConsValue], ctx: Context) -> EvalResult {
 /// Take one or more numbers and return their difference. If only one number, returns 0-arg[0].
 func bootstrap_minus(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError(.ArityError, "bootstrap"))
   }
   let args = bootstrap_preprocess(args)
   
   // Set up the initial state
   var (intAccum, floatAccum, mode, didError) = stateForFirstArgument(args[0])
   if didError {
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
   }
   
   if args.count == 1 {
@@ -113,7 +113,7 @@ func bootstrap_minus(args: [ConsValue], ctx: Context) -> EvalResult {
         floatAccum -= v
       }
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
     }
   }
   switch mode {
@@ -149,7 +149,7 @@ func bootstrap_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
         floatAccum *= v
       }
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
     }
   }
   switch mode {
@@ -163,7 +163,7 @@ func bootstrap_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
 /// Take one or more numbers and return their quotient. If only one number, returns 1/arg[0].
 func bootstrap_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError(.ArityError, "bootstrap"))
   }
   let args = bootstrap_preprocess(args)
   
@@ -177,7 +177,7 @@ func bootstrap_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Float(v):
     floatAccum = v
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
   }
   
   if args.count == 1 {
@@ -189,13 +189,13 @@ func bootstrap_divide(args: [ConsValue], ctx: Context) -> EvalResult {
     let arg = args[i]
     switch extractNumber(arg) {
     case let .Integer(v):
-      if v == 0 { return .Failure(.DivideByZeroError) }
+      if v == 0 { return .Failure(EvalError(.DivideByZeroError, "bootstrap")) }
       floatAccum /= Double(v)
     case let .Float(v):
-      if v == 0 { return .Failure(.DivideByZeroError) }
+      if v == 0 { return .Failure(EvalError(.DivideByZeroError, "bootstrap")) }
       floatAccum /= v
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
     }
   }
   return .Success(.FloatLiteral(floatAccum))

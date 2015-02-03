@@ -78,7 +78,7 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and expect a particular evaluation failure.
-  func expectThat(input: String, shouldFailAs expected: EvalError) {
+  func expectThat(input: String, shouldFailAs expected: EvalError.ErrorType) {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(s):
@@ -90,7 +90,9 @@ class InterpreterTest : XCTestCase {
     case .ReaderFailure:
       XCTFail("reader error")
     case let .EvalFailure(actual):
-      XCTAssert(expected == actual, "expected: \(expected.description), got: \(actual.description)")
+      let expectedName = expected.rawValue
+      let actualName = actual.error.rawValue
+      XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
     }
   }
 

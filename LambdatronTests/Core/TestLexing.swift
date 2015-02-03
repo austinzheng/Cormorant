@@ -12,13 +12,15 @@ import XCTest
 class TestLexing : InterpreterTest {
 
   /// Given an input string, evaluate it and expect a particular evaluation failure.
-  func expectThat(input: String, shouldFailLexingAs expected: LexError) {
+  func expectThat(input: String, shouldFailLexingAs expected: LexError.ErrorType) {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(s):
       XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
     case let .LexFailure(actual):
-      XCTAssert(expected == actual, "expected: \(expected.description), got: \(actual.description)")
+      let expectedName = expected.rawValue
+      let actualName = actual.error.rawValue
+      XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
     case .ParseFailure:
       XCTFail("parser error; shouldn't even get here")
     case .ReaderFailure:

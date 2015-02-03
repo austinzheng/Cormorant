@@ -34,7 +34,7 @@ func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
   let result = form.evaluate(ctx)
   switch result {
   case .Success: return result
-  case .Recur: return .Failure(.RecurMisuseError)
+  case .Recur: return .Failure(EvalError(.RecurMisuseError))
   case .Failure: return result
   }
 }
@@ -53,7 +53,7 @@ extension Cons {
           buffer.append(result)
         case .Recur:
           // Cannot use 'recur' as a function argument
-          return .Failure(.RecurMisuseError)
+          return .Failure(EvalError(.RecurMisuseError))
         case let .Failure(f):
           return .Failure(f)
         }
@@ -138,7 +138,7 @@ extension Cons {
       if args.count != 1 {
         // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
         // behavior.
-        return .Failure(.ArityError)
+        return .Failure(EvalError.arityError("1", actual: args.count, "(vector)"))
       }
       let allArgs : [ConsValue] = [.VectorLiteral(vector)] + args
       return pr_nth(allArgs, ctx)
@@ -169,7 +169,7 @@ extension Cons {
     switch Cons.collectValues(next, ctx) {
     case let .Success(args):
       if !(args.count == 1 || args.count == 2) {
-        return .Failure(.ArityError)
+        return .Failure(EvalError.arityError("1 or 2", actual: args.count, "(key type)"))
       }
       let allArgs : [ConsValue] = [args[0], key] + (args.count == 2 ? [args[1]] : [])
       return pr_get(allArgs, ctx)
@@ -186,7 +186,9 @@ extension Cons {
       return function.evaluate(args)
     }
     else if first.asVector() != nil {
-      return args.count == 2 ? pr_nth([first] + args, ctx) : .Failure(.ArityError)
+      return args.count == 2
+        ? pr_nth([first] + args, ctx)
+        : .Failure(EvalError.arityError("2", actual: args.count, "apply"))
     }
     else if first.asMap() != nil {
       return pr_get([first] + args, ctx)
@@ -195,7 +197,7 @@ extension Cons {
       return pr_get([args[0], first] + (args.count == 2 ? [args[1]] : []), ctx)
     }
     else {
-      return .Failure(.NotEvalableError)
+      return .Failure(EvalError(.NotEvalableError))
     }
   }
 
@@ -245,11 +247,11 @@ extension Cons {
       }
       else {
         // 3a: 'a' is not something that can be used in function position (e.g. nil)
-        return .Failure(.NotEvalableError)
+        return .Failure(EvalError(.NotEvalableError))
       }
     case .Recur:
       // 2a: Evaluating the form 'a' resulted in a recur sentinel; this is not acceptable.
-      return .Failure(.RecurMisuseError)
+      return .Failure(EvalError(.RecurMisuseError))
     case .Failure:
       // 2b: Evaluating the form 'a' failed; for example, it was a function that threw some error.
       return fpItemResult
@@ -266,15 +268,15 @@ extension ConsValue {
       // Look up the value of v
       switch ctx[v] {
       case .Invalid:
-        return .Failure(.InvalidSymbolError)
+        return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : ctx.nameForSymbol(v)]))
       case .Unbound:
-        return .Failure(.UnboundSymbolError)
+        return .Failure(EvalError(.UnboundSymbolError, metadata: [.Symbol : ctx.nameForSymbol(v)]))
       case let .Literal(l):
         return .Success(l)
       case let .Param(p):
         return .Success(p)
       case .BoundMacro:
-        return .Failure(.EvaluatingMacroError)
+        return .Failure(EvalError(.EvaluatingMacroError))
       }
     case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Keyword:
       return .Success(self)
@@ -288,7 +290,7 @@ extension ConsValue {
         let result = form.evaluate(ctx)
         switch result {
         case let .Success(result): buffer.append(result)
-        case .Recur: return .Failure(.RecurMisuseError)
+        case .Recur: return .Failure(EvalError(.RecurMisuseError))
         case .Failure: return result
         }
       }
@@ -303,17 +305,17 @@ extension ConsValue {
           let evaluatedValue = value.evaluate(ctx)
           switch evaluatedValue {
           case let .Success(v): newMap[k] = v
-          case .Recur: return .Failure(.RecurMisuseError)
+          case .Recur: return .Failure(EvalError(.RecurMisuseError))
           case .Failure: return evaluatedValue
           }
-        case .Recur: return .Failure(.RecurMisuseError)
+        case .Recur: return .Failure(EvalError(.RecurMisuseError))
         case .Failure: return evaluatedKey
         }
       }
       return .Success(.MapLiteral(newMap))
-    case Special: return .Failure(.EvaluatingSpecialFormError)
-    case ReaderMacro: return .Failure(.EvaluatingMacroError)
-    case None: return .Failure(.EvaluatingNoneError)
+    case Special: return .Failure(EvalError(.EvaluatingSpecialFormError))
+    case ReaderMacro: return .Failure(EvalError(.EvaluatingMacroError))
+    case None: return .Failure(EvalError(.EvaluatingNoneError))
     }
   }
 }

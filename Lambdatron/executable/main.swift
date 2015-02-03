@@ -67,7 +67,8 @@ func main() {
         case let .Success(s):
           println(s.describe(i.context))
         case .Recur:
-          println("Evaluation error \(EvalError.RecurMisuseError)")
+          let error = EvalError(.RecurMisuseError)
+          println("Evaluation error \(error)")
         case let .Failure(f):
           println("Evaluation error \(f)")
         }

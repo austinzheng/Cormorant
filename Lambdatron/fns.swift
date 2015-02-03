@@ -16,10 +16,11 @@ private enum PrebuildResult {
 
 /// Given an array of SingleFn objects representing different arities, return a PrebuildResult that is either an error
 /// or a map of arities to SingleFn objects.
-private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
+private func prebuildFn(arities: [SingleFn], asMacro: Bool) -> PrebuildResult {
+  let fn = asMacro ? "defmacro" : "fn"
   if arities.count == 0 {
     // Must have at least one arity
-    return .Failure(.NoFnAritiesError)
+    return .Failure(EvalError(.NoFnAritiesError, fn))
   }
   // Do validation
   var variadic : SingleFn? = nil
@@ -28,14 +29,14 @@ private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
     // 1. Only one variable arity definition
     if arity.isVariadic {
       if variadic != nil {
-        return .Failure(.MultipleVariadicAritiesError)
+        return .Failure(EvalError(.MultipleVariadicAritiesError, fn))
       }
       variadic = arity
     }
     // 2. Only one definition per fixed arity
     if !arity.isVariadic {
       if aritiesMap[arity.paramCount] != nil {
-        return .Failure(.MultipleFnDefinitionsPerArityError)
+        return .Failure(EvalError(.MultipleDefinitionsPerArityError, fn))
       }
       aritiesMap[arity.paramCount] = arity
     }
@@ -44,7 +45,7 @@ private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
     for arity in arities {
       // 3. If variable arity definition, no fixed-arity definitions can have more params than the variable arity def
       if !arity.isVariadic && arity.paramCount > actualVariadic.paramCount {
-        return .Failure(.FixedArityExceedsVariableArityError)
+        return .Failure(EvalError(.FixedArityExceedsVariableArityError, fn))
       }
     }
   }
@@ -115,7 +116,7 @@ struct SingleFn {
           return result
         }
       }
-      return .Failure(.ArityError)
+      return .Failure(EvalError(.ArityError, "(user-defined function)"))
     }
   }
 }
@@ -127,7 +128,7 @@ public class Function : Printable {
   let specificFns : [Int : SingleFn]
   
   class func buildFunction(arities: [SingleFn], name: InternedSymbol?, ctx: Context) -> EvalResult {
-    let result = prebuildFn(arities)
+    let result = prebuildFn(arities, false)
     switch result {
     case let .Success((aritiesMap, variadic)):
       let function = Function(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
@@ -164,7 +165,7 @@ public class Function : Printable {
         return varargFunction.evaluate(arguments, context)
       }
     }
-    return .Failure(.ArityError)
+    return .Failure(EvalError(.ArityError, "(user-defined function)"))
   }
 
   public var description : String {
@@ -186,7 +187,7 @@ final internal class Macro : Function {
   let name : InternedSymbol
 
   class func buildMacro(arities: [SingleFn], name: InternedSymbol, ctx: Context) -> MacroCreationResult {
-    let result = prebuildFn(arities)
+    let result = prebuildFn(arities, true)
     switch result {
     case let .Success((aritiesMap, variadic)):
       let macro = Macro(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)

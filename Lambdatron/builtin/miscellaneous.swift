@@ -10,21 +10,23 @@ import Foundation
 
 /// Evaluate the equality of one or more forms.
 func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".="
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   return .Success(.BoolLiteral(args[0] == args[1]))
 }
 
 /// Read in a string from the host interpreter's readInput function, and then expand it into a Lambdatron form.
 func pr_read(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".read"
   if args.count != 0 {
-    return .Failure(.RuntimeError("Custom readers are not supported."))
+    return .Failure(EvalError.runtimeError(fn, message: "Custom readers are not supported"))
   }
   let readFn = ctx.readInput
   if let readFn = readFn {
     let str = readFn()
-    return readString(str, ctx)
+    return readString(str, ctx, fn)
   }
   // If no reader is defined, just return nil
   return .Success(.NilLiteral)
@@ -32,15 +34,16 @@ func pr_read(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given a string as an argument, read and expand it into a Lambdatron form.
 func pr_readString(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".read-string"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let string = args[0]
   if let string = string.asStringLiteral() {
-    return readString(string, ctx)
+    return readString(string, ctx, fn)
   }
   // Must pass in a string
-  return .Failure(.InvalidArgumentError)
+  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
 }
 
 /// Print zero or more args to screen. Returns nil.
@@ -55,8 +58,9 @@ func pr_println(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Return a random number between 0 (inclusive) and 1 (exclusive).
 func pr_rand(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".rand"
   if args.count != 0 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
   let randomNumber = Double(arc4random_uniform(UInt32.max - 1))
   return .Success(.FloatLiteral(randomNumber / Double(UInt32.max)))
@@ -64,19 +68,22 @@ func pr_rand(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Evaluate a given form and return the result.
 func pr_eval(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".eval"
   if args.count != 1 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   return args[0].evaluate(ctx)
 }
 
 /// Force a failure. Call with zero arguments or a string containing an error message.
 func pr_fail(args: [ConsValue], ctx: Context) -> EvalResult {
-  return .Failure(.RuntimeError(args.count > 0 ? args[0].asStringLiteral() : nil))
+  let fn = ".fail"
+  let message = args.first?.asStringLiteral() ?? "(fail was called)"
+  return .Failure(EvalError.runtimeError(fn, message: message))
 }
 
 /// Given a string and a context, lex, parse, and reader-expand the string into a Lambdatron data structure.
-private func readString(string: String, ctx: Context) -> EvalResult {
+private func readString(string: String, ctx: Context, fn: String) -> EvalResult {
   // Lex and parse the string
   let lexed = lex(string)
   switch lexed {
@@ -88,11 +95,11 @@ private func readString(string: String, ctx: Context) -> EvalResult {
       switch expanded {
       case let .Success(expanded):
         return .Success(expanded)
-      case .Failure: return .Failure(.ReadError)
+      case .Failure: return .Failure(EvalError(.ReadError, fn))
       }
-    case .Failure: return .Failure(.ReadError)
+    case .Failure: return .Failure(EvalError(.ReadError, fn))
     }
-  case .Failure: return .Failure(.ReadError)
+  case .Failure: return .Failure(EvalError(.ReadError, fn))
   }
 }
 

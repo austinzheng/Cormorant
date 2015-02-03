@@ -8,15 +8,36 @@
 
 import Foundation
 
-/// An enum describing errors that can cause lexing of the input string to fail.
-public enum LexError : String, Printable {
-  case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
-  case InvalidCharacterError = "InvalidCharacterError"
-  case NonTerminatedStringError = "NonTerminatedStringError"
+/// An enumeration describing various keys which can be used to add metadata to an error.
+public enum MetadataKey {
+  case Message          // A message provided when the error was thrown
+  case Fn               // The name of the function, macro, or special form within which the error was thrown
+  case ExpectedArity    // A description of an expected arity for a function
+  case ActualArity      // A description of the actual arity for a function
+  case Index            // An out-of-bounds value used to index into a collection
+  case Symbol           // A symbol which was invalid or unbound
+  case Custom           // A secondary message or informational string not covered by any of the above cases
+}
+
+typealias MetaDict = [MetadataKey : String]
+
+/// An error object involving the failure of the lexer to properly lex some input string.
+public struct LexError : Printable {
+  enum ErrorType : String {
+    case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
+    case InvalidCharacterError = "InvalidCharacterError"
+    case NonTerminatedStringError = "NonTerminatedStringError"
+  }
+  let error : ErrorType
+  let metadata : MetaDict
+
+  init(_ error: ErrorType, metadata: MetaDict? = nil) {
+    self.error = error; self.metadata = metadata ?? [:]
+  }
 
   public var description : String {
-    let name = self.rawValue
-    switch self {
+    let name = self.error.rawValue
+    switch self.error {
     case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
     case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
     case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
@@ -71,109 +92,130 @@ public enum ReaderError : String, Printable {
 }
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
-public enum EvalError : Printable, Equatable {
-  case ArityError
-  case InvalidArgumentError
-  case OutOfBoundsError
-  case NotEvalableError
-  case DivideByZeroError
-  case IntegerOverflowError
-  case BindingMismatchError
-  case InvalidSymbolError
-  case UnboundSymbolError
-  case RecurMisuseError
-  case EvaluatingMacroError
-  case EvaluatingSpecialFormError
-  case EvaluatingNoneError
-  case NoFnAritiesError
-  case MultipleVariadicAritiesError
-  case MultipleFnDefinitionsPerArityError
-  case FixedArityExceedsVariableArityError
-  case ReadError
-  case RuntimeError(String?)
+public struct EvalError : Printable {
+  enum ErrorType : String {
+    case ArityError = "ArityError"
+    case InvalidArgumentError = "InvalidArgumentError"
+    case OutOfBoundsError = "OutOfBoundsError"
+    case NotEvalableError = "NotEvalableError"
+    case DivideByZeroError = "DivideByZeroError"
+    case IntegerOverflowError = "IntegerOverflowError"
+    case BindingMismatchError = "BindingMismatchError"
+    case InvalidSymbolError = "InvalidSymbolError"
+    case UnboundSymbolError = "UnboundSymbolError"
+    case RecurMisuseError = "RecurMisuseError"
+    case EvaluatingMacroError = "EvaluatingMacroError"
+    case EvaluatingSpecialFormError = "EvaluatingSpecialFormError"
+    case EvaluatingNoneError = "EvaluatingNoneError"
+    case NoFnAritiesError = "NoFnAritiesError"
+    case MultipleVariadicAritiesError = "MultipleVariadicAritiesEror"
+    case MultipleDefinitionsPerArityError = "MultipleDefinitionsPerArityError"
+    case FixedArityExceedsVariableArityError = "FixedArityExceedsVariableArityError"
+    case ReadError = "ReadError"
+    case RuntimeError = "RuntimeError"
+  }
+  let error : ErrorType
+  let metadata : MetaDict
 
-  var name : String {
-    switch self {
-    case ArityError: return "ArityError"
-    case InvalidArgumentError: return "InvalidArgumentError"
-    case OutOfBoundsError: return "OutOfBoundsError"
-    case NotEvalableError: return "NotEvalableError"
-    case DivideByZeroError: return "DivideByZeroError"
-    case IntegerOverflowError: return "IntegerOverflowError"
-    case BindingMismatchError: return "BindingMismatchError"
-    case InvalidSymbolError: return "InvalidSymbolError"
-    case UnboundSymbolError: return "UnboundSymbolError"
-    case RecurMisuseError: return "RecurMisuseError"
-    case EvaluatingMacroError: return "EvaluatingMacroError"
-    case EvaluatingSpecialFormError: return "EvaluatingSpecialFormError"
-    case EvaluatingNoneError: return "EvaluatingNoneError"
-    case NoFnAritiesError: return "NoFnAritiesError"
-    case MultipleVariadicAritiesError: return "MultipleVariadicAritiesError"
-    case MultipleFnDefinitionsPerArityError: return "MultipleFnDefinitionsPerArityError"
-    case FixedArityExceedsVariableArityError: return "FixedArityExceedsVariableArityError"
-    case ReadError: return "ReadError"
-    case RuntimeError: return "RuntimeError"
+  init(_ error: ErrorType, _ fn: String, message: String? = nil, metadata: MetaDict? = nil) {
+    var meta = metadata ?? [:]
+    meta[.Fn] = fn
+    if let message =  message {
+      meta[.Message] = message
     }
+    self.error = error
+    self.metadata = meta
+  }
+
+  init(_ error: ErrorType, message: String? = nil, metadata: MetaDict? = nil) {
+    var meta = metadata ?? [:]
+    self.error = error
+    self.metadata = meta
+  }
+
+  static func outOfBoundsError(fn: String, idx: Int, metadata: MetaDict? = nil) -> EvalError {
+    var meta = metadata ?? [:]
+    meta[.Index] = "\(idx)"
+    let error = EvalError(.OutOfBoundsError, fn, metadata: meta)
+    return error
+  }
+
+  static func runtimeError(fn: String, message: String, metadata: MetaDict? = nil) -> EvalError {
+    return EvalError(.RuntimeError, fn, message: message, metadata: metadata)
+  }
+
+  static func nonNumericArgumentError(fn: String, metadata: MetaDict? = nil) -> EvalError {
+    return invalidArgumentError(fn, message: "argument must be numeric", metadata: metadata)
+  }
+
+  static func invalidArgumentError(fn: String, message: String, metadata: MetaDict? = nil) -> EvalError {
+    return EvalError(.InvalidArgumentError, fn, message: message, metadata: metadata)
+  }
+
+  static func arityError(expected: String, actual: Int, _ fn: String, metadata: MetaDict? = nil) -> EvalError {
+    var meta = metadata ?? [:]
+    meta[.ExpectedArity] = expected
+    meta[.ActualArity] = "\(actual)"
+    let error = EvalError(.ArityError, fn, metadata: meta)
+    return error
   }
 
   public var description : String {
     let desc : String = {
-      switch self {
-      case ArityError:
-        return "wrong number of arguments to macro, function, or special form"
-      case InvalidArgumentError:
-        return "invalid type or value for argument provided to macro, function, or special form"
-      case OutOfBoundsError:
-        return "index to sequence was out of bounds"
-      case NotEvalableError:
-        return "item in function position is not something that can be evaluated"
-      case DivideByZeroError:
-        return "attempted to divide by zero"
-      case IntegerOverflowError:
-        return "arithmetic operation resulted in overflow"
-      case BindingMismatchError:
-        return "let or loop binding vector must have an even number of elements"
-      case InvalidSymbolError:
-        return "could not resolve the symbol"
-      case UnboundSymbolError:
-        return "symbol is unbound, and cannot be resolved"
-      case RecurMisuseError:
-        return "didn't use recur in loop or fn, or used it as a non-final form inside a composite form"
-      case EvaluatingMacroError:
-        return "can't take the value of a macro or reader macro"
-      case EvaluatingSpecialFormError:
-        return "can't take the value of a special form"
-      case EvaluatingNoneError:
-        return "can't take the value of 'None'; this is a logic error"
-      case NoFnAritiesError:
-        return "function or macro must be defined with at least one arity"
-      case MultipleVariadicAritiesError:
-        return "function or macro can only be defined with at most one variadic arity"
-      case MultipleFnDefinitionsPerArityError:
-        return "function or macro can only be defined with one definition per fixed arity"
-      case FixedArityExceedsVariableArityError:
-        return "fixed arities cannot have more params than a function or macro's variable arity"
-      case ReadError:
-        return "failed to lex, parse, or expand raw input"
-      case let RuntimeError(e):
-        return e != nil ? "\(e!)" : "(no message specified)"
+      switch self.error {
+      case .ArityError: return "wrong number of arguments to macro, function, or special form"
+      case .InvalidArgumentError: return "invalid type or value for argument"
+      case .OutOfBoundsError: return "index to sequence was out of bounds"
+      case .NotEvalableError: return "item in function position is not something that can be evaluated"
+      case .DivideByZeroError:  return "attempted to divide by zero"
+      case .IntegerOverflowError: return "arithmetic operation resulted in overflow"
+      case .BindingMismatchError: return "binding vector must have an even number of elements"
+      case .InvalidSymbolError: return "could not resolve symbol"
+      case .UnboundSymbolError: return "symbol is unbound, and cannot be resolved"
+      case .RecurMisuseError: return "didn't use recur as the final form within loop or fn"
+      case .EvaluatingMacroError: return "can't take the value of a macro or reader macro"
+      case .EvaluatingSpecialFormError: return "can't take the value of a special form"
+      case .EvaluatingNoneError: return "can't take the value of 'None'; this is a logic error"
+      case .NoFnAritiesError: return "function or macro must be defined with at least one arity"
+      case .MultipleVariadicAritiesError: return "function/macro can only be defined with at most one variadic arity"
+      case .MultipleDefinitionsPerArityError: return "only one function/macro body can be defined per arity"
+      case .FixedArityExceedsVariableArityError: return "fixed arities cannot have more params than a variadic arity"
+      case .ReadError: return "failed to lex, parse, or expand raw input"
+      case .RuntimeError: return "runtime error"
       }
       }()
-    return "(\(self.name)): \(desc)"
-  }
-}
+    var str = "(\(self.error.rawValue)): \(desc)"
 
-public func ==(lhs: EvalError, rhs: EvalError) -> Bool {
-  switch lhs {
-  case let .RuntimeError(err1):
-    switch rhs {
-    case let .RuntimeError(err2): return err1 == err2
-    default: return false
+    // Add data about the function, if any
+    if let fn = metadata[.Fn] {
+      str += "\n * fn: \(fn)"
     }
-  default:
-    switch rhs {
-    case let .RuntimeError: return false
-    default: return lhs.name == rhs.name
+
+    // Add error-specific data
+    switch self.error {
+    case .ArityError:
+      if let expected = metadata[.ExpectedArity] {
+        if let actual = metadata[.ActualArity] {
+          str += "\n * arity: expected: \(expected), actual: \(actual)"
+        }
+      }
+    case .OutOfBoundsError:
+      if let idx = metadata[.Index] {
+        str += "\n * index: \(idx)"
+      }
+    case .InvalidSymbolError, .UnboundSymbolError:
+      if let symbol = metadata[.Symbol] {
+        str += "\n * symbol: \"\(symbol)\""
+      }
+    default:
+      break
     }
+
+    // Add any custom message pinned to the error
+    if let message = metadata[.Message] {
+      str += "\n * message: \(message)"
+    }
+
+    return str
   }
 }

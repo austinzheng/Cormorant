@@ -26,8 +26,9 @@ internal func extractNumber(n: ConsValue) -> NumericalType {
 
 /// Evaluate the equality of two numeric forms.
 func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".=="
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let first = extractNumber(args[0])
   let second = extractNumber(args[1])
@@ -36,22 +37,23 @@ func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
     switch second {
     case let .Integer(v2): return .Success(.BoolLiteral(v1 == v2))
     case let .Float(v2): return .Success(.BoolLiteral(Double(v1) == v2))
-    case .Invalid: return .Failure(.InvalidArgumentError)
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch second {
     case let .Integer(v2): return .Success(.BoolLiteral(v1 == Double(v2)))
     case let .Float(v2): return .Success(.BoolLiteral(v1 == v2))
-    case .Invalid: return .Failure(.InvalidArgumentError)
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid: return .Failure(.InvalidArgumentError)
+  case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Evaluate whether arguments are in monotonically decreasing order.
 func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".>"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -61,23 +63,24 @@ func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2): return .Success(.BoolLiteral(v1 > v2))
     case let .Float(v2): return .Success(.BoolLiteral(Double(v1) > v2))
-    case .Invalid: return .Failure(.InvalidArgumentError)
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2): return .Success(.BoolLiteral(v1 > Double(v2)))
     case let .Float(v2): return .Success(.BoolLiteral(v1 > v2))
-    case .Invalid: return .Failure(.InvalidArgumentError)
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Evaluate whether arguments are in monotonically increasing order.
 func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".<"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -87,23 +90,24 @@ func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2): return .Success(.BoolLiteral(v1 < v2))
     case let .Float(v2): return .Success(.BoolLiteral(Double(v1) < v2))
-    case .Invalid: return .Failure(.InvalidArgumentError)
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2): return .Success(.BoolLiteral(v1 < Double(v2)))
     case let .Float(v2): return .Success(.BoolLiteral(v1 < v2))
-    case .Invalid: return .Failure(.InvalidArgumentError)
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Take two numbers and return their sum.
 func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".+"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -113,11 +117,11 @@ func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       let (sum, overflow) = Int.addWithOverflow(v1, v2)
-      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(sum))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(sum))
     case let .Float(v2):
       return .Success(.FloatLiteral(Double(v1) + v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
@@ -126,17 +130,18 @@ func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Float(v2):
       return .Success(.FloatLiteral(v1 + v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Take two numbers and return their difference.
 func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".-"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -146,11 +151,11 @@ func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       let (difference, overflow) = Int.subtractWithOverflow(v1, v2)
-      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(difference))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(difference))
     case let .Float(v2):
       return .Success(.FloatLiteral(Double(v1) - v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
@@ -159,17 +164,18 @@ func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Float(v2):
       return .Success(.FloatLiteral(v1 - v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Take two numbers and return their product.
 func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".*"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -179,11 +185,11 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       let (product, overflow) = Int.multiplyWithOverflow(v1, v2)
-      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(product))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(product))
     case let .Float(v2):
       return .Success(.FloatLiteral(Double(v1) * v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
@@ -192,17 +198,18 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Float(v2):
       return .Success(.FloatLiteral(v1 * v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Take two numbers and return the result of dividing the first by the second.
 func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = "./"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -213,44 +220,45 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Integer(v2):
       // In lieu of support for rationals (at this time), we return an Int if the two numbers are evenly divisible, a
       //  Double otherwise.
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
       if overflow {
-        return .Failure(.IntegerOverflowError)
+        return .Failure(EvalError(.IntegerOverflowError, fn))
       }
       else if remainder == 0 {
         let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
-        return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(quotient))
+        return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(quotient))
       }
       else {
         return .Success(.FloatLiteral(Double(v1) / Double(v2)))
       }
     case let .Float(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(Double(v1) / v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(v1 / Double(v2)))
     case let .Float(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(v1 / v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Take the remainder of two numbers.
 func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".rem"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -259,35 +267,36 @@ func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v1):
     switch num1 {
     case let .Integer(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
-      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(remainder))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(remainder))
     case let .Float(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(Double(v1) % v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(v1 % Double(v2)))
     case let .Float(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(v1 % v2))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
 /// Take two numbers and return their quotient.
 func pr_quot(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".quot"
   if args.count != 2 {
-    return .Failure(.ArityError)
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = extractNumber(args[0])
   let num1 = extractNumber(args[1])
@@ -296,27 +305,27 @@ func pr_quot(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Integer(v1):
     switch num1 {
     case let .Integer(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
-      return overflow ? .Failure(.IntegerOverflowError) : .Success(.IntegerLiteral(quotient))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(quotient))
     case let .Float(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(floor(Double(v1) / v2)))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(floor(v1 / Double(v2))))
     case let .Float(v2):
-      if v2 == 0 { return .Failure(.DivideByZeroError) }
+      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatLiteral(floor(v1 / v2)))
     case .Invalid:
-      return .Failure(.InvalidArgumentError)
+      return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
-    return .Failure(.InvalidArgumentError)
+    return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
