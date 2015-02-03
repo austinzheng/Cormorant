@@ -70,6 +70,7 @@
 		1AAC2DCC1A68EB540019A5DD /* temp_bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8D30B1A3F639000B72D49 /* temp_bootstrap.swift */; };
 		1AB5D34A1A3EA80F00599861 /* flow.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1AB5D3491A3EA80F00599861 /* flow.lbt */; };
 		1AB5D34B1A3EA88100599861 /* flow.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1AB5D3491A3EA80F00599861 /* flow.lbt */; };
+		1AC1D9091A80C03100B36B89 /* TestFirst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC1D9081A80C03100B36B89 /* TestFirst.swift */; };
 		1AC8D30A1A3F636800B72D49 /* builtin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8D3091A3F636800B72D49 /* builtin.swift */; };
 		1AC8D30C1A3F639000B72D49 /* temp_bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8D30B1A3F639000B72D49 /* temp_bootstrap.swift */; };
 		1AC8D30E1A3F63CC00B72D49 /* collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8D30D1A3F63CC00B72D49 /* collections.swift */; };
@@ -148,6 +149,7 @@
 		1AAC2DAA1A68E86E0019A5DD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1AAC2DCA1A68E90F0019A5DD /* TestSyntaxQuote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSyntaxQuote.swift; path = Reader/TestSyntaxQuote.swift; sourceTree = "<group>"; };
 		1AB5D3491A3EA80F00599861 /* flow.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = flow.lbt; path = stdlib/flow.lbt; sourceTree = "<group>"; };
+		1AC1D9081A80C03100B36B89 /* TestFirst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFirst.swift; path = Builtins/TestFirst.swift; sourceTree = "<group>"; };
 		1AC8D3091A3F636800B72D49 /* builtin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = builtin.swift; path = builtin/builtin.swift; sourceTree = "<group>"; };
 		1AC8D30B1A3F639000B72D49 /* temp_bootstrap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = temp_bootstrap.swift; path = builtin/temp_bootstrap.swift; sourceTree = "<group>"; };
 		1AC8D30D1A3F63CC00B72D49 /* collections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = collections.swift; path = builtin/collections.swift; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				1A8B44F11A7F4D0700E33480 /* TestVector.swift */,
 				1A8B44F31A7F4D2300E33480 /* TestHashmap.swift */,
 				1A8B44FB1A7F4DD300E33480 /* TestCons.swift */,
+				1AC1D9081A80C03100B36B89 /* TestFirst.swift */,
 				1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */,
 				1A8B44F51A7F4D4C00E33480 /* TestSymbol.swift */,
 				1A8B44F71A7F4D7400E33480 /* TestKeyword.swift */,
@@ -534,6 +537,7 @@
 				1AAC2DBB1A68E8780019A5DD /* operators.swift in Sources */,
 				1AAC2DB71A68E8780019A5DD /* fns.swift in Sources */,
 				1A4618D91A78C91700B63550 /* TestLet.swift in Sources */,
+				1AC1D9091A80C03100B36B89 /* TestFirst.swift in Sources */,
 				1A16877C1A6F347C00DB26E2 /* TestQuote.swift in Sources */,
 				1AAC2DB41A68E8780019A5DD /* readerforms.swift in Sources */,
 				1AAC2DB21A68E8780019A5DD /* evaluation.swift in Sources */,
