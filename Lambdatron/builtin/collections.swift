@@ -197,7 +197,7 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   let first = args[0]
   switch first {
-  case .NilLiteral: return .Success(.ListLiteral(Cons()))
+  case .NilLiteral: return .Success(.NilLiteral)
   case let .StringLiteral(s):
     return pr_next([listFromString(s)], ctx)
   case let .ListLiteral(l):
