@@ -77,6 +77,29 @@ class InterpreterTest : XCTestCase {
     }
   }
 
+  /// Given an input string and a string describing an expected form, evaluate both and compare for equality.
+  func expectThat(input: String, shouldEvalTo form: String) {
+    let expected = interpreter.evaluate(form)
+    switch expected {
+    case let .Success(expected):
+      let actual = interpreter.evaluate(input)
+      switch actual {
+      case let .Success(actual):
+        XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
+      case .LexFailure:
+        XCTFail("lexer error")
+      case .ParseFailure:
+        XCTFail("parser error")
+      case .ReaderFailure:
+        XCTFail("reader error")
+      case let .EvalFailure(f):
+        XCTFail("evaluation error: \(f.description)")
+      }
+    default:
+      XCTFail("reference form failed to evaluate successfully; this is a problem with the unit test")
+    }
+  }
+
   /// Given an input string, evaluate it and expect a particular evaluation failure.
   func expectThat(input: String, shouldFailAs expected: EvalError.ErrorType) {
     let result = interpreter.evaluate(input)
