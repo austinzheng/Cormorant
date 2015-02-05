@@ -233,6 +233,40 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
   }
 }
 
+/// Given a collection and an item to 'add' to the collection, return a new collection with the added item.
+func pr_conj(args: [ConsValue], ctx: Context) -> EvalResult {
+  let fn = ".conj"
+  if args.count != 2 {
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+  }
+  let coll = args[0]
+  let toAdd = args[1]
+  switch coll {
+  case .NilLiteral:
+    return .Success(.ListLiteral(Cons(toAdd)))
+  case .ListLiteral:
+    return pr_cons([toAdd, coll], ctx)
+  case let .VectorLiteral(vector):
+    return .Success(.VectorLiteral(vector + [toAdd]))
+  case let .MapLiteral(m):
+    if let vector = toAdd.asVector() {
+      if vector.count != 2 {
+        return .Failure(EvalError.invalidArgumentError(fn,
+          message: "vector arg to map conj must be a two-element pair vector"))
+      }
+      var newMap = m
+      newMap[vector[0]] = vector[1]
+      return .Success(.MapLiteral(newMap))
+    }
+    else {
+      return .Failure(EvalError.invalidArgumentError(fn,
+        message: "if first argument is a hashmap, second argument must be a vector"))
+    }
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a collection"))
+  }
+}
+
 /// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
 func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
   let fn = ".concat"

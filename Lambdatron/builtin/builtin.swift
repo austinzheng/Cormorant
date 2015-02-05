@@ -21,6 +21,7 @@ public enum BuiltIn : String, Printable {
   case First = ".first"
   case Rest = ".rest"
   case Next = ".next"
+  case Conj = ".conj"
   case Concat = ".concat"
   case Nth = ".nth"
   case Seq = ".seq"
@@ -100,6 +101,7 @@ public enum BuiltIn : String, Printable {
     case First: return pr_first
     case Rest: return pr_rest
     case Next: return pr_next
+    case Conj: return pr_conj
     case Concat: return pr_concat
     case Nth: return pr_nth
     case Seq: return pr_seq

@@ -89,7 +89,7 @@ The following special forms, reader macros, and functions are built into the int
 
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'`, `` ` ``, `~`, `~@`
-- Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
+- Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `next`, `rest`, `conj`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
 - I/O: `read`, `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
@@ -124,7 +124,7 @@ The only currently supported domain is `eval`. This logging domain prints out me
 
 ### Unit Tests
 
-Lambdatron has a unit test target. Run the unit tests from within Xcode.
+Lambdatron has a comprehensive unit test suite that exercises the interpreter (not the standard library). Run the unit tests from within Xcode.
 
 
 Development Objectives

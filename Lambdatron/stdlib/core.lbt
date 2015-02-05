@@ -29,6 +29,14 @@
 ; Return the second item in a collection.
 (defn second [x] (first (next x)))
 
+; Given an item and a collection, return a new collection with the item added in the most idiomatic way.
+(defn conj
+  ([coll x] (.conj coll x))
+  ([coll x & xs]
+    (if xs
+      (recur (.conj coll x) (first xs) (next xs))
+      (.conj coll x))))
+
 ; Return a random number between 0 (inclusive) and n (defaults to 1) (exclusive).
 (defn rand
   ([] (.rand))

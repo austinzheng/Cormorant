@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A0288C61A834E1400589C23 /* TestConj.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0288C51A834E1400589C23 /* TestConj.swift */; };
 		1A0B02C81A68F96F007EF0F2 /* interpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02C71A68F96F007EF0F2 /* interpreter.swift */; };
 		1A0B02C91A6901AE007EF0F2 /* interpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02C71A68F96F007EF0F2 /* interpreter.swift */; };
 		1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */; };
@@ -117,6 +118,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A0288C51A834E1400589C23 /* TestConj.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestConj.swift; path = Builtins/TestConj.swift; sourceTree = "<group>"; };
 		1A0B02C71A68F96F007EF0F2 /* interpreter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = interpreter.swift; sourceTree = "<group>"; };
 		1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNth.swift; path = Builtins/TestNth.swift; sourceTree = "<group>"; };
 		1A0B02D51A69E328007EF0F2 /* TestFnPosition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFnPosition.swift; path = Core/TestFnPosition.swift; sourceTree = "<group>"; };
@@ -218,6 +220,7 @@
 				1A5710D41A813BAE003C5181 /* TestRest.swift */,
 				1A5710D71A813BDB003C5181 /* TestNext.swift */,
 				1A5710D91A813BF3003C5181 /* TestSeq.swift */,
+				1A0288C51A834E1400589C23 /* TestConj.swift */,
 				1A5710DB1A813C2B003C5181 /* TestConcat.swift */,
 				1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */,
 				1A8B44F51A7F4D4C00E33480 /* TestSymbol.swift */,
@@ -558,6 +561,7 @@
 				1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */,
 				1A7AF6C91A78D811006FC934 /* TestArithmetic.swift in Sources */,
 				1A1687781A6DE1EF00DB26E2 /* TestIf.swift in Sources */,
+				1A0288C61A834E1400589C23 /* TestConj.swift in Sources */,
 				1AAC2DC51A68E8860019A5DD /* miscellaneous.swift in Sources */,
 				1A8B44FA1A7F4D9C00E33480 /* TestInt.swift in Sources */,
 				1A8B44F41A7F4D2300E33480 /* TestHashmap.swift in Sources */,
