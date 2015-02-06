@@ -49,14 +49,14 @@ class TestDef : InterpreterTest {
   func testDefWithInitializer() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
     runCode("(def a 1523)")
-    expectThat("a", shouldEvalTo: .IntegerLiteral(1523))
+    expectThat("a", shouldEvalTo: .IntAtom(1523))
   }
 
   /// def with an initializer should evaluate the initializer form.
   func testDefWithInitializer2() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
     runCode("(def a (.+ 12 2))")
-    expectThat("a", shouldEvalTo: .IntegerLiteral(14))
+    expectThat("a", shouldEvalTo: .IntAtom(14))
   }
 
   /// def should overwrite a previous unbound def with a new value.
@@ -65,16 +65,16 @@ class TestDef : InterpreterTest {
     runCode("(def a)")
     expectThat("a", shouldFailAs: .UnboundSymbolError)
     runCode("(def a \"foobar\")")
-    expectThat("a", shouldEvalTo: .StringLiteral("foobar"))
+    expectThat("a", shouldEvalTo: .StringAtom("foobar"))
   }
 
   /// def should overwrite a previous bound def with a new value.
   func testOverwritingBoundDef() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
     runCode("(def a \\c)")
-    expectThat("a", shouldEvalTo: .CharacterLiteral("c"))
+    expectThat("a", shouldEvalTo: .CharAtom("c"))
     runCode("(def a true)")
-    expectThat("a", shouldEvalTo: .BoolLiteral(true))
+    expectThat("a", shouldEvalTo: .BoolAtom(true))
   }
 
   /// def without a value should not overwrite a previous bound def with a value.
@@ -93,10 +93,10 @@ class TestDef : InterpreterTest {
     runCode("(def a 10)")
     expectThat("b", shouldFailAs: .InvalidSymbolError)
     runCode("(def b a)")
-    expectThat("b", shouldEvalTo: .IntegerLiteral(10))
+    expectThat("b", shouldEvalTo: .IntAtom(10))
     runCode("(def a 20)")
     // The value of 'b' should not change because 'a' changed.
-    expectThat("b", shouldEvalTo: .IntegerLiteral(10))
+    expectThat("b", shouldEvalTo: .IntAtom(10))
   }
 
   /// def should not take fewer than one form.

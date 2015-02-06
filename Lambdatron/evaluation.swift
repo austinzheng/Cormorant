@@ -44,7 +44,7 @@ func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
 
 /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
 /// to perform argument evaluation as part of the process of calling a function.
-func collectFunctionParams(list : List<ConsValue>, ctx: Context) -> CollectResult {
+func collectFunctionParams(list : ListType<ConsValue>, ctx: Context) -> CollectResult {
   var buffer : [ConsValue] = []
   for param in list {
     switch param.evaluate(ctx) {
@@ -62,7 +62,7 @@ func collectFunctionParams(list : List<ConsValue>, ctx: Context) -> CollectResul
 
 /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended
 /// to collect symbols as part of the process of calling a macro or special form.
-func collectSymbols(list: List<ConsValue>) -> [ConsValue] {
+func collectSymbols(list: ListType<ConsValue>) -> [ConsValue] {
   var buffer : [ConsValue] = []
   for param in list {
     buffer.append(param)
@@ -126,7 +126,7 @@ private func evaluateFunction(list: Cons<ConsValue>, function: Function, ctx: Co
 }
 
 /// Evaluate a list with a vector in function position.
-private func evaluateVector(list: Cons<ConsValue>, vector: Vector, ctx: Context) -> EvalResult {
+private func evaluateVector(list: Cons<ConsValue>, vector: VectorType, ctx: Context) -> EvalResult {
   ctx.log(.Eval, message: "evaluating with vector in function position: \(describeList(list, ctx))")
   // How it works:
   // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
@@ -138,21 +138,21 @@ private func evaluateVector(list: Cons<ConsValue>, vector: Vector, ctx: Context)
       // behavior.
       return .Failure(EvalError.arityError("1", actual: args.count, "(vector)"))
     }
-    let allArgs : [ConsValue] = [.VectorLiteral(vector)] + args
+    let allArgs : [ConsValue] = [.Vector(vector)] + args
     return pr_nth(allArgs, ctx)
   case let .Failure(f): return .Failure(f)
   }
 }
 
 /// Evaluate a list with a map in function position.
-private func evaluateMap(list: Cons<ConsValue>, map: Map, ctx: Context) -> EvalResult {
+private func evaluateMap(list: Cons<ConsValue>, map: MapType, ctx: Context) -> EvalResult {
   ctx.log(.Eval, message: "evaluating with map in function position: \(describeList(list, ctx))")
   // How it works:
   // 1. (*map* *args*...) is translated into (get *map* *args*...).
   // 2. Normal function call
   switch collectFunctionParams(list.next, ctx) {
   case let .Success(args):
-    let allArgs : [ConsValue] = [.MapLiteral(map)] + args
+    let allArgs : [ConsValue] = [.Map(map)] + args
     return pr_get(allArgs, ctx)
   case let .Failure(f): return .Failure(f)
   }
@@ -203,7 +203,7 @@ func apply(first: ConsValue, args: [ConsValue], ctx: Context, fn: String) -> Eva
 }
 
 /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
-func evaluateList(list: List<ConsValue>, ctx: Context) -> EvalResult {
+func evaluateList(list: ListType<ConsValue>, ctx: Context) -> EvalResult {
   // This method is run in order to evaluate a list form (a b c d).
   // 'a' must resolve to something that can be used in function position. 'b', 'c', and 'd' are arguments to the
   // function.
@@ -257,7 +257,7 @@ func evaluateList(list: List<ConsValue>, ctx: Context) -> EvalResult {
     }
   default:
     // 0: An empty list just returns itself.
-    return .Success(.ListLiteral(list))
+    return .Success(.List(list))
   }
 }
 
@@ -283,12 +283,12 @@ extension ConsValue {
       case .BoundMacro:
         return .Failure(EvalError(.EvaluatingMacroError))
       }
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Keyword:
+    case Nil, BoolAtom, IntAtom, FloatAtom, CharAtom, StringAtom, Keyword:
       return .Success(self)
-    case let ListLiteral(l):
+    case let List(l):
       // Evaluate the value of the list 'l'
       return evaluateList(l, ctx)
-    case let VectorLiteral(v):
+    case let Vector(v):
       // Evaluate the value of the vector literal 'v'
       var buffer : [ConsValue] = []
       for form in v {
@@ -299,10 +299,10 @@ extension ConsValue {
         case .Failure: return result
         }
       }
-      return .Success(.VectorLiteral(buffer))
-    case let MapLiteral(m):
+      return .Success(.Vector(buffer))
+    case let Map(m):
       // Evaluate the value of the map literal 'm'
-      var newMap : Map = [:]
+      var newMap : MapType = [:]
       for (key, value) in m {
         let evaluatedKey = key.evaluate(ctx)
         switch evaluatedKey {
@@ -317,7 +317,7 @@ extension ConsValue {
         case .Failure: return evaluatedKey
         }
       }
-      return .Success(.MapLiteral(newMap))
+      return .Success(.Map(newMap))
     case Special: return .Failure(EvalError(.EvaluatingSpecialFormError))
     case ReaderMacro: return .Failure(EvalError(.EvaluatingMacroError))
     }

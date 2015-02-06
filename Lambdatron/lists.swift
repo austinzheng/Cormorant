@@ -9,8 +9,8 @@
 import Foundation
 
 /// Given a sequence and an optional prefix element, build a new list.
-func listFromCollection<T, U : SequenceType where T == U.Generator.Element>(coll: U, prefix: T? = nil, postfix: List<T>? = nil) -> List<T> {
-  let tail : List<T> = postfix ?? Empty()
+func listFromCollection<T, U : SequenceType where T == U.Generator.Element>(coll: U, prefix: T? = nil, postfix: ListType<T>? = nil) -> ListType<T> {
+  let tail : ListType<T> = postfix ?? Empty()
   var head : Cons<T>? = {
     if let prefix = prefix { return Cons(prefix, next: tail) }
     return nil
@@ -35,8 +35,8 @@ func listFromCollection<T, U : SequenceType where T == U.Generator.Element>(coll
 
 /// Given a sequence and a mapping function from the sequence's element type to the desired list element type, build
 /// a new list.
-func listFromMappedCollection<T, U : SequenceType, V where T == U.Generator.Element>(coll: U, postfix: List<V>? = nil, map: T -> V) -> List<V> {
-  let tail : List<V> = postfix ?? Empty()
+func listFromMappedCollection<T, U : SequenceType, V where T == U.Generator.Element>(coll: U, postfix: ListType<V>? = nil, map: T -> V) -> ListType<V> {
+  let tail : ListType<V> = postfix ?? Empty()
   var head : Cons<V>?, this : Cons<V>? = nil
 
   for item in coll {
@@ -55,7 +55,7 @@ func listFromMappedCollection<T, U : SequenceType, V where T == U.Generator.Elem
 }
 
 /// An abstract class representing a linked list.
-public class List<T : Hashable> : Hashable, SequenceType {
+public class ListType<T : Hashable> : Hashable, SequenceType {
   public var hashValue : Int { return 0 }
 
   public final var isEmpty : Bool {
@@ -72,7 +72,7 @@ public class List<T : Hashable> : Hashable, SequenceType {
   }
 
   /// Return a new copy of this list.
-  final func copy(postfix: List<T>? = nil) -> List<T> {
+  final func copy(postfix: ListType<T>? = nil) -> ListType<T> {
     return listFromCollection(self, prefix: nil, postfix: postfix)
   }
 
@@ -84,9 +84,9 @@ public class List<T : Hashable> : Hashable, SequenceType {
 }
 
 /// A non-empty node in a linked list.
-public final class Cons<T : Hashable> : List<T> {
+public final class Cons<T : Hashable> : ListType<T> {
   // Should really be let, but this makes certain internal operations less cumbersome.
-  private(set) var next : List<T>
+  private(set) var next : ListType<T>
   public var value: T
 
   override public var hashValue : Int { return value.hashValue }
@@ -97,19 +97,19 @@ public final class Cons<T : Hashable> : List<T> {
   }
 
   // Initialize a list constructed from an element preceding an existing list.
-  init(_ value: T, next: List<T>) {
+  init(_ value: T, next: ListType<T>) {
     self.value = value; self.next = next
   }
 }
 
 /// An empty linked list.
-public final class Empty<T : Hashable> : List<T> { }
+public final class Empty<T : Hashable> : ListType<T> { }
 
 /// A struct representing a generator for lists.
 public struct ListGenerator<T : Hashable> : GeneratorType {
-  var currentNode : List<T>
+  var currentNode : ListType<T>
 
-  init(head: List<T>) {
+  init(head: ListType<T>) {
     currentNode = head
   }
 
@@ -128,8 +128,8 @@ public struct ListGenerator<T : Hashable> : GeneratorType {
 /// A struct wrapping a linked list; iterating through a ValueNodeList produces a tuple of both values as well as the
 /// associated nodes.
 struct ValueNodeList<T : Hashable> : SequenceType {
-  let list : List<T>
-  init(_ list : List<T>) { self.list = list }
+  let list : ListType<T>
+  init(_ list : ListType<T>) { self.list = list }
 
   func generate() -> ValueNodeListGenerator<T> {
     return ValueNodeListGenerator(head: list)
@@ -137,8 +137,8 @@ struct ValueNodeList<T : Hashable> : SequenceType {
 }
 
 struct ValueNodeListGenerator<T : Hashable> : GeneratorType {
-  var currentNode : List<T>
-  init(head: List<T>) { currentNode = head }
+  var currentNode : ListType<T>
+  init(head: ListType<T>) { currentNode = head }
 
   mutating func next() -> (T, Cons<T>)? {
     switch currentNode {

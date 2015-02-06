@@ -85,13 +85,13 @@ private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatmen
     case .None:
       return item
     case .Quote:
-      return .ListLiteral(Cons(.ReaderMacro(.Quote), next: Cons(item)))
+      return .List(Cons(.ReaderMacro(.Quote), next: Cons(item)))
     case .SyntaxQuote:
-      return .ListLiteral(Cons(.ReaderMacro(.SyntaxQuote), next: Cons(item)))
+      return .List(Cons(.ReaderMacro(.SyntaxQuote), next: Cons(item)))
     case .Unquote:
-      return .ListLiteral(Cons(.ReaderMacro(.Unquote), next: Cons(item)))
+      return .List(Cons(.ReaderMacro(.Unquote), next: Cons(item)))
     case .UnquoteSplice:
-      return .ListLiteral(Cons(.ReaderMacro(.UnquoteSplice), next: Cons(item)))
+      return .List(Cons(.ReaderMacro(.UnquoteSplice), next: Cons(item)))
     }
     }()
   if wrapStack.count > 0 {
@@ -123,7 +123,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .LeftParentheses:
         let list = listWithTokens(collectTokens(tokens, &counter, .List), ctx)
         switch list {
-        case let .Success(list): buffer.append(wrappedConsItem(.ListLiteral(list), &wrapStack))
+        case let .Success(list): buffer.append(wrappedConsItem(.List(list), &wrapStack))
         case let .Failure(f): return .Failure(f)
         }
       case .RightParentheses:
@@ -131,7 +131,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .LeftSquareBracket:
         let vector = vectorWithTokens(collectTokens(tokens, &counter, .Vector), ctx)
         switch vector {
-        case let .Success(vector): buffer.append(wrappedConsItem(.VectorLiteral(vector), &wrapStack))
+        case let .Success(vector): buffer.append(wrappedConsItem(.Vector(vector), &wrapStack))
         case let .Failure(f): return .Failure(f)
         }
       case .RightSquareBracket:
@@ -139,7 +139,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .LeftBrace:
         let map = mapWithTokens(collectTokens(tokens, &counter, .Map), ctx)
         switch map {
-        case let .Success(map): buffer.append(wrappedConsItem(.MapLiteral(map), &wrapStack))
+        case let .Success(map): buffer.append(wrappedConsItem(.Map(map), &wrapStack))
         case let .Failure(f): return .Failure(f)
         }
       case .RightBrace:
@@ -153,18 +153,18 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .TildeAt:
         wrapStack.append(.UnquoteSplice)
       }
-    case .NilLiteral:
-      buffer.append(wrappedConsItem(.NilLiteral, &wrapStack))
+    case .Nil:
+      buffer.append(wrappedConsItem(.Nil, &wrapStack))
     case let .CharLiteral(c):
-      buffer.append(wrappedConsItem(.CharacterLiteral(c), &wrapStack))
-    case let .StringLiteral(s):
-      buffer.append(wrappedConsItem(.StringLiteral(s), &wrapStack))
+      buffer.append(wrappedConsItem(.CharAtom(c), &wrapStack))
+    case let .StringAtom(s):
+      buffer.append(wrappedConsItem(.StringAtom(s), &wrapStack))
     case let .Integer(v):
-      buffer.append(wrappedConsItem(.IntegerLiteral(v), &wrapStack))
+      buffer.append(wrappedConsItem(.IntAtom(v), &wrapStack))
     case let .FlPtNumber(n):
-      buffer.append(wrappedConsItem(.FloatLiteral(n), &wrapStack))
+      buffer.append(wrappedConsItem(.FloatAtom(n), &wrapStack))
     case let .Boolean(b):
-      buffer.append(wrappedConsItem(.BoolLiteral(b), &wrapStack))
+      buffer.append(wrappedConsItem(.BoolAtom(b), &wrapStack))
     case let .Keyword(k):
       let internedKeyword = ctx.keywordForName(k)
       buffer.append(wrappedConsItem(.Keyword(internedKeyword), &wrapStack))
@@ -184,7 +184,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
 // We need all these small enums because "unimplemented IR generation feature non-fixed multi-payload enum layout" is
 // still, annoyingly, a thing.
 private enum ListResult {
-  case Success(List<ConsValue>)
+  case Success(ListType<ConsValue>)
   case Failure(ParseError)
 }
 
@@ -199,7 +199,7 @@ private func listWithTokens(tokens: TokenCollectionResult, ctx: Context) -> List
     switch processedForms {
     case let .Success(processedForms):
       // Create the list itself
-      var head : List<ConsValue> = Empty()
+      var head : ListType<ConsValue> = Empty()
       for var i=processedForms.count - 1; i >= 0; i-- {
         let next = Cons(processedForms[i], next: head)
         head = next
@@ -233,7 +233,7 @@ private func vectorWithTokens(tokens: TokenCollectionResult, ctx: Context) -> Ve
 }
 
 private enum MapResult {
-  case Success(Map)
+  case Success(MapType)
   case Failure(ParseError)
 }
 
@@ -248,7 +248,7 @@ private func mapWithTokens(tokens: TokenCollectionResult, ctx: Context) -> MapRe
     switch processedForms {
     case let .Success(processedForms):
       // Create the vector itself
-      var newMap : Map = [:]
+      var newMap : MapType = [:]
       if processedForms.count % 2 != 0 {
         // Invalid; need an even number of tokens
         return .Failure(.MapKeyValueMismatchError)
@@ -298,21 +298,21 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
     switch s {
     case .LeftParentheses:
       switch listWithTokens(collectTokens(tokens, &index, .List), ctx) {
-      case let .Success(result): return .Success(.ListLiteral(result))
+      case let .Success(result): return .Success(.List(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightParentheses:
       return .Failure(.BadStartTokenError)
     case .LeftSquareBracket:
       switch vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
-      case let .Success(result): return .Success(.VectorLiteral(result))
+      case let .Success(result): return .Success(.Vector(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightSquareBracket:
       return .Failure(.BadStartTokenError)
     case .LeftBrace:
       switch mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
-      case let .Success(result): return .Success(.MapLiteral(result))
+      case let .Success(result): return .Success(.Map(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightBrace:
@@ -326,12 +326,12 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
     case .TildeAt:
       return createTopLevelReaderMacro(.UnquoteSplice)
     }
-  case .NilLiteral: return .Success(.NilLiteral)
-  case let .CharLiteral(c): return .Success(.CharacterLiteral(c))
-  case let .StringLiteral(s): return .Success(.StringLiteral(s))
-  case let .Integer(v): return .Success(.IntegerLiteral(v))
-  case let .FlPtNumber(n): return .Success(.FloatLiteral(n))
-  case let .Boolean(b): return .Success(.BoolLiteral(b))
+  case .Nil: return .Success(.Nil)
+  case let .CharLiteral(c): return .Success(.CharAtom(c))
+  case let .StringAtom(s): return .Success(.StringAtom(s))
+  case let .Integer(v): return .Success(.IntAtom(v))
+  case let .FlPtNumber(n): return .Success(.FloatAtom(n))
+  case let .Boolean(b): return .Success(.BoolAtom(b))
   case let .Keyword(k):
     let internedKeyword = ctx.keywordForName(k)
     return .Success(.Keyword(internedKeyword))

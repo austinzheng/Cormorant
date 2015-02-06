@@ -31,21 +31,21 @@ class TestApply : InterpreterTest {
 
   /// apply should work when invoked upon zero-arity functions using an empty sequence.
   func testApplyWithNoArgs() {
-    expectThat("(apply (fn [] true) nil)", shouldEvalTo: .BoolLiteral(true))
-    expectThat("(apply (fn [] 152) ())", shouldEvalTo: .IntegerLiteral(152))
-    expectThat("(apply (fn [] \"foobar\") [])", shouldEvalTo: .StringLiteral("foobar"))
-    expectThat("(apply (fn [] \\a) {})", shouldEvalTo: .CharacterLiteral("a"))
+    expectThat("(apply (fn [] true) nil)", shouldEvalTo: .BoolAtom(true))
+    expectThat("(apply (fn [] 152) ())", shouldEvalTo: .IntAtom(152))
+    expectThat("(apply (fn [] \"foobar\") [])", shouldEvalTo: .StringAtom("foobar"))
+    expectThat("(apply (fn [] \\a) {})", shouldEvalTo: .CharAtom("a"))
   }
 
   /// apply should work when invoked upon a function with a list as the final sequence.
   func testApplyWithArgList() {
-    expectThat("(apply .+ '(15 21))", shouldEvalTo: .IntegerLiteral(36))
+    expectThat("(apply .+ '(15 21))", shouldEvalTo: .IntAtom(36))
     expectThat("(apply .concat '((1 2) [3 4 5]))", shouldEvalTo: "'(1 2 3 4 5)")
   }
 
   /// apply should work when invoked upon a function with a vector as the final sequence.
   func testApplyWithArgVector() {
-    expectThat("(apply .+ [15 21])", shouldEvalTo: .IntegerLiteral(36))
+    expectThat("(apply .+ [15 21])", shouldEvalTo: .IntAtom(36))
     expectThat("(apply .concat ['(1 2 3) [4 5]])", shouldEvalTo: "'(1 2 3 4 5)")
   }
 
@@ -58,29 +58,29 @@ class TestApply : InterpreterTest {
   /// apply should work properly when invoked with a symbol that maps to a function.
   func testSymbolResolution() {
     runCode("(def myfn (fn [a b c] (.+ a (.+ b c))))")
-    expectThat("(apply myfn [1 3 7])", shouldEvalTo: .IntegerLiteral(11))
+    expectThat("(apply myfn [1 3 7])", shouldEvalTo: .IntAtom(11))
     runCode("(def myfn 1000)")
     expectThat("(apply myfn [1 3 7])", shouldFailAs: .NotEvalableError)
   }
 
   /// apply should work when invoked with 'nil' as the sequence (last argument).
   func testFinalNil() {
-    expectThat("(apply .+ 15 28 nil)", shouldEvalTo: .IntegerLiteral(43))
+    expectThat("(apply .+ 15 28 nil)", shouldEvalTo: .IntAtom(43))
     expectThat("(apply .concat [1 2] [3 4] [5 6] nil)", shouldEvalTo: "'(1 2 3 4 5 6)")
   }
 
   /// apply should work when invoked with leading arguments before a non-nil final list.
   func testLeadingArgsThenList() {
-    expectThat("(apply .+ 15 '(28))", shouldEvalTo: .IntegerLiteral(43))
-    expectThat("(apply .+ 15 28 ())", shouldEvalTo: .IntegerLiteral(43))
+    expectThat("(apply .+ 15 '(28))", shouldEvalTo: .IntAtom(43))
+    expectThat("(apply .+ 15 28 ())", shouldEvalTo: .IntAtom(43))
     expectThat("(apply .concat [1] [2] [3] '([4 5] [6 7]))", shouldEvalTo: "'(1 2 3 4 5 6 7)")
     expectThat("(apply .concat [1] [2] [3] [4 5] [6 7] ())", shouldEvalTo: "'(1 2 3 4 5 6 7)")
   }
 
   /// apply should work when invoked with leading arguments before a non-nil final vector.
   func testLeadingArgsThenVector() {
-    expectThat("(apply .+ 15 [28])", shouldEvalTo: .IntegerLiteral(43))
-    expectThat("(apply .+ 15 28 [])", shouldEvalTo: .IntegerLiteral(43))
+    expectThat("(apply .+ 15 [28])", shouldEvalTo: .IntAtom(43))
+    expectThat("(apply .+ 15 28 [])", shouldEvalTo: .IntAtom(43))
     expectThat("(apply .concat '(1) '(2) '(3) ['(4 5) '(6 7)])", shouldEvalTo: "'(1 2 3 4 5 6 7)")
     expectThat("(apply .concat '(1) '(2) '(3) '(4 5) '(6 7) [])", shouldEvalTo: "'(1 2 3 4 5 6 7)")
   }
@@ -93,9 +93,9 @@ class TestApply : InterpreterTest {
 
   /// apply should work properly when a vector is used as the function.
   func testApplyOnVector() {
-    expectThat("(apply [\"foo\" \"bar\" \"baz\"] 0 nil)", shouldEvalTo: .StringLiteral("foo"))
-    expectThat("(apply [\"foo\" \"bar\" \"baz\"] '(1))", shouldEvalTo: .StringLiteral("bar"))
-    expectThat("(apply [\"foo\" \"bar\" \"baz\"] [2])", shouldEvalTo: .StringLiteral("baz"))
+    expectThat("(apply [\"foo\" \"bar\" \"baz\"] 0 nil)", shouldEvalTo: .StringAtom("foo"))
+    expectThat("(apply [\"foo\" \"bar\" \"baz\"] '(1))", shouldEvalTo: .StringAtom("bar"))
+    expectThat("(apply [\"foo\" \"bar\" \"baz\"] [2])", shouldEvalTo: .StringAtom("baz"))
     expectThat("(apply [\"foo\" \"bar\" \"baz\"] 15 nil)", shouldFailAs: .OutOfBoundsError)
     expectThat("(apply [\"foo\" \"bar\" \"baz\"] -1 ())", shouldFailAs: .OutOfBoundsError)
     expectThat("(apply [\"foo\" \"bar\" \"baz\"] ())", shouldFailAs: .ArityError)
@@ -105,14 +105,14 @@ class TestApply : InterpreterTest {
 
   /// apply should work properly when a map is used as the function.
   func testApplyOnMap() {
-    expectThat("(apply {:a 1 'b 2 \\c 3} :a nil)", shouldEvalTo: .IntegerLiteral(1))
-    expectThat("(apply {:a 1 'b 2 \\c 3} '(b))", shouldEvalTo: .IntegerLiteral(2))
-    expectThat("(apply {:a 1 'b 2 \\c 3} [\\c])", shouldEvalTo: .IntegerLiteral(3))
-    expectThat("(apply {:a 1 'b 2 \\c 3} :d nil)", shouldEvalTo: .NilLiteral)
-    expectThat("(apply {:a 1 'b 2 \\c 3} '(:d))", shouldEvalTo: .NilLiteral)
-    expectThat("(apply {:a 1 'b 2 \\c 3} :d \"foo\" nil)", shouldEvalTo: .StringLiteral("foo"))
-    expectThat("(apply {:a 1 'b 2 \\c 3} '(:d \"foo\"))", shouldEvalTo: .StringLiteral("foo"))
-    expectThat("(apply {:a 1 'b 2 \\c 3} :a :b nil)", shouldEvalTo: .IntegerLiteral(1))
+    expectThat("(apply {:a 1 'b 2 \\c 3} :a nil)", shouldEvalTo: .IntAtom(1))
+    expectThat("(apply {:a 1 'b 2 \\c 3} '(b))", shouldEvalTo: .IntAtom(2))
+    expectThat("(apply {:a 1 'b 2 \\c 3} [\\c])", shouldEvalTo: .IntAtom(3))
+    expectThat("(apply {:a 1 'b 2 \\c 3} :d nil)", shouldEvalTo: .Nil)
+    expectThat("(apply {:a 1 'b 2 \\c 3} '(:d))", shouldEvalTo: .Nil)
+    expectThat("(apply {:a 1 'b 2 \\c 3} :d \"foo\" nil)", shouldEvalTo: .StringAtom("foo"))
+    expectThat("(apply {:a 1 'b 2 \\c 3} '(:d \"foo\"))", shouldEvalTo: .StringAtom("foo"))
+    expectThat("(apply {:a 1 'b 2 \\c 3} :a :b nil)", shouldEvalTo: .IntAtom(1))
     expectThat("(apply {:a 1 'b 2 \\c 3} :a :b :c nil)", shouldFailAs: .ArityError)
     expectThat("(apply {:a 1 'b 2 \\c 3} '(:a :b :c))", shouldFailAs: .ArityError)
     expectThat("(apply {:a 1 'b 2 \\c 3} nil)", shouldFailAs: .ArityError)
@@ -120,14 +120,14 @@ class TestApply : InterpreterTest {
 
   /// apply should work properly when a symbol is used as the function.
   func testApplyOnSymbol() {
-    expectThat("(apply 'a {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .IntegerLiteral(1))
-    expectThat("(apply 'b '({a 1 b 2 c 3}))", shouldEvalTo: .IntegerLiteral(2))
-    expectThat("(apply 'c [{'a 1 'b 2 'c 3}])", shouldEvalTo: .IntegerLiteral(3))
-    expectThat("(apply 'd {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .NilLiteral)
-    expectThat("(apply 'd \"foobar\" nil)", shouldEvalTo: .NilLiteral)
-    expectThat("(apply 'd {'a 1 'b 2 'c 3} \"bar\" nil)", shouldEvalTo: .StringLiteral("bar"))
-    expectThat("(apply 'd '({a 1 b 2 c 3} \"bar\"))", shouldEvalTo: .StringLiteral("bar"))
-    expectThat("(apply 'a {'a 1 'b 2 'c 3} \"bar\" nil)", shouldEvalTo: .IntegerLiteral(1))
+    expectThat("(apply 'a {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .IntAtom(1))
+    expectThat("(apply 'b '({a 1 b 2 c 3}))", shouldEvalTo: .IntAtom(2))
+    expectThat("(apply 'c [{'a 1 'b 2 'c 3}])", shouldEvalTo: .IntAtom(3))
+    expectThat("(apply 'd {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .Nil)
+    expectThat("(apply 'd \"foobar\" nil)", shouldEvalTo: .Nil)
+    expectThat("(apply 'd {'a 1 'b 2 'c 3} \"bar\" nil)", shouldEvalTo: .StringAtom("bar"))
+    expectThat("(apply 'd '({a 1 b 2 c 3} \"bar\"))", shouldEvalTo: .StringAtom("bar"))
+    expectThat("(apply 'a {'a 1 'b 2 'c 3} \"bar\" nil)", shouldEvalTo: .IntAtom(1))
     expectThat("(apply 'a {'a 1 'b 2 'c 3} true false nil)", shouldFailAs: .ArityError)
     expectThat("(apply 'a '({a 1 b 2 c 3} true false))", shouldFailAs: .ArityError)
     expectThat("(apply 'a nil)", shouldFailAs: .ArityError)
@@ -135,14 +135,14 @@ class TestApply : InterpreterTest {
 
   /// apply should work properly when a keyword is used as the function.
   func testApplyOnKeyword() {
-    expectThat("(apply :a {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .IntegerLiteral(1))
-    expectThat("(apply :b '({:a 1 :b 2 :c 3}))", shouldEvalTo: .IntegerLiteral(2))
-    expectThat("(apply :c [{:a 1 :b 2 :c 3}])", shouldEvalTo: .IntegerLiteral(3))
-    expectThat("(apply :d {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .NilLiteral)
-    expectThat("(apply :d \"foobar\" nil)", shouldEvalTo: .NilLiteral)
-    expectThat("(apply :d {:a 1 :b 2 :c 3} \"bar\" nil)", shouldEvalTo: .StringLiteral("bar"))
-    expectThat("(apply :d '({:a 1 :b 2 :c 3} \"bar\"))", shouldEvalTo: .StringLiteral("bar"))
-    expectThat("(apply :a {:a 1 :b 2 :c 3} \"bar\" nil)", shouldEvalTo: .IntegerLiteral(1))
+    expectThat("(apply :a {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .IntAtom(1))
+    expectThat("(apply :b '({:a 1 :b 2 :c 3}))", shouldEvalTo: .IntAtom(2))
+    expectThat("(apply :c [{:a 1 :b 2 :c 3}])", shouldEvalTo: .IntAtom(3))
+    expectThat("(apply :d {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .Nil)
+    expectThat("(apply :d \"foobar\" nil)", shouldEvalTo: .Nil)
+    expectThat("(apply :d {:a 1 :b 2 :c 3} \"bar\" nil)", shouldEvalTo: .StringAtom("bar"))
+    expectThat("(apply :d '({:a 1 :b 2 :c 3} \"bar\"))", shouldEvalTo: .StringAtom("bar"))
+    expectThat("(apply :a {:a 1 :b 2 :c 3} \"bar\" nil)", shouldEvalTo: .IntAtom(1))
     expectThat("(apply :a {:a 1 :b 2 :c 3} true false nil)", shouldFailAs: .ArityError)
     expectThat("(apply :a '({:a 1 :b 2 :c 3} true false))", shouldFailAs: .ArityError)
     expectThat("(apply :a nil)", shouldFailAs: .ArityError)
@@ -188,7 +188,7 @@ class TestApply : InterpreterTest {
   /// apply should fully evaluate all of its parameters when invoked, but not multiple times.
   func testSideEffects() {
     expectThat("(apply (do (.print \"az\") .+) (do (.print \"by\") 1) (do (.print \"cx\") [2]))",
-      shouldEvalTo: .IntegerLiteral(3))
+      shouldEvalTo: .IntAtom(3))
     expectOutputBuffer(toBe: "azbycx")
   }
 
@@ -204,7 +204,7 @@ class TestApply : InterpreterTest {
   /// apply should work properly with functions that take varargs
   func testVarargs() {
     // This should evaluate to nil
-    expectThat("(apply (fn [a b & c] c) 1 2 nil)", shouldEvalTo: .NilLiteral)
+    expectThat("(apply (fn [a b & c] c) 1 2 nil)", shouldEvalTo: .Nil)
     // This should evaluate to "(3)"
     expectThat("(apply (fn [a b & c] c) 1 2 3 nil)", shouldEvalTo: "'(3)")
     // This should evaluate to "(3 4 5)"

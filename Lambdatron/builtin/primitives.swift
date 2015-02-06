@@ -19,8 +19,8 @@ func pr_symbol(args: [ConsValue], ctx: Context) -> EvalResult {
   switch args[0] {
   case .Symbol:
     return .Success(args[0])
-  case let .StringLiteral(s):
-    return .Success(s.isEmpty ? .NilLiteral : .Symbol(ctx.symbolForName(s)))
+  case let .StringAtom(s):
+    return .Success(s.isEmpty ? .Nil : .Symbol(ctx.symbolForName(s)))
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol or string"))
   }
@@ -40,10 +40,10 @@ func pr_keyword(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Success(.Keyword(ctx.keywordForName(name)))
   case .Keyword:
     return .Success(args[0])
-  case let .StringLiteral(s):
-    return .Success(s.isEmpty ? .NilLiteral : .Keyword(ctx.keywordForName(s)))
+  case let .StringAtom(s):
+    return .Success(s.isEmpty ? .Nil : .Keyword(ctx.keywordForName(s)))
   default:
-    return .Success(.NilLiteral)
+    return .Success(.Nil)
   }
 }
 
@@ -54,18 +54,18 @@ func pr_int(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case let .IntegerLiteral(v):
+  case let .IntAtom(v):
     return .Success(args[0])
-  case let .FloatLiteral(v):
-    return .Success(.IntegerLiteral(Int(v)))
-  case let .CharacterLiteral(v):
+  case let .FloatAtom(v):
+    return .Success(.IntAtom(Int(v)))
+  case let .CharAtom(v):
     // Note: this function assumes that characters being stored consist of a single Unicode code point. If the character
     //  consists of multiple code points, only the first will be cast to an integer.
     var generator = String(v).unicodeScalars.generate()
     // FORCE UNWRAP: the string must always have at least one character, by definition
     let castValue = generator.next()!
-    return .Success(.IntegerLiteral(Int(castValue.value)))
-  case .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
+    return .Success(.IntAtom(Int(castValue.value)))
+  case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .List, .Vector, .Map:
     fallthrough
   case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
     return .Failure(EvalError.invalidArgumentError(fn,
@@ -80,13 +80,13 @@ func pr_double(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case let .IntegerLiteral(v):
-    return .Success(.FloatLiteral(Double(v)))
-  case let .FloatLiteral(v):
+  case let .IntAtom(v):
+    return .Success(.FloatAtom(Double(v)))
+  case let .FloatAtom(v):
     return .Success(args[0])
-  case .CharacterLiteral:
+  case .CharAtom:
     fallthrough
-  case .Symbol, .Keyword, .NilLiteral, .BoolLiteral, .StringLiteral, .ListLiteral, .VectorLiteral, .MapLiteral:
+  case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .List, .Vector, .Map:
     fallthrough
   case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
     return .Failure(EvalError.nonNumericArgumentError(fn))

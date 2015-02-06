@@ -12,91 +12,91 @@ class TestConsBuiltin : InterpreterTest {
 
   // .cons should produce a single-item list if the second argument is nil.
   func testWithNilCollection() {
-    expectThat("(.cons nil nil)", shouldEvalTo: listWithItems(ConsValue.NilLiteral))
-    expectThat("(.cons true nil)", shouldEvalTo: listWithItems(ConsValue.BoolLiteral(true)))
-    expectThat("(.cons 1 nil)", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(1)))
-    expectThat("(.cons '() nil)", shouldEvalTo: listWithItems(ConsValue.ListLiteral(Empty())))
-    expectThat("(.cons {} nil)", shouldEvalTo: listWithItems(ConsValue.MapLiteral([:])))
+    expectThat("(.cons nil nil)", shouldEvalTo: listWithItems(ConsValue.Nil))
+    expectThat("(.cons true nil)", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.cons 1 nil)", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
+    expectThat("(.cons '() nil)", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons {} nil)", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
   // .cons should produce a single-item list if the second item is an empty string.
   func testWithEmptyString() {
-    expectThat("(.cons nil \"\")", shouldEvalTo: listWithItems(ConsValue.NilLiteral))
-    expectThat("(.cons true \"\")", shouldEvalTo: listWithItems(ConsValue.BoolLiteral(true)))
-    expectThat("(.cons 1 \"\")", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(1)))
-    expectThat("(.cons '() \"\")", shouldEvalTo: listWithItems(ConsValue.ListLiteral(Empty())))
-    expectThat("(.cons {} \"\")", shouldEvalTo: listWithItems(ConsValue.MapLiteral([:])))
+    expectThat("(.cons nil \"\")", shouldEvalTo: listWithItems(ConsValue.Nil))
+    expectThat("(.cons true \"\")", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.cons 1 \"\")", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
+    expectThat("(.cons '() \"\")", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons {} \"\")", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
   // .cons should produce a list with the first item and the characters of the second string argument.
   func testWithString() {
     expectThat("(.cons nil \"foo\")", shouldEvalTo: listWithItems(
-      .NilLiteral,
-      .CharacterLiteral("f"),
-      .CharacterLiteral("o"),
-      .CharacterLiteral("o")))
+      .Nil,
+      .CharAtom("f"),
+      .CharAtom("o"),
+      .CharAtom("o")))
     expectThat("(.cons \"foo\" \"bard\")", shouldEvalTo: listWithItems(
-      .StringLiteral("foo"),
-      .CharacterLiteral("b"),
-      .CharacterLiteral("a"),
-      .CharacterLiteral("r"), .CharacterLiteral("d")))
+      .StringAtom("foo"),
+      .CharAtom("b"),
+      .CharAtom("a"),
+      .CharAtom("r"), .CharAtom("d")))
   }
 
   // .cons should produce a single-item list if the second item is an empty list.
   func testWithEmptyList() {
-    expectThat("(.cons nil ())", shouldEvalTo: listWithItems(ConsValue.NilLiteral))
-    expectThat("(.cons true ())", shouldEvalTo: listWithItems(ConsValue.BoolLiteral(true)))
-    expectThat("(.cons 1 ())", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(1)))
-    expectThat("(.cons '() ())", shouldEvalTo: listWithItems(ConsValue.ListLiteral(Empty())))
-    expectThat("(.cons {} ())", shouldEvalTo: listWithItems(ConsValue.MapLiteral([:])))
+    expectThat("(.cons nil ())", shouldEvalTo: listWithItems(ConsValue.Nil))
+    expectThat("(.cons true ())", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.cons 1 ())", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
+    expectThat("(.cons '() ())", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons {} ())", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
   // .cons should produce a list with the first item and the rest of the list.
   func testWithList() {
     let bar = interpreter.context.keywordForName("bar")
     expectThat("(.cons 1.234 '(\"foo\" [1 2] true :bar))", shouldEvalTo: listWithItems(
-      .FloatLiteral(1.234),
-      .StringLiteral("foo"),
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      .BoolLiteral(true),
+      .FloatAtom(1.234),
+      .StringAtom("foo"),
+      vectorWithItems(.IntAtom(1), .IntAtom(2)),
+      .BoolAtom(true),
       .Keyword(bar)))
     expectThat("(.cons '(1 2 3) '(4 5))", shouldEvalTo: listWithItems(
-      listWithItems(.IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3)),
-      .IntegerLiteral(4),
-      .IntegerLiteral(5)))
+      listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3)),
+      .IntAtom(4),
+      .IntAtom(5)))
   }
 
   // .cons should produce a single-item list if the second item is an empty vector.
   func testWithEmptyVector() {
-    expectThat("(.cons nil [])", shouldEvalTo: listWithItems(ConsValue.NilLiteral))
-    expectThat("(.cons true [])", shouldEvalTo: listWithItems(ConsValue.BoolLiteral(true)))
-    expectThat("(.cons 1 [])", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(1)))
-    expectThat("(.cons '() [])", shouldEvalTo: listWithItems(ConsValue.ListLiteral(Empty())))
-    expectThat("(.cons {} [])", shouldEvalTo: listWithItems(ConsValue.MapLiteral([:])))
+    expectThat("(.cons nil [])", shouldEvalTo: listWithItems(ConsValue.Nil))
+    expectThat("(.cons true [])", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.cons 1 [])", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
+    expectThat("(.cons '() [])", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons {} [])", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
   // .cons should produce a list with the first item and all items in the vector.
   func testWithVector() {
     let bar = interpreter.context.symbolForName("bar")
     expectThat("(.cons \\newline [nil '(1 2) 'bar \\z])", shouldEvalTo: listWithItems(
-      .CharacterLiteral("\n"),
-      .NilLiteral,
-      listWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
+      .CharAtom("\n"),
+      .Nil,
+      listWithItems(.IntAtom(1), .IntAtom(2)),
       .Symbol(bar),
-      .CharacterLiteral("z")))
+      .CharAtom("z")))
     expectThat("(.cons '[1 2 3] '[4 5])", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3)),
-      .IntegerLiteral(4),
-      .IntegerLiteral(5)))
+      vectorWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3)),
+      .IntAtom(4),
+      .IntAtom(5)))
   }
 
   // .cons should produce a single-item list if the second item is an empty list.
   func testWithEmptyMap() {
-    expectThat("(.cons nil {})", shouldEvalTo: listWithItems(ConsValue.NilLiteral))
-    expectThat("(.cons true {})", shouldEvalTo: listWithItems(ConsValue.BoolLiteral(true)))
-    expectThat("(.cons 1 {})", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(1)))
-    expectThat("(.cons '() {})", shouldEvalTo: listWithItems(ConsValue.ListLiteral(Empty())))
-    expectThat("(.cons {} {})", shouldEvalTo: listWithItems(ConsValue.MapLiteral([:])))
+    expectThat("(.cons nil {})", shouldEvalTo: listWithItems(ConsValue.Nil))
+    expectThat("(.cons true {})", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.cons 1 {})", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
+    expectThat("(.cons '() {})", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons {} {})", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
   // .cons should produce a list with the first item and all key-value pairs in the map.
@@ -105,15 +105,15 @@ class TestConsBuiltin : InterpreterTest {
     let bar = interpreter.context.keywordForName("bar")
     expectThat("(.cons :bar {1 \"one\" 2 \"two\" 'foo \\5 100.1 nil})", shouldEvalTo: listWithItems(
       .Keyword(bar),
-      vectorWithItems(.IntegerLiteral(2), .StringLiteral("two")),
-      vectorWithItems(.FloatLiteral(100.1), .NilLiteral),
-      vectorWithItems(.Symbol(foo), .CharacterLiteral("5")),
-    vectorWithItems(.IntegerLiteral(1), .StringLiteral("one"))))
+      vectorWithItems(.IntAtom(2), .StringAtom("two")),
+      vectorWithItems(.FloatAtom(100.1), .Nil),
+      vectorWithItems(.Symbol(foo), .CharAtom("5")),
+    vectorWithItems(.IntAtom(1), .StringAtom("one"))))
     expectThat("(.cons {1 \"one\" 2 \"two\"} {3 \"three\" 4 \"four\" 5 \"five\"})", shouldEvalTo: listWithItems(
-      mapWithItems((.IntegerLiteral(1), .StringLiteral("one")), (.IntegerLiteral(2), .StringLiteral("two"))),
-      vectorWithItems(.IntegerLiteral(5), .StringLiteral("five")),
-      vectorWithItems(.IntegerLiteral(3), .StringLiteral("three")),
-      vectorWithItems(.IntegerLiteral(4), .StringLiteral("four"))))
+      mapWithItems((.IntAtom(1), .StringAtom("one")), (.IntAtom(2), .StringAtom("two"))),
+      vectorWithItems(.IntAtom(5), .StringAtom("five")),
+      vectorWithItems(.IntAtom(3), .StringAtom("three")),
+      vectorWithItems(.IntAtom(4), .StringAtom("four"))))
   }
 
   // .cons should reject invalid collection types.

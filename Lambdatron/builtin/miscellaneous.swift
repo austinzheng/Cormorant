@@ -14,7 +14,7 @@ func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  return .Success(.BoolLiteral(args[0] == args[1]))
+  return .Success(.BoolAtom(args[0] == args[1]))
 }
 
 /// Read in a string from the host interpreter's readInput function, and then expand it into a Lambdatron form.
@@ -29,7 +29,7 @@ func pr_read(args: [ConsValue], ctx: Context) -> EvalResult {
     return readString(str, ctx, fn)
   }
   // If no reader is defined, just return nil
-  return .Success(.NilLiteral)
+  return .Success(.Nil)
 }
 
 /// Given a string as an argument, read and expand it into a Lambdatron form.
@@ -39,7 +39,7 @@ func pr_readString(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let string = args[0]
-  if let string = string.asStringLiteral() {
+  if let string = string.asString() {
     return readString(string, ctx, fn)
   }
   // Must pass in a string
@@ -63,7 +63,7 @@ func pr_rand(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
   let randomNumber = Double(arc4random_uniform(UInt32.max - 1))
-  return .Success(.FloatLiteral(randomNumber / Double(UInt32.max)))
+  return .Success(.FloatAtom(randomNumber / Double(UInt32.max)))
 }
 
 /// Evaluate a given form and return the result.
@@ -78,7 +78,7 @@ func pr_eval(args: [ConsValue], ctx: Context) -> EvalResult {
 /// Force a failure. Call with zero arguments or a string containing an error message.
 func pr_fail(args: [ConsValue], ctx: Context) -> EvalResult {
   let fn = ".fail"
-  let message = args.first?.asStringLiteral() ?? "(fail was called)"
+  let message = args.first?.asString() ?? "(fail was called)"
   return .Failure(EvalError.runtimeError(fn, message: message))
 }
 
@@ -107,12 +107,12 @@ private func readString(string: String, ctx: Context, fn: String) -> EvalResult 
 private func printOrPrintln(args: [ConsValue], ctx: Context, isPrintln: Bool) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
-    case let .StringLiteral(s): return s
+    case let .StringAtom(s): return s
     default: return v.describe(ctx)
     }
   }
   let descs = args.map(toString)
   let outStr = descs.count > 0 ? join(" ", descs) : ""
   ctx.writeOutput?(isPrintln ? outStr + "\n" : outStr)
-  return .Success(.NilLiteral)
+  return .Success(.Nil)
 }

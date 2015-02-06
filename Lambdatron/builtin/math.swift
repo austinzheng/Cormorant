@@ -18,8 +18,8 @@ internal enum NumericalType {
 /// Convert a given ConsValue argument into the equivalent NumericalType token.
 internal func extractNumber(n: ConsValue) -> NumericalType {
   switch n {
-  case let .IntegerLiteral(v): return .Integer(v)
-  case let .FloatLiteral(v): return .Float(v)
+  case let .IntAtom(v): return .Integer(v)
+  case let .FloatAtom(v): return .Float(v)
   default: return .Invalid
   }
 }
@@ -35,14 +35,14 @@ func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
   switch first {
   case let .Integer(v1):
     switch second {
-    case let .Integer(v2): return .Success(.BoolLiteral(v1 == v2))
-    case let .Float(v2): return .Success(.BoolLiteral(Double(v1) == v2))
+    case let .Integer(v2): return .Success(.BoolAtom(v1 == v2))
+    case let .Float(v2): return .Success(.BoolAtom(Double(v1) == v2))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch second {
-    case let .Integer(v2): return .Success(.BoolLiteral(v1 == Double(v2)))
-    case let .Float(v2): return .Success(.BoolLiteral(v1 == v2))
+    case let .Integer(v2): return .Success(.BoolAtom(v1 == Double(v2)))
+    case let .Float(v2): return .Success(.BoolAtom(v1 == v2))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
@@ -61,14 +61,14 @@ func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
   switch num0 {
   case let .Integer(v1):
     switch num1 {
-    case let .Integer(v2): return .Success(.BoolLiteral(v1 > v2))
-    case let .Float(v2): return .Success(.BoolLiteral(Double(v1) > v2))
+    case let .Integer(v2): return .Success(.BoolAtom(v1 > v2))
+    case let .Float(v2): return .Success(.BoolAtom(Double(v1) > v2))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
-    case let .Integer(v2): return .Success(.BoolLiteral(v1 > Double(v2)))
-    case let .Float(v2): return .Success(.BoolLiteral(v1 > v2))
+    case let .Integer(v2): return .Success(.BoolAtom(v1 > Double(v2)))
+    case let .Float(v2): return .Success(.BoolAtom(v1 > v2))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
@@ -88,14 +88,14 @@ func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
   switch num0 {
   case let .Integer(v1):
     switch num1 {
-    case let .Integer(v2): return .Success(.BoolLiteral(v1 < v2))
-    case let .Float(v2): return .Success(.BoolLiteral(Double(v1) < v2))
+    case let .Integer(v2): return .Success(.BoolAtom(v1 < v2))
+    case let .Float(v2): return .Success(.BoolAtom(Double(v1) < v2))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
-    case let .Integer(v2): return .Success(.BoolLiteral(v1 < Double(v2)))
-    case let .Float(v2): return .Success(.BoolLiteral(v1 < v2))
+    case let .Integer(v2): return .Success(.BoolAtom(v1 < Double(v2)))
+    case let .Float(v2): return .Success(.BoolAtom(v1 < v2))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid:
@@ -117,18 +117,18 @@ func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       let (sum, overflow) = Int.addWithOverflow(v1, v2)
-      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(sum))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntAtom(sum))
     case let .Float(v2):
-      return .Success(.FloatLiteral(Double(v1) + v2))
+      return .Success(.FloatAtom(Double(v1) + v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      return .Success(.FloatLiteral(v1 + Double(v2)))
+      return .Success(.FloatAtom(v1 + Double(v2)))
     case let .Float(v2):
-      return .Success(.FloatLiteral(v1 + v2))
+      return .Success(.FloatAtom(v1 + v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -151,18 +151,18 @@ func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       let (difference, overflow) = Int.subtractWithOverflow(v1, v2)
-      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(difference))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntAtom(difference))
     case let .Float(v2):
-      return .Success(.FloatLiteral(Double(v1) - v2))
+      return .Success(.FloatAtom(Double(v1) - v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      return .Success(.FloatLiteral(v1 - Double(v2)))
+      return .Success(.FloatAtom(v1 - Double(v2)))
     case let .Float(v2):
-      return .Success(.FloatLiteral(v1 - v2))
+      return .Success(.FloatAtom(v1 - v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -185,18 +185,18 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       let (product, overflow) = Int.multiplyWithOverflow(v1, v2)
-      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(product))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntAtom(product))
     case let .Float(v2):
-      return .Success(.FloatLiteral(Double(v1) * v2))
+      return .Success(.FloatAtom(Double(v1) * v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      return .Success(.FloatLiteral(v1 * Double(v2)))
+      return .Success(.FloatAtom(v1 * Double(v2)))
     case let .Float(v2):
-      return .Success(.FloatLiteral(v1 * v2))
+      return .Success(.FloatAtom(v1 * v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -227,14 +227,14 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
       }
       else if remainder == 0 {
         let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
-        return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(quotient))
+        return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntAtom(quotient))
       }
       else {
-        return .Success(.FloatLiteral(Double(v1) / Double(v2)))
+        return .Success(.FloatAtom(Double(v1) / Double(v2)))
       }
     case let .Float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(Double(v1) / v2))
+      return .Success(.FloatAtom(Double(v1) / v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -242,10 +242,10 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(v1 / Double(v2)))
+      return .Success(.FloatAtom(v1 / Double(v2)))
     case let .Float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(v1 / v2))
+      return .Success(.FloatAtom(v1 / v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -269,10 +269,10 @@ func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
-      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(remainder))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntAtom(remainder))
     case let .Float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(Double(v1) % v2))
+      return .Success(.FloatAtom(Double(v1) % v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -280,10 +280,10 @@ func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(v1 % Double(v2)))
+      return .Success(.FloatAtom(v1 % Double(v2)))
     case let .Float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(v1 % v2))
+      return .Success(.FloatAtom(v1 % v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -307,10 +307,10 @@ func pr_quot(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
-      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntegerLiteral(quotient))
+      return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.IntAtom(quotient))
     case let .Float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(floor(Double(v1) / v2)))
+      return .Success(.FloatAtom(floor(Double(v1) / v2)))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
@@ -318,10 +318,10 @@ func pr_quot(args: [ConsValue], ctx: Context) -> EvalResult {
     switch num1 {
     case let .Integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(floor(v1 / Double(v2))))
+      return .Success(.FloatAtom(floor(v1 / Double(v2))))
     case let .Float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
-      return .Success(.FloatLiteral(floor(v1 / v2)))
+      return .Success(.FloatAtom(floor(v1 / v2)))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }

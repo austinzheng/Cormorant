@@ -39,8 +39,8 @@ enum ExpandResult {
 }
 
 /// Given a map, translate it directly into a list.
-private func listFromMap(m: Map) -> List<ConsValue> {
-  var head : List<ConsValue> = Empty()
+private func listFromMap(m: MapType) -> ListType<ConsValue> {
+  var head : ListType<ConsValue> = Empty()
   for (key, item) in m {
     let n2 = Cons(item, next: head)
     let n1 = Cons(key, next: n2)
@@ -59,7 +59,7 @@ private func constructForm(result: ExpandResult, successForm: ConsValue -> ConsV
 }
 
 /// Given a List<ConsValue>, return the list unpackaged as a reader form, or nil otherwise.
-private func asReaderForm(list: List<ConsValue>) -> ReaderForm? {
+private func asReaderForm(list: ListType<ConsValue>) -> ReaderForm? {
   switch list {
   case let list as Cons<ConsValue>:
     switch list.value {
@@ -80,7 +80,7 @@ private func isSyntaxQuote(list: Cons<ConsValue>) -> Bool {
   return false
 }
 
-func expandListForSyntaxQuote(list: List<ConsValue>) -> ExpandResult {
+func expandListForSyntaxQuote(list: ListType<ConsValue>) -> ExpandResult {
   switch list {
   case let list as Cons<ConsValue>:
     // The list is not empty
@@ -92,15 +92,15 @@ func expandListForSyntaxQuote(list: List<ConsValue>) -> ExpandResult {
         case .Quote:
           // `('a ...) -> `((list `'a) ...)
           let quotedValue = nextValue.expandQuotedItem().expandSyntaxQuotedItem()
-          return constructForm(quotedValue) { .ListLiteral(Cons(.BuiltInFunction(.List), next: Cons($0))) }
+          return constructForm(quotedValue) { .List(Cons(.BuiltInFunction(.List), next: Cons($0))) }
         case .SyntaxQuote:
           // `(`a ...) --> `(`(list `a) ...)
           let quotedValue = nextValue.expandSyntaxQuotedItem()
           let f = quotedValue.expandSyntaxQuotedItem()
-          return constructForm(f) { .ListLiteral(Cons(.BuiltInFunction(.List), next: Cons($0))) }
+          return constructForm(f) { .List(Cons(.BuiltInFunction(.List), next: Cons($0))) }
         case .Unquote:
           // `(~a ...) --> `((list a) ...)
-          return .Success(.ListLiteral(Cons(.BuiltInFunction(.List), next: Cons(nextValue))))
+          return .Success(.List(Cons(.BuiltInFunction(.List), next: Cons(nextValue))))
         case .UnquoteSplice:
           // `(~@a ...) --> `(a ...)
           return .Success(nextValue)
@@ -111,12 +111,12 @@ func expandListForSyntaxQuote(list: List<ConsValue>) -> ExpandResult {
     else {
       // This list is a normal list, recursively syntax-quote it further
       // `(a ...) --> `((list `a) ...)
-      let result = ConsValue.ListLiteral(list).expandSyntaxQuotedItem()
-      return constructForm(result) { .ListLiteral(Cons(.BuiltInFunction(.List), next: Cons($0))) }
+      let result = ConsValue.List(list).expandSyntaxQuotedItem()
+      return constructForm(result) { .List(Cons(.BuiltInFunction(.List), next: Cons($0))) }
     }
   default:
     // The list is empty
-    return .Success(.ListLiteral(Cons(.BuiltInFunction(.List))))
+    return .Success(.List(Cons(.BuiltInFunction(.List))))
   }
 }
 
@@ -125,11 +125,11 @@ extension ConsValue {
   // NOTE: This will be the top-level reader expansion method
   func readerExpand() -> ExpandResult {
     switch self {
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral:
+    case Nil, BoolAtom, IntAtom, FloatAtom, CharAtom, StringAtom:
       return .Success(self)
     case Symbol, Keyword, Special, BuiltInFunction:
       return .Success(self)
-    case let ListLiteral(list):
+    case let List(list):
       // Only if the list literal is encapsulating a reader macro form does anything happen
       switch list {
       case let list as Cons<ConsValue>:
@@ -151,7 +151,7 @@ extension ConsValue {
           return .Failure(.UnmatchedReaderMacroError)
         }
         // CASE 2: The list is NOT a reader macro invocation, and contains one or more items (e.g. (a1 a2 a3))
-        var head : List<ConsValue> = list
+        var head : ListType<ConsValue> = list
         for (value, node) in ValueNodeList(list) {
           // Go through the list and expand each item in turn.
           let expanded = value.readerExpand()
@@ -166,11 +166,11 @@ extension ConsValue {
         return .Success(self)
       }
 
-    case let VectorLiteral(v):
+    case let Vector(v):
       if v.count == 0 {
         return .Success(self)
       }
-      var copy : Vector = v
+      var copy : VectorType = v
       for var i=0; i<v.count; i++ {
         let expanded = v[i].readerExpand()
         switch expanded {
@@ -180,9 +180,9 @@ extension ConsValue {
           return expanded
         }
       }
-      return .Success(.VectorLiteral(copy))
-    case let MapLiteral(m):
-      var newMap : Map = [:]
+      return .Success(.Vector(copy))
+    case let Map(m):
+      var newMap : MapType = [:]
       for (key, value) in m {
         let expandedKey = key.readerExpand()
         switch expandedKey {
@@ -195,7 +195,7 @@ extension ConsValue {
         case .Failure: return expandedKey
         }
       }
-      return .Success(.MapLiteral(newMap))
+      return .Success(.Map(newMap))
     case FunctionLiteral, ReaderMacro:
       return .Failure(.IllegalFormError)
     }
@@ -206,7 +206,7 @@ extension ConsValue {
     // Expanding (' a) always results in (quote a)
     let expansion : ExpandResult = {
       switch self {
-      case let .ListLiteral(list):
+      case let .List(list):
         // 'a' is a list
         switch list {
         case let list as Cons<ConsValue>:
@@ -239,10 +239,10 @@ extension ConsValue {
         return .Success(self)
       }
     }()
-    return constructForm(expansion) { .ListLiteral(Cons(.Special(.Quote), next: Cons($0))) }
+    return constructForm(expansion) { .List(Cons(.Special(.Quote), next: Cons($0))) }
   }
 
-  func expandSyntaxQuotedList(list: List<ConsValue>) -> ExpandResult {
+  func expandSyntaxQuotedList(list: ListType<ConsValue>) -> ExpandResult {
     // We have a list, such that we have (` (a b c d e))
     // We need to reader-expand each individual a, b, c, then wrap it all in a (seq (cons X))
     switch list {
@@ -270,16 +270,16 @@ extension ConsValue {
       var expansionBuffer : [ConsValue] = []
       for symbol in symbols {
         switch symbol {
-        case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Symbol, Keyword, Special, BuiltInFunction:
+        case Nil, BoolAtom, IntAtom, FloatAtom, CharAtom, StringAtom, Symbol, Keyword, Special, BuiltInFunction:
           // A literal or symbol in the list is recursively syntax-quoted
           let expanded = symbol.expandSyntaxQuotedItem()
           switch expanded {
           case let .Success(expanded):
-            expansionBuffer.append(.ListLiteral(Cons(.BuiltInFunction(.List), next: Cons(expanded))))
+            expansionBuffer.append(.List(Cons(.BuiltInFunction(.List), next: Cons(expanded))))
           case .Failure:
             return expanded
           }
-        case let ListLiteral(symbolAsList):
+        case let List(symbolAsList):
           // A 'list' in the list could represent a normal list or a nested reader macro
           let expanded = expandListForSyntaxQuote(symbolAsList)
           switch expanded {
@@ -288,11 +288,11 @@ extension ConsValue {
           case .Failure:
             return expanded
           }
-        case VectorLiteral, MapLiteral:
+        case Vector, Map:
           let expanded = symbol.expandSyntaxQuotedItem()
           switch expanded {
           case let .Success(expanded):
-            expansionBuffer.append(.ListLiteral(Cons(.BuiltInFunction(.List), next: Cons(expanded))))
+            expansionBuffer.append(.List(Cons(.BuiltInFunction(.List), next: Cons(expanded))))
           case .Failure:
             return expanded
           }
@@ -304,14 +304,14 @@ extension ConsValue {
       // Create the seq-concat list
       assert(expansionBuffer.count > 0,
         "Internal error: expansion buffer contained no items, even for a non-empty list")
-      var head : List<ConsValue> = listFromCollection(expansionBuffer, prefix: .BuiltInFunction(.Concat))
-      let finalHead : List<ConsValue> = Cons(.BuiltInFunction(.Seq),
-        next: Cons(.ListLiteral(head)))
-      return .Success(.ListLiteral(finalHead))
+      var head : ListType<ConsValue> = listFromCollection(expansionBuffer, prefix: .BuiltInFunction(.Concat))
+      let finalHead : ListType<ConsValue> = Cons(.BuiltInFunction(.Seq),
+        next: Cons(.List(head)))
+      return .Success(.List(finalHead))
 
     default:
       // `() --> (list)
-      return .Success(.ListLiteral(Cons(.BuiltInFunction(.List))))
+      return .Success(.List(Cons(.BuiltInFunction(.List))))
     }
   }
 
@@ -319,27 +319,27 @@ extension ConsValue {
   func expandSyntaxQuotedItem() -> ExpandResult {
     // ` differs in behavior depending on exactly what a is; it is most complex when a is a sequence
     switch self {
-    case NilLiteral, BoolLiteral, IntegerLiteral, FloatLiteral, CharacterLiteral, StringLiteral, Keyword:
+    case Nil, BoolAtom, IntAtom, FloatAtom, CharAtom, StringAtom, Keyword:
       // Expanding (` LIT) always results in LIT
       return .Success(self)
     case Symbol, Special, BuiltInFunction:
       // Expanding (` a) results in (quote a)
-      return .Success(.ListLiteral(Cons(.Special(.Quote), next: Cons(self))))
-    case let ListLiteral(list):
+      return .Success(.List(Cons(.Special(.Quote), next: Cons(self))))
+    case let List(list):
       // We have a list, such that we have (` (a b c d e))
       // We need to reader-expand each individual a, b, c, then wrap it all in a (seq (cons X))
       return self.expandSyntaxQuotedList(list)
-    case let VectorLiteral(v):
-      let asList : List<ConsValue> = Cons(.ReaderMacro(.SyntaxQuote), next: Cons(.ListLiteral(listFromCollection(v))))
-      let expanded = ConsValue.ListLiteral(asList).readerExpand()
+    case let Vector(v):
+      let asList : ListType<ConsValue> = Cons(.ReaderMacro(.SyntaxQuote), next: Cons(.List(listFromCollection(v))))
+      let expanded = ConsValue.List(asList).readerExpand()
       return constructForm(expanded) {
-        .ListLiteral(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Vector), next: Cons($0))))
+        .List(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Vector), next: Cons($0))))
       }
-    case let MapLiteral(m):
-      let asList : List<ConsValue> = Cons(.ReaderMacro(.SyntaxQuote), next: Cons(.ListLiteral(listFromMap(m))))
-      let expanded = ConsValue.ListLiteral(asList).readerExpand()
+    case let Map(m):
+      let asList : ListType<ConsValue> = Cons(.ReaderMacro(.SyntaxQuote), next: Cons(.List(listFromMap(m))))
+      let expanded = ConsValue.List(asList).readerExpand()
       return constructForm(expanded) {
-        .ListLiteral(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Hashmap), next: Cons($0))))
+        .List(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Hashmap), next: Cons($0))))
       }
     case FunctionLiteral, ReaderMacro:
       return .Failure(.IllegalFormError)

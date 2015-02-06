@@ -12,24 +12,24 @@ import XCTest
 /// Convenience function: given a bunch of ConsValues, return a list.
 func listWithItems(items: ConsValue...) -> ConsValue {
   let list = listFromCollection(items, prefix: nil, postfix: nil)
-  return .ListLiteral(list)
+  return .List(list)
 }
 
 /// Convenience functions: given a bunch of ConsValues, return a vector.
 func vectorWithItems(items: ConsValue...) -> ConsValue {
-  return .VectorLiteral(items)
+  return .Vector(items)
 }
 
 /// Convenience function: given a bunch of ConsValue key-value pairs, return a map.
 func mapWithItems(items: (ConsValue, ConsValue)...) -> ConsValue {
   if items.count == 0 {
-    return .MapLiteral([:])
+    return .Map([:])
   }
-  var buffer : Map = [:]
+  var buffer : MapType = [:]
   for (key, value) in items {
     buffer[key] = value
   }
-  return .MapLiteral(buffer)
+  return .Map(buffer)
 }
 
 /// An abstract superclass intended for various interpreter tests.

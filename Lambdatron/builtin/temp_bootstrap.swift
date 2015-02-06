@@ -65,9 +65,9 @@ func bootstrap_plus(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   switch mode {
   case .Integer:
-    return .Success(.IntegerLiteral(intAccum))
+    return .Success(.IntAtom(intAccum))
   case .Float:
-    return .Success(.FloatLiteral(floatAccum))
+    return .Success(.FloatAtom(floatAccum))
   }
 }
 
@@ -88,9 +88,9 @@ func bootstrap_minus(args: [ConsValue], ctx: Context) -> EvalResult {
     // Return 0 - arg[0]
     switch mode {
     case .Integer:
-      return .Success(.IntegerLiteral(intAccum * -1))
+      return .Success(.IntAtom(intAccum * -1))
     case .Float:
-      return .Success(.FloatLiteral(floatAccum * -1))
+      return .Success(.FloatAtom(floatAccum * -1))
     }
   }
   
@@ -118,9 +118,9 @@ func bootstrap_minus(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   switch mode {
   case .Integer:
-    return .Success(.IntegerLiteral(intAccum))
+    return .Success(.IntAtom(intAccum))
   case .Float:
-    return .Success(.FloatLiteral(floatAccum))
+    return .Success(.FloatAtom(floatAccum))
   }
 }
 
@@ -154,9 +154,9 @@ func bootstrap_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   switch mode {
   case .Integer:
-    return .Success(.IntegerLiteral(intAccum))
+    return .Success(.IntAtom(intAccum))
   case .Float:
-    return .Success(.FloatLiteral(floatAccum))
+    return .Success(.FloatAtom(floatAccum))
   }
 }
 
@@ -182,7 +182,7 @@ func bootstrap_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   
   if args.count == 1 {
     // Return 1/arg[0]
-    return .Success(.FloatLiteral(1.0/floatAccum))
+    return .Success(.FloatAtom(1.0/floatAccum))
   }
   
   for var i=1; i<args.count; i++ {
@@ -198,5 +198,5 @@ func bootstrap_divide(args: [ConsValue], ctx: Context) -> EvalResult {
       return .Failure(EvalError(.InvalidArgumentError, "bootstrap"))
     }
   }
-  return .Success(.FloatLiteral(floatAccum))
+  return .Success(.FloatAtom(floatAccum))
 }

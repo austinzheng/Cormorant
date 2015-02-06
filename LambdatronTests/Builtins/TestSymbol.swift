@@ -32,7 +32,7 @@ class TestSymbolBuiltin : InterpreterTest {
 
   /// .symbol should return nil if given an empty string.
   func testWithEmptyString() {
-    expectThat("(.symbol \"\")", shouldEvalTo: .NilLiteral)
+    expectThat("(.symbol \"\")", shouldEvalTo: .Nil)
   }
 
   /// .symbol should properly return a novel symbol when given a string argument.

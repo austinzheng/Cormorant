@@ -10,164 +10,164 @@ import Foundation
 
 class TestNilParsing : InterpreterTest {
   func testParsingNil() {
-    expectThat("nil", shouldEvalTo: .NilLiteral)
+    expectThat("nil", shouldEvalTo: .Nil)
   }
 }
 
 class TestBoolParsing : InterpreterTest {
   func testParsingTrue() {
-    expectThat("true", shouldEvalTo: .BoolLiteral(true))
+    expectThat("true", shouldEvalTo: .BoolAtom(true))
   }
 
   func testParsingFalse() {
-    expectThat("false", shouldEvalTo: .BoolLiteral(false))
+    expectThat("false", shouldEvalTo: .BoolAtom(false))
   }
 }
 
 class TestIntegerParsing : InterpreterTest {
   func testParsingZero() {
-    expectThat("0", shouldEvalTo: .IntegerLiteral(0))
+    expectThat("0", shouldEvalTo: .IntAtom(0))
   }
 
   func testParsingPositiveNumber() {
-    expectThat("501", shouldEvalTo: .IntegerLiteral(501))
+    expectThat("501", shouldEvalTo: .IntAtom(501))
   }
 
   func testParsingNegativeNumber() {
-    expectThat("-9182", shouldEvalTo: .IntegerLiteral(-9182))
+    expectThat("-9182", shouldEvalTo: .IntAtom(-9182))
   }
 }
 
 class TestFloatingPointParsing : InterpreterTest {
   func testParsingZero() {
-    expectThat("0.0", shouldEvalTo: .FloatLiteral(0.0))
+    expectThat("0.0", shouldEvalTo: .FloatAtom(0.0))
   }
 
   func testParsingPositiveNumber() {
-    expectThat("3.141592", shouldEvalTo: .FloatLiteral(3.141592))
+    expectThat("3.141592", shouldEvalTo: .FloatAtom(3.141592))
   }
 
   func testParsingNegativeNumber() {
-    expectThat("-29128.6812", shouldEvalTo: .FloatLiteral(-29128.6812))
+    expectThat("-29128.6812", shouldEvalTo: .FloatAtom(-29128.6812))
   }
 }
 
 class TestStringParsing : InterpreterTest {
   func testParsingEmptyString() {
-    expectThat("\"\"", shouldEvalTo: .StringLiteral(""))
+    expectThat("\"\"", shouldEvalTo: .StringAtom(""))
   }
 
   func testParsingNonemptyString() {
-    expectThat("\"the quick brown fox\"", shouldEvalTo: .StringLiteral("the quick brown fox"))
+    expectThat("\"the quick brown fox\"", shouldEvalTo: .StringAtom("the quick brown fox"))
   }
 }
 
 class TestCharacterParsing : InterpreterTest {
   /// Characters should be properly parsed.
   func testParsingBasicCharacter() {
-    expectThat("\\z", shouldEvalTo: .CharacterLiteral("z"))
+    expectThat("\\z", shouldEvalTo: .CharAtom("z"))
   }
 
   /// The backslash character '\\' should be properly parsed.
   func testParsingBackslash() {
-    expectThat("\\\\", shouldEvalTo: .CharacterLiteral("\\"))
+    expectThat("\\\\", shouldEvalTo: .CharAtom("\\"))
   }
 
   /// The tab character should be properly parsed.
   func testParsingTab() {
-    expectThat("\\tab", shouldEvalTo: .CharacterLiteral("\t"))
+    expectThat("\\tab", shouldEvalTo: .CharAtom("\t"))
   }
 
   /// The space character should be properly parsed.
   func testParsingSpace() {
-    expectThat("\\space", shouldEvalTo: .CharacterLiteral(" "))
+    expectThat("\\space", shouldEvalTo: .CharAtom(" "))
   }
 
   /// The newline character should be properly parsed.
   func testParsingNewline() {
-    expectThat("\\newline", shouldEvalTo: .CharacterLiteral("\n"))
+    expectThat("\\newline", shouldEvalTo: .CharAtom("\n"))
   }
 
   /// The return character should be properly parsed.
   func testParsingReturn() {
-    expectThat("\\return", shouldEvalTo: .CharacterLiteral("\r"))
+    expectThat("\\return", shouldEvalTo: .CharAtom("\r"))
   }
 
   /// The formfeed character should be properly parsed.
   func testParsingFormfeed() {
     let formfeed = Character(UnicodeScalar(12))
-    expectThat("\\formfeed", shouldEvalTo: .CharacterLiteral(formfeed))
+    expectThat("\\formfeed", shouldEvalTo: .CharAtom(formfeed))
   }
 
   /// The backspace character should be properly parsed.
   func testParsingBackspace() {
     let backspace = Character(UnicodeScalar(8))
-    expectThat("\\backspace", shouldEvalTo: .CharacterLiteral(backspace))
+    expectThat("\\backspace", shouldEvalTo: .CharAtom(backspace))
   }
 }
 
 class TestListParsing : InterpreterTest {
   func testParsingEmptyList() {
-    expectThat("()", shouldEvalTo: .ListLiteral(Empty()))
+    expectThat("()", shouldEvalTo: .List(Empty()))
   }
 
   func testParsingNilList() {
-    expectThat("'(nil)", shouldEvalTo: .ListLiteral(Cons(.NilLiteral)))
+    expectThat("'(nil)", shouldEvalTo: .List(Cons(.Nil)))
   }
 
   /// Single element lists should be properly parsed.
   func testParsingSingleElementList() {
-    expectThat("'(\"hello world\")", shouldEvalTo: .ListLiteral(Cons(.StringLiteral("hello world"))))
+    expectThat("'(\"hello world\")", shouldEvalTo: .List(Cons(.StringAtom("hello world"))))
   }
 
   func testParsingMultiElementList() {
     expectThat("'(true false nil)",
-      shouldEvalTo: .ListLiteral(Cons(.BoolLiteral(true), next: Cons(.BoolLiteral(false), next: Cons(.NilLiteral)))))
+      shouldEvalTo: .List(Cons(.BoolAtom(true), next: Cons(.BoolAtom(false), next: Cons(.Nil)))))
   }
 
   func testParsingNestedList() {
     // Piece together the final list, since it's too ugly to be constructed as a single literal
     // The target list is ((1 2) (3.14 (4 5) 6) 7)
-    let oneTwoList : List<ConsValue> = Cons(.IntegerLiteral(1), next: Cons(.IntegerLiteral(2)))
-    let fourFiveList : List<ConsValue> = Cons(.IntegerLiteral(4), next: Cons(.IntegerLiteral(5)))
-    let piList : List<ConsValue> = Cons(.FloatLiteral(3.14),
-      next: Cons(.ListLiteral(fourFiveList), next: Cons(.IntegerLiteral(6))))
-    let fullList : List<ConsValue> = Cons(.ListLiteral(oneTwoList),
-      next: Cons(.ListLiteral(piList), next: Cons(.IntegerLiteral(7))))
+    let oneTwoList : ListType<ConsValue> = Cons(.IntAtom(1), next: Cons(.IntAtom(2)))
+    let fourFiveList : ListType<ConsValue> = Cons(.IntAtom(4), next: Cons(.IntAtom(5)))
+    let piList : ListType<ConsValue> = Cons(.FloatAtom(3.14),
+      next: Cons(.List(fourFiveList), next: Cons(.IntAtom(6))))
+    let fullList : ListType<ConsValue> = Cons(.List(oneTwoList),
+      next: Cons(.List(piList), next: Cons(.IntAtom(7))))
 
-    expectThat("'((1 2) (3.14 (4 5) 6) 7)", shouldEvalTo: .ListLiteral(fullList))
+    expectThat("'((1 2) (3.14 (4 5) 6) 7)", shouldEvalTo: .List(fullList))
   }
 }
 
 class TestVectorParsing : InterpreterTest {
   func testParsingEmptyVector() {
-    expectThat("[]", shouldEvalTo: .VectorLiteral([]))
+    expectThat("[]", shouldEvalTo: .Vector([]))
   }
 
   func testParsingSingleElementVector() {
-    expectThat("[123]", shouldEvalTo: .VectorLiteral([.IntegerLiteral(123)]))
+    expectThat("[123]", shouldEvalTo: .Vector([.IntAtom(123)]))
   }
 
   func testParsingMultiElementVector() {
     expectThat("[1 2 nil true \"hello\" \\c]",
-      shouldEvalTo: .VectorLiteral(
-        [.IntegerLiteral(1),
-          .IntegerLiteral(2),
-          .NilLiteral,
-          .BoolLiteral(true),
-          .StringLiteral("hello"),
-          .CharacterLiteral("c")]))
+      shouldEvalTo: .Vector(
+        [.IntAtom(1),
+          .IntAtom(2),
+          .Nil,
+          .BoolAtom(true),
+          .StringAtom("hello"),
+          .CharAtom("c")]))
   }
 
   func testParsingNestedVector() {
     expectThat("[[1 2] [3.14 [4 5] 6] 7]",
-      shouldEvalTo: .VectorLiteral(
-        [.VectorLiteral([.IntegerLiteral(1), .IntegerLiteral(2)]),
-          .VectorLiteral(
-            [.FloatLiteral(3.14),
-              .VectorLiteral([.IntegerLiteral(4), .IntegerLiteral(5)]),
-              .IntegerLiteral(6)]),
-          .IntegerLiteral(7)]))
+      shouldEvalTo: .Vector(
+        [.Vector([.IntAtom(1), .IntAtom(2)]),
+          .Vector(
+            [.FloatAtom(3.14),
+              .Vector([.IntAtom(4), .IntAtom(5)]),
+              .IntAtom(6)]),
+          .IntAtom(7)]))
   }
 }
 

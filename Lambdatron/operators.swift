@@ -8,7 +8,7 @@
 
 import Foundation
 
-public func ==<T>(lhs: List<T>, rhs: List<T>) -> Bool {
+public func ==<T>(lhs: ListType<T>, rhs: ListType<T>) -> Bool {
   if lhs.isEmpty && rhs.isEmpty {
     return true
   }
@@ -39,7 +39,7 @@ public func ==<T>(lhs: List<T>, rhs: List<T>) -> Bool {
   }
 }
 
-func ==(lhs: List<ConsValue>, rhs: Vector) -> Bool {
+func ==(lhs: ListType<ConsValue>, rhs: VectorType) -> Bool {
   if rhs.count == 0 {
     return lhs.isEmpty
   }
@@ -77,51 +77,51 @@ public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .BuiltInFunction(b2): return b1 == b2
     default: return false
     }
-  case .NilLiteral:
+  case .Nil:
     switch rhs {
-    case .NilLiteral: return true
+    case .Nil: return true
     default: return false
     }
-  case let .BoolLiteral(b1):
+  case let .BoolAtom(b1):
     switch rhs {
-    case let .BoolLiteral(b2): return b1 == b2
+    case let .BoolAtom(b2): return b1 == b2
     default: return false
     }
-  case let .IntegerLiteral(i1):
+  case let .IntAtom(i1):
     switch rhs {
-    case let .IntegerLiteral(i2): return i1 == i2
+    case let .IntAtom(i2): return i1 == i2
     default: return false
     }
-  case let .FloatLiteral(n1):
+  case let .FloatAtom(n1):
     switch rhs {
-    case let .FloatLiteral(n2): return n1 == n2
+    case let .FloatAtom(n2): return n1 == n2
     default: return false
     }
-  case let .CharacterLiteral(c1):
+  case let .CharAtom(c1):
     switch rhs {
-    case let .CharacterLiteral(c2): return c1 == c2
+    case let .CharAtom(c2): return c1 == c2
     default: return false
     }
-  case let .StringLiteral(s1):
+  case let .StringAtom(s1):
     switch rhs {
-    case let .StringLiteral(s2): return s1 == s2
+    case let .StringAtom(s2): return s1 == s2
     default: return false
     }
-  case let .ListLiteral(l1):
+  case let .List(l1):
     switch rhs {
-    case let .ListLiteral(l2): return l1 == l2
-    case let .VectorLiteral(v2): return l1 == v2
+    case let .List(l2): return l1 == l2
+    case let .Vector(v2): return l1 == v2
     default: return false
     }
-  case let .VectorLiteral(v1):
+  case let .Vector(v1):
     switch rhs {
-    case let .ListLiteral(l2): return l2 == v1
-    case let .VectorLiteral(v2): return v1 == v2
+    case let .List(l2): return l2 == v1
+    case let .Vector(v2): return v1 == v2
     default: return false
     }
-  case let .MapLiteral(m1):
+  case let .Map(m1):
     switch rhs {
-    case let .MapLiteral(m2): return m1 == m2
+    case let .Map(m2): return m1 == m2
     default: return false
     }
   case let .FunctionLiteral(f1):

@@ -9,59 +9,59 @@
 import Foundation
 
 /// An opaque type representing a Vector data structure.
-public typealias Vector = [ConsValue]
+public typealias VectorType = [ConsValue]
 
 /// An opaque type representing a Map data structure.
-public typealias Map = [ConsValue:ConsValue]
+public typealias MapType = [ConsValue:ConsValue]
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
 public enum ConsValue : Printable, Hashable {
+  case Nil
+  case BoolAtom(Bool)
+  case IntAtom(Int)
+  case FloatAtom(Double)
+  case CharAtom(Character)
+  case StringAtom(String)
   case Symbol(InternedSymbol)
   case Keyword(InternedKeyword)
-  case Special(SpecialForm)
-  case BuiltInFunction(BuiltIn)
-  case ReaderMacro(ReaderForm)
-  case NilLiteral
-  case BoolLiteral(Bool)
-  case IntegerLiteral(Int)
-  case FloatLiteral(Double)
-  case CharacterLiteral(Character)
-  case StringLiteral(String)
-  case ListLiteral(List<ConsValue>)
-  case VectorLiteral(Vector)
-  case MapLiteral(Map)
+  case List(ListType<ConsValue>)
+  case Vector(VectorType)
+  case Map(MapType)
   case FunctionLiteral(Function)
+  case BuiltInFunction(BuiltIn)
+  case Special(SpecialForm)
+  case ReaderMacro(ReaderForm)
   
   public var hashValue : Int {
     switch self {
-    case let Symbol(s): return s.hashValue
-    case let Keyword(k): return k.hashValue
-    case let Special(sf): return sf.hashValue
-    case let BuiltInFunction(bf): return bf.hashValue
-    case let ReaderMacro(rf): return rf.hashValue
-    case NilLiteral: return 0
-    case let BoolLiteral(b): return b.hashValue
-    case let IntegerLiteral(v): return v.hashValue
-    case let FloatLiteral(d): return d.hashValue
-    case let CharacterLiteral(c): return c.hashValue
-    case let StringLiteral(s): return s.hashValue
-    case let ListLiteral(l): return l.hashValue
-    case let VectorLiteral(v): return v.count == 0 ? 0 : v[0].hashValue
-    case let MapLiteral(m): return m.count
-    case let FunctionLiteral(f): return 0
+    case .Nil: return 0
+    case let .BoolAtom(v): return v.hashValue
+    case let .IntAtom(v): return v.hashValue
+    case let .FloatAtom(v): return v.hashValue
+    case let .CharAtom(c): return c.hashValue
+    case let .StringAtom(s): return s.hashValue
+    case let .Symbol(s): return s.hashValue
+    case let .Keyword(k): return k.hashValue
+    case let .List(l): return l.hashValue
+    case let .Vector(v): return v.count == 0 ? 0 : v[0].hashValue
+    case let .Map(m): return m.count
+    case let .FunctionLiteral(f): return 0
+    case let .BuiltInFunction(bf): return bf.hashValue
+    case let .Special(sf): return sf.hashValue
+    case let .ReaderMacro(rf): return rf.hashValue
     }
   }
   
   func asInteger() -> Int? {
     switch self {
-    case let .IntegerLiteral(v): return v
+    case let .IntAtom(v): return v
     default: return nil
     }
   }
   
-  func asStringLiteral() -> String? {
+  func asString() -> String? {
     switch self {
-    case let .StringLiteral(s): return s
+    case let .StringAtom(s): return s
     default: return nil
     }
   }
@@ -80,23 +80,23 @@ public enum ConsValue : Printable, Hashable {
     }
   }
   
-  func asList() -> List<ConsValue>? {
+  func asList() -> ListType<ConsValue>? {
     switch self {
-    case let .ListLiteral(l): return l
+    case let .List(l): return l
     default: return nil
     }
   }
   
-  func asVector() -> Vector? {
+  func asVector() -> VectorType? {
     switch self {
-    case let .VectorLiteral(v): return v
+    case let .Vector(v): return v
     default: return nil
     }
   }
   
-  func asMap() -> Map? {
+  func asMap() -> MapType? {
     switch self {
-    case let .MapLiteral(m): return m
+    case let .Map(m): return m
     default: return nil
     }
   }

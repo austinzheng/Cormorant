@@ -52,7 +52,7 @@ public enum SpecialForm : String, Printable {
 /// Return the argument as its literal value (without performing any evaluation).
 func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
   if args.count == 0 {
-    return .Success(.NilLiteral)
+    return .Success(.Nil)
   }
   let first = args[0]
   return .Success(first)
@@ -73,8 +73,8 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
     // Decide what to do with test
     let testIsTrue : Bool = {
       switch testForm {
-      case .NilLiteral: return false
-      case let .BoolLiteral(x): return x
+      case .Nil: return false
+      case let .BoolAtom(x): return x
       default: return true
       }
       }()
@@ -86,7 +86,7 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
       return otherwise.evaluate(ctx)
     }
     else {
-      return .Success(.NilLiteral)
+      return .Success(.Nil)
     }
   }
   return result
@@ -95,7 +95,7 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
 /// Evaluate all expressions, returning the value of the final expression.
 func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
   let fn = "do"
-  var finalValue : ConsValue = .NilLiteral
+  var finalValue : ConsValue = .Nil
   for (idx, expr) in enumerate(args) {
     let result = expr.evaluate(ctx)
     switch result {
@@ -163,7 +163,7 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   let bindingsForm = args[0]
   switch bindingsForm {
-  case let .VectorLiteral(bindingsVector):
+  case let .Vector(bindingsVector):
     // The first argument is a vector, which is what we want
     if bindingsVector.count % 2 != 0 {
       return .Failure(EvalError(.BindingMismatchError, fn))
@@ -196,7 +196,7 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
     // Create an implicit 'do' statement with the remainder of the args
     if args.count == 1 {
       // No additional statements is fine
-      return .Success(.NilLiteral)
+      return .Success(.Nil)
     }
     let restOfArgs = Array(args[1..<args.count])
     let result = sf_do(restOfArgs, newContext)
@@ -220,7 +220,7 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   let rest = (name == nil) ? args : Array(args[1..<args.count])
   if rest[0].asVector() != nil {
     // Single arity
-    let singleArity = buildSingleFnFor(.VectorLiteral(rest), ctx: ctx)
+    let singleArity = buildSingleFnFor(.Vector(rest), ctx: ctx)
     if let actualSingleArity = singleArity {
       return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
     }
@@ -254,7 +254,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     let rest = Array(args[1..<args.count])
     if rest[0].asVector() != nil {
       // Single arity
-      let singleArity = buildSingleFnFor(.VectorLiteral(rest), ctx: ctx)
+      let singleArity = buildSingleFnFor(.Vector(rest), ctx: ctx)
       if let actualSingleArity = singleArity {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
@@ -404,16 +404,16 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
     case let .Success(last):
       // If the result is a collection, add all items in the collection to the arguments buffer
       switch last {
-      case let .NilLiteral: break
-      case let .ListLiteral(l):
+      case let .Nil: break
+      case let .List(l):
         for item in l {
           buffer.append(item)
         }
-      case let .VectorLiteral(v):
+      case let .Vector(v):
         buffer = buffer + v
-      case let .MapLiteral(m):
+      case let .Map(m):
         for (key, value) in m {
-          buffer.append(.VectorLiteral([key, value]))
+          buffer.append(.Vector([key, value]))
         }
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
@@ -479,10 +479,10 @@ private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSym
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
 /// SingleFn instance.
 private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
-  let itemAsVector : Vector? = {
+  let itemAsVector : VectorType? = {
     switch item {
-    case let .ListLiteral(l): return collectSymbols(l)
-    case let .VectorLiteral(v): return v
+    case let .List(l): return collectSymbols(l)
+    case let .Vector(v): return v
     default: return nil
     }
   }()

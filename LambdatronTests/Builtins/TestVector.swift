@@ -18,22 +18,22 @@ class TestVectorBuiltin : InterpreterTest {
 
   /// .list invoked with one argument should return a single-argument list.
   func testSingleArg() {
-    expectThat("(.vector nil)", shouldEvalTo: vectorWithItems(ConsValue.NilLiteral))
-    expectThat("(.vector true)", shouldEvalTo: vectorWithItems(ConsValue.BoolLiteral(true)))
-    expectThat("(.vector false)", shouldEvalTo: vectorWithItems(ConsValue.BoolLiteral(false)))
-    expectThat("(.vector 1523)", shouldEvalTo: vectorWithItems(ConsValue.IntegerLiteral(1523)))
-    expectThat("(.vector \\c)", shouldEvalTo: vectorWithItems(ConsValue.CharacterLiteral("c")))
-    expectThat("(.vector \"foobar\")", shouldEvalTo: vectorWithItems(ConsValue.StringLiteral("foobar")))
+    expectThat("(.vector nil)", shouldEvalTo: vectorWithItems(ConsValue.Nil))
+    expectThat("(.vector true)", shouldEvalTo: vectorWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.vector false)", shouldEvalTo: vectorWithItems(ConsValue.BoolAtom(false)))
+    expectThat("(.vector 1523)", shouldEvalTo: vectorWithItems(ConsValue.IntAtom(1523)))
+    expectThat("(.vector \\c)", shouldEvalTo: vectorWithItems(ConsValue.CharAtom("c")))
+    expectThat("(.vector \"foobar\")", shouldEvalTo: vectorWithItems(ConsValue.StringAtom("foobar")))
     expectThat("(.vector .+)", shouldEvalTo: vectorWithItems(ConsValue.BuiltInFunction(.Plus)))
   }
 
   /// .list invoked with multiple arguments should return a multiple-argument list.
   func testMultipleArgs() {
     expectThat("(.vector 1 2 3 4)",
-      shouldEvalTo: vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3), .IntegerLiteral(4)))
+      shouldEvalTo: vectorWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4)))
     expectThat("(.vector nil \"hello\" \\newline 1.523 true)",
-      shouldEvalTo: vectorWithItems(.NilLiteral, .StringLiteral("hello"), .CharacterLiteral("\n"), .FloatLiteral(1.523),
-        .BoolLiteral(true)))
+      shouldEvalTo: vectorWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), .FloatAtom(1.523),
+        .BoolAtom(true)))
     expectThat("(.vector '() [] {})",
       shouldEvalTo: vectorWithItems(listWithItems(), vectorWithItems(), mapWithItems()))
   }

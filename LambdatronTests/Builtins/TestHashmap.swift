@@ -23,20 +23,20 @@ class TestHashmapBuiltin : InterpreterTest {
     let internedSymbolA = interpreter.context.symbolForName("a")
     let internedSymbolB = interpreter.context.symbolForName("b")
     expectThat("(.hashmap :a 15)",
-      shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .IntegerLiteral(15))))
+      shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .IntAtom(15))))
     expectThat("(.hashmap :a 'a :b 'b)",
       shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .Symbol(internedSymbolA)),
         (.Keyword(internedKeywordB), .Symbol(internedSymbolB))))
     expectThat("(.hashmap '() [] nil {})",
-      shouldEvalTo: mapWithItems((listWithItems(), vectorWithItems()), (.NilLiteral, mapWithItems())))
+      shouldEvalTo: mapWithItems((listWithItems(), vectorWithItems()), (.Nil, mapWithItems())))
   }
 
   /// .hashmap should return a hash map when invoked with its arguments.
   func testHashmap2() {
     expectThat("(.hashmap 1 2 3 (.hashmap 4 5) 6 7)",
-      shouldEvalTo: mapWithItems((.IntegerLiteral(1), .IntegerLiteral(2)),
-        (.IntegerLiteral(3), mapWithItems((.IntegerLiteral(4), .IntegerLiteral(5)))),
-        (.IntegerLiteral(6), .IntegerLiteral(7))))
+      shouldEvalTo: mapWithItems((.IntAtom(1), .IntAtom(2)),
+        (.IntAtom(3), mapWithItems((.IntAtom(4), .IntAtom(5)))),
+        (.IntAtom(6), .IntAtom(7))))
   }
 
   /// .hashmap invoked with an odd number of arguments should return an error.

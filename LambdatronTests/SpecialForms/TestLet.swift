@@ -25,15 +25,15 @@ class TestScoping : InterpreterTest {
 
   /// let-scoping should define a new locally usable binding.
   func testLetBinding() {
-    expectThat("(let [a 500] a)", shouldEvalTo: .IntegerLiteral(500))
-    expectThat("(let [a 1 b 200] (.+ a b))", shouldEvalTo: .IntegerLiteral(201))
+    expectThat("(let [a 500] a)", shouldEvalTo: .IntAtom(500))
+    expectThat("(let [a 1 b 200] (.+ a b))", shouldEvalTo: .IntAtom(201))
   }
 
   /// Non-shadowed vars should be visible within a let binding.
   func testNonShadowedVarsInLet() {
     runCode("(def a 500)")
     runCode("(def b 21)")
-    expectThat("(let [c 20 d 18] (.println a) (.println b) (.println c) (.println d))", shouldEvalTo: .NilLiteral)
+    expectThat("(let [c 20 d 18] (.println a) (.println b) (.println c) (.println d))", shouldEvalTo: .Nil)
     expectOutputBuffer(toBe: "500\n21\n20\n18\n")
   }
 
@@ -41,7 +41,7 @@ class TestScoping : InterpreterTest {
   func testNonShadowedBindings() {
     // Three-level binding nesting: a = 10 (level 1), b = 21 (level 2), c = 17 (level 3). All 3 levels used in the final
     //  expression.
-    expectThat("(let [a 10] (let [b 21] (let [c 17] (.+ a (.+ b c)))))", shouldEvalTo: .IntegerLiteral(48))
+    expectThat("(let [a 10] (let [b 21] (let [c 17] (.+ a (.+ b c)))))", shouldEvalTo: .IntAtom(48))
   }
 
   /// Bindings should properly shadow vars and bindings.
@@ -50,7 +50,7 @@ class TestScoping : InterpreterTest {
     //  but declared within the inner let expressions.
     runCode("(def a 71)")
     expectThat("(let [b 15] (.println a) (.println b) (let [a 99 c 1234] (.println a) (.println b) (.println c) (let [a 53 b 1 d 9990] (.println a) (.println b) (.println d))))",
-      shouldEvalTo: .NilLiteral)
+      shouldEvalTo: .Nil)
     expectOutputBuffer(toBe: "71\n15\n99\n15\n1234\n53\n1\n9990\n")
   }
 
@@ -58,7 +58,7 @@ class TestScoping : InterpreterTest {
   func testShadowing2() {
     // 'a' is not shadowed at all. 'b' is shadowed once. 'c' is shadowed twice.
     expectThat("(let [a 10 b 11 c 12] (.println a) (.println b) (.println c) (let [b 21 c 22] (.println a) (.println b) (.println c) (let [c 32] (.println a) (.println b) (.println c))))",
-      shouldEvalTo: .NilLiteral)
+      shouldEvalTo: .Nil)
     expectOutputBuffer(toBe: "10\n11\n12\n10\n21\n22\n10\n21\n32\n")
   }
 
@@ -66,12 +66,12 @@ class TestScoping : InterpreterTest {
   func testBindingVisibility() {
     runCode("(def a 99)")
     // Binding expression for 'c' has access to both the def 'a' and the previously bound variable 'b'.
-    expectThat("(let [b 50] (let [c (.+ a b)] c))", shouldEvalTo: .IntegerLiteral(149))
+    expectThat("(let [b 50] (let [c (.+ a b)] c))", shouldEvalTo: .IntAtom(149))
   }
 
   /// Binding expressions should have visibility into previously created bindings.
   func testSequentialBinding() {
-     expectThat("(let [a 4 b (.+ a 10) c (.+ b a)] (.println a) (.println b) (.println c))", shouldEvalTo: .NilLiteral)
+     expectThat("(let [a 4 b (.+ a 10) c (.+ b a)] (.println a) (.println b) (.println c))", shouldEvalTo: .Nil)
      expectOutputBuffer(toBe: "4\n14\n18\n")
   }
 }
@@ -93,12 +93,12 @@ class TestLet : InterpreterTest {
 
   /// let should accept an empty binding vector.
   func testEmptyBindingVector() {
-    expectThat("(let [] 155)", shouldEvalTo: .IntegerLiteral(155))
+    expectThat("(let [] 155)", shouldEvalTo: .IntAtom(155))
   }
 
   /// let should return nil if it has no constituent forms.
   func testNoForms() {
-    expectThat("(let [a 10])", shouldEvalTo: .NilLiteral)
+    expectThat("(let [a 10])", shouldEvalTo: .Nil)
   }
 
   /// let should not accept a binding vector with an odd number of arguments.
@@ -136,7 +136,7 @@ class TestLet : InterpreterTest {
 
   /// let should return the evaluated result of its last form.
   func testLetBody() {
-    expectThat("(let [a 10] (.print a) (.+ 1 2) nil \"foobar\")", shouldEvalTo: .StringLiteral("foobar"))
+    expectThat("(let [a 10] (.print a) (.+ 1 2) nil \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
     expectOutputBuffer(toBe: "10")
   }
 

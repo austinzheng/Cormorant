@@ -35,9 +35,9 @@ enum SyntaxToken {
 /// Tokens that come out of the lex() function
 enum LexToken {
   case Syntax(SyntaxToken)
-  case NilLiteral                 // nil
+  case Nil                        // nil
   case CharLiteral(Character)     // character literal
-  case StringLiteral(String)      // string (denoted by double quotes)
+  case StringAtom(String)      // string (denoted by double quotes)
   case Integer(Int)               // integer number
   case FlPtNumber(Double)         // floating-point number
   case Boolean(Bool)              // boolean (true or false)
@@ -92,7 +92,7 @@ enum LexToken {
 private enum RawLexToken {
   case Syntax(SyntaxToken)
   case CharLiteral(Character)
-  case StringLiteral(String)
+  case StringAtom(String)
   case Unknown(String)
 }
 
@@ -114,7 +114,7 @@ private func lex1(raw: String) -> RawLexResult {
 
   var rawTokenBuffer : [RawLexToken] = []
 
-  // currentToken can only contain either a StringLiteral or an Unknown token
+  // currentToken can only contain either a StringAtom or an Unknown token
   var currentToken : NSMutableString = ""
 
   /// Helper function - flush the current-in-progress token to the token buffer
@@ -184,7 +184,7 @@ private func lex1(raw: String) -> RawLexResult {
         }
       case "\\":
         flushTokenToBuffer()                          // Backslash represents a character literal
-        if let result = parseCharacterLiteral(idx, rawAsNSString) {
+        if let result = parseCharAtom(idx, rawAsNSString) {
           let (token, skip) = result
           rawTokenBuffer.append(token)
           skipCount = skip
@@ -202,7 +202,7 @@ private func lex1(raw: String) -> RawLexResult {
       // Currently lexing characters forming a string literal
       if char == "\"" {
         // User ended the string with a closing "
-        rawTokenBuffer.append(.StringLiteral(currentToken))
+        rawTokenBuffer.append(.StringAtom(currentToken))
         currentToken = ""
         state = .Normal
       }
@@ -254,7 +254,7 @@ private func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
     switch rawToken {
     case let .Syntax(s): tokenBuffer.append(.Syntax(s))
     case let .CharLiteral(cl): tokenBuffer.append(.CharLiteral(cl))
-    case let .StringLiteral(sl): tokenBuffer.append(.StringLiteral(sl))
+    case let .StringAtom(sl): tokenBuffer.append(.StringAtom(sl))
     case let .Unknown(u):
       // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string
       let tValue = NSString(string: String(u))
@@ -273,7 +273,7 @@ private func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
       }
       else if tValue == "nil" {
         // Literal nil
-        tokenBuffer.append(.NilLiteral)
+        tokenBuffer.append(.Nil)
       }
       else if tValue == "false" {
         // Literal bool
@@ -361,7 +361,7 @@ private func processEscape(sequence: String) -> String? {
 /// a backslash (e.g. "hello world \a" and 12), try to parse the token into a character literal, and return either nil
 /// (if the token can't be parsed correctly) or a tuple containing the character literal token and an index from whence
 /// to resume parsing.
-private func parseCharacterLiteral(start: Int, str: String) -> (RawLexToken, Int)? {
+private func parseCharAtom(start: Int, str: String) -> (RawLexToken, Int)? {
   // Precondition: start is the index of the "\" character in str that starts the character literal
   let strAsUtf16 = NSString(string: str)
   let strLength = strAsUtf16.length

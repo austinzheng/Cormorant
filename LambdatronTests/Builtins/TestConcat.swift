@@ -26,7 +26,7 @@ class TestConcatBuiltin : InterpreterTest {
 
   /// .concat should skip empty collections.
   func testWithEmpty2() {
-    let targetList = listWithItems(.IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3))
+    let targetList = listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3))
     expectThat("(.concat nil '(1 2 3))", shouldEvalTo: targetList)
     expectThat("(.concat '(1 2 3) nil)", shouldEvalTo: targetList)
     expectThat("(.concat nil '(1 2 3) nil nil)", shouldEvalTo: targetList)
@@ -34,30 +34,30 @@ class TestConcatBuiltin : InterpreterTest {
 
   /// .concat should skip empty collections.
   func testWithEmpty3() {
-    expectThat("(.concat \"a\" nil \"b\")", shouldEvalTo: listWithItems(.CharacterLiteral("a"), .CharacterLiteral("b")))
-    expectThat("(.concat '(1) nil '(2))", shouldEvalTo: listWithItems(.IntegerLiteral(1), .IntegerLiteral(2)))
-    expectThat("(.concat [1] nil [2])", shouldEvalTo: listWithItems(.IntegerLiteral(1), .IntegerLiteral(2)))
+    expectThat("(.concat \"a\" nil \"b\")", shouldEvalTo: listWithItems(.CharAtom("a"), .CharAtom("b")))
+    expectThat("(.concat '(1) nil '(2))", shouldEvalTo: listWithItems(.IntAtom(1), .IntAtom(2)))
+    expectThat("(.concat [1] nil [2])", shouldEvalTo: listWithItems(.IntAtom(1), .IntAtom(2)))
     expectThat("(.concat {1 2} nil {3 4})", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      vectorWithItems(.IntegerLiteral(3), .IntegerLiteral(4))))
+      vectorWithItems(.IntAtom(1), .IntAtom(2)),
+      vectorWithItems(.IntAtom(3), .IntAtom(4))))
   }
 
   /// .concat should concatenate strings as lists of characters.
   func testWithStrings() {
     expectThat("(.concat \"hello\")", shouldEvalTo: listWithItems(
-      .CharacterLiteral("h"), .CharacterLiteral("e"), .CharacterLiteral("l"), .CharacterLiteral("l"),
-      .CharacterLiteral("o")))
+      .CharAtom("h"), .CharAtom("e"), .CharAtom("l"), .CharAtom("l"),
+      .CharAtom("o")))
     expectThat("(.concat \"foo\" \"bar\")", shouldEvalTo: listWithItems(
-      .CharacterLiteral("f"), .CharacterLiteral("o"), .CharacterLiteral("o"),
-      .CharacterLiteral("b"), .CharacterLiteral("a"), .CharacterLiteral("r")))
+      .CharAtom("f"), .CharAtom("o"), .CharAtom("o"),
+      .CharAtom("b"), .CharAtom("a"), .CharAtom("r")))
     expectThat("(.concat \"f\" \"o\" \"o\")", shouldEvalTo: listWithItems(
-      .CharacterLiteral("f"), .CharacterLiteral("o"), .CharacterLiteral("o")))
+      .CharAtom("f"), .CharAtom("o"), .CharAtom("o")))
   }
 
   /// .concat should concatenate lists.
   func testWithLists() {
     let targetList = listWithItems(
-      .IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3), .IntegerLiteral(4))
+      .IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4))
     expectThat("(.concat '(1 2 3 4))", shouldEvalTo: targetList)
     expectThat("(.concat '(1 2) '(3 4))", shouldEvalTo: targetList)
     expectThat("(.concat '(1) '(2 3) '(4))", shouldEvalTo: targetList)
@@ -66,7 +66,7 @@ class TestConcatBuiltin : InterpreterTest {
   /// .concat should concatenate vectors.
   func testWithVectors() {
     let targetList = listWithItems(
-      .IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3), .IntegerLiteral(4))
+      .IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4))
     expectThat("(.concat [1 2 3 4])", shouldEvalTo: targetList)
     expectThat("(.concat [1 2] [3 4])", shouldEvalTo: targetList)
     expectThat("(.concat [1] [2 3] [4])", shouldEvalTo: targetList)
@@ -75,18 +75,18 @@ class TestConcatBuiltin : InterpreterTest {
   /// .concat should concatenate maps.
   func testWithMaps() {
     expectThat("(.concat {1 2 3 4})", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(3), .IntegerLiteral(4)),
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2))))
+      vectorWithItems(.IntAtom(3), .IntAtom(4)),
+      vectorWithItems(.IntAtom(1), .IntAtom(2))))
     expectThat("(.concat {1 2} {3 4} {5 6} {7 8})", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      vectorWithItems(.IntegerLiteral(3), .IntegerLiteral(4)),
-      vectorWithItems(.IntegerLiteral(5), .IntegerLiteral(6)),
-      vectorWithItems(.IntegerLiteral(7), .IntegerLiteral(8))))
+      vectorWithItems(.IntAtom(1), .IntAtom(2)),
+      vectorWithItems(.IntAtom(3), .IntAtom(4)),
+      vectorWithItems(.IntAtom(5), .IntAtom(6)),
+      vectorWithItems(.IntAtom(7), .IntAtom(8))))
     expectThat("(.concat {1 2 3 4} {5 6} {7 8})", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(3), .IntegerLiteral(4)),
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      vectorWithItems(.IntegerLiteral(5), .IntegerLiteral(6)),
-      vectorWithItems(.IntegerLiteral(7), .IntegerLiteral(8))))
+      vectorWithItems(.IntAtom(3), .IntAtom(4)),
+      vectorWithItems(.IntAtom(1), .IntAtom(2)),
+      vectorWithItems(.IntAtom(5), .IntAtom(6)),
+      vectorWithItems(.IntAtom(7), .IntAtom(8))))
   }
 
   /// .concat should concatenate mixed items.
@@ -96,17 +96,17 @@ class TestConcatBuiltin : InterpreterTest {
     let aSymbol = interpreter.context.symbolForName("a")
     let bSymbol = interpreter.context.symbolForName("b")
     expectThat("(.concat '(1 2) [3 4 5] \"foo\" {:a 'a :b 'b})", shouldEvalTo: listWithItems(
-      .IntegerLiteral(1), .IntegerLiteral(2),
-      .IntegerLiteral(3), .IntegerLiteral(4), .IntegerLiteral(5),
-      .CharacterLiteral("f"), .CharacterLiteral("o"), .CharacterLiteral("o"),
+      .IntAtom(1), .IntAtom(2),
+      .IntAtom(3), .IntAtom(4), .IntAtom(5),
+      .CharAtom("f"), .CharAtom("o"), .CharAtom("o"),
       vectorWithItems(.Keyword(bKeyword), .Symbol(bSymbol)),
       vectorWithItems(.Keyword(aKeyword), .Symbol(aSymbol))))
     expectThat("(.concat {1 2 true nil} '(3) [4 5 6 7] \"bar\")", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      vectorWithItems(.BoolLiteral(true), .NilLiteral),
-      .IntegerLiteral(3),
-      .IntegerLiteral(4), .IntegerLiteral(5), .IntegerLiteral(6), .IntegerLiteral(7),
-      .CharacterLiteral("b"), .CharacterLiteral("a"), .CharacterLiteral("r")))
+      vectorWithItems(.IntAtom(1), .IntAtom(2)),
+      vectorWithItems(.BoolAtom(true), .Nil),
+      .IntAtom(3),
+      .IntAtom(4), .IntAtom(5), .IntAtom(6), .IntAtom(7),
+      .CharAtom("b"), .CharAtom("a"), .CharAtom("r")))
   }
 
   /// .concat should reject non-collection arguments.

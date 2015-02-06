@@ -32,7 +32,7 @@ class TestKeywordBuiltin : InterpreterTest {
 
   /// .keyword should return nil if given an empty string.
   func testWithEmptyString() {
-    expectThat("(.keyword \"\")", shouldEvalTo: .NilLiteral)
+    expectThat("(.keyword \"\")", shouldEvalTo: .Nil)
   }
 
   /// .keyword should return a keyword if given the name of a new keyword.
@@ -75,15 +75,15 @@ class TestKeywordBuiltin : InterpreterTest {
 
   /// .keyword should return nil if called with any non-compliant argument type.
   func testArgumentType() {
-    expectThat("(.keyword nil)", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword true)", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword false)", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword 123)", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword 1.23)", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword \\a)", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword '())", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword [])", shouldEvalTo: .NilLiteral)
-    expectThat("(.keyword {})", shouldEvalTo: .NilLiteral)
+    expectThat("(.keyword nil)", shouldEvalTo: .Nil)
+    expectThat("(.keyword true)", shouldEvalTo: .Nil)
+    expectThat("(.keyword false)", shouldEvalTo: .Nil)
+    expectThat("(.keyword 123)", shouldEvalTo: .Nil)
+    expectThat("(.keyword 1.23)", shouldEvalTo: .Nil)
+    expectThat("(.keyword \\a)", shouldEvalTo: .Nil)
+    expectThat("(.keyword '())", shouldEvalTo: .Nil)
+    expectThat("(.keyword [])", shouldEvalTo: .Nil)
+    expectThat("(.keyword {})", shouldEvalTo: .Nil)
   }
 
   /// .keyword should (currently) take exactly one argument.

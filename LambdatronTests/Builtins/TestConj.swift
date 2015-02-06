@@ -12,22 +12,22 @@ class TestConjBuiltin : InterpreterTest {
 
   /// .conj should work with nil collections.
   func testNil() {
-    expectThat("(.conj nil 5)", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(5)))
-    expectThat("(.conj nil \"foobar\")", shouldEvalTo: listWithItems(ConsValue.StringLiteral("foobar")))
+    expectThat("(.conj nil 5)", shouldEvalTo: listWithItems(ConsValue.IntAtom(5)))
+    expectThat("(.conj nil \"foobar\")", shouldEvalTo: listWithItems(ConsValue.StringAtom("foobar")))
   }
 
   /// .conj should work with lists.
   func testLists() {
-    expectThat("(.conj () 5)", shouldEvalTo: listWithItems(ConsValue.IntegerLiteral(5)))
-    expectThat("(.conj '(1 2 3) \\c)", shouldEvalTo: listWithItems(.CharacterLiteral("c"),
-      .IntegerLiteral(1), .IntegerLiteral(2), .IntegerLiteral(3)))
+    expectThat("(.conj () 5)", shouldEvalTo: listWithItems(ConsValue.IntAtom(5)))
+    expectThat("(.conj '(1 2 3) \\c)", shouldEvalTo: listWithItems(.CharAtom("c"),
+      .IntAtom(1), .IntAtom(2), .IntAtom(3)))
   }
 
   /// .conj should work with vectors.
   func testVectors() {
-    expectThat("(.conj [] 5)", shouldEvalTo: vectorWithItems(ConsValue.IntegerLiteral(5)))
-    expectThat("(.conj [1 2 3] \\c)", shouldEvalTo: vectorWithItems(.IntegerLiteral(1),
-      .IntegerLiteral(2), .IntegerLiteral(3), .CharacterLiteral("c")))
+    expectThat("(.conj [] 5)", shouldEvalTo: vectorWithItems(ConsValue.IntAtom(5)))
+    expectThat("(.conj [1 2 3] \\c)", shouldEvalTo: vectorWithItems(.IntAtom(1),
+      .IntAtom(2), .IntAtom(3), .CharAtom("c")))
   }
 
   /// .conj should work with maps.
@@ -35,11 +35,11 @@ class TestConjBuiltin : InterpreterTest {
     let aKeyword = interpreter.context.keywordForName("a")
     let bKeyword = interpreter.context.keywordForName("b")
     expectThat("(.conj {} [:a 100])",
-      shouldEvalTo: mapWithItems((ConsValue.Keyword(aKeyword), ConsValue.IntegerLiteral(100))))
+      shouldEvalTo: mapWithItems((ConsValue.Keyword(aKeyword), ConsValue.IntAtom(100))))
     expectThat("(.conj {:b \"foo\"} [:a 100])",
       shouldEvalTo: mapWithItems(
-        (.Keyword(aKeyword), .IntegerLiteral(100)),
-        (.Keyword(bKeyword), .StringLiteral("foo"))))
+        (.Keyword(aKeyword), .IntAtom(100)),
+        (.Keyword(bKeyword), .StringAtom("foo"))))
   }
 
   /// .conj should require the first argument to be a collection.

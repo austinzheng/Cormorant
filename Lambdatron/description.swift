@@ -9,7 +9,7 @@
 import Foundation
 
 /// Given a list of ConsValue items, return a description (e.g. "(a b c d e)" for a five-item list).
-func describeList(list: List<ConsValue>, ctx: Context?, debug: Bool = false) -> String {
+func describeList(list: ListType<ConsValue>, ctx: Context?, debug: Bool = false) -> String {
   var descBuffer : [String] = []
   for item in list {
     descBuffer.append(item.describe(ctx, debug: debug))
@@ -38,33 +38,33 @@ extension ConsValue {
         return debug ? "ConsValue.Keyword(:\(name))" : ":" + name
       }
       return debug ? "ConsValue.Keyword(id:\(v.identifier))" : "keyword:\(v.identifier)"
-    case NilLiteral:
-      return debug ? "ConsValue.NilLiteral" : "nil"
-    case let BoolLiteral(v):
-      return debug ? "ConsValue.BoolLiteral(\(v))" : v.description
-    case let IntegerLiteral(v):
-      return debug ? "ConsValue.IntegerLiteral(\(v))" : v.description
-    case let FloatLiteral(v):
-      return debug ? "ConsValue.FloatLiteral(\(v)" : v.description
-    case let CharacterLiteral(v):
+    case Nil:
+      return debug ? "ConsValue.Nil" : "nil"
+    case let BoolAtom(v):
+      return debug ? "ConsValue.BoolAtom(\(v))" : v.description
+    case let IntAtom(v):
+      return debug ? "ConsValue.IntAtom(\(v))" : v.description
+    case let FloatAtom(v):
+      return debug ? "ConsValue.FloatAtom(\(v)" : v.description
+    case let CharAtom(v):
       let desc = charLiteralDesc(v)
-      return debug ? "ConsValue.CharacterLiteral(\(desc))" : "\(desc)"
-    case let StringLiteral(v):
-      return debug ? "ConsValue.StringLiteral(\"\(v)\")" : "\"\(v)\""
-    case let ListLiteral(list):
+      return debug ? "ConsValue.CharAtom(\(desc))" : "\(desc)"
+    case let StringAtom(v):
+      return debug ? "ConsValue.StringAtom(\"\(v)\")" : "\"\(v)\""
+    case let List(list):
       let desc = describeList(list, ctx, debug: debug)
-      return debug ? "ConsValue.ListLiteral(\(desc))" : desc
-    case let VectorLiteral(v):
+      return debug ? "ConsValue.List(\(desc))" : desc
+    case let Vector(v):
       let internals = join(" ", v.map({$0.describe(ctx, debug: debug)}))
-      return debug ? "ConsValue.VectorLiteral([\(internals)])" : "[\(internals)]"
-    case let MapLiteral(m):
+      return debug ? "ConsValue.Vector([\(internals)])" : "[\(internals)]"
+    case let Map(m):
       var components : [String] = []
       for (key, value) in m {
         components.append(key.describe(ctx, debug: debug))
         components.append(value.describe(ctx, debug: debug))
       }
       let internals = join(" ", components)
-      return debug ? "ConsValue.MapLiteral({\(internals)})" : "{\(internals)}"
+      return debug ? "ConsValue.Map({\(internals)})" : "{\(internals)}"
     case let FunctionLiteral(v):
       return debug ? "ConsValue.FunctionLiteral(\(v.describe(ctx)))" : v.describe(ctx)
     case let Special(v):

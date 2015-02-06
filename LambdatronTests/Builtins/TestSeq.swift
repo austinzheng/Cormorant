@@ -12,50 +12,50 @@ class TestSeqBuiltin : InterpreterTest {
 
   /// .seq should return nil if passed in nil.
   func testWithNil() {
-    expectThat("(.seq nil)", shouldEvalTo: .NilLiteral)
+    expectThat("(.seq nil)", shouldEvalTo: .Nil)
   }
 
   /// .seq should return nil for empty collections.
   func testWithEmptyCollections() {
-    expectThat("(.seq \"\")", shouldEvalTo: .NilLiteral)
-    expectThat("(.seq ())", shouldEvalTo: .NilLiteral)
-    expectThat("(.seq [])", shouldEvalTo: .NilLiteral)
-    expectThat("(.seq {})", shouldEvalTo: .NilLiteral)
+    expectThat("(.seq \"\")", shouldEvalTo: .Nil)
+    expectThat("(.seq ())", shouldEvalTo: .Nil)
+    expectThat("(.seq [])", shouldEvalTo: .Nil)
+    expectThat("(.seq {})", shouldEvalTo: .Nil)
   }
 
   /// .seq should return a sequence comprised of the characters of a string.
   func testWithStrings() {
     expectThat("(.seq \"abc\")",
-      shouldEvalTo: listWithItems(.CharacterLiteral("a"), .CharacterLiteral("b"), .CharacterLiteral("c")))
+      shouldEvalTo: listWithItems(.CharAtom("a"), .CharAtom("b"), .CharAtom("c")))
     expectThat("(.seq \"\\n\\\\\nq\")",
-      shouldEvalTo: listWithItems(.CharacterLiteral("\n"), .CharacterLiteral("\\"), .CharacterLiteral("\n"),
-        .CharacterLiteral("q")))
+      shouldEvalTo: listWithItems(.CharAtom("\n"), .CharAtom("\\"), .CharAtom("\n"),
+        .CharAtom("q")))
     expectThat("(.seq \"foobar\")",
-      shouldEvalTo: listWithItems(.CharacterLiteral("f"), .CharacterLiteral("o"), .CharacterLiteral("o"),
-        .CharacterLiteral("b"), .CharacterLiteral("a"), .CharacterLiteral("r")))
+      shouldEvalTo: listWithItems(.CharAtom("f"), .CharAtom("o"), .CharAtom("o"),
+        .CharAtom("b"), .CharAtom("a"), .CharAtom("r")))
   }
 
   /// .seq should return a sequence comprised of the elements in a list.
   func testWithLists() {
     expectThat("(.seq '(true false nil 1 2.1 3))", shouldEvalTo: listWithItems(
-      .BoolLiteral(true), .BoolLiteral(false), .NilLiteral, .IntegerLiteral(1), .FloatLiteral(2.1), .IntegerLiteral(3)))
+      .BoolAtom(true), .BoolAtom(false), .Nil, .IntAtom(1), .FloatAtom(2.1), .IntAtom(3)))
     expectThat("(.seq '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo: listWithItems(
-      listWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      listWithItems(.IntegerLiteral(3), .IntegerLiteral(4)),
-      listWithItems(.IntegerLiteral(5), .IntegerLiteral(6)),
-      listWithItems(.IntegerLiteral(7), .IntegerLiteral(8)),
+      listWithItems(.IntAtom(1), .IntAtom(2)),
+      listWithItems(.IntAtom(3), .IntAtom(4)),
+      listWithItems(.IntAtom(5), .IntAtom(6)),
+      listWithItems(.IntAtom(7), .IntAtom(8)),
       listWithItems()))
   }
 
   /// .seq should return a sequence comprised of the elements in a vector.
   func testWithVectors() {
     expectThat("(.seq [false true nil 1 2.1 3])", shouldEvalTo: listWithItems(
-      .BoolLiteral(false), .BoolLiteral(true), .NilLiteral, .IntegerLiteral(1), .FloatLiteral(2.1), .IntegerLiteral(3)))
+      .BoolAtom(false), .BoolAtom(true), .Nil, .IntAtom(1), .FloatAtom(2.1), .IntAtom(3)))
     expectThat("(.seq [[1 2] [3 4] [5 6] [7 8] []])", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntegerLiteral(1), .IntegerLiteral(2)),
-      vectorWithItems(.IntegerLiteral(3), .IntegerLiteral(4)),
-      vectorWithItems(.IntegerLiteral(5), .IntegerLiteral(6)),
-      vectorWithItems(.IntegerLiteral(7), .IntegerLiteral(8)),
+      vectorWithItems(.IntAtom(1), .IntAtom(2)),
+      vectorWithItems(.IntAtom(3), .IntAtom(4)),
+      vectorWithItems(.IntAtom(5), .IntAtom(6)),
+      vectorWithItems(.IntAtom(7), .IntAtom(8)),
       vectorWithItems()))
   }
 
@@ -65,14 +65,14 @@ class TestSeqBuiltin : InterpreterTest {
     let b = interpreter.context.keywordForName("b")
     let c = interpreter.context.keywordForName("c")
     expectThat("(.seq {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo: listWithItems(
-      vectorWithItems(.Keyword(b), .IntegerLiteral(2)),
-      vectorWithItems(.Keyword(c), .IntegerLiteral(3)),
-      vectorWithItems(.Keyword(a), .IntegerLiteral(1)),
-      vectorWithItems(.CharacterLiteral("d"), .IntegerLiteral(4))))
+      vectorWithItems(.Keyword(b), .IntAtom(2)),
+      vectorWithItems(.Keyword(c), .IntAtom(3)),
+      vectorWithItems(.Keyword(a), .IntAtom(1)),
+      vectorWithItems(.CharAtom("d"), .IntAtom(4))))
     expectThat("(.seq {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo: listWithItems(
-      vectorWithItems(.NilLiteral, .StringLiteral("baz")),
-      vectorWithItems(.BoolLiteral(true), .StringLiteral("bar")),
-      vectorWithItems(.StringLiteral("foo"), .CharacterLiteral("a"))))
+      vectorWithItems(.Nil, .StringAtom("baz")),
+      vectorWithItems(.BoolAtom(true), .StringAtom("bar")),
+      vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
   }
 
   /// .seq should reject non-collection arguments.

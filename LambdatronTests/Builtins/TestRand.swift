@@ -18,7 +18,7 @@ class TestRand : InterpreterTest {
       switch value {
       case let .Success(s):
         switch s {
-        case let .FloatLiteral(f):
+        case let .FloatAtom(f):
           XCTAssert(f >= 0.0 && f < 1.0, ".rand must return a value between 0 (inclusive) and 1 (exclusive)")
         default: XCTFail(".rand must return a floating-point value")
         }
