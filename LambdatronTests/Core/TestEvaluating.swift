@@ -36,6 +36,53 @@ class TestFunctionEvaluation : InterpreterTest {
     expectOutputBuffer(toBe: "firstsecondthird")
   }
 
+  /// A function should properly run recursively when referred to by the name within the 'fn' definition.
+  func testFunctionRecursion() {
+    // This lambda just counts down from a starting value and returns 'true' when done.
+    expectThat("((fn rec [a] (if (.= a 0) (do (.print \"done\") true) (do (.print a) (rec (.- a 1))))) 15)",
+      shouldEvalTo: .BoolAtom(true))
+    expectOutputBuffer(toBe: "151413121110987654321done")
+  }
+
+  /// Mutually recursive functions should call each other properly.
+  func testMutualRecursion() {
+    runCode("(def f1 (fn [a] (if (.= a 0) (.print \"f1-done\") (do (.print \"f1\" a \" \") (f2 (.- a 1))))))")
+    runCode("(def f2 (fn [a] (if (.= a 0) (.print \"f2-done\") (do (.print \"f2\" a \" \") (f3 (.- a 1))))))")
+    runCode("(def f3 (fn [a] (if (.= a 0) (.print \"f3-done\") (do (.print \"f3\" a \" \") (f1 (.- a 1))))))")
+    runCode("(f1 10)")
+    expectOutputBuffer(toBe: "f1 10  f2 9  f3 8  f1 7  f2 6  f3 5  f1 4  f2 3  f3 2  f1 1  f2-done")
+  }
+
+  /// A function with multiple arities should pick the appropriate fixed arity, if appropriate.
+  func testFixedArityMultiFunction() {
+    runCode("(def testFunc (fn ([a b c] (.print \"3 args:\" a b c)) ([a b] (.print \"2 args:\" a b)) ([a] (.print \"1 arg:\" a))))")
+    runCode("(testFunc 1 2 3)")
+    expectOutputBuffer(toBe: "3 args: 1 2 3")
+    // Try 2
+    clearOutputBuffer()
+    runCode("(testFunc 12345)")
+    expectOutputBuffer(toBe: "1 arg: 12345")
+    // Try 3
+    clearOutputBuffer()
+    runCode("(testFunc 9 7)")
+    expectOutputBuffer(toBe: "2 args: 9 7")
+  }
+
+  /// A function with multiple arities should pick the appropriate variadic body, if appropriate.
+  func testVariadicMultiFunction() {
+    runCode("(def testFunc (fn ([a b] (.print \"2 args:\" a b)) ([a b & c] (.print \"varargs:\" a b c))))")
+    runCode("(testFunc 10 20)")
+    expectOutputBuffer(toBe: "2 args: 10 20")
+    // Try 2
+    clearOutputBuffer()
+    runCode("(testFunc 9 97 998)")
+    expectOutputBuffer(toBe: "varargs: 9 97 (998)")
+    // Try 3
+    clearOutputBuffer()
+    runCode("(testFunc -1 0 14 15)")
+    expectOutputBuffer(toBe: "varargs: -1 0 (14 15)")
+  }
+
   /// A function's output should not be further evaluated.
   func testFunctionOutputEvaluation() {
     runCode("(def testFunc (fn [] (.list .+ 500 200)))")

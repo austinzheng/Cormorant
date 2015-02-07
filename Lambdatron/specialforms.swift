@@ -218,6 +218,9 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
   }
   let name : InternedSymbol? = args[0].asSymbol()
   let rest = (name == nil) ? args : Array(args[1..<args.count])
+  if rest.count == 0 {
+    return .Failure(EvalError.arityError("at least 2 (if first arg is a name)", actual: args.count, fn))
+  }
   if rest[0].asVector() != nil {
     // Single arity
     let singleArity = buildSingleFnFor(.Vector(rest), ctx: ctx)
@@ -412,8 +415,8 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
       case let .Vector(v):
         buffer = buffer + v
       case let .Map(m):
-        for (key, value) in m {
-          buffer.append(.Vector([key, value]))
+        for vector in MapSequence(m) {
+          buffer.append(vector)
         }
       default:
         return .Failure(EvalError.invalidArgumentError(fn,

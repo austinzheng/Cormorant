@@ -64,10 +64,7 @@ func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Map(m):
     // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
     //  key-value pairs
-    let list : ListType<ConsValue> = listFromMappedCollection(m, postfix: nil) {
-      let (key, value) = $0
-      return .Vector([key, value])
-    }
+    let list : ListType<ConsValue> = listFromCollection(MapSequence(m))
     return .Success(.List(Cons(first, next: list)))
   default: return .Failure(EvalError.invalidArgumentError(fn,
     message: "second argument must be a string, list, vector, map, or nil"))
@@ -90,13 +87,8 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Success(l.getValue() ?? .Nil)
   case let .Vector(v):
     return .Success(v.count == 0 ? .Nil : v[0])
-  case let .Map(m):
-    // Use a generator to get the first element out of the map.
-    var generator = m.generate()
-    if let (key, value) = generator.next() {
-      return .Success(.Vector([key, value]))
-    }
-    return .Success(.Nil)
+  case let .Map(map):
+    return .Success(MapSequence(map).first() ?? .Nil)
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "first argument must be a string, list, vector, map, or nil"))
@@ -133,10 +125,7 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Success(.List(list))
   case let .Map(map):
     // Make a list containing all values...
-    let list : ListType<ConsValue> = listFromMappedCollection(map, postfix: nil) {
-      let (key, value) = $0
-      return .Vector([key, value])
-    }
+    let list : ListType<ConsValue> = listFromCollection(MapSequence(map))
     // ...then return the second (throwing away the first)
     switch list {
     case let list as Cons<ConsValue>:
@@ -186,10 +175,7 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
       return .Success(.Nil)
     }
     // Make a list containing all values...
-    let list : ListType<ConsValue> = listFromMappedCollection(map, postfix: nil) {
-      let (key, value) = $0
-      return .Vector([key, value])
-    }
+    let list : ListType<ConsValue> = listFromCollection(MapSequence(map))
     // ...then return the second
     switch list {
     case let list as Cons<ConsValue>:
@@ -222,10 +208,7 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Map(m):
     // Turn the map into a list
     if m.isEmpty { return .Success(.Nil) }
-    let list : ListType<ConsValue> = listFromMappedCollection(m, postfix: nil) {
-      let (key, value) = $0
-      return .Vector([key, value])
-    }
+    let list : ListType<ConsValue> = listFromCollection(MapSequence(m))
     return .Success(.List(list))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
@@ -293,10 +276,7 @@ func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
       head = listFromCollection(vector, prefix: nil, postfix: head)
     case let .Map(map):
       // Add all the key-value pairs in the map to our in-progress list.
-      head = listFromMappedCollection(map, postfix: head) {
-        let (key, value) = $0
-        return .Vector([key, value])
-      }
+      head = listFromCollection(MapSequence(map), postfix: head)
     default:
       return .Failure(EvalError.invalidArgumentError(fn,
         message: "arguments must be strings, lists, vectors, maps, or nil"))
