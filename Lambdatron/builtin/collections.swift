@@ -460,3 +460,53 @@ func pr_dissoc(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a map"))
   }
 }
+
+/// Given a collection, a function that takes two arguments, and an optional initial value, perform a reduction.
+func pr_reduce(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".reduce"
+  if !(args.count == 2 || args.count == 3) {
+    return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
+  }
+
+  let function = args[0]
+  let coll = args.count == 3 ? args[2] : args[1]
+  let initial : ConsValue? = args.count == 3 ? args[1] : nil
+
+  let sequence : ConsSequence? = {
+    switch coll {
+    case .Nil, .StringAtom, .List, .Vector, .Map:
+      return ConsSequence(coll, prefix: initial)
+    default:
+      return nil
+    }
+    }()
+  if let seq = sequence {
+    // The sequence was one of the supported types.
+    var generator = seq.generate()
+    var initial = generator.next()
+    if let acc = initial {
+      // There is at least one item.
+      var accumulator = acc
+      var firstRun = true
+      while let this = generator.next() {
+        // Update accumulator with the value of (function accumulator this)
+        let params = Params(accumulator, this)
+        let result = apply(function, params, ctx, fn)
+        switch result {
+        case let .Success(result):
+          accumulator = result
+        default: return result
+        }
+      }
+      return .Success(accumulator)
+    }
+    else {
+      // There are no items at all (initial was not provided). Return (function).
+      return apply(function, Params(), ctx, fn)
+    }
+  }
+  else {
+    // The type was incorrect.
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a collection"))
+  }
+}

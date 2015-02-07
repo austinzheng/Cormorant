@@ -28,6 +28,7 @@ public enum BuiltIn : String, Printable {
   case Get = ".get"
   case Assoc = ".assoc"
   case Dissoc = ".dissoc"
+  case Reduce = ".reduce"
 
   // Primitive-related
   case Symbol = ".symbol"
@@ -88,12 +89,6 @@ public enum BuiltIn : String, Printable {
   case Eval = ".eval"
   case Fail = ".fail"
   
-  // TEMPORARY BOOTSTRAP
-  case BootstrapPlus = ".B+"
-  case BootstrapMinus = ".B-"
-  case BootstrapMultiply = ".B*"
-  case BootstrapDivide = ".B/"
-  
   var function : LambdatronBuiltIn {
     switch self {
     case List: return pr_list
@@ -110,6 +105,7 @@ public enum BuiltIn : String, Printable {
     case Get: return pr_get
     case Assoc: return pr_assoc
     case Dissoc: return pr_dissoc
+    case Reduce: return pr_reduce
     case Symbol: return pr_symbol
     case Keyword: return pr_keyword
     case Int: return pr_int
@@ -155,12 +151,6 @@ public enum BuiltIn : String, Printable {
     case Rand: return pr_rand
     case Eval: return pr_eval
     case Fail: return pr_fail
-      
-    // TEMPORARY
-    case BootstrapPlus: return bootstrap_plus
-    case BootstrapMinus: return bootstrap_minus
-    case BootstrapMultiply: return bootstrap_multiply
-    case BootstrapDivide: return bootstrap_divide
     }
   }
   

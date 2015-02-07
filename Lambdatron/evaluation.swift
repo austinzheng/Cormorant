@@ -175,23 +175,28 @@ private func evaluateKeyType(list: Cons<ConsValue>, key: ConsValue, ctx: Context
   }
 }
 
-/// Apply the values in the array 'args' to the function 'first'.
+/// Apply the values in the Params object 'args' to the function 'first'.
 func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResult {
   if let builtIn = first.asBuiltIn() {
+    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))")
     return builtIn(args, ctx)
   }
   else if let function = first.asFunction() {
+    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to function \(first.describe(ctx))")
     return function.evaluate(args)
   }
   else if first.asVector() != nil {
+    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to vector \(first.describe(ctx))")
     return args.count == 1
       ? pr_nth(args.prefixedBy(first), ctx)
       : .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   else if first.asMap() != nil {
+    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to map \(first.describe(ctx))")
     return pr_get(args.prefixedBy(first), ctx)
   }
   else if first.asSymbol() != nil || first.asKeyword() != nil {
+    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to symbol or keyword \(first.describe(ctx))")
     if !(args.count == 1 || args.count == 2) {
       return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
     }
@@ -199,6 +204,7 @@ func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResu
     return pr_get(allArgs, ctx)
   }
   else {
+    ctx.log(.Eval, message: "unable to apply arguments: \(args.describe(ctx)) to non-evalable \(first.describe(ctx))")
     return .Failure(EvalError(.NotEvalableError, fn))
   }
 }

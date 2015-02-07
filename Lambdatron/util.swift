@@ -15,7 +15,8 @@ import Foundation
   exit(EXIT_FAILURE)
 }
 
-// Box
+// MARK: Reference wrapper for structs
+
 final class Box<T> {
   let value : T
   init(_ value: T) { self.value = value }
@@ -25,7 +26,8 @@ final class Box<T> {
   }
 }
 
-// Swift string helpers
+
+// MARK: Swift string helpers
 
 /// Retrieve a character within a Swift string, or nil if the provided index is out of bounds. This is an O(n)
 /// operation with respect to the length of the string.

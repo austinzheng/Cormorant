@@ -46,37 +46,33 @@
   ([n] (* n (.rand))))
 
 ; Return the sum of zero or more numeric values
-; TODO: Remove dependence on bootstrap function
 (defn +
   ([] 0)
   ([x] x)
   ([x y] (.+ x y))
-  ([x y & rest] (.B+ x y rest))
+  ([x y & more] (.reduce .+ (.+ x y) more))
 )
 
 ; Return the difference of one or more numeric values
-; TODO: Remove dependence on bootstrap function
 (defn -
   ([x] (- 0 x))
   ([x y] (.- x y))
-  ([x y & rest] (.B- x y rest))
+  ([x y & more] (.reduce .- (.- x y) more))
 )
 
 ; Return the product of zero or more numeric values
-; TODO: Remove dependence on bootstrap function
 (defn *
   ([] 1)
   ([x] x)
   ([x y] (.* x y))
-  ([x y & rest] (.B* x y rest))
+  ([x y & more] (.reduce .* (.* x y) more))
 )
 
 ; Return the quotient of one or more numeric values
-; TODO: Remove dependence on bootstrap function
 (defn /
   ([x] (/ 1 x))
   ([x y] (./ x y))
-  ([x y & rest] (.B/ x y rest))
+  ([x y & more] (.reduce ./ (./ x y) more))
 )
 
 ; Return whether one or more numerical values are strictly increasing in value

@@ -9,7 +9,7 @@
 import Foundation
 
 /// A struct holding an arbitrary number of parameters without using heap storage if there are eight or fewer params.
-struct Params : CollectionType, GeneratorType {
+struct Params : Printable, CollectionType, GeneratorType {
   private var a0, a1, a2, a3, a4, a5, a6, a7 : ConsValue?
 
   /// An array containing all parameters from 8 and onwards.
@@ -20,6 +20,8 @@ struct Params : CollectionType, GeneratorType {
 
   /// When Params is being used as a generator, indicates the current parameter number.
   private var index = 0
+
+  var description : String { return describe(nil) }
 
   var startIndex : Int { return 0 }
   var endIndex : Int { return count }

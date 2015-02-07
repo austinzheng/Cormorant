@@ -55,7 +55,7 @@ public enum ConsValue : Printable, Hashable {
   case BuiltInFunction(BuiltIn)
   case Special(SpecialForm)
   case ReaderMacroForm(ReaderMacro)
-  
+
   public var hashValue : Int {
     switch self {
     case .Nil: return 0
@@ -75,21 +75,28 @@ public enum ConsValue : Printable, Hashable {
     case let .ReaderMacroForm(rf): return rf.hashValue
     }
   }
-  
+
   func asInteger() -> Int? {
     switch self {
     case let .IntAtom(v): return v
     default: return nil
     }
   }
-  
+
   func asString() -> String? {
     switch self {
     case let .StringAtom(s): return s
     default: return nil
     }
   }
-  
+
+  var asCharacter : Character? {
+    switch self {
+    case let .CharAtom(c): return c
+    default: return nil
+    }
+  }
+
   func asSymbol() -> InternedSymbol? {
     switch self {
     case let .Symbol(s): return s
@@ -103,21 +110,21 @@ public enum ConsValue : Printable, Hashable {
     default: return nil
     }
   }
-  
+
   func asList() -> ListType<ConsValue>? {
     switch self {
     case let .List(l): return l
     default: return nil
     }
   }
-  
+
   func asVector() -> VectorType? {
     switch self {
     case let .Vector(v): return v
     default: return nil
     }
   }
-  
+
   func asMap() -> MapType? {
     switch self {
     case let .Map(m): return m

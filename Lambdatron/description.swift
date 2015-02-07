@@ -151,6 +151,21 @@ extension SingleFn {
   }
 }
 
+// Description-related extension for the Params struct.
+extension Params {
+
+  func describe(ctx: Context?) -> String {
+    var buffer : [String] = []
+    for param in self {
+      buffer.append(param.describe(ctx))
+    }
+    return "Params: {{" + join(" ", buffer) + "}}"
+  }
+}
+
+
+// MARK: Helper functions
+
 /// Return the Clojure-style description of a character literal.
 private func charLiteralDesc(char: Character) -> String {
   let backspace = Character(UnicodeScalar(8))
