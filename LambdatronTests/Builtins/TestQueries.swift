@@ -9,12 +9,12 @@
 import Foundation
 
 class testIsNil : InterpreterTest {
-  /// nil? should return true for 'nil'.
+  /// .nil? should return true for 'nil'.
   func testIsNilWithNil() {
     expectThat("(.nil? nil)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// nil? should return false for any non-nil value or type, even those that are falsy.
+  /// .nil? should return false for any non-nil value or type, even those that are falsy.
   func testIsNilWithOthers() {
     expectThat("(.nil? 0)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.nil? 0.0)", shouldEvalTo: .BoolAtom(false))
@@ -31,14 +31,15 @@ class testIsNil : InterpreterTest {
     expectThat("(.nil? (fn [] nil))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsNilArity() {
+  /// .nil? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.nil?)")
     expectArityErrorFrom("(.nil? nil nil)")
   }
 }
 
 class testIsNumber : InterpreterTest {
-  /// number? should return true for any integer.
+  /// .number? should return true for any integer.
   func testIsNumberWithInts() {
     expectThat("(.number? 0)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.number? 1)", shouldEvalTo: .BoolAtom(true))
@@ -47,7 +48,7 @@ class testIsNumber : InterpreterTest {
     expectThat("(.number? -12345)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// number? should return true for any floating-point value.
+  /// .number? should return true for any floating-point value.
   func testIsNumberWithFloats() {
     expectThat("(.number? 0.0)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.number? 1.0001)", shouldEvalTo: .BoolAtom(true))
@@ -56,7 +57,7 @@ class testIsNumber : InterpreterTest {
     expectThat("(.number? -12345.009)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// number? should return false for any non-numeric type.
+  /// .number? should return false for any non-numeric type.
   func testIsNumberWithOthers() {
     expectThat("(.number? nil)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.number? true)", shouldEvalTo: .BoolAtom(false))
@@ -72,14 +73,15 @@ class testIsNumber : InterpreterTest {
     expectThat("(.number? (fn [] 0))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsNumberArity() {
+  /// .number? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.number?)")
     expectArityErrorFrom("(.number? 0 0)")
   }
 }
 
 class testIsInt : InterpreterTest {
-  /// int? should return true for any integer.
+  /// .int? should return true for any integer.
   func testIsIntWithInts() {
     expectThat("(.int? 0)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.int? 1)", shouldEvalTo: .BoolAtom(true))
@@ -88,7 +90,7 @@ class testIsInt : InterpreterTest {
     expectThat("(.int? -12345)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// int? should return false for any floating-point value.
+  /// .int? should return false for any floating-point value.
   func testIsIntWithFloats() {
     expectThat("(.int? 0.0)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.int? 1.0001)", shouldEvalTo: .BoolAtom(false))
@@ -97,7 +99,7 @@ class testIsInt : InterpreterTest {
     expectThat("(.int? -12345.009)", shouldEvalTo: .BoolAtom(false))
   }
 
-  /// int? should return false for any non-numeric type.
+  /// .int? should return false for any non-numeric type.
   func testIsIntWithOthers() {
     expectThat("(.int? nil)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.int? true)", shouldEvalTo: .BoolAtom(false))
@@ -113,14 +115,15 @@ class testIsInt : InterpreterTest {
     expectThat("(.int? (fn [] 0))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsIntArity() {
+  /// .int? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.int?)")
     expectArityErrorFrom("(.int? 1 1)")
   }
 }
 
 class testIsFloat : InterpreterTest {
-  /// float? should return false for any integer.
+  /// .float? should return false for any integer.
   func testIsFloatWithInts() {
     expectThat("(.float? 0)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.float? 1)", shouldEvalTo: .BoolAtom(false))
@@ -129,7 +132,7 @@ class testIsFloat : InterpreterTest {
     expectThat("(.float? -12345)", shouldEvalTo: .BoolAtom(false))
   }
 
-  /// float? should return true for any floating-point value.
+  /// .float? should return true for any floating-point value.
   func testIsFloatWithFloats() {
     expectThat("(.float? 0.0)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.float? 1.0001)", shouldEvalTo: .BoolAtom(true))
@@ -138,7 +141,7 @@ class testIsFloat : InterpreterTest {
     expectThat("(.float? -12345.009)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// float? should return false for any non-numeric type.
+  /// .float? should return false for any non-numeric type.
   func testIsFloatWithOthers() {
     expectThat("(.float? nil)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.float? true)", shouldEvalTo: .BoolAtom(false))
@@ -154,21 +157,22 @@ class testIsFloat : InterpreterTest {
     expectThat("(.float? (fn [] 0))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsFloatArity() {
+  /// .float? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.float?)")
     expectArityErrorFrom("(.float? 1.1 1.1)")
   }
 }
 
 class testIsString : InterpreterTest {
-  /// string? should return true for strings.
+  /// .string? should return true for strings.
   func testIsStringWithString() {
     expectThat("(.string? \"\")", shouldEvalTo: .BoolAtom(true))
     expectThat("(.string? \"foobar\")", shouldEvalTo: .BoolAtom(true))
     expectThat("(.string? \"hello \\n world!!\")", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// string? should return false for any non-string type.
+  /// .string? should return false for any non-string type.
   func testIsStringWithOthers() {
     expectThat("(.string? 10)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.string? 515.15151)", shouldEvalTo: .BoolAtom(false))
@@ -185,14 +189,15 @@ class testIsString : InterpreterTest {
     expectThat("(.string? (fn [] 0))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsStringArity() {
+  /// .string? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.string?)")
     expectArityErrorFrom("(.string? \"foo\" \"bar\")")
   }
 }
 
 class testIsChar : InterpreterTest {
-  /// char? should return true for characters.
+  /// .char? should return true for characters.
   func testIsCharWithCharacter() {
     runCode("(def a \\a)")
     expectThat("(.char? \\a)", shouldEvalTo: .BoolAtom(true))
@@ -200,7 +205,7 @@ class testIsChar : InterpreterTest {
     expectThat("(.char? a)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// char? should return false for any non-character type.
+  /// .char? should return false for any non-character type.
   func testIsCharWithOthers() {
     expectThat("(.char? 1025)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.char? 3.141592)", shouldEvalTo: .BoolAtom(false))
@@ -217,14 +222,15 @@ class testIsChar : InterpreterTest {
     expectThat("(.char? (fn [a b] :hello))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsCharArity() {
+  /// .char? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.char?)")
     expectArityErrorFrom("(.char? \\\\ \\a)")
   }
 }
 
 class testIsSymbol : InterpreterTest {
-  /// symbol? should return true for symbols.
+  /// .symbol? should return true for symbols.
   func testIsSymbolWithSymbol() {
     runCode("(def a 'b)")
     expectThat("(.symbol? 'a)", shouldEvalTo: .BoolAtom(true))
@@ -232,7 +238,7 @@ class testIsSymbol : InterpreterTest {
     expectThat("(.symbol? a)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// symbol? should return false for any non-symbol type.
+  /// .symbol? should return false for any non-symbol type.
   func testIsSymbolWithOthers() {
     expectThat("(.symbol? 1025)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.symbol? 3.141592)", shouldEvalTo: .BoolAtom(false))
@@ -249,14 +255,15 @@ class testIsSymbol : InterpreterTest {
     expectThat("(.symbol? (fn [a b] :hello))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsSymbolArity() {
+  /// .symbol? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.symbol?)")
     expectArityErrorFrom("(.symbol? 'a 'a)")
   }
 }
 
 class testIsKeyword : InterpreterTest {
-  /// keyword? should return true for keywords.
+  /// .keyword? should return true for keywords.
   func testIsKeywordWithKeyword() {
     runCode("(def a :some-keyword)")
     expectThat("(.keyword? :a)", shouldEvalTo: .BoolAtom(true))
@@ -264,7 +271,7 @@ class testIsKeyword : InterpreterTest {
     expectThat("(.keyword? a)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// keyword? should return false for any non-keyword type.
+  /// .keyword? should return false for any non-keyword type.
   func testIsKeywordWithOthers() {
     expectThat("(.keyword? 1025)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.keyword? 3.141592)", shouldEvalTo: .BoolAtom(false))
@@ -281,28 +288,29 @@ class testIsKeyword : InterpreterTest {
     expectThat("(.keyword? (fn [a b] :hello))", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsKeywordArity() {
+  /// .keyword? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.keyword?)")
     expectArityErrorFrom("(.keyword? :a :a)")
   }
 }
 
 class testIsFn : InterpreterTest {
-  /// fn? should return true for user-defined functions.
+  /// .fn? should return true for user-defined functions.
   func testIsFnWithUserDefined() {
     expectThat("(.fn? (fn [a b] (.+ a b)))", shouldEvalTo: .BoolAtom(true))
     runCode("(def testfn (fn [a b] (.+ 1 2 a b)))")
     expectThat("(.fn? testfn)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// fn? should return true for built-in functions.
+  /// .fn? should return true for built-in functions.
   func testIsFnWithBuiltIns() {
     expectThat("(.fn? .+)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.fn? .fn?)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.fn? .cons)", shouldEvalTo: .BoolAtom(true))
   }
 
-  /// fn? should return false for any non-function type.
+  /// .fn? should return false for any non-function type.
   func testIsFnWithOthers() {
     expectThat("(.fn? 1025)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.fn? 3.141592)", shouldEvalTo: .BoolAtom(false))
@@ -318,7 +326,8 @@ class testIsFn : InterpreterTest {
     expectThat("(.fn? {})", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsFnArity() {
+  // .fn? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.fn?)")
     expectArityErrorFrom("(.fn? .+ .+)")
   }
@@ -329,13 +338,13 @@ class testIsEval : InterpreterTest {
 }
 
 class testIsTrue : InterpreterTest {
-  // true? should return true for the value true.
+  // .true? should return true for the value true.
   func testIsTrueWithBooleans() {
     expectThat("(.true? true)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.true? false)", shouldEvalTo: .BoolAtom(false))
   }
 
-  // true? should return false for any value that isn't exactly true.
+  // .true? should return false for any value that isn't exactly true.
   func testIsTrueWithOthers() {
     expectThat("(.true? 0)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.true? 0.0)", shouldEvalTo: .BoolAtom(false))
@@ -351,20 +360,21 @@ class testIsTrue : InterpreterTest {
     expectThat("(.true? .+)", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsTrueArity() {
+  // .true? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.true?)")
     expectArityErrorFrom("(.true? true true)")
   }
 }
 
 class testIsFalse : InterpreterTest {
-  // false? should return true for the value false.
+  // .false? should return true for the value false.
   func testIsFalseWithBooleans() {
     expectThat("(.false? true)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.false? false)", shouldEvalTo: .BoolAtom(true))
   }
 
-  // false? should return false for any value that isn't exactly false.
+  // .false? should return false for any value that isn't exactly false.
   func testIsFalseWithOthers() {
     expectThat("(.false? 0)", shouldEvalTo: .BoolAtom(false))
     expectThat("(.false? 0.0)", shouldEvalTo: .BoolAtom(false))
@@ -380,18 +390,73 @@ class testIsFalse : InterpreterTest {
     expectThat("(.false? .+)", shouldEvalTo: .BoolAtom(false))
   }
 
-  func testIsFalseArity() {
+  // .false? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.false?)")
     expectArityErrorFrom("(.false? false false)")
   }
 }
 
 class testIsList : InterpreterTest {
-  // TODO
+  /// .list? should return true when called with list arguments.
+  func testIsListWithLists() {
+    expectThat("(.list? ())", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.list? '(1 2 3 4 5))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.list? '(true nil \"foobar\" \\c :c 'c))", shouldEvalTo: .BoolAtom(true))
+  }
+
+  /// .list? should return false when called with non-list arguments.
+  func testIsListWithOthers() {
+    expectThat("(.list? nil)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? true)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? false)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? 1523)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? -92.123571)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? \\v)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? 'v)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? :v)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? \"foobar\")", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? [1 2 3])", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? {:a 1 :b 2})", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.list? .list?)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  /// .list? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.list?)")
+    expectArityErrorFrom("(.list? () ())")
+  }
 }
 
 class testIsVector : InterpreterTest {
-  // TODO
+  /// .vector? should return true when called with vector arguments.
+  func testIsListWithLists() {
+    expectThat("(.vector? [])", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.vector? [1 2 3 4 5])", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.vector? [true nil \"foobar\" \\c :c 'c])", shouldEvalTo: .BoolAtom(true))
+  }
+
+  /// .vector? should return false when called with non-vector arguments.
+  func testIsListWithOthers() {
+    expectThat("(.vector? nil)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? true)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? false)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? 1523)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? -92.123571)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? \\v)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? 'v)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? :v)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? \"foobar\")", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? '(1 2 3))", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? {:a 1 :b 2})", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.vector? .vector?)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  /// .vector? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.vector?)")
+    expectArityErrorFrom("(.vector? () ())")
+  }
 }
 
 class testIsMap : InterpreterTest {
@@ -411,7 +476,7 @@ class testIsNeg : InterpreterTest {
 }
 
 class testIsZero : InterpreterTest {
-  // zero? should return true for numerical zero values.
+  // .zero? should return true for numerical zero values.
   func testIsZeroWithNumbers() {
     expectThat("(.zero? 0)", shouldEvalTo: .BoolAtom(true))
     expectThat("(.zero? 0.0)", shouldEvalTo: .BoolAtom(true))
@@ -421,7 +486,7 @@ class testIsZero : InterpreterTest {
     expectThat("(.zero? -1293.58812)", shouldEvalTo: .BoolAtom(false))
   }
 
-  // zero? should fail for any non-number type.
+  // .zero? should fail for any non-number type.
   func testIsZeroWithOthers() {
     expectThat("(.zero? nil)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.zero? true)", shouldFailAs: .InvalidArgumentError)
@@ -437,7 +502,8 @@ class testIsZero : InterpreterTest {
     expectThat("(.zero? .+)", shouldFailAs: .InvalidArgumentError)
   }
 
-  func testIsZeroArity() {
+  /// .zero? should take exactly one argument.
+  func testArity() {
     expectArityErrorFrom("(.zero?)")
     expectArityErrorFrom("(.zero? 0 0)")
   }

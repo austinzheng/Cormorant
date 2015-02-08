@@ -253,7 +253,6 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
   }
   if let name = args[0].asSymbol() {
-    // NOTE: at this time, macros might be unhygenic. This will change as the symbol system is built out.
     let rest = Array(args[1..<args.count])
     if rest[0].asVector() != nil {
       // Single arity
