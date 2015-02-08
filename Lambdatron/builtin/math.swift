@@ -233,7 +233,6 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
         return .Success(.FloatAtom(Double(v1) / Double(v2)))
       }
     case let .Float(v2):
-      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatAtom(Double(v1) / v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
@@ -241,10 +240,8 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .Float(v1):
     switch num1 {
     case let .Integer(v2):
-      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatAtom(v1 / Double(v2)))
     case let .Float(v2):
-      if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.FloatAtom(v1 / v2))
     case .Invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))

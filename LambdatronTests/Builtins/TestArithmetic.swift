@@ -139,12 +139,9 @@ class TestDivide : InterpreterTest {
     expectThat("(./ -75 15)", shouldEvalTo: .IntAtom(-5))
   }
 
-  /// Division should trap zero divisor.
+  /// Division should trap zero divisor, but only for integer division.
   func testDivideByZero() {
     expectThat("(./ 5812 0)", shouldFailAs: .DivideByZeroError)
-    expectThat("(./ 5812 0.0)", shouldFailAs: .DivideByZeroError)
-    expectThat("(./ 5812.7188 0)", shouldFailAs: .DivideByZeroError)
-    expectThat("(./ 5812.7188 0.0)", shouldFailAs: .DivideByZeroError)
   }
 
   /// Division should trap overflow.

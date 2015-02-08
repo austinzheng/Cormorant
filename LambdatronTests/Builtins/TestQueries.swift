@@ -510,13 +510,131 @@ class testIsZero : InterpreterTest {
 }
 
 class testIsSubnormal : InterpreterTest {
-  // TODO
+  /// .subnormal? should return true for subnormal double values and false for non-subnormal double values.
+  func testWithDoubles() {
+    expectThat("(.subnormal? 0.00000000001)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.subnormal? -0.00000000001)", shouldEvalTo: .BoolAtom(false))
+    // Build a subnormal number (1 / 2048^93)
+    runCode("(def a ((fn [val ctr] (if (.= 0 ctr) val (recur (./ val 2048.0) (.- ctr 1)))) 1.0 93))")
+    expectThat("(.subnormal? a)", shouldEvalTo: .BoolAtom(true))
+  }
+
+  /// .subnormal? should return false for integers.
+  func testWithInts() {
+    expectThat("(.subnormal? 0)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.subnormal? 152)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.subnormal? -38)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  /// .subnormal? should cause an invalid argument error if called on non-numeric types.
+  func testWithNonNumericTypes() {
+    expectThat("(.subnormal? nil)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? true)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? false)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? \"\")", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? \\a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? 'a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? :a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? [])", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? '())", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? {})", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.subnormal? .+)", shouldFailAs: .InvalidArgumentError)
+  }
+
+  /// .subnormal? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.subnormal?)")
+    expectArityErrorFrom("(.subnormal? 0.0 0.0)")
+  }
 }
 
 class testIsInfinite : InterpreterTest {
-  // TODO
+  /// .infinite? should return true for infinite double values and false for non-infinite double values.
+  func testWithDoubles() {
+    expectThat("(.infinite? 100000000000000.0)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.infinite? -100000000000000.0)", shouldEvalTo: .BoolAtom(false))
+    // Test with positive infinity
+    expectThat("(.infinite? (./ 1 0.0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.infinite? (./ 1.0 0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.infinite? (./ -1.0 -0.0))", shouldEvalTo: .BoolAtom(true))
+    // Test with negative infinity
+    expectThat("(.infinite? (./ 1 -0.0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.infinite? (./ -1.0 0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.infinite? (./ -1.0 0.0))", shouldEvalTo: .BoolAtom(true))
+  }
+
+  /// .infinite? should return false for integers.
+  func testWithInts() {
+    expectThat("(.infinite? 0)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.infinite? 152)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.infinite? -38)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  /// .infinite? should cause an invalid argument error if called on non-numeric types.
+  func testWithNonNumericTypes() {
+    expectThat("(.infinite? nil)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? true)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? false)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? \"\")", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? \\a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? 'a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? :a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? [])", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? '())", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? {})", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.infinite? .+)", shouldFailAs: .InvalidArgumentError)
+  }
+
+  /// .infinite? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.infinite?)")
+    expectArityErrorFrom("(.infinite? 0.0 0.0)")
+  }
 }
 
 class testIsNaN : InterpreterTest {
-  // TODO
+  /// .nan? should return true for double values equal to NaN, and false for non-NaN double values.
+  func testWithDoubles() {
+    expectThat("(.nan? 100000000000000.0)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.nan? -100000000000000.0)", shouldEvalTo: .BoolAtom(false))
+    // Test with 0.0/0/0
+    expectThat("(.nan? (./ 0 0.0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.nan? (./ 0.0 0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.nan? (./ 0.0 0.0))", shouldEvalTo: .BoolAtom(true))
+    // test with negatives
+    expectThat("(.nan? (./ 0 -0.0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.nan? (./ 0.0 -0))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.nan? (./ -0.0 -0.0))", shouldEvalTo: .BoolAtom(true))
+  }
+
+  /// .nan? should return false for integers.
+  func testWithInts() {
+    expectThat("(.nan? 0)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.nan? 152)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.nan? -38)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  /// .nan? should cause an invalid argument error if called on non-numeric types.
+  func testWithNonNumericTypes() {
+    expectThat("(.nan? nil)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? true)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? false)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? \"\")", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? \\a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? 'a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? :a)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? [])", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? '())", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? {})", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.nan? .+)", shouldFailAs: .InvalidArgumentError)
+  }
+
+  /// .nan? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.nan?)")
+    expectArityErrorFrom("(.nan? 0.0 0.0)")
+  }
 }
