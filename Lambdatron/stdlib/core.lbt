@@ -79,7 +79,7 @@
   ([x y & rest] (.B/ x y rest))
 )
 
-; Return whether one or more numerical values are strictly monotonically increasing in value
+; Return whether one or more numerical values are strictly increasing in value
 (defn <
   ([x] true)
   ([x y] (.< x y))
@@ -91,7 +91,19 @@
       )
       false)))
 
-; Return whether one or more numerical values are strictly monotonically decreasing in value
+; Return whether one or more numerical values are monotonically increasing in value
+(defn <=
+  ([x] true)
+  ([x y] (.<= x y))
+  ([x y & more]
+    (if (.<= x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.<= y (first more))
+      )
+      false)))
+
+; Return whether one or more numerical values are strictly decreasing in value
 (defn >
   ([x] true)
   ([x y] (.> x y))
@@ -100,6 +112,18 @@
       (if (.next more)
         (recur y (first more) (rest more))
         (.> y (first more))
+      )
+      false)))
+
+; Return whether one or more numerical values are monotonically decreasing in value
+(defn >=
+  ([x] true)
+  ([x y] (.>= x y))
+  ([x y & more]
+    (if (.>= x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.>= y (first more))
       )
       false)))
 

@@ -24,9 +24,10 @@ internal func extractNumber(n: ConsValue) -> NumericalType {
   }
 }
 
-/// Evaluate the equality of two numeric forms.
-func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
-  let fn = ".=="
+private typealias IntTestFn = (Int, Int) -> Bool
+private typealias DoubleTestFn = (Double, Double) -> Bool
+
+private func test(args: [ConsValue], ctx: Context, ipred: IntTestFn, dpred: DoubleTestFn, fn: String) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
@@ -35,72 +36,43 @@ func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
   switch first {
   case let .Integer(v1):
     switch second {
-    case let .Integer(v2): return .Success(.BoolAtom(v1 == v2))
-    case let .Float(v2): return .Success(.BoolAtom(Double(v1) == v2))
+    case let .Integer(v2): return .Success(.BoolAtom(ipred(v1, v2)))
+    case let .Float(v2): return .Success(.BoolAtom(dpred(Double(v1), v2)))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case let .Float(v1):
     switch second {
-    case let .Integer(v2): return .Success(.BoolAtom(v1 == Double(v2)))
-    case let .Float(v2): return .Success(.BoolAtom(v1 == v2))
+    case let .Integer(v2): return .Success(.BoolAtom(dpred(v1, Double(v2))))
+    case let .Float(v2): return .Success(.BoolAtom(dpred(v1, v2)))
     case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
   case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
 
-/// Evaluate whether arguments are in monotonically decreasing order.
+/// Evaluate the equality of two numeric forms.
+func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
+  return test(args, ctx, ==, ==, ".==")
+}
+
+/// Evaluate whether arguments are in strictly decreasing order.
 func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
-  let fn = ".>"
-  if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
-  }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
-  
-  switch num0 {
-  case let .Integer(v1):
-    switch num1 {
-    case let .Integer(v2): return .Success(.BoolAtom(v1 > v2))
-    case let .Float(v2): return .Success(.BoolAtom(Double(v1) > v2))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-    }
-  case let .Float(v1):
-    switch num1 {
-    case let .Integer(v2): return .Success(.BoolAtom(v1 > Double(v2)))
-    case let .Float(v2): return .Success(.BoolAtom(v1 > v2))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-    }
-  case .Invalid:
-    return .Failure(EvalError.nonNumericArgumentError(fn))
-  }
+  return test(args, ctx, >, >, ".>")
+}
+
+/// Evaluate whether arguments are in monotonically decreasing order.
+func pr_gteq(args: [ConsValue], ctx: Context) -> EvalResult {
+  return test(args, ctx, >=, >=, ".>=")
+}
+
+/// Evaluate whether arguments are in strictly increasing order.
+func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
+  return test(args, ctx, <, <, ".<")
 }
 
 /// Evaluate whether arguments are in monotonically increasing order.
-func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
-  let fn = ".<"
-  if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
-  }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
-  
-  switch num0 {
-  case let .Integer(v1):
-    switch num1 {
-    case let .Integer(v2): return .Success(.BoolAtom(v1 < v2))
-    case let .Float(v2): return .Success(.BoolAtom(Double(v1) < v2))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-    }
-  case let .Float(v1):
-    switch num1 {
-    case let .Integer(v2): return .Success(.BoolAtom(v1 < Double(v2)))
-    case let .Float(v2): return .Success(.BoolAtom(v1 < v2))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-    }
-  case .Invalid:
-    return .Failure(EvalError.nonNumericArgumentError(fn))
-  }
+func pr_lteq(args: [ConsValue], ctx: Context) -> EvalResult {
+  return test(args, ctx, <=, <=, ".<=")
 }
 
 /// Take two numbers and return their sum.

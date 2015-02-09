@@ -94,8 +94,10 @@ The following special forms, reader macros, and functions are built into the int
 - I/O: `read`, `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
-- Comparison: `=`, `==`, `<`, `>`
+- Comparison: `=`, `==`, `<`, `<=` `>`, `>=`
 - Miscellaneous: `read-string`, `rand`, `eval`, `fail`
+
+Additional functions and macros are available as part of the standard library.
 
 
 Development

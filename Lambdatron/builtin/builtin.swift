@@ -71,8 +71,10 @@ public enum BuiltIn : String, Printable {
   // Numeric comparison
   case NumericEquals = ".=="
   case GreaterThan = ".>"
+  case GreaterThanOrEqual = ".>="
   case LessThan = ".<"
-  
+  case LessThanOrEqual = ".<="
+
   // Arithmetic
   case Plus = ".+"
   case Minus = ".-"
@@ -141,7 +143,9 @@ public enum BuiltIn : String, Printable {
     case Equals: return pr_equals
     case NumericEquals: return pr_numericEquals
     case GreaterThan: return pr_gt
+    case GreaterThanOrEqual: return pr_gteq
     case LessThan: return pr_lt
+    case LessThanOrEqual: return pr_lteq
     case Plus: return pr_plus
     case Minus: return pr_minus
     case Multiply: return pr_multiply
