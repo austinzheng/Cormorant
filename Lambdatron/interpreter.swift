@@ -22,7 +22,7 @@ public enum LogDomain : String {
   case Eval = "eval"
 }
 
-typealias LoggingFunction = (String) -> ()
+typealias LoggingFunction = (@autoclosure () -> String) -> ()
 
 /// An opaque type representing a function allowing the interpreter to write output.
 public typealias OutputFunction = (String) -> ()
@@ -84,7 +84,7 @@ public class Interpreter {
   }
 
   /// Given a domain and a message, pass the message on to the appropriate logging function (if one exists).
-  func log(domain: LogDomain, message: String) {
+  func log(domain: LogDomain, message: @autoclosure () -> String) {
     switch domain {
     case .Eval:
       evalLogging?(message)
