@@ -8,7 +8,7 @@
 
 import Foundation
 
-typealias LambdatronSpecialForm = ([ConsValue], Context) -> EvalResult
+typealias LambdatronSpecialForm = (Params, Context) -> EvalResult
 
 /// An enum describing all the special forms recognized by the interpreter.
 public enum SpecialForm : String, Printable {
@@ -50,7 +50,7 @@ public enum SpecialForm : String, Printable {
 // MARK: Special forms
 
 /// Return the argument as its literal value (without performing any evaluation).
-func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_quote(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.Nil)
   }
@@ -59,7 +59,7 @@ func sf_quote(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Evaluate a conditional, and evaluate one or one of two expressions based on its boolean value.
-func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_if(args: Params, ctx: Context) -> EvalResult {
   let fn = "if"
   if args.count != 2 && args.count != 3 {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
@@ -93,26 +93,18 @@ func sf_if(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Evaluate all expressions, returning the value of the final expression.
+func sf_do(args: Params, ctx: Context) -> EvalResult {
+  return do_exprs(args, ctx)
+}
+
+/// Evaluate all expressions, returning the value of the final expression. (This version takes an array instead of a
+/// Params object as its first argument.)
 func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
-  let fn = "do"
-  var finalValue : ConsValue = .Nil
-  for (idx, expr) in enumerate(args) {
-    let result = expr.evaluate(ctx)
-    switch result {
-    case let .Success(result):
-      finalValue = result
-    case .Recur:
-      return (idx == args.count - 1) ? result : .Failure(EvalError(.RecurMisuseError, fn,
-        message: "recur came before the final expression in a do-form"))
-    case .Failure:
-      return result
-    }
-  }
-  return .Success(finalValue)
+  return do_exprs(args, ctx)
 }
 
 /// Bind or re-bind a global identifier, optionally assigning it a value.
-func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_def(args: Params, ctx: Context) -> EvalResult {
   let fn = "def"
   if args.count == 0 || args.count > 2 {
     return .Failure(EvalError.arityError("0 or 2", actual: args.count, fn))
@@ -156,7 +148,7 @@ func sf_def(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Create a new lexical scope in which zero or more symbols are bound to the results of corresponding forms; all forms
 /// after the binding vector are evaluated in an implicit 'do' form within the context of the new scope.
-func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_let(args: Params, ctx: Context) -> EvalResult {
   let fn = "let"
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
@@ -168,8 +160,9 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
     if bindingsVector.count % 2 != 0 {
       return .Failure(EvalError(.BindingMismatchError, fn))
     }
-    // Create a bindings dictionary for our new context
-    var newBindings : [InternedSymbol : Binding] = [:]
+    // Create a new context whose parent is the current context. This new context will be updated in-place for each
+    //  expression in the binding vector that is evaluated.
+    let newContext = ChildContext(parent: ctx)
     var ctr = 0
     while ctr < bindingsVector.count {
       let bindingSymbol = bindingsVector[ctr]
@@ -178,10 +171,10 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(buildContext(parent: ctx, bindings: newBindings))
+        let result = expression.evaluate(newContext)
         switch result {
         case let .Success(result):
-          newBindings[s] = .Literal(result)
+          newContext.pushBinding(.Literal(result), forSymbol: s)
         default: return result
         }
       default:
@@ -190,16 +183,14 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
       }
       ctr += 2
     }
-    // Create a new context, which is a child of the old context
-    let newContext = buildContext(parent: ctx, bindings: newBindings)
     
     // Create an implicit 'do' statement with the remainder of the args
     if args.count == 1 {
       // No additional statements is fine
       return .Success(.Nil)
     }
-    let restOfArgs = Array(args[1..<args.count])
-    let result = sf_do(restOfArgs, newContext)
+    let rest = args.rest()
+    let result = sf_do(rest, newContext)
     return result
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be an binding vector"))
@@ -211,19 +202,19 @@ func sf_let(args: [ConsValue], ctx: Context) -> EvalResult {
 /// values are bound to the parameter symbols, and the body forms are evaluated in an implicit 'do' form. A name can
 /// optionally be provided before the argument vector or first arity list, allowing the function to be referenced from
 /// within itself.
-func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_fn(args: Params, ctx: Context) -> EvalResult {
   let fn = "fn"
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
   let name : InternedSymbol? = args[0].asSymbol()
-  let rest = (name == nil) ? args : Array(args[1..<args.count])
+  let rest = (name == nil) ? args : args.rest()
   if rest.count == 0 {
     return .Failure(EvalError.arityError("at least 2 (if first arg is a name)", actual: args.count, fn))
   }
   if rest[0].asVector() != nil {
     // Single arity
-    let singleArity = buildSingleFnFor(.Vector(rest), ctx: ctx)
+    let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
     if let actualSingleArity = singleArity {
       return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
     }
@@ -247,16 +238,16 @@ func sf_fn(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Define a macro. A macro is defined in a similar manner to a function, except that macros must be bound to a global
 /// binding and cannot be treated as values.
-func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
   let fn = "defmacro"
   if args.count < 2 {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
   }
   if let name = args[0].asSymbol() {
-    let rest = Array(args[1..<args.count])
+    let rest = args.rest()
     if rest[0].asVector() != nil {
       // Single arity
-      let singleArity = buildSingleFnFor(.Vector(rest), ctx: ctx)
+      let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
       if let actualSingleArity = singleArity {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
@@ -297,7 +288,7 @@ func sf_defmacro(args: [ConsValue], ctx: Context) -> EvalResult {
 /// forms which are evaluated within an implicit 'do' form. The loop body may return either a normal value, in which
 /// case the loop terminates, or the value of a 'recur' form, in which case the new arguments are re-bound and the loop
 /// forms are evaluated again.
-func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_loop(args: Params, ctx: Context) -> EvalResult {
   let fn = "loop"
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
@@ -308,7 +299,9 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
     if bindingsVector.count % 2 != 0 {
       return .Failure(EvalError(.BindingMismatchError, fn))
     }
-    var bindings : [InternedSymbol : Binding] = [:]
+    // thisContext is the new context within which the loop executes. If there are any bindings they are added into this
+    //  context.
+    let thisContext = ChildContext(parent: ctx)
     var symbols : [InternedSymbol] = []
     var ctr = 0
     while ctr < bindingsVector.count {
@@ -316,10 +309,10 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
       switch name {
       case let .Symbol(s):
         let expression = bindingsVector[ctr+1]
-        let result = expression.evaluate(buildContext(parent: ctx, bindings: bindings))
+        let result = expression.evaluate(thisContext)
         switch result {
         case let .Success(result):
-          bindings[s] = .Literal(result)
+          thisContext.pushBinding(.Literal(result), forSymbol: s)
         case .Recur:
           return .Failure(EvalError(.RecurMisuseError, fn,
             message: "recur came before the final expression in a loop"))
@@ -333,22 +326,19 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
       }
       ctr += 2
     }
-    let forms = args.count > 1 ? Array(args[1..<args.count]) : []
+    let forms = args.rest()
     // Now, run the loop body
-    var context = bindings.count == 0 ? ctx : buildContext(parent: ctx, bindings: bindings)
     while true {
-      let result = sf_do(forms, context)
+      let result = sf_do(forms, thisContext)
       switch result {
       case let .Recur(newBindingValues):
         // If result is 'recur', we need to rebind and run the loop again from the start.
         if newBindingValues.count != symbols.count {
           return .Failure(EvalError.arityError("\(symbols.count)", actual: newBindingValues.count, fn))
         }
-        var newBindings : [InternedSymbol : Binding] = [:]
         for (idx, newValue) in enumerate(newBindingValues) {
-          newBindings[symbols[idx]] = .Literal(newValue)
+          thisContext[symbols[idx]] = .Literal(newValue)
         }
-        context = bindings.count == 0 ? ctx : buildContext(parent: ctx, bindings: newBindings)
         continue
       case .Success, .Failure:
         return result
@@ -362,11 +352,11 @@ func sf_loop(args: [ConsValue], ctx: Context) -> EvalResult {
 /// When in the context of a function or a loop, indicate that execution of the current iteration has completed and
 /// provide updated bindings for re-running the function or loop as part of tail-call optimized recursion. Use outside
 /// these contexts is considered an error.
-func sf_recur(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_recur(args: Params, ctx: Context) -> EvalResult {
   let fn = "recur"
   // recur can *only* be used inside the context of a 'loop' or a fn declaration
   // Evaluate all arguments, and then create a sentinel value
-  var buffer : [ConsValue] = []
+  var buffer = Params()
   for arg in args {
     let result = arg.evaluate(ctx)
     switch result {
@@ -379,7 +369,7 @@ func sf_recur(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a function, zero or more leading arguments, and a sequence of args, apply the function with the arguments.
-func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_apply(args: Params, ctx: Context) -> EvalResult {
   let fn = "apply"
   if args.count < 2 {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
@@ -387,7 +377,7 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
   let first = args[0].evaluate(ctx)
   let result = next(first) { first in
     // Collect all remaining args
-    var buffer : [ConsValue] = []
+    var buffer = Params()
     
     // Add all leading args (after being evaluated) to the list directly
     for var i=1; i<args.count - 1; i++ {
@@ -412,7 +402,9 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
           buffer.append(item)
         }
       case let .Vector(v):
-        buffer = buffer + v
+        for item in v {
+          buffer.append(item)
+        }
       case let .Map(m):
         for vector in MapSequence(m) {
           buffer.append(vector)
@@ -433,7 +425,7 @@ func sf_apply(args: [ConsValue], ctx: Context) -> EvalResult {
 
 /// Given at least one form, evaluate forms until one of them doesn't return an error, or return the error from the last
 /// form to be executed.
-func sf_attempt(args: [ConsValue], ctx: Context) -> EvalResult {
+func sf_attempt(args: Params, ctx: Context) -> EvalResult {
   let fn = "attempt"
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
@@ -483,7 +475,7 @@ private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSym
 private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
   let itemAsVector : VectorType? = {
     switch item {
-    case let .List(l): return collectSymbols(l)
+    case let .List(l): return collectSymbols(l).asArray
     case let .Vector(v): return v
     default: return nil
     }
@@ -505,3 +497,21 @@ private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
   return nil
 }
 
+/// Given an appropriate generic collection of arguments, run the do special form.
+private func do_exprs<T : CollectionType where T.Generator.Element == ConsValue, T.Index == Int>(args: T, ctx: Context) -> EvalResult {
+  let fn = "do"
+  var finalValue : ConsValue = .Nil
+  for (idx, expr) in enumerate(args) {
+    let result = expr.evaluate(ctx)
+    switch result {
+    case let .Success(result):
+      finalValue = result
+    case .Recur:
+      return (idx == args.endIndex - 1) ? result : .Failure(EvalError(.RecurMisuseError, fn,
+        message: "recur came before the final expression in a do-form"))
+    case .Failure:
+      return result
+    }
+  }
+  return .Success(finalValue)
+}

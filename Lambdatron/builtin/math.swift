@@ -27,7 +27,7 @@ internal func extractNumber(n: ConsValue) -> NumericalType {
 private typealias IntTestFn = (Int, Int) -> Bool
 private typealias DoubleTestFn = (Double, Double) -> Bool
 
-private func test(args: [ConsValue], ctx: Context, ipred: IntTestFn, dpred: DoubleTestFn, fn: String) -> EvalResult {
+private func test(args: Params, ipred: IntTestFn, dpred: DoubleTestFn, fn: String) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
@@ -51,32 +51,32 @@ private func test(args: [ConsValue], ctx: Context, ipred: IntTestFn, dpred: Doub
 }
 
 /// Evaluate the equality of two numeric forms.
-func pr_numericEquals(args: [ConsValue], ctx: Context) -> EvalResult {
-  return test(args, ctx, ==, ==, ".==")
+func pr_numericEquals(args: Params, ctx: Context) -> EvalResult {
+  return test(args, ==, ==, ".==")
 }
 
 /// Evaluate whether arguments are in strictly decreasing order.
-func pr_gt(args: [ConsValue], ctx: Context) -> EvalResult {
-  return test(args, ctx, >, >, ".>")
+func pr_gt(args: Params, ctx: Context) -> EvalResult {
+  return test(args, >, >, ".>")
 }
 
 /// Evaluate whether arguments are in monotonically decreasing order.
-func pr_gteq(args: [ConsValue], ctx: Context) -> EvalResult {
-  return test(args, ctx, >=, >=, ".>=")
+func pr_gteq(args: Params, ctx: Context) -> EvalResult {
+  return test(args, >=, >=, ".>=")
 }
 
 /// Evaluate whether arguments are in strictly increasing order.
-func pr_lt(args: [ConsValue], ctx: Context) -> EvalResult {
-  return test(args, ctx, <, <, ".<")
+func pr_lt(args: Params, ctx: Context) -> EvalResult {
+  return test(args, <, <, ".<")
 }
 
 /// Evaluate whether arguments are in monotonically increasing order.
-func pr_lteq(args: [ConsValue], ctx: Context) -> EvalResult {
-  return test(args, ctx, <=, <=, ".<=")
+func pr_lteq(args: Params, ctx: Context) -> EvalResult {
+  return test(args, <=, <=, ".<=")
 }
 
 /// Take two numbers and return their sum.
-func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_plus(args: Params, ctx: Context) -> EvalResult {
   let fn = ".+"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -110,7 +110,7 @@ func pr_plus(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take two numbers and return their difference.
-func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_minus(args: Params, ctx: Context) -> EvalResult {
   let fn = ".-"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -144,7 +144,7 @@ func pr_minus(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take two numbers and return their product.
-func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_multiply(args: Params, ctx: Context) -> EvalResult {
   let fn = ".*"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -178,7 +178,7 @@ func pr_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take two numbers and return the result of dividing the first by the second.
-func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_divide(args: Params, ctx: Context) -> EvalResult {
   let fn = "./"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -224,7 +224,7 @@ func pr_divide(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take the remainder of two numbers.
-func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_rem(args: Params, ctx: Context) -> EvalResult {
   let fn = ".rem"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -262,7 +262,7 @@ func pr_rem(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take two numbers and return their quotient.
-func pr_quot(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_quot(args: Params, ctx: Context) -> EvalResult {
   let fn = ".quot"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))

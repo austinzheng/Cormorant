@@ -12,13 +12,13 @@ import Foundation
 /// encapsulated in each case.
 enum EvalResult {
   case Success(ConsValue)
-  case Recur([ConsValue])
+  case Recur(Params)
   case Failure(EvalError)
 }
 
 /// The result of collecting arguments for function evaluation.
 enum CollectResult {
-  case Success([ConsValue])
+  case Success(Params)
   case Failure(EvalError)
 }
 
@@ -45,7 +45,7 @@ func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
 /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
 /// to perform argument evaluation as part of the process of calling a function.
 func collectFunctionParams(list : ListType<ConsValue>, ctx: Context) -> CollectResult {
-  var buffer : [ConsValue] = []
+  var buffer = Params()
   for param in list {
     switch param.evaluate(ctx) {
     case let .Success(result):
@@ -62,8 +62,8 @@ func collectFunctionParams(list : ListType<ConsValue>, ctx: Context) -> CollectR
 
 /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended
 /// to collect symbols as part of the process of calling a macro or special form.
-func collectSymbols(list: ListType<ConsValue>) -> [ConsValue] {
-  var buffer : [ConsValue] = []
+func collectSymbols(list: ListType<ConsValue>) -> Params {
+  var buffer = Params()
   for param in list {
     buffer.append(param)
   }
@@ -138,7 +138,7 @@ private func evaluateVector(list: Cons<ConsValue>, vector: VectorType, ctx: Cont
       // behavior.
       return .Failure(EvalError.arityError("1", actual: args.count, "(vector)"))
     }
-    let allArgs : [ConsValue] = [.Vector(vector)] + args
+    let allArgs = args.prefixedBy(.Vector(vector))
     return pr_nth(allArgs, ctx)
   case let .Failure(f): return .Failure(f)
   }
@@ -152,7 +152,7 @@ private func evaluateMap(list: Cons<ConsValue>, map: MapType, ctx: Context) -> E
   // 2. Normal function call
   switch collectFunctionParams(list.next, ctx) {
   case let .Success(args):
-    let allArgs : [ConsValue] = [.Map(map)] + args
+    let allArgs = args.prefixedBy(.Map(map))
     return pr_get(allArgs, ctx)
   case let .Failure(f): return .Failure(f)
   }
@@ -169,14 +169,14 @@ private func evaluateKeyType(list: Cons<ConsValue>, key: ConsValue, ctx: Context
     if !(args.count == 1 || args.count == 2) {
       return .Failure(EvalError.arityError("1 or 2", actual: args.count, "(key type)"))
     }
-    let allArgs : [ConsValue] = [args[0], key] + (args.count == 2 ? [args[1]] : [])
+    let allArgs = args.count == 1 ? Params(args[0], key) : Params(args[0], key, args[1])
     return pr_get(allArgs, ctx)
   case let .Failure(f): return .Failure(f)
   }
 }
 
 /// Apply the values in the array 'args' to the function 'first'.
-func apply(first: ConsValue, args: [ConsValue], ctx: Context, fn: String) -> EvalResult {
+func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResult {
   if let builtIn = first.asBuiltIn() {
     return builtIn(args, ctx)
   }
@@ -185,17 +185,18 @@ func apply(first: ConsValue, args: [ConsValue], ctx: Context, fn: String) -> Eva
   }
   else if first.asVector() != nil {
     return args.count == 1
-      ? pr_nth([first] + args, ctx)
+      ? pr_nth(args.prefixedBy(first), ctx)
       : .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   else if first.asMap() != nil {
-    return pr_get([first] + args, ctx)
+    return pr_get(args.prefixedBy(first), ctx)
   }
   else if first.asSymbol() != nil || first.asKeyword() != nil {
     if !(args.count == 1 || args.count == 2) {
       return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
     }
-    return pr_get([args[0], first] + (args.count == 2 ? [args[1]] : []), ctx)
+    let allArgs = args.count == 1 ? Params(args[0], first) : Params(args[0], first, args[1])
+    return pr_get(allArgs, ctx)
   }
   else {
     return .Failure(EvalError(.NotEvalableError, fn))

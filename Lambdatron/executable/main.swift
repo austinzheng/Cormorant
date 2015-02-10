@@ -17,7 +17,7 @@ private func fileDataForRawPath(p: String) -> String? {
 }
 
 private enum DoFormFileDataResult {
-  case Success([ConsValue])
+  case Success(Params)
   case NoDataFailure
   case ParseFailure(ParseError)
   case ReaderExpandFailure(ReaderError)
@@ -25,7 +25,7 @@ private enum DoFormFileDataResult {
 
 private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult {
   if let segments = segmentsForFile(d) {
-    var buffer : [ConsValue] = []
+    var buffer = Params()
     for segment in segments {
       switch parse(segment, ctx) {
       case let .Success(parsedData):

@@ -65,59 +65,76 @@ struct SingleFn {
     return variadicParameter != nil
   }
 
-  func bindToNewContext(arguments: [ConsValue], ctx: Context, asRecur: Bool) -> Context? {
+  /// Given a child context and a new set of arguments, rebind the arguments in-place. This method is only intended to
+  /// be used when a function is run again because of the 'recur' special form.
+  private func rebindArguments(arguments: Params, toContext ctx: ChildContext) -> Bool {
+    // Precondition: arguments has an appropriate number of arguments for the function
+    // Create the bindings. One binding per parameter
+    if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
+      return false
+    }
+    for (idx, parameter) in enumerate(parameters) {
+      let argument : Binding = .Param(arguments[idx])
+      ctx[parameter] = argument
+    }
+    if let variadicParameter = variadicParameter {
+      // If we're rebinding parameters, we MUST have a vararg if the function signature specifies a vararg.
+      // This matches Clojure's behavior.
+      if arguments.count != parameters.count + 1 {
+        return false
+      }
+      // Bind the last argument directly to the vararg param; because of the above check 'last' will always be valid
+      ctx[variadicParameter] = .Literal(arguments.last!)
+    }
+    return true
+  }
+
+  private func bindToNewContext(arguments: Params, ctx: Context) -> ChildContext? {
     // Precondition: arguments has an appropriate number of arguments for the function
     // Create the bindings. One binding per parameter
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
       return nil
     }
-    var bindings : [InternedSymbol : Binding] = [:]
+    let newContext = ChildContext(parent: ctx)
     var i=0
     for ; i<parameters.count; i++ {
-      bindings[parameters[i]] = .Param(arguments[i])
+      newContext.pushBinding(.Param(arguments[i]), forSymbol: parameters[i])
     }
     if let variadicParameter = variadicParameter {
-      if asRecur {
-        // If we're rebinding parameters, we MUST have a vararg if the function signature specifies a vararg.
-        // This matches Clojure's behavior.
-        if arguments.count != parameters.count + 1 {
-          return nil
+      // Add the rest of the arguments (if any) to the vararg vector
+      if arguments.count > parameters.count {
+        var varargBuffer : [ConsValue] = []
+        for var j=i; j<arguments.count; j++ {
+          varargBuffer.append(arguments[j])
         }
-        // Bind the last argument directly to the vararg param; because of the above check 'last' will always be valid
-        bindings[variadicParameter] = .Literal(arguments.last!)
+        newContext.pushBinding(.Literal(.List(listFromCollection(varargBuffer))), forSymbol: variadicParameter)
       }
       else {
-        // Add the rest of the arguments (if any) to the vararg vector
-        if arguments.count > parameters.count {
-          let rest = Array(arguments[i..<arguments.count])
-          bindings[variadicParameter] = .Literal(.List(listFromCollection(rest)))
-        }
-        else {
-          bindings[variadicParameter] = .Literal(.Nil)
-        }
+        newContext.pushBinding(.Literal(.Nil), forSymbol: variadicParameter)
       }
     }
-    let newContext = buildContext(parent: ctx, bindings: bindings)
     return newContext
   }
 
-  func evaluate(arguments: [ConsValue], _ ctx: Context) -> EvalResult {
+  func evaluate(arguments: Params, _ ctx: Context) -> EvalResult {
     // Create the context, then perform a 'do' with the body of the function
-    var possibleContext : Context? = bindToNewContext(arguments, ctx: ctx, asRecur: false)
-    while true {
-      if let newContext = possibleContext {
-        let result = sf_do(forms, newContext)
+    let activeContext = bindToNewContext(arguments, ctx: ctx)
+    if let activeContext = activeContext {
+      while true {
+        let result = sf_do(forms, activeContext)
         switch result {
         case let .Recur(newBindings):
           // If result is 'recur', we need to rebind and run the function again from the start.
-          possibleContext = bindToNewContext(newBindings, ctx: ctx, asRecur: true)
-          continue
+          let success = rebindArguments(newBindings, toContext: activeContext)
+          if !success {
+            return .Failure(EvalError(.ArityError, "(user-defined function)"))
+          }
         case .Success, .Failure:
           return result
         }
       }
-      return .Failure(EvalError(.ArityError, "(user-defined function)"))
     }
+    return .Failure(EvalError(.ArityError, "(user-defined function)"))
   }
 }
 
@@ -143,14 +160,16 @@ public class Function : Printable {
     self.variadic = variadic
     // Bind the context, based on whether or not we provided an actual name
     if let actualName = name {
-      context = buildContext(parent: ctx, bindings: [actualName : .Literal(.FunctionLiteral(self))])
+      let newContext = ChildContext(parent: ctx)
+      newContext.pushBinding(.Literal(.FunctionLiteral(self)), forSymbol: actualName)
+      context = newContext
     }
     else {
       context = ctx
     }
   }
   
-  func evaluate(arguments: [ConsValue]) -> EvalResult {
+  func evaluate(arguments: Params) -> EvalResult {
     // Note that this method doesn't take an external context. This is because there are only two possible contexts:
     //  1. the values bound to the formal parameters
     //  2. any values captured when the function was defined (NOT executed)
@@ -197,7 +216,7 @@ final internal class Macro : Function {
     }
   }
 
-  func macroexpand(arguments: [ConsValue]) -> EvalResult {
+  func macroexpand(arguments: Params) -> EvalResult {
     return super.evaluate(arguments)
   }
 

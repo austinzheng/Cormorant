@@ -9,7 +9,7 @@
 import Foundation
 
 /// Evaluate the equality of one or more forms.
-func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_equals(args: Params, ctx: Context) -> EvalResult {
   let fn = ".="
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -18,7 +18,7 @@ func pr_equals(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Read in a string from the host interpreter's readInput function, and then expand it into a Lambdatron form.
-func pr_read(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_read(args: Params, ctx: Context) -> EvalResult {
   let fn = ".read"
   if args.count != 0 {
     return .Failure(EvalError.runtimeError(fn, message: "Custom readers are not supported"))
@@ -33,7 +33,7 @@ func pr_read(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a string as an argument, read and expand it into a Lambdatron form.
-func pr_readString(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_readString(args: Params, ctx: Context) -> EvalResult {
   let fn = ".read-string"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -47,17 +47,17 @@ func pr_readString(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Print zero or more args to screen. Returns nil.
-func pr_print(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_print(args: Params, ctx: Context) -> EvalResult {
   return printOrPrintln(args, ctx, false)
 }
 
 /// Print zero or more args to screen, followed by a trailing newline. Returns nil.
-func pr_println(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_println(args: Params, ctx: Context) -> EvalResult {
   return printOrPrintln(args, ctx, true)
 }
 
 /// Return a random number between 0 (inclusive) and 1 (exclusive).
-func pr_rand(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_rand(args: Params, ctx: Context) -> EvalResult {
   let fn = ".rand"
   if args.count != 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
@@ -67,7 +67,7 @@ func pr_rand(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Evaluate a given form and return the result.
-func pr_eval(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_eval(args: Params, ctx: Context) -> EvalResult {
   let fn = ".eval"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -76,7 +76,7 @@ func pr_eval(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Force a failure. Call with zero arguments or a string containing an error message.
-func pr_fail(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_fail(args: Params, ctx: Context) -> EvalResult {
   let fn = ".fail"
   let message = args.first?.asString() ?? "(fail was called)"
   return .Failure(EvalError.runtimeError(fn, message: message))
@@ -104,14 +104,14 @@ private func readString(string: String, ctx: Context, fn: String) -> EvalResult 
 }
 
 /// Print zero or more args to screen, either with or without a trailing newline.
-private func printOrPrintln(args: [ConsValue], ctx: Context, isPrintln: Bool) -> EvalResult {
+private func printOrPrintln(args: Params, ctx: Context, isPrintln: Bool) -> EvalResult {
   func toString(v: ConsValue) -> String {
     switch v {
     case let .StringAtom(s): return s
     default: return v.describe(ctx)
     }
   }
-  let descs = args.map(toString)
+  let descs = map(args, toString)
   let outStr = descs.count > 0 ? join(" ", descs) : ""
   ctx.writeOutput?(isPrintln ? outStr + "\n" : outStr)
   return .Success(.Nil)

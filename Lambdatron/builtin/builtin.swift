@@ -8,7 +8,7 @@
 
 import Foundation
 
-typealias LambdatronBuiltIn = ([ConsValue], Context) -> EvalResult
+typealias LambdatronBuiltIn = (Params, Context) -> EvalResult
 
 /// An enum describing every built-in function included with the interpreter.
 public enum BuiltIn : String, Printable {

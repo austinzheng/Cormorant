@@ -131,6 +131,13 @@ class TestFunctionEvaluation : InterpreterTest {
     runCode("(def a false)")
     expectThat("(testFunc)", shouldEvalTo: .BoolAtom(false))
   }
+
+  /// A function with more than 16 arguments should capture their values correctly.
+  func testManyArgFunction() {
+    runCode("(def testFunc (fn [a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19] (.print a0) (.print a1) (.print a2) (.print a3) (.print a4) (.print a5) (.print a6) (.print a7) (.print a8) (.print a9) (.print a10) (.print a11) (.print a12) (.print a13) (.print a14) (.print a15) (.print a16) (.print a17) (.print a18) (.print a19) (.print a0)))")
+    runCode("(testFunc \\a \\b \\c \\d \\e \\f \\g \\h \\i \\j \\k \\l \\m \\n \\o \\p \\q \\r \\s \\t)")
+    expectOutputBuffer(toBe: "\\a\\b\\c\\d\\e\\f\\g\\h\\i\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\t\\a")
+  }
 }
 
 /// Test the way macros are evaluated.

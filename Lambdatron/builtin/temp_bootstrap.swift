@@ -12,8 +12,12 @@ import Swift
 // NOTE: This file contains definitions for math functions where it's currently not possible to implement directly in
 // lbt code efficiently, and potentially other bootstrap code. It will eventually be deleted.
 
-func bootstrap_preprocess(args: [ConsValue]) -> [ConsValue] {
-  return args[0..<args.count - 1] + collectSymbols(args[args.count - 1].asList()!)
+func bootstrap_preprocess(args: Params) -> [ConsValue] {
+  var buffer : [ConsValue] = []
+  for var i=0; i<args.count - 1; i++ {
+    buffer.append(args[i])
+  }
+  return buffer + collectSymbols(args[args.count - 1].asList()!)
 }
 
 /// Build initial state for first argument for a mathematical operation. This method returns a tuple containing an
@@ -36,7 +40,7 @@ private enum NumericalMode {
 }
 
 /// Take an arbitrary number of numbers and return their sum.
-func bootstrap_plus(args: [ConsValue], ctx: Context) -> EvalResult {
+func bootstrap_plus(args: Params, ctx: Context) -> EvalResult {
   let args = bootstrap_preprocess(args)
   var mode : NumericalMode = .Integer
   var intAccum : Int = 0
@@ -72,7 +76,7 @@ func bootstrap_plus(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take one or more numbers and return their difference. If only one number, returns 0-arg[0].
-func bootstrap_minus(args: [ConsValue], ctx: Context) -> EvalResult {
+func bootstrap_minus(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError(.ArityError, "bootstrap"))
   }
@@ -125,7 +129,7 @@ func bootstrap_minus(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take an arbitrary number of numbers  and return their product.
-func bootstrap_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
+func bootstrap_multiply(args: Params, ctx: Context) -> EvalResult {
   var mode : NumericalMode = .Integer
   var intAccum : Int = 1
   var floatAccum : Double = 1.0
@@ -161,7 +165,7 @@ func bootstrap_multiply(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Take one or more numbers and return their quotient. If only one number, returns 1/arg[0].
-func bootstrap_divide(args: [ConsValue], ctx: Context) -> EvalResult {
+func bootstrap_divide(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError(.ArityError, "bootstrap"))
   }

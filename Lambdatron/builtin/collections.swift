@@ -9,7 +9,7 @@
 import Foundation
 
 /// Given zero or more arguments, construct a list whose components are the arguments (or the empty list).
-func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_list(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.List(Empty()))
   }
@@ -18,12 +18,12 @@ func pr_list(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given zero or more arguments, construct a vector whose components are the arguments (or the empty vector).
-func pr_vector(args: [ConsValue], ctx: Context) -> EvalResult {
-  return .Success(.Vector(args))
+func pr_vector(args: Params, ctx: Context) -> EvalResult {
+  return .Success(.Vector(args.asArray))
 }
 
 /// Given zero or more arguments, construct a map whose components are the keys and values (or the empty map).
-func pr_hashmap(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_hashmap(args: Params, ctx: Context) -> EvalResult {
   let fn = ".hashmap"
   if args.count % 2 != 0 {
     // Must have an even number of arguments
@@ -39,7 +39,7 @@ func pr_hashmap(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a prefix and a list argument, return a new list where the prefix is followed by the list argument.
-func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_cons(args: Params, ctx: Context) -> EvalResult {
   let fn = ".cons"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -53,7 +53,7 @@ func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
   case let .StringAtom(s):
     // Create a new list consisting of the first object, followed by the seq of the string
     let list = listFromString(s)
-    return pr_cons([first, list], ctx)
+    return pr_cons(Params(first, list), ctx)
   case let .List(l):
     // Create a new list consisting of the first object followed by the second list (which can be empty)
     return .Success(.List(Cons(first, next: l)))
@@ -72,7 +72,7 @@ func pr_cons(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the first item.
-func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_first(args: Params, ctx: Context) -> EvalResult {
   let fn = ".first"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -82,7 +82,7 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
   case .Nil:
     return .Success(.Nil)
   case let .StringAtom(s):
-    return pr_first([listFromString(s)], ctx)
+    return pr_first(Params(listFromString(s)), ctx)
   case let .List(l):
     return .Success(l.getValue() ?? .Nil)
   case let .Vector(v):
@@ -96,7 +96,7 @@ func pr_first(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first.
-func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_rest(args: Params, ctx: Context) -> EvalResult {
   let fn = ".rest"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -105,7 +105,7 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
   switch first {
   case .Nil: return .Success(.List(Empty()))
   case let .StringAtom(s):
-    return pr_rest([listFromString(s)], ctx)
+    return pr_rest(Params(listFromString(s)), ctx)
   case let .List(list):
     switch list {
     case let list as Cons<ConsValue>:
@@ -141,7 +141,7 @@ func pr_rest(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first, or nil if there are no more items.
-func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_next(args: Params, ctx: Context) -> EvalResult {
   let fn = ".next"
   // NOTE: This function appears identical to pr_rest, except for returning .Nil instead of the empty list when there
   //  are no more items. I expect this code to diverge if/when lazy seqs are ever implemented, and so it is copied over
@@ -153,7 +153,7 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
   switch first {
   case .Nil: return .Success(.Nil)
   case let .StringAtom(s):
-    return pr_next([listFromString(s)], ctx)
+    return pr_next(Params(listFromString(s)), ctx)
   case let .List(list):
     switch list {
     case let list as Cons<ConsValue>:
@@ -191,7 +191,7 @@ func pr_next(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a single sequence, return nil (if empty) or a list built out of that sequence.
-func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_seq(args: Params, ctx: Context) -> EvalResult {
   let fn = ".seq"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -217,7 +217,7 @@ func pr_seq(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a collection and an item to 'add' to the collection, return a new collection with the added item.
-func pr_conj(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_conj(args: Params, ctx: Context) -> EvalResult {
   let fn = ".conj"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -228,7 +228,7 @@ func pr_conj(args: [ConsValue], ctx: Context) -> EvalResult {
   case .Nil:
     return .Success(.List(Cons(toAdd)))
   case .List:
-    return pr_cons([toAdd, coll], ctx)
+    return pr_cons(Params(toAdd, coll), ctx)
   case let .Vector(vector):
     return .Success(.Vector(vector + [toAdd]))
   case let .Map(m):
@@ -251,7 +251,7 @@ func pr_conj(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
-func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_concat(args: Params, ctx: Context) -> EvalResult {
   let fn = ".concat"
   if args.count == 0 {
     return .Success(.List(Empty()))
@@ -286,7 +286,7 @@ func pr_concat(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence and an index, return the item at that index, or return an optional 'not found' value.
-func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_nth(args: Params, ctx: Context) -> EvalResult {
   let fn = ".nth"
   if args.count < 2 || args.count > 3 {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
@@ -346,7 +346,7 @@ func pr_nth(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value.
-func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_get(args: Params, ctx: Context) -> EvalResult {
   let fn = ".get"
   if args.count < 2 || args.count > 3 {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
@@ -377,9 +377,9 @@ func pr_get(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a supported collection and one or more key-value pairs, associate the new values with the keys.
-func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_assoc(args: Params, ctx: Context) -> EvalResult {
   let fn = ".assoc"
-  func updateMapFromArray(raw: [ConsValue], inout starting: MapType) {
+  func updateMapFromArray(raw: Params, inout starting: MapType) {
     for var i=0; i<raw.count - 1; i += 2 {
       let key = raw[i]
       let value = raw[i+1]
@@ -387,7 +387,7 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
     }
   }
 
-  func updateVectorFromArray(raw: [ConsValue], inout buffer: VectorType, count: Int) -> EvalError? {
+  func updateVectorFromArray(raw: Params, inout buffer: VectorType, count: Int) -> EvalError? {
     for var i=0; i<raw.count - 1; i += 2 {
       let idx = raw[i]
       if let idx = idx.asInteger() {
@@ -412,7 +412,7 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("3 or more", actual: args.count, fn))
   }
   // Collect all arguments after the first one
-  let rest = Array(args[1..<args.count])
+  let rest = args.rest()
   if rest.count % 2 != 0 {
     // Must have an even number of key/index-value pairs
     return .Failure(EvalError.arityError("even number", actual: args.count, fn))
@@ -442,7 +442,7 @@ func pr_assoc(args: [ConsValue], ctx: Context) -> EvalResult {
 }
 
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
-func pr_dissoc(args: [ConsValue], ctx: Context) -> EvalResult {
+func pr_dissoc(args: Params, ctx: Context) -> EvalResult {
   let fn = ".dissoc"
   if args.count < 1 {
     return .Failure(EvalError.arityError("> 1", actual: args.count, fn))

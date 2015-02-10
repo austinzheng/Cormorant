@@ -141,7 +141,7 @@ private class BaseContext {
 
 /// A class representing the root context for a given interpreter instance. This context is responsible for interning
 /// keywords and symbols, producing gensyms, and certain other responsibilities.
-private class RootContext : BaseContext, Context {
+private final class RootContext : BaseContext, Context {
   unowned let interpreter : Interpreter
   let globalContext = GlobalContext.sharedInstance
 
@@ -218,7 +218,7 @@ private var globalContextInstance : GlobalContext? = nil
 
 /// A class representing the shared base context. This is a global read-only context that every interpreter uses. It
 /// contains only the standard library and predefined symbols/keywords.
-final private class GlobalContext : BaseContext, Context {
+private final class GlobalContext : BaseContext, Context {
 
   var root : Context { return self }
 
@@ -281,10 +281,14 @@ final private class GlobalContext : BaseContext, Context {
 }
 
 /// A class representing a context representing any lexical scope beneath the global scope.
-private class ChildContext : Context {
-  var bindings : [InternedSymbol : Binding] = [:]
-  let parent : Context
+final class ChildContext : Context {
+  private var otherBindings : [InternedSymbol : Binding]? = nil
+  private let parent : Context
   let root : Context
+
+  // A ChildContext houses up to 16 symbols locally. This allows it to avoid using the dictionary if possible.
+  var b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15 : (symbol: InternedSymbol, binding: Binding)?
+  private var count = 0
 
   func varIsValid(symbol: InternedSymbol) -> Bool {
     return root.varIsValid(symbol)
@@ -314,15 +318,207 @@ private class ChildContext : Context {
     root.setVar(name, value: value)
   }
 
-  subscript(x: InternedSymbol) -> Binding {
-    get { return bindings[x] ?? parent[x] }
-    set { bindings[x] = newValue }
+  /// Push a binding into the context.
+  func pushBinding(binding: Binding, forSymbol symbol: InternedSymbol) {
+    if findBindingForSymbol(symbol) != nil {
+      updateBinding(binding, forSymbol: symbol)
+      return
+    }
+    switch count {
+    case 0: b0 = (symbol, binding)
+    case 1: b1 = (symbol, binding)
+    case 2: b2 = (symbol, binding)
+    case 3: b3 = (symbol, binding)
+    case 4: b4 = (symbol, binding)
+    case 5: b5 = (symbol, binding)
+    case 6: b6 = (symbol, binding)
+    case 7: b7 = (symbol, binding)
+    case 8: b8 = (symbol, binding)
+    case 9: b9 = (symbol, binding)
+    case 10: b10 = (symbol, binding)
+    case 11: b11 = (symbol, binding)
+    case 12: b12 = (symbol, binding)
+    case 13: b13 = (symbol, binding)
+    case 14: b14 = (symbol, binding)
+    case 15: b15 = (symbol, binding)
+    default:
+      if otherBindings != nil {
+        self.otherBindings?[symbol] = binding
+      }
+      else {
+        otherBindings = [symbol : binding]
+      }
+    }
+    count += 1
   }
 
-  init(parent: Context, bindings: [InternedSymbol : Binding]) {
+  /// Given a symbol, try to look up the corresponding binding.
+  private func findBindingForSymbol(symbol: InternedSymbol) -> Binding? {
+    if let b0 = b0 {
+      if b0.symbol == symbol { return b0.binding }
+    }
+    if let b1 = b1 {
+      if b1.symbol == symbol { return b1.binding }
+    }
+    if let b2 = b2 {
+      if b2.symbol == symbol { return b2.binding }
+    }
+    if let b3 = b3 {
+      if b3.symbol == symbol { return b3.binding }
+    }
+    if let b4 = b4 {
+      if b4.symbol == symbol { return b4.binding }
+    }
+    if let b5 = b5 {
+      if b5.symbol == symbol { return b5.binding }
+    }
+    if let b6 = b6 {
+      if b6.symbol == symbol { return b6.binding }
+    }
+    if let b7 = b7 {
+      if b7.symbol == symbol { return b7.binding }
+    }
+    if let b8 = b8 {
+      if b8.symbol == symbol { return b8.binding }
+    }
+    if let b9 = b9 {
+      if b9.symbol == symbol { return b9.binding }
+    }
+    if let b10 = b10 {
+      if b10.symbol == symbol { return b10.binding }
+    }
+    if let b11 = b11 {
+      if b11.symbol == symbol { return b11.binding }
+    }
+    if let b12 = b12 {
+      if b12.symbol == symbol { return b12.binding }
+    }
+    if let b13 = b13 {
+      if b13.symbol == symbol { return b13.binding }
+    }
+    if let b14 = b14 {
+      if b14.symbol == symbol { return b14.binding }
+    }
+    if let b15 = b15 {
+      if b15.symbol == symbol { return b15.binding }
+    }
+    return otherBindings?[symbol]
+  }
+
+  /// Given a symbol which should already exist in the context, update its value. The precondition is that the symbol
+  /// already exists in the context (otherwise, the pushBinding function should be used to add it).
+  private func updateBinding(binding: Binding, forSymbol symbol: InternedSymbol) {
+    if let b0 = b0 {
+      if b0.symbol == symbol {
+        self.b0 = (symbol, binding)
+        return
+      }
+    }
+    if let b1 = b1 {
+      if b1.symbol == symbol {
+        self.b1 = (symbol, binding)
+        return
+      }
+    }
+    if let b2 = b2 {
+      if b2.symbol == symbol {
+        self.b2 = (symbol, binding)
+        return
+      }
+    }
+    if let b3 = b3 {
+      if b3.symbol == symbol {
+        self.b3 = (symbol, binding)
+        return
+      }
+    }
+    if let b4 = b4 {
+      if b4.symbol == symbol {
+        self.b4 = (symbol, binding)
+        return
+      }
+    }
+    if let b5 = b5 {
+      if b5.symbol == symbol {
+        self.b5 = (symbol, binding)
+        return
+      }
+    }
+    if let b6 = b6 {
+      if b6.symbol == symbol {
+        self.b6 = (symbol, binding)
+        return
+      }
+    }
+    if let b7 = b7 {
+      if b7.symbol == symbol {
+        self.b7 = (symbol, binding)
+        return
+      }
+    }
+    if let b8 = b8 {
+      if b8.symbol == symbol {
+        self.b8 = (symbol, binding)
+        return
+      }
+    }
+    if let b9 = b9 {
+      if b9.symbol == symbol {
+        self.b9 = (symbol, binding)
+        return
+      }
+    }
+    if let b10 = b10 {
+      if b10.symbol == symbol {
+        self.b10 = (symbol, binding)
+        return
+      }
+    }
+    if let b11 = b11 {
+      if b11.symbol == symbol {
+        self.b11 = (symbol, binding)
+        return
+      }
+    }
+    if let b12 = b12 {
+      if b12.symbol == symbol {
+        self.b12 = (symbol, binding)
+        return
+      }
+    }
+    if let b13 = b13 {
+      if b13.symbol == symbol {
+        self.b13 = (symbol, binding)
+        return
+      }
+    }
+    if let b14 = b14 {
+      if b14.symbol == symbol {
+        self.b14 = (symbol, binding)
+        return
+      }
+    }
+    if let b15 = b15 {
+      if b15.symbol == symbol {
+        self.b15 = (symbol, binding)
+        return
+      }
+    }
+    if let value = otherBindings?[symbol] {
+      self.otherBindings?[symbol] = value
+      return
+    }
+    internalError("Previously-existing binding was not found. This is an interpreter logic error.")
+  }
+
+  subscript(x: InternedSymbol) -> Binding {
+    get { return findBindingForSymbol(x) ?? parent[x] }
+    set { updateBinding(newValue, forSymbol: x) }
+  }
+
+  init(parent: Context) {
     self.parent = parent
     root = parent.root
-    self.bindings = bindings
   }
 
   func log(domain: LogDomain, message: @autoclosure () -> String) {
@@ -337,9 +533,4 @@ private class ChildContext : Context {
 /// Return a new root Context.
 func buildRootContext(# interpreter: Interpreter) -> Context {
   return RootContext(interpreter: interpreter)
-}
-
-/// Given a context and additional bindings, return a new child Context.
-func buildContext(# parent: Context, # bindings: [InternedSymbol : Binding]) -> Context {
-  return ChildContext(parent: parent, bindings: bindings)
 }
