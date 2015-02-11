@@ -239,17 +239,18 @@ extension Params {
 private func charLiteralDesc(char: Character) -> String {
   let backspace = Character(UnicodeScalar(8))
   let formfeed = Character(UnicodeScalar(12))
-  let name : String = {
-    switch char {
-    case "\n": return "newline"
-    case "\r": return "return"
-    case " ": return "space"
-    case "\t": return "tab"
-    case backspace: return "backspace"
-    case formfeed: return "formfeed"
-    default: return "\(char)"
-    }
-    }()
+
+  let name : String
+  switch char {
+  case "\n": name = "newline"
+  case "\r": name = "return"
+  case " ": name = "space"
+  case "\t": name = "tab"
+  case backspace: name = "backspace"
+  case formfeed: name = "formfeed"
+  default: name = "\(char)"
+  }
+
   return "\\" + name
 }
 

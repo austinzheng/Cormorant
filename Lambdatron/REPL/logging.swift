@@ -22,7 +22,7 @@ class LoggingManager {
     evalLoggingEnabled = enabled
   }
 
-  func logEval(message: @autoclosure () -> String) {
+  func logEval(message: () -> String) {
     let type = LogDomain.Eval.rawValue
     if evalLoggingEnabled {
       println("LOG (\(type)): \(message())")

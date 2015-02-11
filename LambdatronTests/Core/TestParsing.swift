@@ -68,14 +68,12 @@ class TestFloatingPointParsing : InterpreterTest {
   }
 
   func testParsingNegativeNumber() {
-    // TODO: Fix this when Swift 1.2 is released
-    expectThat("-29128.6812", shouldEvalTo: .FloatAtom(-29128.6812))
+    expectThat("-29128.6812", shouldEvalTo: -29128.6812)
   }
 
   /// The lexer and parser should properly parse floating-point numbers in the context of a collection.
   func testInCollection() {
-    // TODO: fix this when Swift 1.2 is released
-    expectThat("'(0.00012 3190.0 -1234.5)", shouldEvalTo: listWithItems(0.00012, 3190.0, .FloatAtom(-1234.5)))
+    expectThat("'(0.00012 3190.0 -1234.5)", shouldEvalTo: listWithItems(0.00012, 3190.0, -1234.5))
   }
 }
 

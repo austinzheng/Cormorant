@@ -105,7 +105,7 @@ private func unwrapAndProcessSeqResult(result: SeqResult, f: SeqType -> EvalResu
 
 /// Evaluate a list with a special form in function position.
 private func evaluateSpecialForm(specialForm: SpecialForm, parameters: SeqResult, ctx: Context) -> EvalResult {
-//  ctx.log(.Eval, message: "evaluating as special form: \(describeList(list, ctx))")
+//  ctx.log(.Eval) { "evaluating as special form: \(describeList(list, ctx))" }
   // How it works:
   // 1. Arguments are passed in as-is
   // 2. The special form decides whether or not to evaluate or use the arguments
@@ -123,7 +123,7 @@ private func evaluateSpecialForm(specialForm: SpecialForm, parameters: SeqResult
 
 /// Evaluate a list with a built-in function in function position.
 private func evaluateBuiltIn(builtIn: BuiltIn, arguments: SeqResult, ctx: Context) -> EvalResult {
-//  ctx.log(.Eval, message: "evaluating as built-in function: \(describeList(list, ctx))")
+//  ctx.log(.Eval) { "evaluating as built-in function: \(describeList(list, ctx))" }
   return unwrapAndProcessSeqResult(arguments) { arguments in
     switch collectFunctionParams(arguments, ctx) {
     case let .Success(values): return builtIn.function(values, ctx)
@@ -134,7 +134,7 @@ private func evaluateBuiltIn(builtIn: BuiltIn, arguments: SeqResult, ctx: Contex
 
 /// Expand and evaluate a list with a macro in function position.
 private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) -> EvalResult {
-//  ctx.log(.Eval, message: "evaluating as macro expansion: \(describeList(list,ctx))")
+//  ctx.log(.Eval) { "evaluating as macro expansion: \(describeList(list,ctx))" }
   // How it works:
   // 1. Arguments are passed in as-is
   // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
@@ -146,7 +146,7 @@ private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) ->
       let expanded = macro.macroexpand(symbols)
       switch expanded {
       case let .Success(v):
-        ctx.log(.Eval, message: "macroexpansion complete; new form: \(v.describe(ctx))")
+        ctx.log(.Eval) { "macroexpansion complete; new form: \(v.describe(ctx))" }
         let result = v.evaluate(ctx)
         return result
       case .Recur, .Failure: return expanded
@@ -173,7 +173,7 @@ private func evaluateFunction(function: Function, arguments: SeqResult, ctx: Con
 
 /// Evaluate a list with a vector in function position.
 private func evaluateVector(vector: VectorType, arguments: SeqResult, ctx: Context) -> EvalResult {
-//  ctx.log(.Eval, message: "evaluating with vector in function position: \(describeList(list, ctx))")
+//  ctx.log(.Eval) { "evaluating with vector in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
   // 2. Normal function call
@@ -194,7 +194,7 @@ private func evaluateVector(vector: VectorType, arguments: SeqResult, ctx: Conte
 
 /// Evaluate a list with a map in function position.
 private func evaluateMap(map: MapType, arguments: SeqResult, ctx: Context) -> EvalResult {
-//  ctx.log(.Eval, message: "evaluating with map in function position: \(describeList(list, ctx))")
+//  { "evaluating with map in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*map* *args*...) is translated into (get *map* *args*...).
   // 2. Normal function call
@@ -210,7 +210,7 @@ private func evaluateMap(map: MapType, arguments: SeqResult, ctx: Context) -> Ev
 
 /// Evaluate a list with a symbol or keyword in function position.
 private func evaluateKeyType(key: ConsValue, arguments: SeqResult, ctx: Context) -> EvalResult {
-//  ctx.log(.Eval, message: "evaluating symbol or keyword in function position: \(describeList(list, ctx))")
+//  ctx.log(.Eval) { "evaluating symbol or keyword in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*key* *map* *fallback*) is translated into (get *map* *key* *fallback*).
   // 2. Normal function call
@@ -230,25 +230,25 @@ private func evaluateKeyType(key: ConsValue, arguments: SeqResult, ctx: Context)
 /// Apply the values in the Params object 'args' to the function 'first'.
 func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResult {
   if let builtIn = first.asBuiltIn {
-    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))")
+    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))" }
     return builtIn.function(args, ctx)
   }
   else if let function = first.asFunction {
-    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to function \(first.describe(ctx))")
+    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to function \(first.describe(ctx))" }
     return function.evaluate(args)
   }
   else if first.asVector != nil {
-    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to vector \(first.describe(ctx))")
+    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to vector \(first.describe(ctx))" }
     return args.count == 1
       ? pr_nth(args.prefixedBy(first), ctx)
       : .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   else if first.asMap != nil {
-    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to map \(first.describe(ctx))")
+    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to map \(first.describe(ctx))" }
     return pr_get(args.prefixedBy(first), ctx)
   }
   else if first.asSymbol != nil || first.asKeyword != nil {
-    ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to symbol or keyword \(first.describe(ctx))")
+    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to symbol or keyword \(first.describe(ctx))" }
     if !(args.count == 1 || args.count == 2) {
       return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
     }
@@ -256,7 +256,7 @@ func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResu
     return pr_get(allArgs, ctx)
   }
   else {
-    ctx.log(.Eval, message: "unable to apply arguments: \(args.describe(ctx)) to non-evalable \(first.describe(ctx))")
+    ctx.log(.Eval) { "unable to apply arguments: \(args.describe(ctx)) to non-evalable \(first.describe(ctx))" }
     return .Failure(EvalError(.NotEvalableError, fn))
   }
 }

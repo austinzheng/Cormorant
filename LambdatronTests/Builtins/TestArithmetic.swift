@@ -58,8 +58,7 @@ class TestMinus : InterpreterTest {
   /// Subtraction with mixed types should work.
   func testMixed() {
     expectThat("(.- 915 1.112)", shouldEvalTo: 913.888)
-    // TODO: remove the .FloatAtom wrapper in Swift 1.2
-    expectThat("(.- 1.112 915)", shouldEvalTo: .FloatAtom(-913.888))
+    expectThat("(.- 1.112 915)", shouldEvalTo: -913.888)
   }
 
   /// Integer subtraction should trap overflow.

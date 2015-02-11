@@ -19,7 +19,7 @@ class TestDescribing : InterpreterTest {
       let finalName = resourcePath + filename
       let strs = NSString(contentsOfFile: finalName, encoding: NSUTF8StringEncoding, error: nil)
       if let strs = strs as? String {
-        return split(strs, { $0 == "\n" }, maxSplit: Int.max, allowEmptySlices: false)
+        return split(strs, maxSplit: Int.max, allowEmptySlices: false) { $0 == "\n" }
       }
     }
     fatalError("ERROR! Could not load strings from test support file \(filename)")

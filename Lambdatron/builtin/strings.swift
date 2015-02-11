@@ -160,7 +160,7 @@ private func replaceWithString(s: String, m: String, replacement: String, firstO
   let template = NSRegularExpression.escapedTemplateForString(replacement)
   switch constructRegex(match) {
   case let .Success(regex):
-    let stringRange = NSRange(location: 0, length: s.utf16Count)
+    let stringRange = NSRange(location: 0, length: count(s.utf16))
     let searchRange = firstOnly ? regex.rangeOfFirstMatchInString(s, options: nil, range: stringRange) : stringRange
     let newStr = (rangeIsValid(searchRange)
       ? regex.stringByReplacingMatchesInString(s, options: nil, range: searchRange, withTemplate: template)
@@ -172,7 +172,7 @@ private func replaceWithString(s: String, m: String, replacement: String, firstO
 }
 
 private func replaceWithTemplate(s: String, m: NSRegularExpression, template: String, firstOnly: Bool, fn: String) -> String {
-  let stringRange = NSRange(location: 0, length: s.utf16Count)
+  let stringRange = NSRange(location: 0, length: count(s.utf16))
   let searchRange = firstOnly ? m.rangeOfFirstMatchInString(s, options: nil, range: stringRange) : stringRange
   return (rangeIsValid(searchRange)
     ? m.stringByReplacingMatchesInString(s, options: nil, range: searchRange, withTemplate: template)
@@ -186,7 +186,7 @@ private func replaceWithFunction(s: String, match: NSRegularExpression, function
   var error : EvalError?
   var deltaBuffer : [(String, NSRange)] = []
 
-  match.enumerateMatchesInString(utf16Str, options: nil, range: NSRange(location: 0, length: utf16Str.length)) {
+  match.enumerateMatchesInString(s, options: nil, range: NSRange(location: 0, length: utf16Str.length)) {
     (result: NSTextCheckingResult!, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
     // Create a vector of the results
     var shouldStop = firstOnly
@@ -239,5 +239,6 @@ private func replaceWithFunction(s: String, match: NSRegularExpression, function
     //  that are shorter or longer than the originals
     newStr.replaceCharactersInRange(range, withString: replacement)
   }
-  return .Success(.StringAtom(newStr))
+  let final = String(newStr)
+  return .Success(.StringAtom(final))
 }

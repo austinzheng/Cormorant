@@ -45,8 +45,7 @@ func cons(item: ConsValue, next seq: SeqType) -> SeqType {
 
 /// Return a sequence from the given sequence, or nil if the sequence is empty. Lazy sequences will be forced.
 func sequence(seq: SeqType) -> SeqResult? {
-  // TODO: Swift 1.2: change this to let
-  var s : SeqResult
+  let s : SeqResult
   if let seq = seq as? LazySeq {
     s = seq.force()
   }
@@ -123,7 +122,7 @@ struct StringSequenceView : SeqType {
   }
 
   var rest : SeqResult {
-    if countElements(underlying) > 1 && this < underlying.endIndex.predecessor() {
+    if count(underlying) > 1 && this < underlying.endIndex.predecessor() {
       return .Seq(StringSequenceView(underlying, next: next, position: this.successor()))
     }
     return .Seq(next)
@@ -188,7 +187,7 @@ struct HashmapSequenceView : SeqType {
   }
 
   var rest : SeqResult {
-    if underlying.count > 1 && this < underlying.endIndex.predecessor() {
+    if underlying.count > 1 && this.successor() < underlying.endIndex {
       return .Seq(HashmapSequenceView(underlying, next: next, position: this.successor()))
     }
     return .Seq(next)
@@ -207,7 +206,7 @@ struct HashmapSequenceView : SeqType {
 /// A sequence type representing an immutable non-empty persistent list whose items are stored adjacent to each other.
 final class ContiguousList : SeqType {
   private let items : [ConsValue]
-  let next : SeqType = Empty()
+  let next : SeqType
   var hashValue : Int { return items[0].hashValue }
 
   var first : ObjectResult {

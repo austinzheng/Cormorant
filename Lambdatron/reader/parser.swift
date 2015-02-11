@@ -93,20 +93,20 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
 private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> ConsValue {
   // IMPORTANT: Note that this function will *modify* wrapStack by removing elements.
   let wrapType : NextFormTreatment = wrapStack.last ?? .None
-  let wrappedItem : ConsValue = {
-    switch wrapType {
-    case .None:
-      return item
-    case .Quote:
-      return .ReaderMacroForm(ReaderMacro(type: .Quote, form: item))
-    case .SyntaxQuote:
-      return .ReaderMacroForm(ReaderMacro(type: .SyntaxQuote, form: item))
-    case .Unquote:
-      return .ReaderMacroForm(ReaderMacro(type: .Unquote, form: item))
-    case .UnquoteSplice:
-      return .ReaderMacroForm(ReaderMacro(type: .UnquoteSplice, form: item))
-    }
-    }()
+  let wrappedItem : ConsValue
+  switch wrapType {
+  case .None:
+    wrappedItem = item
+  case .Quote:
+    wrappedItem = .ReaderMacroForm(ReaderMacro(type: .Quote, form: item))
+  case .SyntaxQuote:
+    wrappedItem = .ReaderMacroForm(ReaderMacro(type: .SyntaxQuote, form: item))
+  case .Unquote:
+    wrappedItem = .ReaderMacroForm(ReaderMacro(type: .Unquote, form: item))
+  case .UnquoteSplice:
+    wrappedItem = .ReaderMacroForm(ReaderMacro(type: .UnquoteSplice, form: item))
+  }
+
   if wrapStack.count > 0 {
     wrapStack.removeLast()
     return wrappedConsItem(wrappedItem, &wrapStack)

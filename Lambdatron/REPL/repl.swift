@@ -23,7 +23,7 @@ class ReadEvaluatePrintLoop {
 
     // from http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application
     // TODO use capabilities of EditLine
-    let prompt: LineReader = LineReader(argv0: C_ARGV[0])
+    let prompt: LineReader = LineReader(argv0: Process.unsafeArgv[0])
 
     func getString() -> String {
       return prompt.gets() ?? ""

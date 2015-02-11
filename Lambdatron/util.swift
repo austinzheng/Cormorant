@@ -10,7 +10,7 @@ import Foundation
 
 /// Force the program to exit if something is wrong. This function is intended only to represent bugs in the Lambdatron
 /// interpreter and should never be invoked at runtime; if it is invoked there is a bug in the interpreter code.
-@noreturn func internalError(message: @autoclosure () -> String) {
+@noreturn func internalError(@autoclosure message: () -> String) {
   println("Internal error: \(message())")
   exit(EXIT_FAILURE)
 }
@@ -123,7 +123,7 @@ final class Box<T> {
 
 /// Return whether or not a Swift character is a member of an NSCharacterSet.
 func characterIsMemberOfSet(c: Character, set: NSCharacterSet) -> Bool {
-  let primitive = String(c).utf16[0] as unichar
+  let primitive = String(c).utf16[String.UTF16View.Index(0)] as unichar
   return set.characterIsMember(primitive)
 }
 
@@ -143,4 +143,14 @@ func firstCharacter(s: String) -> Character {
   // Precondition: string is not empty
   precondition(!s.isEmpty, "string is not empty")
   return s[s.startIndex]
+}
+
+/// Return true iff the input string has two or more characters.
+func stringHasAtLeastTwoCharacters(s: String) -> Bool {
+  var ctr = 0
+  for _ in s {
+    ctr++
+    if ctr == 2 { return true }
+  }
+  return false
 }

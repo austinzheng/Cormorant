@@ -381,18 +381,14 @@ private struct Lexer {
     if firstCharacter == "u"  {
       // Possible unicode character literal
       var thisIndex = start.successor()
-      if let d0 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
-        if let d1 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
-          if let d2 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
-            if let d3 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
-              if thisIndex == str.endIndex || characterTerminatesLiteral(str[thisIndex]) {
-                index = thisIndex
-                let value : Int = 4096*d0 + 256*d1 + 16*d2 + d3
-                return .Success(Character(UnicodeScalar(value)))
-              }
-            }
-          }
-        }
+      if let d0 = digitAsNumber(str, &thisIndex, .Hexadecimal),
+        d1 = digitAsNumber(str, &thisIndex, .Hexadecimal),
+        d2 = digitAsNumber(str, &thisIndex, .Hexadecimal),
+        d3 = digitAsNumber(str, &thisIndex, .Hexadecimal)
+        where thisIndex == str.endIndex || characterTerminatesLiteral(str[thisIndex]) {
+          index = thisIndex
+          let value : Int = 4096*d0 + 256*d1 + 16*d2 + d3
+          return .Success(Character(UnicodeScalar(value)))
       }
       // Note that there are no named characters whose names begin with 'u', so this is acceptable.
       return .Failure(ReadError(.InvalidUnicodeError))
@@ -400,16 +396,13 @@ private struct Lexer {
     if firstCharacter == "o" {
       // Possible octal character literal
       var thisIndex = start.successor()
-      if let d0 = digitAsNumber(str, &thisIndex, .Octal) {
-        if let d1 = digitAsNumber(str, &thisIndex, .Octal) {
-          if let d2 = digitAsNumber(str, &thisIndex, .Octal) {
-            if thisIndex == str.endIndex || characterTerminatesLiteral(str[thisIndex]) {
-              index = thisIndex
-              let value : Int = 64*d0 + 8*d1 + d2
-              if value < 256 { return .Success(Character(UnicodeScalar(value))) }
-            }
-          }
-        }
+      if let d0 = digitAsNumber(str, &thisIndex, .Octal),
+        d1 = digitAsNumber(str, &thisIndex, .Octal),
+        d2 = digitAsNumber(str, &thisIndex, .Octal)
+        where thisIndex == str.endIndex || characterTerminatesLiteral(str[thisIndex]) {
+          index = thisIndex
+          let value : Int = 64*d0 + 8*d1 + d2
+          if value < 256 { return .Success(Character(UnicodeScalar(value))) }
       }
       // Note that there are no named characters whose names begin with 'o', so this is acceptable.
       return .Failure(ReadError(.InvalidOctalError))

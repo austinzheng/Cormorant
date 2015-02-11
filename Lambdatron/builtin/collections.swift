@@ -380,17 +380,13 @@ func pr_get(args: Params, ctx: Context) -> EvalResult {
   
   switch args[0] {
   case let .StringAtom(s):
-    if let idx = key.asInteger {
-      if let character = characterAtIndex(s, idx) {
-        return .Success(.CharAtom(character))
-      }
+    if let idx = key.asInteger, let character = characterAtIndex(s, idx) {
+      return .Success(.CharAtom(character))
     }
     return .Success(fallback)
   case let .Vector(v):
-    if let idx = key.asInteger {
-      if idx >= 0 && idx < v.count {
-        return .Success(v[idx])
-      }
+    if let idx = key.asInteger where idx >= 0 && idx < v.count {
+      return .Success(v[idx])
     }
     return .Success(fallback)
   case let .Map(m):
@@ -465,7 +461,7 @@ func pr_count(args: Params, ctx: Context) -> EvalResult {
   case .Nil:
     return .Success(0)
   case let .StringAtom(str):
-    return .Success(.IntAtom(countElements(str)))
+    return .Success(.IntAtom(count(str)))
   case let .Seq(seq):
     var count = 0
     for _ in SeqIterator(seq) {

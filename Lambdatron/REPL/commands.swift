@@ -64,11 +64,9 @@ internal enum SpecialCommand : String {
   static func instanceWith(input: String) -> (SpecialCommand, [String])? {
     let wsSet = NSCharacterSet.whitespaceCharacterSet()
     var items : [String] = input.componentsSeparatedByCharactersInSet(wsSet)
-    if items.count > 0 {
-      if let selfInstance = SpecialCommand(rawValue: items[0]) {
-        items.removeAtIndex(0)
-        return (selfInstance, items)
-      }
+    if items.count > 0, let selfInstance = SpecialCommand(rawValue: items[0]) {
+      items.removeAtIndex(0)
+      return (selfInstance, items)
     }
     return nil
   }

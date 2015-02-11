@@ -214,7 +214,8 @@ extension ConsValue {
       // Put the seq in a list.
       let rseq = ContiguousList.fromSequence(seq)
       switch rseq {
-      case let .Seq(seq): return expandList(seq as ContiguousList)
+        // TODO: Make sure that this is handled properly.
+      case let .Seq(seq): return expandList(seq as! ContiguousList)
       case .Error: internalError("There should be no lazy sequences at the reader macro expansion phase")
       }
     case let .Vector(vector):

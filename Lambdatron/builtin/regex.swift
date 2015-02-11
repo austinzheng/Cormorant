@@ -80,7 +80,7 @@ func re_seq(args: Params, ctx: Context) -> EvalResult {
       let utf16Str = str as NSString
       var resultBuffer : [ConsValue] = []
 
-      pattern.enumerateMatchesInString(str, options: nil, range: NSRange(location: 0, length: str.utf16Count)) {
+      pattern.enumerateMatchesInString(str, options: nil, range: NSRange(location: 0, length: count(str.utf16))) {
         (result: NSTextCheckingResult!, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
         // Create a vector of the results, then pass it in
         var buffer : [ConsValue] = []
@@ -115,7 +115,7 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
       let function = args[2]
       var error: EvalError? = nil
 
-      pattern.enumerateMatchesInString(str, options: nil, range: NSRange(location: 0, length: str.utf16Count)) {
+      pattern.enumerateMatchesInString(str, options: nil, range: NSRange(location: 0, length: count(str.utf16))) {
         (result: NSTextCheckingResult!, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
         // Create a vector of the results, then pass it in
         var buffer : [ConsValue] = []

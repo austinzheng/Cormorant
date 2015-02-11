@@ -146,29 +146,29 @@ public struct EvalError : Printable {
   }
 
   public var description : String {
-    let desc : String = {
-      switch self.error {
-      case .ArityError: return "wrong number of arguments to macro, function, or special form"
-      case .InvalidArgumentError: return "invalid type or value for argument"
-      case .OutOfBoundsError: return "index to sequence was out of bounds"
-      case .NotEvalableError: return "item in function position is not something that can be evaluated"
-      case .DivideByZeroError:  return "attempted to divide by zero"
-      case .IntegerOverflowError: return "arithmetic operation resulted in overflow"
-      case .BindingMismatchError: return "binding vector must have an even number of elements"
-      case .InvalidSymbolError: return "could not resolve symbol"
-      case .UnboundSymbolError: return "symbol is unbound, and cannot be resolved"
-      case .RecurMisuseError: return "didn't use recur as the final form within loop or fn"
-      case .EvaluatingMacroError: return "can't take the value of a macro or reader macro"
-      case .EvaluatingSpecialFormError: return "can't take the value of a special form"
-      case .NoFnAritiesError: return "function or macro must be defined with at least one arity"
-      case .MultipleVariadicAritiesError: return "function/macro can only be defined with at most one variadic arity"
-      case .MultipleDefinitionsPerArityError: return "only one function/macro body can be defined per arity"
-      case .FixedArityExceedsVariableArityError: return "fixed arities cannot have more params than a variadic arity"
-      case .ReadError: return "failed to lex, parse, or expand raw input"
-      case .RuntimeError: return "runtime error"
-      }
-      }()
-    var str = "(\(self.error.rawValue)): \(desc)"
+    let desc : String
+    switch error {
+    case .ArityError: desc = "wrong number of arguments to macro, function, or special form"
+    case .InvalidArgumentError: desc = "invalid type or value for argument"
+    case .OutOfBoundsError: desc = "index to sequence was out of bounds"
+    case .NotEvalableError: desc = "item in function position is not something that can be evaluated"
+    case .DivideByZeroError:  desc = "attempted to divide by zero"
+    case .IntegerOverflowError: desc = "arithmetic operation resulted in overflow"
+    case .BindingMismatchError: desc = "binding vector must have an even number of elements"
+    case .InvalidSymbolError: desc = "could not resolve symbol"
+    case .UnboundSymbolError: desc = "symbol is unbound, and cannot be resolved"
+    case .RecurMisuseError: desc = "didn't use recur as the final form within loop or fn"
+    case .EvaluatingMacroError: desc = "can't take the value of a macro or reader macro"
+    case .EvaluatingSpecialFormError: desc = "can't take the value of a special form"
+    case .NoFnAritiesError: desc = "function or macro must be defined with at least one arity"
+    case .MultipleVariadicAritiesError: desc = "function/macro can only be defined with at most one variadic arity"
+    case .MultipleDefinitionsPerArityError: desc = "only one function/macro body can be defined per arity"
+    case .FixedArityExceedsVariableArityError: desc = "fixed arities cannot have more params than a variadic arity"
+    case .ReadError: desc = "failed to lex, parse, or expand raw input"
+    case .RuntimeError: desc = "runtime error"
+    }
+
+    var str = "(\(error.rawValue)): \(desc)"
 
     // Add data about the function, if any
     if let fn = metadata[.Fn] {
@@ -178,10 +178,8 @@ public struct EvalError : Printable {
     // Add error-specific data
     switch self.error {
     case .ArityError:
-      if let expected = metadata[.ExpectedArity] {
-        if let actual = metadata[.ActualArity] {
-          str += "\n * arity: expected: \(expected), actual: \(actual)"
-        }
+      if let expected = metadata[.ExpectedArity], let actual = metadata[.ActualArity] {
+        str += "\n * arity: expected: \(expected), actual: \(actual)"
       }
     case .OutOfBoundsError:
       if let idx = metadata[.Index] {
