@@ -124,6 +124,13 @@ Logging is in an embryonic state. In the REPL, type `?logging <DOMAIN> on` or `?
 The only currently supported domain is `eval`. This logging domain prints out messages detailing how macros, functions, etc are evaluated, and can be useful to see exactly what the interpreter is doing when it evaluates a form.
 
 
+### Benchmarking
+
+The REPL includes a basic benchmarking tool. Invoke it using `?benchmark <SOME_FORM> <ITERATIONS>`, where `<SOME_FORM>` is a valid code snippet and `<ITERATIONS>` is the number of times to repeat the execution. The benchmark tool will print the average, minimum, and maximum run times (in milliseconds).
+
+The code snippet is lexed, parsed, and expanded before the benchmark, and the expanded data structure is cached between benchmark iterations, so the benchmarking tool only measures evaluation time. As well, the context is not cleared between executions, so side effects caused by one iteration are visible to all subsequent iterations.
+
+
 ### Unit Tests
 
 Lambdatron has a comprehensive unit test suite that exercises the interpreter (not the standard library). Run the unit tests from within Xcode.

@@ -8,6 +8,12 @@
 
 import Foundation
 
+/// An opaque struct representing a ConsValue.
+public struct Form {
+  internal let value : ConsValue
+  internal init(_ value: ConsValue) { self.value = value }
+}
+
 /// An enum describing possible results from evaluating an input to the interpreter.
 public enum Result {
   case Success(ConsValue)
@@ -20,6 +26,8 @@ public enum Result {
 /// An enum describing logging domains that can be individually enabled or disabled as necessary.
 public enum LogDomain : String {
   case Eval = "eval"
+
+  static var allDomains : [LogDomain] { return [.Eval] }
 }
 
 typealias LoggingFunction = (@autoclosure () -> String) -> ()
@@ -69,6 +77,37 @@ public class Interpreter {
       case let .Failure(f): return .ParseFailure(f)
       }
     case let .Failure(f): return .LexFailure(f)
+    }
+  }
+
+  /// Given a form, evaluate it and return a successful result or error.
+  public func evaluate(form: Form) -> Result {
+    let result = evaluateForm(form.value, context)
+    switch result {
+    case let .Success(s): return .Success(s)
+    case .Recur:
+      return .EvalFailure(EvalError(.RecurMisuseError, message: "recur object was returned to the top level"))
+    case let .Failure(f): return .EvalFailure(f)
+    }
+  }
+
+  /// Given a string, return a form that can be directly evaluated later or repeatedly.
+  public func readIntoForm(form: String) -> Form? {
+    let lexed = lex(form)
+    switch lexed {
+    case let .Success(lexed):
+      let parsed = parse(lexed, context)
+      switch parsed {
+      case let .Success(parsed):
+        let expanded = parsed.readerExpand()
+        switch expanded {
+        case let .Success(expanded):
+          return Form(expanded)
+        case .Failure: return nil
+        }
+      case .Failure: return nil
+      }
+    case .Failure: return nil
     }
   }
 

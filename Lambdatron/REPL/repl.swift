@@ -10,7 +10,7 @@ import Foundation
 
 class ReadEvaluatePrintLoop {
   let descriptor : NSFileHandle
-  private var interpreter = Interpreter()
+  let interpreter = Interpreter()
   let logger = LoggingManager()
 
   init(descriptor: NSFileHandle) {
@@ -43,7 +43,7 @@ class ReadEvaluatePrintLoop {
         let trimmedData = data.substringToIndex(data.length-1)
         if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
           // REPL special command
-          let shouldReturn = command.execute(args, logger: logger, interpreter: interpreter)
+          let shouldReturn = command.execute(args, logger: logger, repl: self)
           if shouldReturn {
             return true
           }

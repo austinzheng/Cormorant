@@ -8,14 +8,57 @@
 
 import Foundation
 
+extension ReadEvaluatePrintLoop {
+
+  /// Given an input string representing some code and a number of iterations, run a benchmark and print the results
+  /// out for the user to see.
+  func benchmark(form: String, iterations: Int) {
+    if iterations < 1 {
+      println("Error: benchmark must run at least once.")
+      return
+    }
+    if let form = interpreter.readIntoForm(form) {
+      var buffer : [NSTimeInterval] = []
+      println("Benchmarking...")
+      for _ in 0..<iterations {
+        let start = NSDate.timeIntervalSinceReferenceDate()
+
+        let result = interpreter.evaluate(form)
+        switch result {
+        case .Success: break
+        default:
+          println("Error: benchmark form failed to execute correctly. Ending benchmark.")
+          return
+        }
+
+        let end = NSDate.timeIntervalSinceReferenceDate()
+        let delta = end - start
+        buffer.append(delta)
+      }
+      // Calculate the statistics
+      let min = minElement(buffer)*1000
+      let max = maxElement(buffer)*1000
+      let average = 1000*reduce(buffer, 0, +) / Double(iterations)
+      println("Benchmark complete (\(iterations) iterations).")
+      println("Average time: \(average) ms")
+      println("Maximum time: \(max) ms")
+      println("Minimum time: \(min) ms")
+    }
+    else {
+      println("Error: unable to parse benchmark input form \"\(form)\".")
+    }
+  }
+}
+
 internal enum SpecialCommand : String {
   case Quit = "?quit"
   case Reset = "?reset"
   case Help = "?help"
   case Logging = "?logging"
+  case Benchmark = "?benchmark"
 
   var allCommands : [SpecialCommand] {
-    return [.Quit, .Reset, .Help, .Logging]
+    return [.Quit, .Reset, .Help, .Logging, .Benchmark]
   }
 
   static func instanceWith(input: String) -> (SpecialCommand, [String])? {
@@ -30,14 +73,14 @@ internal enum SpecialCommand : String {
     return nil
   }
 
-  func execute(args: [String], logger: LoggingManager, interpreter: Interpreter) -> Bool {
+  func execute(args: [String], logger: LoggingManager, repl: ReadEvaluatePrintLoop) -> Bool {
     switch self {
     case .Quit:
       println("Goodbye")
       return true
     case .Reset:
       println("Environment reset")
-      interpreter.reset()
+      repl.interpreter.reset()
     case .Help:
       println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
       println("Special commands are:")
@@ -72,6 +115,24 @@ internal enum SpecialCommand : String {
       else {
         println("Error: cannot call '\(self.rawValue)' without at least one argument.")
       }
+    case .Benchmark:
+      if args.count < 2 {
+        println("Error: benchmark must be called with a valid form and a number of iterations.")
+        break
+      }
+      // Extract the count (last element)
+      let count = args.last!
+      let nf = NSNumberFormatter()
+      nf.numberStyle = NSNumberFormatterStyle.NoStyle
+      if let number = nf.numberFromString(count) {
+        // The last argument is a count.
+        let form = join(" ", args[0..<args.count - 1])
+        repl.benchmark(form, iterations: number.integerValue)
+      }
+      else {
+        println("Error: benchmark must be called with a valid form and a number of iterations.")
+        break
+      }
     }
     return false
   }
@@ -82,6 +143,7 @@ internal enum SpecialCommand : String {
     case .Reset: return "Resets the environment, clearing anything defined using 'def', 'defmacro', etc."
     case .Help: return "Prints a brief description of the REPL."
     case .Logging: return "Turns logging for a given domain on or off. Call with <domain> and either 'on' or 'off'."
+    case .Benchmark: return "Runs a benchmark. Enter a form to run and the number of times to run it."
     }
   }
 }
