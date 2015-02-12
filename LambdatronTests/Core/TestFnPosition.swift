@@ -47,18 +47,6 @@ class TestFnPositionFnsSpecialForms : InterpreterTest {
 /// Test the use of vectors in function position.
 class TestFnPositionVectors : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// A vector in function position with a valid index should extract the proper value from the vector.
   func testValidIndex() {
     expectThat("([100 200 300 400.0] 3)", shouldEvalTo: .FloatAtom(400.0))
@@ -96,18 +84,6 @@ class TestFnPositionVectors : InterpreterTest {
 
 /// Test the use of maps in function position.
 class TestFnPositionMaps : InterpreterTest {
-
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
 
   /// A map in function position should return values for valid keys.
   func testValidKey() {
@@ -163,18 +139,6 @@ class TestFnPositionMaps : InterpreterTest {
 
 /// Test the use of symbols in function position.
 class TestFnPositionSymbols : InterpreterTest {
-
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
 
   /// A symbol in function position should return values for valid keys.
   func testValidKey() {
@@ -252,18 +216,6 @@ class TestFnPositionSymbols : InterpreterTest {
 
 /// Test the use of keywords in function position.
 class TestFnPositionKeywords : InterpreterTest {
-
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
 
   /// A keyword in function position should return values for valid keys.
   func testValidKey() {

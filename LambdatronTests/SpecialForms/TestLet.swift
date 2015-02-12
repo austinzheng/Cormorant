@@ -11,18 +11,6 @@ import Foundation
 /// Test the 'let' special form.
 class TestLet : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// let should accept an empty binding vector.
   func testEmptyBindingVector() {
     expectThat("(let [] 155)", shouldEvalTo: .IntAtom(155))

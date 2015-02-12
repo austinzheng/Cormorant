@@ -11,18 +11,6 @@ import Foundation
 /// Test the 'quote' special form.
 class TestQuote : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// quote should return the second argument unchanged.
   func testQuoteReturnsArgument() {
     expectThat("(quote 12345)", shouldEvalTo: .IntAtom(12345))

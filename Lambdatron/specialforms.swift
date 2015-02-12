@@ -434,7 +434,8 @@ func sf_attempt(args: Params, ctx: Context) -> EvalResult {
   for form in args {
     let try = form.evaluate(ctx)
     switch try {
-    case .Success, .Recur: return try
+    case .Success: return try
+    case .Recur: error = EvalError(.RecurMisuseError, fn)
     case let .Failure(e): error = e
     }
   }

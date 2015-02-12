@@ -11,18 +11,6 @@ import Foundation
 /// Test the 'apply' special form.
 class TestApply : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// apply must take at least two arguments.
   func testApplyArity() {
     expectArityErrorFrom("(apply)")

@@ -11,18 +11,6 @@ import Foundation
 /// Test the 'do' special form.
 class TestDo : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// do with no forms should just return nil
   func testEmptyDo() {
     expectThat("(do)", shouldEvalTo: .Nil)

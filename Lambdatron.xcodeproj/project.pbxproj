@@ -44,12 +44,15 @@
 		1A7AF6C91A78D811006FC934 /* TestArithmetic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */; };
 		1A7D4BC61A64F97500EAF676 /* math.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A7D4BC51A64F97500EAF676 /* math.lbt */; };
 		1A7D4BC71A64F9CD00EAF676 /* math.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A7D4BC51A64F97500EAF676 /* math.lbt */; };
+		1A8288281A8C75A40092B828 /* TestRecur.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8288271A8C75A40092B828 /* TestRecur.swift */; };
+		1A82882A1A8C7E530092B828 /* TestAttempt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8288291A8C7E530092B828 /* TestAttempt.swift */; };
 		1A8B44F21A7F4D0700E33480 /* TestVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8B44F11A7F4D0700E33480 /* TestVector.swift */; };
 		1A8B44F41A7F4D2300E33480 /* TestHashmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8B44F31A7F4D2300E33480 /* TestHashmap.swift */; };
 		1A8B44F61A7F4D4C00E33480 /* TestSymbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8B44F51A7F4D4C00E33480 /* TestSymbol.swift */; };
 		1A8B44F81A7F4D7400E33480 /* TestKeyword.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8B44F71A7F4D7400E33480 /* TestKeyword.swift */; };
 		1A8B44FA1A7F4D9C00E33480 /* TestInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8B44F91A7F4D9C00E33480 /* TestInt.swift */; };
 		1A8B44FC1A7F4DD300E33480 /* TestCons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8B44FB1A7F4DD300E33480 /* TestCons.swift */; };
+		1A92A89B1A8C69A9004E0653 /* TestLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A92A89A1A8C69A9004E0653 /* TestLoop.swift */; };
 		1A942AE11A35A94D0036BF5A /* builtin.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A942AE01A35A94D0036BF5A /* builtin.lbt */; };
 		1A942AE21A35A9E30036BF5A /* builtin.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A942AE01A35A94D0036BF5A /* builtin.lbt */; };
 		1A98B1121A1C83E700019DB4 /* core.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A98B10C1A1C79F300019DB4 /* core.lbt */; };
@@ -160,12 +163,15 @@
 		1A7580111A7DE475000FF45D /* TestLexing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLexing.swift; path = Core/TestLexing.swift; sourceTree = "<group>"; };
 		1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestArithmetic.swift; path = Builtins/TestArithmetic.swift; sourceTree = "<group>"; };
 		1A7D4BC51A64F97500EAF676 /* math.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = math.lbt; path = stdlib/math.lbt; sourceTree = "<group>"; };
+		1A8288271A8C75A40092B828 /* TestRecur.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestRecur.swift; path = SpecialForms/TestRecur.swift; sourceTree = "<group>"; };
+		1A8288291A8C7E530092B828 /* TestAttempt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestAttempt.swift; path = SpecialForms/TestAttempt.swift; sourceTree = "<group>"; };
 		1A8B44F11A7F4D0700E33480 /* TestVector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestVector.swift; path = Builtins/TestVector.swift; sourceTree = "<group>"; };
 		1A8B44F31A7F4D2300E33480 /* TestHashmap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestHashmap.swift; path = Builtins/TestHashmap.swift; sourceTree = "<group>"; };
 		1A8B44F51A7F4D4C00E33480 /* TestSymbol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSymbol.swift; path = Builtins/TestSymbol.swift; sourceTree = "<group>"; };
 		1A8B44F71A7F4D7400E33480 /* TestKeyword.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestKeyword.swift; path = Builtins/TestKeyword.swift; sourceTree = "<group>"; };
 		1A8B44F91A7F4D9C00E33480 /* TestInt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestInt.swift; path = Builtins/TestInt.swift; sourceTree = "<group>"; };
 		1A8B44FB1A7F4DD300E33480 /* TestCons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestCons.swift; path = Builtins/TestCons.swift; sourceTree = "<group>"; };
+		1A92A89A1A8C69A9004E0653 /* TestLoop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLoop.swift; path = SpecialForms/TestLoop.swift; sourceTree = "<group>"; };
 		1A942AE01A35A94D0036BF5A /* builtin.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = builtin.lbt; path = stdlib/builtin.lbt; sourceTree = "<group>"; };
 		1A98B10C1A1C79F300019DB4 /* core.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = core.lbt; path = stdlib/core.lbt; sourceTree = "<group>"; };
 		1AAC2DA71A68E86E0019A5DD /* LambdatronTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LambdatronTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -269,7 +275,10 @@
 				1A4618D81A78C91700B63550 /* TestLet.swift */,
 				1A270BFE1A85EE3000B2EAFD /* TestFn.swift */,
 				1AD78B831A86D71000970022 /* TestDefmacro.swift */,
+				1A92A89A1A8C69A9004E0653 /* TestLoop.swift */,
+				1A8288271A8C75A40092B828 /* TestRecur.swift */,
 				1A57CCCC1A832708003F1E82 /* TestApply.swift */,
+				1A8288291A8C7E530092B828 /* TestAttempt.swift */,
 			);
 			name = SpecialForms;
 			sourceTree = "<group>";
@@ -578,6 +587,7 @@
 				1A7580121A7DE475000FF45D /* TestLexing.swift in Sources */,
 				1A1579791A6FA45B0013D21B /* TestRand.swift in Sources */,
 				1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */,
+				1A92A89B1A8C69A9004E0653 /* TestLoop.swift in Sources */,
 				1A2FDF4F1A6B928800E627A2 /* TestParsing.swift in Sources */,
 				1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */,
 				1A7AF6C91A78D811006FC934 /* TestArithmetic.swift in Sources */,
@@ -585,6 +595,7 @@
 				1A0288C61A834E1400589C23 /* TestConj.swift in Sources */,
 				1AAC2DC51A68E8860019A5DD /* miscellaneous.swift in Sources */,
 				1A8B44FA1A7F4D9C00E33480 /* TestInt.swift in Sources */,
+				1A82882A1A8C7E530092B828 /* TestAttempt.swift in Sources */,
 				1A8B44F41A7F4D2300E33480 /* TestHashmap.swift in Sources */,
 				1AAC2DB51A68E8780019A5DD /* specialforms.swift in Sources */,
 				1A0B02D81A69E357007EF0F2 /* InterpreterTest.swift in Sources */,
@@ -592,6 +603,7 @@
 				1A5710DC1A813C2B003C5181 /* TestConcat.swift in Sources */,
 				1AAC2DBC1A68E8780019A5DD /* util.swift in Sources */,
 				1AE74F691A7F3DD60096ABA3 /* lists.swift in Sources */,
+				1A8288281A8C75A40092B828 /* TestRecur.swift in Sources */,
 				1AAC2DB11A68E8780019A5DD /* errors.swift in Sources */,
 				1A8B44F61A7F4D4C00E33480 /* TestSymbol.swift in Sources */,
 				1A8B44FC1A7F4DD300E33480 /* TestCons.swift in Sources */,

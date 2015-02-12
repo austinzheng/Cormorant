@@ -11,18 +11,6 @@ import Foundation
 /// Test the 'if' special form.
 class TestIf : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// If the predicate is true, the second form should be evaluated.
   func testTrueCase() {
     expectThat("(if (.> 10 1) (do (.print \"good\") 10))", shouldEvalTo: .IntAtom(10))

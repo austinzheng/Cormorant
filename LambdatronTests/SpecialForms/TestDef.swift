@@ -11,18 +11,6 @@ import Foundation
 /// Test the 'def' special form.
 class TestDef : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// def should properly take a symbol as its first argument.
   func testDefWithSymbolFirstArg() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)

@@ -35,6 +35,12 @@ class TestFn : InterpreterTest {
       shouldEvalTo: listWithItems(.IntAtom(5), .IntAtom(16), .IntAtom(3), .IntAtom(2), .IntAtom(9)))
   }
 
+  // fn should allow the user to define a function with only a variadic argument.
+  func testVarargOnlyFn() {
+    expectThat("((fn [& a] a) 1 2 3 4 5)",
+      shouldEvalTo: listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4), .IntAtom(5)))
+  }
+
   // fn should reject an attempt to define a function with multiple bodies with the same arity.
   func testDuplicateArities() {
     expectThat("(fn ([a b] 1) ([c d] 2) ([a] 100))", shouldFailAs: .MultipleDefinitionsPerArityError)

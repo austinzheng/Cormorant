@@ -39,6 +39,15 @@ class InterpreterTest : XCTestCase {
   override func setUp() {
     super.setUp()
     interpreter.reset()
+    clearOutputBuffer()
+    interpreter.writeOutput = writeToBuffer
+  }
+
+  override func tearDown() {
+    super.tearDown()
+    // Reset the interpreter
+    clearOutputBuffer()
+    interpreter.writeOutput = print
   }
 
   // Run some input, expecting no errors.

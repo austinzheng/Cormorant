@@ -11,18 +11,6 @@ import Foundation
 /// Test the way functions are evaluated.
 class TestFunctionEvaluation : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// A function should properly return the value of the last form in its body.
   func testFunctionReturnValue() {
     runCode("(def testFunc (fn [] (.+ 1 2)))")
@@ -51,6 +39,36 @@ class TestFunctionEvaluation : InterpreterTest {
     runCode("(def f3 (fn [a] (if (.= a 0) (.print \"f3-done\") (do (.print \"f3\" a \" \") (f1 (.- a 1))))))")
     runCode("(f1 10)")
     expectOutputBuffer(toBe: "f1 10  f2 9  f3 8  f1 7  f2 6  f3 5  f1 4  f2 3  f3 2  f1 1  f2-done")
+  }
+
+  /// A function should properly recurse when used with the 'recur' form.
+  func testFunctionWithRecur() {
+    expectThat("((fn [ctr acc] (.print \"ctr:\" ctr) (.print \"acc:\" acc) (if (.= ctr 0) acc (recur (.- ctr 1) (.+ ctr acc)))) 10 0)",
+      shouldEvalTo: .IntAtom(55))
+    expectOutputBuffer(toBe: "ctr: 10acc: 0ctr: 9acc: 10ctr: 8acc: 19ctr: 7acc: 27ctr: 6acc: 34ctr: 5acc: 40ctr: 4acc: 45ctr: 3acc: 49ctr: 2acc: 52ctr: 1acc: 54ctr: 0acc: 55")
+  }
+
+  /// A function with variadic arguments should properly recurse when used with the 'recur' form.
+  func testVariadicFuncWithRecur() {
+    expectThat("((fn [ctr & a] (if (.= 0 ctr) a (recur (.- ctr 1) (.rest a)))) 3 10 20 30 40 50 60)",
+      shouldEvalTo: listWithItems(.IntAtom(40), .IntAtom(50), .IntAtom(60)))
+  }
+
+  /// A function with only a vararg should properly recurse when used with the 'recur' form.
+  func testVarargOnlyFuncWithRecur() {
+    expectThat("((fn [& a] (.print \"a:\" a) (if (.= nil (.next a)) \"done\" (recur (.rest a)))) 1 2 3 4 5)",
+      shouldEvalTo: .StringAtom("done"))
+    expectOutputBuffer(toBe: "a: (1 2 3 4 5)a: (2 3 4 5)a: (3 4 5)a: (4 5)a: (5)")
+  }
+
+  /// A function with a vararg that recurses should allow a non-list form to be passed as the new value of the vararg.
+  func testFuncAnyVarargRecur() {
+    // Note how the vararg 'b' is bound to "foobar" when the function recurses.
+    expectThat("((fn [a & b] (if (.= a 0) b (recur (.- a 1) \"foobar\"))) 5 1 2 3 4)",
+      shouldEvalTo: .StringAtom("foobar"))
+    expectThat("((fn [a & b] (if (.= a 0) b (recur (.- a 1) 3.141592))) 5 1 2 3 4)",
+      shouldEvalTo: .FloatAtom(3.141592))
+    expectThat("((fn [a & b] (if (.= a 0) b (recur (.- a 1) nil))) 2 8)", shouldEvalTo: .Nil)
   }
 
   /// A function with multiple arities should pick the appropriate fixed arity, if appropriate.
@@ -143,18 +161,6 @@ class TestFunctionEvaluation : InterpreterTest {
 /// Test the way macros are evaluated.
 class TestMacroEvaluation : InterpreterTest {
 
-  override func setUp() {
-    super.setUp()
-    clearOutputBuffer()
-    interpreter.writeOutput = writeToBuffer
-  }
-
-  override func tearDown() {
-    // Reset the interpreter
-    clearOutputBuffer()
-    interpreter.writeOutput = print
-  }
-
   /// A macro should properly return the value of the last form in its body for evaluation.
   func testMacroReturnValue() {
     runCode("(defmacro testMacro [] 3)")
@@ -166,6 +172,13 @@ class TestMacroEvaluation : InterpreterTest {
     runCode("(defmacro testMacro [] (.print \"first\") (.print \"second\") (.print \"third\") 1.2345)")
     expectThat("(testMacro)", shouldEvalTo: .FloatAtom(1.2345))
     expectOutputBuffer(toBe: "firstsecondthird")
+  }
+
+  /// A macro should properly recurse when used with the 'recur' form.
+  func testMacroWithRecur() {
+    runCode("(defmacro testMacro [ctr acc] (.print \"ctr:\" ctr) (.print \"acc:\" acc) (if (.= ctr 0) acc (recur (.- ctr 1) (.+ ctr acc))))")
+    expectThat("(testMacro 10 0)", shouldEvalTo: .IntAtom(55))
+    expectOutputBuffer(toBe: "ctr: 10acc: 0ctr: 9acc: 10ctr: 8acc: 19ctr: 7acc: 27ctr: 6acc: 34ctr: 5acc: 40ctr: 4acc: 45ctr: 3acc: 49ctr: 2acc: 52ctr: 1acc: 54ctr: 0acc: 55")
   }
 
   /// A macro's output form should be automatically evaluated to produce a value.
