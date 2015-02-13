@@ -57,7 +57,7 @@ Features
 
 Lambdatron has the following features:
 
-**Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `'()`. Or use the `list` function to create a list from zero or more arguments.
+**Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `()`. Or use the `list` function to create a list from zero or more arguments.
 
 **Vectors**, declared using square brackets: `[1 2 true "Lisp"]`, or the `vector` function. Unlike lists, vectors can't be used to invoke functions. Vectors can be used in function position with an integer index argument.
 
@@ -147,12 +147,13 @@ These are objectives I am working on right now, or plan on doing in the near fut
 
 - Expanding standard library
 - Support for sets
+- Support for regular expressions
 - Basic namespacing
 - Ability to type in multiple forms at the top level
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)
 - Full unit test suite (once development stabilizes)
-- Custom types (e.g. `deftype`) and multimethods
+- Metadata
 - Support for `\uNNNN` and `\oNNN` character literals
 
 
@@ -163,8 +164,8 @@ These are objectives that are either too big in scope to schedule, too technical
 - Persistent data structures
 - Proper support for lazy collections
 - STM and support for multithreading
-- Metadata
 - Destructuring via pattern matching
+- Custom types (e.g. `deftype`) and multimethods (may not be possible at the moment)
 - Rationals and bignums (may need to wait for a suitable Swift library handling these first)
 - Interpreter rewrite (compile to bytecode rather than direct interpretation) - probably as a separate project
 - Full Foundation/Cocoa bindings

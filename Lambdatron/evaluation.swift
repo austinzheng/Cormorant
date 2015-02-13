@@ -320,7 +320,7 @@ extension ConsValue {
       }
       return .Success(.Map(newMap))
     case Special: return .Failure(EvalError(.EvaluatingSpecialFormError))
-    case ReaderMacro: return .Failure(EvalError(.EvaluatingMacroError))
+    case ReaderMacroForm: return .Failure(EvalError(.EvaluatingMacroError))
     }
   }
 }

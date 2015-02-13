@@ -67,7 +67,7 @@ func pr_int(args: Params, ctx: Context) -> EvalResult {
     return .Success(.IntAtom(Int(castValue.value)))
   case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .List, .Vector, .Map:
     fallthrough
-  case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
+  case .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a number or a character"))
   }
@@ -88,7 +88,7 @@ func pr_double(args: Params, ctx: Context) -> EvalResult {
     fallthrough
   case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .List, .Vector, .Map:
     fallthrough
-  case .Special, .BuiltInFunction, .ReaderMacro, .FunctionLiteral:
+  case .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

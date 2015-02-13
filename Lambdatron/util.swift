@@ -15,6 +15,16 @@ import Foundation
   exit(EXIT_FAILURE)
 }
 
+// Box
+final class Box<T> {
+  let value : T
+  init(_ value: T) { self.value = value }
+
+  subscript() -> T {
+    return value
+  }
+}
+
 // Swift string helpers
 
 /// Retrieve a character within a Swift string, or nil if the provided index is out of bounds. This is an O(n)

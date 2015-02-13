@@ -71,8 +71,8 @@ extension ConsValue {
       return debug ? "ConsValue.Special(\(v.rawValue))" : v.rawValue
     case let BuiltInFunction(v):
       return debug ? "ConsValue.BuiltInFunction(\(v.rawValue))" : v.rawValue
-    case let ReaderMacro(v):
-      return debug ? "ConsValue.ReaderMacro(\(v.description))" : v.description
+    case let ReaderMacroForm(v):
+      return debug ? "ConsValue.ReaderMacroForm(\(v.description))" : v.description
     }
   }
 }

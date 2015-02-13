@@ -85,13 +85,13 @@ private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatmen
     case .None:
       return item
     case .Quote:
-      return .List(Cons(.ReaderMacro(.Quote), next: Cons(item)))
+      return .ReaderMacroForm(ReaderMacro(type: .Quote, form: item))
     case .SyntaxQuote:
-      return .List(Cons(.ReaderMacro(.SyntaxQuote), next: Cons(item)))
+      return .ReaderMacroForm(ReaderMacro(type: .SyntaxQuote, form: item))
     case .Unquote:
-      return .List(Cons(.ReaderMacro(.Unquote), next: Cons(item)))
+      return .ReaderMacroForm(ReaderMacro(type: .Unquote, form: item))
     case .UnquoteSplice:
-      return .List(Cons(.ReaderMacro(.UnquoteSplice), next: Cons(item)))
+      return .ReaderMacroForm(ReaderMacro(type: .UnquoteSplice, form: item))
     }
     }()
   if wrapStack.count > 0 {

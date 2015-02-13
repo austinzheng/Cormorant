@@ -54,7 +54,7 @@ public enum ConsValue : Printable, Hashable {
   case FunctionLiteral(Function)
   case BuiltInFunction(BuiltIn)
   case Special(SpecialForm)
-  case ReaderMacro(ReaderForm)
+  case ReaderMacroForm(ReaderMacro)
   
   public var hashValue : Int {
     switch self {
@@ -72,7 +72,7 @@ public enum ConsValue : Printable, Hashable {
     case let .FunctionLiteral(f): return 0
     case let .BuiltInFunction(bf): return bf.hashValue
     case let .Special(sf): return sf.hashValue
-    case let .ReaderMacro(rf): return rf.hashValue
+    case let .ReaderMacroForm(rf): return rf.hashValue
     }
   }
   

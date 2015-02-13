@@ -82,7 +82,7 @@ public enum ReaderError : String, Printable {
       case UnmatchedReaderMacroError:
         return "reader macro token present without corresponding form"
       case IllegalFormError:
-        return "form of illegal type provided to reader macro (e.g. None)"
+        return "form of illegal type provided to reader macro"
       case UnquoteSpliceMisuseError:
         return "~@ used improperly (outside the context of a collection)"
       }

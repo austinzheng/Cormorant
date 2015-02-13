@@ -8,6 +8,10 @@
 
 import Foundation
 
+public func ==(lhs: ReaderMacro, rhs: ReaderMacro) -> Bool {
+  return lhs.type == rhs.type && lhs.form == rhs.form
+}
+
 public func ==<T>(lhs: ListType<T>, rhs: ListType<T>) -> Bool {
   if lhs.isEmpty && rhs.isEmpty {
     return true
@@ -129,6 +133,6 @@ public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .FunctionLiteral(f2): return f1 === f2
     default: return false
     }
-  case .ReaderMacro: return false
+  case .ReaderMacroForm: return false
   }
 }
