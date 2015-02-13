@@ -19,17 +19,17 @@ public enum MetadataKey {
   case Custom           // A secondary message or informational string not covered by any of the above cases
 }
 
-typealias MetaDict = [MetadataKey : String]
+public typealias MetaDict = [MetadataKey : String]
 
 /// An error object involving the failure of the lexer to properly lex some input string.
 public struct LexError : Printable {
-  enum ErrorType : String {
+  public enum ErrorType : String {
     case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
     case InvalidCharacterError = "InvalidCharacterError"
     case NonTerminatedStringError = "NonTerminatedStringError"
   }
-  let error : ErrorType
-  let metadata : MetaDict
+  public let error : ErrorType
+  public let metadata : MetaDict
 
   init(_ error: ErrorType, metadata: MetaDict? = nil) {
     self.error = error; self.metadata = metadata ?? [:]
@@ -46,48 +46,59 @@ public struct LexError : Printable {
 }
 
 /// An enum describing errors that can cause parsing to fail.
-public enum ParseError : String, Printable {
-  case EmptyInputError = "EmptyInputError"
-  case BadStartTokenError = "BadStartTokenError"
-  case MismatchedDelimiterError = "MismatchedDelimiterError"
-  case MismatchedReaderMacroError = "MismatchedReaderMacroError"
-  case MapKeyValueMismatchError = "MapKeyValueMismatchError"
+public struct ParseError : Printable {
+  public enum ErrorType : String {
+    case EmptyInputError = "EmptyInputError"
+    case BadStartTokenError = "BadStartTokenError"
+    case MismatchedDelimiterError = "MismatchedDelimiterError"
+    case MismatchedReaderMacroError = "MismatchedReaderMacroError"
+    case MapKeyValueMismatchError = "MapKeyValueMismatchError"
+  }
+  public let error : ErrorType
+  public let metadata : MetaDict
+
+  init(_ error: ErrorType, metadata: MetaDict? = nil) {
+    self.error = error; self.metadata = metadata ?? [:]
+  }
 
   public var description : String {
-    let name = self.rawValue
-    switch self {
-    case EmptyInputError:
+    let name = error.rawValue
+    switch error {
+    case .EmptyInputError:
       return "(\(name)): empty input"
-    case BadStartTokenError:
+    case .BadStartTokenError:
       return "(\(name)): collection or form started with invalid delimiter"
-    case MismatchedDelimiterError:
+    case .MismatchedDelimiterError:
       return "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
-    case MismatchedReaderMacroError:
+    case .MismatchedReaderMacroError:
       return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
-    case MapKeyValueMismatchError:
+    case .MapKeyValueMismatchError:
       return "(\(name)): map literal must be declared with an even number of forms"
     }
   }
 }
 
 /// An enum describing errors that can happen while expanding reader macros.
-public enum ReaderError : String, Printable {
-  case UnmatchedReaderMacroError = "UnmatchedReaderMacroError"
-  case IllegalFormError = "IllegalFormError"
-  case UnquoteSpliceMisuseError = "SyntaxQuoteMisuseError"
-  
+public struct ReaderMacroExpandError : Printable {
+  public enum ErrorType : String {
+    case IllegalFormError = "IllegalFormError"
+    case UnquoteSpliceMisuseError = "SyntaxQuoteMisuseError"
+  }
+  public let error : ErrorType
+  public let metadata : MetaDict
+
+  init(_ error: ErrorType, metadata: MetaDict? = nil) {
+    self.error = error; self.metadata = metadata ?? [:]
+  }
+
   public var description : String {
-    let desc : String = {
-      switch self {
-      case UnmatchedReaderMacroError:
-        return "reader macro token present without corresponding form"
-      case IllegalFormError:
-        return "form of illegal type provided to reader macro"
-      case UnquoteSpliceMisuseError:
-        return "~@ used improperly (outside the context of a collection)"
-      }
-    }()
-    return "(\(self.rawValue)): \(desc)"
+    let name = error.rawValue
+    switch error {
+    case .IllegalFormError:
+      return "(\(name)): form of illegal type provided to reader macro"
+    case .UnquoteSpliceMisuseError:
+      return "(\(name)): ~@ used improperly (outside the context of a collection)"
+    }
   }
 }
 

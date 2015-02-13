@@ -19,7 +19,7 @@ public enum Result {
   case Success(ConsValue)
   case LexFailure(LexError)
   case ParseFailure(ParseError)
-  case ReaderFailure(ReaderError)
+  case ReaderFailure(ReaderMacroExpandError)
   case EvalFailure(EvalError)
 }
 

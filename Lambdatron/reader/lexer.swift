@@ -37,7 +37,7 @@ enum LexToken {
   case Syntax(SyntaxToken)
   case Nil                        // nil
   case CharLiteral(Character)     // character literal
-  case StringAtom(String)      // string (denoted by double quotes)
+  case StringLiteral(String)      // string (denoted by double quotes)
   case Integer(Int)               // integer number
   case FlPtNumber(Double)         // floating-point number
   case Boolean(Bool)              // boolean (true or false)
@@ -92,7 +92,7 @@ enum LexToken {
 private enum RawLexToken {
   case Syntax(SyntaxToken)
   case CharLiteral(Character)
-  case StringAtom(String)
+  case StringLiteral(String)
   case Unknown(String)
 }
 
@@ -202,7 +202,7 @@ private func lex1(raw: String) -> RawLexResult {
       // Currently lexing characters forming a string literal
       if char == "\"" {
         // User ended the string with a closing "
-        rawTokenBuffer.append(.StringAtom(currentToken))
+        rawTokenBuffer.append(.StringLiteral(currentToken))
         currentToken = ""
         state = .Normal
       }
@@ -253,8 +253,8 @@ private func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
   for rawToken in rawTokenBuffer {
     switch rawToken {
     case let .Syntax(s): tokenBuffer.append(.Syntax(s))
-    case let .CharLiteral(cl): tokenBuffer.append(.CharLiteral(cl))
-    case let .StringAtom(sl): tokenBuffer.append(.StringAtom(sl))
+    case let .CharLiteral(c): tokenBuffer.append(.CharLiteral(c))
+    case let .StringLiteral(s): tokenBuffer.append(.StringLiteral(s))
     case let .Unknown(u):
       // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string
       let tValue = NSString(string: String(u))

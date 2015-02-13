@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import XCTest
 
 class TestNilParsing : InterpreterTest {
   func testParsingNil() {
@@ -173,4 +174,83 @@ class TestVectorParsing : InterpreterTest {
 
 class TestMapParsing : InterpreterTest {
   // TODO
+}
+
+class TestParsingFailure : InterpreterTest {
+
+  func expectThat(input: String, shouldFailAs expected: ParseError.ErrorType) {
+    let result = interpreter.evaluate(input)
+    switch result {
+    case let .Success(s):
+      XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
+    case .LexFailure:
+      XCTFail("lexer error")
+    case let .ParseFailure(actual):
+      let expectedName = expected.rawValue
+      let actualName = actual.error.rawValue
+      XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
+    case .ReaderFailure:
+      XCTFail("reader error")
+    case let .EvalFailure(actual):
+      XCTFail("evaluation error")
+    }
+  }
+
+  func testEmptyInput() {
+    expectThat("", shouldFailAs: .EmptyInputError)
+  }
+
+  func testMismatchedParen() {
+    expectThat("(", shouldFailAs: .MismatchedDelimiterError)
+    expectThat("(a (1 2)", shouldFailAs: .MismatchedDelimiterError)
+  }
+
+  func testMismatchedBracket() {
+    expectThat("[", shouldFailAs: .MismatchedDelimiterError)
+    expectThat("[a [1 2]", shouldFailAs: .MismatchedDelimiterError)
+  }
+
+  func testMismatchedBrace() {
+    expectThat("{", shouldFailAs: .MismatchedDelimiterError)
+    expectThat("{:key {:key :value}", shouldFailAs: .MismatchedDelimiterError)
+  }
+
+  func testBadStartToken() {
+    expectThat(")", shouldFailAs: .BadStartTokenError)
+    expectThat("]", shouldFailAs: .BadStartTokenError)
+    expectThat("}", shouldFailAs: .BadStartTokenError)
+  }
+
+  func testMismatchedQuote() {
+    expectThat("'", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("(a b ')", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("[a b ']", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("{:key '}", shouldFailAs: .MismatchedReaderMacroError)
+  }
+
+  func testMismatchedSyntaxQuote() {
+    expectThat("`", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("(a b `)", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("[a b `]", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("{:key `}", shouldFailAs: .MismatchedReaderMacroError)
+  }
+
+  func testMismatchedUnquote() {
+    expectThat("~", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("`(a b ~)", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("`[a b ~]", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("`{:key ~}", shouldFailAs: .MismatchedReaderMacroError)
+  }
+
+  func testMismatchedUnquoteSplice() {
+    expectThat("~@", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("`(a b ~@)", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("`[a b ~@]", shouldFailAs: .MismatchedReaderMacroError)
+    expectThat("`{:key ~@}", shouldFailAs: .MismatchedReaderMacroError)
+  }
+
+  func testMismatchedMapItems() {
+    expectThat("{:key}", shouldFailAs: .MapKeyValueMismatchError)
+    expectThat("{:key1 :value1 :key2}", shouldFailAs: .MapKeyValueMismatchError)
+  }
 }

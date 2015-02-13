@@ -20,7 +20,7 @@ private enum DoFormFileDataResult {
   case Success(Params)
   case NoDataFailure
   case ParseFailure(ParseError)
-  case ReaderExpandFailure(ReaderError)
+  case ReaderExpandFailure(ReaderMacroExpandError)
 }
 
 private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult {
