@@ -40,9 +40,9 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
 
   // Check validity of first token. The first token must match with the `type` argument passed in.
   switch tokens[idx] {
-  case let x where x.isLeftParentheses && type == .List: break
-  case let x where x.isLeftSquareBracket && type == .Vector: break
-  case let x where x.isLeftBrace && type == .Map: break
+  case let x where x.isA(.LeftParentheses) && type == .List: break
+  case let x where x.isA(.LeftSquareBracket) && type == .Vector: break
+  case let x where x.isA(.LeftBrace) && type == .Map: break
   default: return .Error(ParseError(.BadStartTokenError))
   }
   // The 'nesting level' of the delimiter token. For example, if we were processing a vector and we saw the tokens
@@ -55,26 +55,26 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
     idx = i
     var currentToken = tokens[i]
     switch currentToken {
-    case let x where x.isLeftParentheses && type == .List:
+    case let x where x.isA(.LeftParentheses) && type == .List:
       count++
       buffer.append(currentToken)
-    case let x where x.isRightParentheses && type == .List:
+    case let x where x.isA(.RightParentheses) && type == .List:
       count--
       if count > 0 {
         buffer.append(currentToken)
       }
-    case let x where x.isLeftSquareBracket && type == .Vector:
+    case let x where x.isA(.LeftSquareBracket) && type == .Vector:
       count++
       buffer.append(currentToken)
-    case let x where x.isRightSquareBracket && type == .Vector:
+    case let x where x.isA(.RightSquareBracket) && type == .Vector:
       count--
       if count > 0 {
         buffer.append(currentToken)
       }
-    case let x where x.isLeftBrace && type == .Map:
+    case let x where x.isA(.LeftBrace) && type == .Map:
       count++
       buffer.append(currentToken)
-    case let x where x.isRightBrace && type == .Map:
+    case let x where x.isA(.RightBrace) && type == .Map:
       count--
       if count > 0 {
         buffer.append(currentToken)

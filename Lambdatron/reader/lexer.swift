@@ -13,12 +13,7 @@ enum LexResult {
   case Failure(LexError)
 }
 
-private enum RawLexResult {
-  case Success([RawLexToken])
-  case Failure(LexError)
-}
-
-/// Tokens representing special syntax characters
+/// Tokens representing special syntax characters.
 enum SyntaxToken {
   case LeftParentheses            // left parentheses '('
   case RightParentheses           // right parentheses ')'
@@ -32,7 +27,7 @@ enum SyntaxToken {
   case TildeAt                    // tilde followed by at '~@'
 }
 
-/// Tokens that come out of the lex() function
+/// Tokens that come out of the lex() function, intended as input to the parser.
 enum LexToken {
   case Syntax(SyntaxToken)
   case Nil                        // nil
@@ -46,334 +41,314 @@ enum LexToken {
   case Special(SpecialForm)       // a special form (e.g. 'quote')
   case BuiltInFunction(BuiltIn)   // a built-in function
 
-  var isLeftParentheses : Bool {
+  /// Return whether or not this LexToken is a specific syntax token.
+  func isA(token: SyntaxToken) -> Bool {
     switch self {
-    case let .Syntax(s): switch s { case .LeftParentheses: return true; default: return false }
-    default: return false
-    }
-  }
-
-  var isRightParentheses : Bool {
-    switch self {
-    case let .Syntax(s): switch s { case .RightParentheses: return true; default: return false }
-    default: return false
-    }
-  }
-
-  var isLeftSquareBracket : Bool {
-    switch self {
-    case let .Syntax(s): switch s { case .LeftSquareBracket: return true; default: return false }
-    default: return false
-    }
-  }
-
-  var isRightSquareBracket : Bool {
-    switch self {
-    case let .Syntax(s): switch s { case .RightSquareBracket: return true; default: return false }
-    default: return false
-    }
-  }
-
-  var isLeftBrace : Bool {
-    switch self {
-    case let .Syntax(s): switch s { case .LeftBrace: return true; default: return false }
-    default: return false
-    }
-  }
-
-  var isRightBrace : Bool {
-    switch self {
-    case let .Syntax(s): switch s { case .RightBrace: return true; default: return false }
+    case let .Syntax(s): return s == token
     default: return false
     }
   }
 }
 
-private enum RawLexToken {
-  case Syntax(SyntaxToken)
-  case CharLiteral(Character)
-  case StringLiteral(String)
-  case Unknown(String)
-}
-
-private func characterIsWhitespace(item: unichar) -> Bool {
-  // Whitespace character set; 'misc' is used for characters that should be ignored like whitespace
-  let ws = NSCharacterSet.whitespaceAndNewlineCharacterSet()
-  let misc = NSCharacterSet(charactersInString: ",")
-  return ws.characterIsMember(item) || misc.characterIsMember(item)
-}
-
-/// Perform the first phase of lexing. This takes in a string representing source code, and returns an array of
-/// RawLexTokens.
-private func lex1(raw: String) -> RawLexResult {
-  enum State {
-    case Normal, String, Comment
-  }
-  // Newline character set; only used for finding the newlines that terminate single-line comments
-  let nlSet = NSCharacterSet.newlineCharacterSet()
-
-  var rawTokenBuffer : [RawLexToken] = []
-
-  // currentToken can only contain either a StringAtom or an Unknown token
-  var currentToken : NSMutableString = ""
-
-  /// Helper function - flush the current-in-progress token to the token buffer
-  func flushTokenToBuffer() {
-    if currentToken.length > 0 {
-      rawTokenBuffer.append(.Unknown(currentToken))
-    }
-    currentToken = ""
+/// Lexer represents a collection of functions and static objects used to lex input strings into tokens. It is not
+/// intended to be instantiated.
+private struct Lexer {
+  enum RawLexToken {
+    case Syntax(SyntaxToken)
+    case CharLiteral(Character)
+    case StringLiteral(String)
+    case Unknown(String)
   }
 
-  var state : State = .Normal
+  enum StringLexResult {
+    case Success(String), Failure(LexError)
+  }
 
-  var skipCount = 0
-  let rawAsNSString = NSString(string: raw)
-  for (idx, char) in enumerate(raw) {
-    if skipCount > 0 {
-      // Multi-character sequence detected previously. Don't run.
-      skipCount--
-      continue
+  enum CharacterLexResult {
+    case Success(Character), Failure(LexError)
+  }
+
+  enum RawLexTokenArrayLexResult {
+    case Success([RawLexToken]), Failure(LexError)
+  }
+
+  // Character sets
+  static let whitespace = NSCharacterSet.whitespaceAndNewlineCharacterSet()
+  static let likeWhitespace = NSCharacterSet(charactersInString: ",")
+  static let canFollowCharacter = NSCharacterSet(charactersInString: "\\()[]{}\"`@~")
+
+  static let formatter = NSNumberFormatter()
+
+  /// Return whether or not the character is considered whitespace (and can be discarded) by the lexer.
+  static func isWhitespace(char: Character) -> Bool {
+    return characterIsMemberOfSet(char, whitespace) || characterIsMemberOfSet(char, likeWhitespace)
+  }
+
+  /// Perform the first phase of lexing. This takes in a string representing source code, and returns an array of
+  /// RawLexTokens.
+  static func lex1(string: String) -> RawLexTokenArrayLexResult {
+    /// A list of tokens generated by the lex1 function.
+    var rawTokenBuffer : [RawLexToken] = []
+    /// The current position within the input string.
+    var index = string.startIndex
+    // currentToken can only contain either a StringAtom or an Unknown token
+    var currentToken : String = ""
+
+    /// Helper function - flush the current-in-progress token to the token buffer and reset the in-progress token.
+    func flushTokenToBuffer() {
+      if !currentToken.isEmpty {
+        rawTokenBuffer.append(.Unknown(currentToken))
+      }
+      currentToken = ""
     }
 
-    // Horrible, horrible hacks to turn a Character into a unichar
-    var tChar = NSString(string: String(char)).characterAtIndex(0)
+    /// Helper function - flush the token, append a new one, and advance the index by one.
+    func appendSyntaxToken(token: SyntaxToken) {
+      if !currentToken.isEmpty {
+        rawTokenBuffer.append(.Unknown(currentToken))
+      }
+      currentToken = ""
+      rawTokenBuffer.append(.Syntax(token))
+      index = index.successor()
+    }
 
-    switch state {
-    case .Normal:
+    while index < string.endIndex {
+      let char = string[index]
+
       switch char {
       case ";":
         flushTokenToBuffer()                          // User starting a comment with a ;
-        state = .Comment
+        // Consume a comment
+        consumeComment(string, index: &index)
       case "\"":
         flushTokenToBuffer()                          // User starting a string with an opening "
-        state = .String
+        // Consume the string starting at the current position.
+        switch consumeString(string, index: &index) {
+        case let .Success(string): rawTokenBuffer.append(.StringLiteral(string))
+        case let .Failure(error): return .Failure(error)
+        }
       case "(":
-        flushTokenToBuffer()                          // Left parentheses
-        rawTokenBuffer.append(.Syntax(.LeftParentheses))
+        appendSyntaxToken(.LeftParentheses)
       case ")":
-        flushTokenToBuffer()                          // Right parentheses
-        rawTokenBuffer.append(.Syntax(.RightParentheses))
+        appendSyntaxToken(.RightParentheses)
       case "[":
-        flushTokenToBuffer()                          // Left square bracket
-        rawTokenBuffer.append(.Syntax(.LeftSquareBracket))
+        appendSyntaxToken(.LeftSquareBracket)
       case "]":
-        flushTokenToBuffer()                          // Right square bracket
-        rawTokenBuffer.append(.Syntax(.RightSquareBracket))
+        appendSyntaxToken(.RightSquareBracket)
       case "{":
-        flushTokenToBuffer()                          // Left brace
-        rawTokenBuffer.append(.Syntax(.LeftBrace))
+        appendSyntaxToken(.LeftBrace)
       case "}":
-        flushTokenToBuffer()                          // Right brace
-        rawTokenBuffer.append(.Syntax(.RightBrace))
+        appendSyntaxToken(.RightBrace)
       case "'":
-        flushTokenToBuffer()                          // Single quote
-        rawTokenBuffer.append(.Syntax(.Quote))
+        appendSyntaxToken(.Quote)
       case "`":
-        flushTokenToBuffer()                          // Backquote
-        rawTokenBuffer.append(.Syntax(.Backquote))
+        appendSyntaxToken(.Backquote)
       case "~":
         flushTokenToBuffer()                          // Tilde can either signify ~ or ~@
-        if idx < rawAsNSString.length - 1 {
-          let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
-          rawTokenBuffer.append(.Syntax(nextChar == "@" ? .TildeAt : .Tilde))
-          skipCount = nextChar == "@" ? 1 : 0
-        }
-        else {
-          rawTokenBuffer.append(.Syntax(.Tilde))
-        }
+        let token = consumeTilde(string, index: &index)
+        rawTokenBuffer.append(.Syntax(token))
       case "\\":
         flushTokenToBuffer()                          // Backslash represents a character literal
-        if let result = parseCharAtom(idx, rawAsNSString) {
-          let (token, skip) = result
-          rawTokenBuffer.append(token)
-          skipCount = skip
+        switch consumeCharacter(string, index: &index) {
+        case let .Success(character): rawTokenBuffer.append(.CharLiteral(character))
+        case let .Failure(error): return .Failure(error)
+        }
+      case _ where isWhitespace(char):
+        flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
+        index = index.successor()
+      default:
+        currentToken.append(char)                     // Any other valid character
+        index = index.successor()
+      }
+    }
+
+    // If there's one last token left, flush it
+    flushTokenToBuffer()
+    // Return the buffer
+    return .Success(rawTokenBuffer)
+  }
+
+  /// Perform the second phase of lexing, taking RawLexTokens and turning them into LexTokens. This may involve taking
+  /// Unknown tokens and figuring out if they correspond to literals or other privileged forms.
+  static func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
+    var tokenBuffer : [LexToken] = []
+    for rawToken in rawTokenBuffer {
+      switch rawToken {
+      case let .Syntax(s): tokenBuffer.append(.Syntax(s))
+      case let .CharLiteral(c): tokenBuffer.append(.CharLiteral(c))
+      case let .StringLiteral(s): tokenBuffer.append(.StringLiteral(s))
+      case let .Unknown(unknown):
+        // Figure out what to do with the token
+        if let specialForm = SpecialForm(rawValue: unknown) {
+          // Special form
+          tokenBuffer.append(.Special(specialForm))
+        }
+        else if let builtIn = BuiltIn(rawValue: unknown) {
+          // Built-in function
+          tokenBuffer.append(.BuiltInFunction(builtIn))
+        }
+        else if unknown == ":" {
+          // This is an invalid keyword (no body).
+          return .Failure(LexError(.InvalidKeywordError))
+        }
+        else if unknown[unknown.startIndex] == ":" {
+          // This is a keyword (starts with ":" and has at least one other character)
+          tokenBuffer.append(.Keyword(unknown[unknown.startIndex.successor()..<unknown.endIndex]))
+        }
+        else if unknown == "nil" {
+          // Literal nil
+          tokenBuffer.append(.Nil)
+        }
+        else if unknown == "false" {
+          // Literal bool
+          tokenBuffer.append(.Boolean(false))
+        }
+        else if unknown == "true" {
+          // Literal bool
+          tokenBuffer.append(.Boolean(true))
+        }
+        else if let numberToken = numberFromString(unknown) {
+          // Literal number
+          tokenBuffer.append(numberToken)
         }
         else {
-          // Backslash without anything following it, or invalid character literal name
-          return .Failure(LexError(.InvalidCharacterError))
+          // Identifier
+          tokenBuffer.append(.Identifier(unknown))
         }
-      case _ where characterIsWhitespace(tChar):
-        flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
-      default:
-        currentToken.appendString(String(char))       // Any other valid character
       }
-    case .String:
-      // Currently lexing characters forming a string literal
-      if char == "\"" {
-        // User ended the string with a closing "
-        rawTokenBuffer.append(.StringLiteral(currentToken))
-        currentToken = ""
-        state = .Normal
+    }
+    return .Success(tokenBuffer)
+  }
+
+  /// Given a string representing an entire buffer, as well as an index representing a position in the buffer
+  /// corresponding to the start of a comment, advance the index to the point after the comment ends.
+  static func consumeComment(str: String, inout index: String.Index) {
+    var current = index
+
+    while current < str.endIndex {
+      let character = str[current]
+      current = current.successor()
+      if characterIsMemberOfSet(character, NSCharacterSet.newlineCharacterSet()) {
+        // Character is a newline
+        break
       }
-      else if (char == "\\") {
-        if idx == rawAsNSString.length - 1 {
+    }
+    // Found the newline, or reached the end of the entire buffer
+    index = current
+  }
+
+  /// Given a string representing an entire buffer, as well as an index representing a position in the buffer
+  /// corresponding to the start of a string literal, try to parse out the string. This function returns a string or nil
+  /// if unsuccessful. Only if successful, it will also update the index position.
+  static func consumeString(str: String, inout index: String.Index) -> StringLexResult {
+    // Precondition: str[index] must be the double quote denoting the beginning of the string to consume.
+
+    var current = index
+    // Advance position to the first character in the string proper.
+    current = current.successor()
+    let start = current
+    var buffer = ""
+
+    while current < str.endIndex {
+      let character = str[current]
+      switch character {
+      case "\"":
+        // Reached the end of the string literal. Return it and update 'index'.
+        index = current.successor()
+        return .Success(buffer)
+      case "\\":
+        // Found a control character. Consume the character following it.
+        if current == str.endIndex.predecessor() {
           // An escape character cannot be the last character in the input
           return .Failure(LexError(.InvalidEscapeSequenceError))
         }
-        skipCount = 1
-        // Get the next character
-        let nextChar = rawAsNSString.substringWithRange(NSRange(location: idx+1, length: 1))
-        if let escapeSeq = processEscape(nextChar) {
-          currentToken.appendString(escapeSeq)
+        if let escape = escapeFor(str[current.successor()]) {
+          // Append the escape character and skip two characters.
+          buffer.append(escape)
+          current = current.successor().successor()
         }
         else {
+          // The escape sequence was not valid.
           return .Failure(LexError(.InvalidEscapeSequenceError))
         }
-      }
-      else {
-        // Any other token gets added to the buffer as a literal
-        currentToken.appendString(String(char))
-      }
-    case .Comment:
-      // Comments are completely ignored by the lexer, and are terminated by a newline
-      switch char {
-      case _ where nlSet.characterIsMember(tChar):
-        // End of string
-        state = .Normal
-      default: break
+      default:
+        // Any other token is just skipped.
+        buffer.append(character)
+        current = current.successor()
       }
     }
-  }
-
-  if state == .String {
-    // This is bad; a string was left dangling
+    // If we've gotten here we've reached the end of str, but without terminating our string literal.
     return .Failure(LexError(.NonTerminatedStringError))
   }
-  // If there's another token left, flush it
-  flushTokenToBuffer()
-  // Return the buffer
-  return .Success(rawTokenBuffer)
-}
 
-/// Perform the second phase of lexing, taking RawLexTokens and turning them into LexTokens. This may involve taking
-/// Unknown tokens and figuring out if they correspond to literals or other privileged forms.
-private func lex2(rawTokenBuffer: [RawLexToken]) -> LexResult {
-  var tokenBuffer : [LexToken] = []
-  for rawToken in rawTokenBuffer {
-    switch rawToken {
-    case let .Syntax(s): tokenBuffer.append(.Syntax(s))
-    case let .CharLiteral(c): tokenBuffer.append(.CharLiteral(c))
-    case let .StringLiteral(s): tokenBuffer.append(.StringLiteral(s))
-    case let .Unknown(u):
-      // Possible type inference bug? Without the String() constructor it fails, even though 'u' is already a string
-      let tValue = NSString(string: String(u))
-      // Figure out what to do with the token
-      if let specialForm = SpecialForm(rawValue: tValue) {
-        // Special form
-        tokenBuffer.append(.Special(specialForm))
-      }
-      else if let builtIn = BuiltIn(rawValue: tValue) {
-        // Built-in function
-        tokenBuffer.append(.BuiltInFunction(builtIn))
-      }
-      else if tValue.characterAtIndex(0) == UInt16(UnicodeScalar(":").value) && tValue.length > 1 {
-        // This is a keyword (starts with ":" and has at least one other character)
-        tokenBuffer.append(.Keyword(u.substringWithRange(u.startIndex.successor()..<u.endIndex)))
-      }
-      else if tValue == "nil" {
-        // Literal nil
-        tokenBuffer.append(.Nil)
-      }
-      else if tValue == "false" {
-        // Literal bool
-        tokenBuffer.append(.Boolean(false))
-      }
-      else if tValue == "true" {
-        // Literal bool
-        tokenBuffer.append(.Boolean(true))
-      }
-      else if let numberToken = buildNumberFromString(u) {
-        // Literal number
-        tokenBuffer.append(numberToken)
-      }
-      else {
-        // Identifier
-        tokenBuffer.append(.Identifier(u))
-      }
+  /// Given a string and a start index, determine whether the token at the start index is '~' or '~@', returning a
+  /// syntax token or error and updating the index appropriately.
+  static func consumeTilde(str: String, inout index: String.Index) -> SyntaxToken {
+    // Precondition: str[index] must be '~'.
+    if index == str.endIndex.predecessor() {
+      // The '~' is at the end of the string.
+      index = index.successor()
+      return .Tilde
+    }
+    // We need to examine the following character.
+    let next = str[index.successor()]
+    if next == "@" {
+      index = index.successor().successor()
+      return .TildeAt
+    }
+    else {
+      index = index.successor()
+      return .Tilde
     }
   }
-  return .Success(tokenBuffer)
-}
 
-/// Given a raw input (as a string), lex it into individual tokens.
-func lex(raw: String) -> LexResult {
-  let result = lex1(raw)
-  switch result {
-  case let .Success(rawTokenBuffer):
-    return lex2(rawTokenBuffer)
-  case let .Failure(f): return .Failure(f)
-  }
-}
+  /// Given a string and a start index, return the character described by the character literal at that position, or
+  /// nil, and update the index appropriately.
+  static func consumeCharacter(str: String, inout index: String.Index) -> CharacterLexResult {
+    // Precondition: str[index] is the "\" character that begins the character literal.
+    if index == str.endIndex.predecessor() {
+      // No character literals can start at the very end of the string.
+      return .Failure(LexError(.InvalidCharacterError))
+    }
 
-// Immutable utility items
-private let nf = NSNumberFormatter()
-private let nonTerminationSet = NSCharacterSet.lowercaseLetterCharacterSet()
+    let start = index.successor()
+    // The first character in the character literal
+    var firstCharacter = str[start]
+    // The index of the character following the first character in the character literal expression
+    let followingIndex = start.successor()
 
-func buildNumberFromString(str: String) -> LexToken? {
-  enum NumberMode {
-    case Integer, FloatingPoint
-  }
-  var mode : NumberMode = .Integer
-  
-  // Scan string for "."
-  for item in str {
-    if item == "." {
-      switch mode {
-      case .Integer:
-        mode = .FloatingPoint
-      case .FloatingPoint:
-        // A second decimal point makes the number invalid
-        return nil
+    if followingIndex == str.endIndex || characterTerminatesLiteral(str[followingIndex]) {
+      // Single-character literal
+      index = followingIndex
+      return .Success(firstCharacter)
+    }
+    // Find the end of the character.
+    var current = followingIndex
+    while current < str.endIndex {
+      current = current.successor()
+      if current == str.endIndex || characterTerminatesLiteral(str[current]) {
+        break
       }
     }
-  }
-  
-  // The classic 'isNumber()' function.
-  // TODO: Replace this with a REAL number parser
-  nf.numberStyle = NSNumberFormatterStyle.DecimalStyle
-  let number = nf.numberFromString(str)
-  if let actualNumber = number {
-    switch mode {
-    case .Integer:
-      return LexToken.Integer(actualNumber.longValue)
-    case .FloatingPoint:
-      return LexToken.FlPtNumber(actualNumber.doubleValue)
+    // Switch on the name of the character.
+    index = current
+    switch str[start..<current] {
+    case "space": return .Success(" ")
+    case "tab": return .Success("\t")
+    case "newline": return .Success("\n")
+    case "return": return .Success("\r")
+    case "backspace": return .Success(Character(UnicodeScalar(8)))
+    case "formfeed": return .Success(Character(UnicodeScalar(12)))
+    default:
+      // Reset index
+      index = start.predecessor()
+      return .Failure(LexError(.InvalidCharacterError))
     }
   }
-  return nil
-}
 
-/// Given the second character in a two-character escape sequence (e.g. "n" in "\n"), return the character the escape
-/// sequence corresponds to (if one exists).
-private func processEscape(sequence: String) -> String? {
-  switch sequence {
-  case "r": return "\r"
-  case "n": return "\n"
-  case "t": return "\t"
-  case "\"": return "\""
-  case "\\": return "\\"
-  default: return nil
-  }
-}
-
-/// Given an input string, as well as a start index marking the position of a token within that string that starts with
-/// a backslash (e.g. "hello world \a" and 12), try to parse the token into a character literal, and return either nil
-/// (if the token can't be parsed correctly) or a tuple containing the character literal token and an index from whence
-/// to resume parsing.
-private func parseCharAtom(start: Int, str: String) -> (RawLexToken, Int)? {
-  // Precondition: start is the index of the "\" character in str that starts the character literal
-  let strAsUtf16 = NSString(string: str)
-  let strLength = strAsUtf16.length
-  // Reject any character literals started at the end of the string
-  if start == strLength - 1 {
-    return nil
-  }
-
-  /// Check whether a character at a certain position is whitespace (if it exists). Returns true if the character is out
-  /// of bounds.
-  func isWhitespace(pos: Int) -> Bool {
-    if pos >= strLength { return true }
+  /// Return whether or not a character immediately following a character literal can mark the beginning of the next
+  /// token to be lexed.
+  static func characterTerminatesLiteral(c: Character) -> Bool {
     // A character can be adjacent to:
     // * Another character (e.g. \a\a)
     // * The start or end of a list (e.g. (\a))
@@ -381,63 +356,62 @@ private func parseCharAtom(start: Int, str: String) -> (RawLexToken, Int)? {
     // * The start or end of a bracketed form (e.g. \a{})
     // * The start of a string (e.g. \a"hello")
     // * The macro symbols `, @, or ~
-    //
     // A character cannot touch a keyword (:), literal quote ('), hash (#), number, true, false, or nil.
-    let canTouch = NSCharacterSet(charactersInString: "\\()[]{}\"`@~")
-    let char = strAsUtf16.characterAtIndex(pos)
-    return characterIsWhitespace(char) || canTouch.characterIsMember(char)
+    return characterIsMemberOfSet(c, whitespace) || characterIsMemberOfSet(c, canFollowCharacter)
   }
 
-  // Take single character
-  if strAsUtf16.characterAtIndex(start + 1) == NSString(string: "\\").characterAtIndex(0) {
-    // Special case: user entered "\\", which indicates the backslash literal
-    if !isWhitespace(start + 2) { return nil }
-    return (.CharLiteral("\\"), 1)
-  }
-  else if start == strAsUtf16.length - 2 || !nonTerminationSet.characterIsMember(strAsUtf16.characterAtIndex(start + 2)) {
-    // Single-character literal: either the character after the next terminates the literal, or it's at end of string
-    // Note that single-character literals can be numbers, letters, or symbols (e.g. "\."), but multi-character literals
-    //  always have names comprised of lowercase letters. Therefore, if we detect the prospective second character in
-    //  the literal name to be a lowercase letter, then we scan for a literal name. Otherwise, we consider the literal
-    //  a single-character literal.
-    if !isWhitespace(start + 2) { return nil }
-    let rawUnichar = strAsUtf16.characterAtIndex(start + 1)
-    let asStr = strAsUtf16.substringWithRange(NSRange(location: start + 1, length: 1))
-    let character = Character(asStr)
-    return (.CharLiteral(character), 1)
-  }
+  /// Return a LexToken representing a number type if the input string can be converted into a number, or nil otherwise.
+  static func numberFromString(str: String) -> LexToken? {
+    enum NumberMode { case Integer, FloatingPoint }
+    var mode : NumberMode = .Integer
 
-  // Character literal with a character name (e.g. 'newline')
-  var idx = start + 2
-  while idx < strLength {
-    if !nonTerminationSet.characterIsMember(strAsUtf16.characterAtIndex(idx)) {
-      break
+    // Scan string for "."
+    for item in str {
+      if item == "." {
+        switch mode {
+        case .Integer:
+          mode = .FloatingPoint
+        case .FloatingPoint:
+          // A second decimal point makes the number invalid
+          return nil
+        }
+      }
     }
-    idx++
-  }
-  // The actual end is one prior to the end of the string or the termination character.
-  if !isWhitespace(idx) { return nil }
-  idx -= 1
-  let literalLength = idx - start
-  assert(literalLength > 1)
-  let literalName = strAsUtf16.substringWithRange(NSRange(location: start + 1, length: literalLength))
 
-  switch literalName {
-  case "space":
-    return (.CharLiteral(" "), literalLength)
-  case "tab":
-    return (.CharLiteral("\t"), literalLength)
-  case "newline":
-    return (.CharLiteral("\n"), literalLength)
-  case "return":
-    return (.CharLiteral("\r"), literalLength)
-  case "backspace":
-    let backspace = Character(UnicodeScalar(8))
-    return (.CharLiteral(backspace), literalLength)
-  case "formfeed":
-    let formfeed = Character(UnicodeScalar(12))
-    return (.CharLiteral(formfeed), literalLength)
-  default:
+    // The classic 'isNumber()' function.
+    // TODO: Replace this with a REAL number parser
+    formatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
+    if let number = formatter.numberFromString(str) {
+      switch mode {
+      case .Integer:
+        return LexToken.Integer(number.longValue)
+      case .FloatingPoint:
+        return LexToken.FlPtNumber(number.doubleValue)
+      }
+    }
     return nil
+  }
+}
+
+/// Given a raw input (as a string), lex it into individual tokens.
+func lex(raw: String) -> LexResult {
+  let result = Lexer.lex1(raw)
+  switch result {
+  case let .Success(rawTokenBuffer):
+    return Lexer.lex2(rawTokenBuffer)
+  case let .Failure(f): return .Failure(f)
+  }
+}
+
+/// Given the second character in a two-character escape sequence (e.g. "n" in "\n"), return the character the escape
+/// sequence corresponds to (if one exists).
+private func escapeFor(sequence: Character) -> Character? {
+  switch sequence {
+  case "r": return "\r"
+  case "n": return "\n"
+  case "t": return "\t"
+  case "\"": return "\""
+  case "\\": return "\\"
+  default: return nil
   }
 }

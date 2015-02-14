@@ -29,6 +29,12 @@ final class Box<T> {
 
 // MARK: Swift string helpers
 
+/// Return whether or not a Swift character is a member of an NSCharacterSet.
+func characterIsMemberOfSet(c: Character, set: NSCharacterSet) -> Bool {
+  let primitive = String(c).utf16[0] as unichar
+  return set.characterIsMember(primitive)
+}
+
 /// Retrieve a character within a Swift string, or nil if the provided index is out of bounds. This is an O(n)
 /// operation with respect to the length of the string.
 func characterAtIndex(s: String, idx: Int) -> Character? {

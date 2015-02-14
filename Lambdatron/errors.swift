@@ -26,6 +26,7 @@ public struct LexError : Printable {
   public enum ErrorType : String {
     case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
     case InvalidCharacterError = "InvalidCharacterError"
+    case InvalidKeywordError = "InvalidKeywordError"
     case NonTerminatedStringError = "NonTerminatedStringError"
   }
   public let error : ErrorType
@@ -40,6 +41,7 @@ public struct LexError : Printable {
     switch self.error {
     case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
     case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
+    case .InvalidKeywordError: return "(\(name)): invalid keyword"
     case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
     }
   }

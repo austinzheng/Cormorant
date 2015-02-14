@@ -52,7 +52,7 @@ func loadStdlibInto(context: Context, files: [String]) {
 func stringDataForBundledFile(name: String) -> String? {
   let path = NSBundle.mainBundle().pathForResource(name, ofType:"lbt")
   if let path = path {
-    let contents = NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: nil)
+    let contents = String(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: nil)
     return contents
   }
   return nil
@@ -69,6 +69,7 @@ func segmentsForFile(data: String) -> ([[LexToken]])? {
 }
 
 /// Segment a list of tokens into one or more lists of tokens, each list representing an individual form
+// TODO: handle maps
 func segment(input: [LexToken]) -> [[LexToken]] {
   enum State {
     case SingleToken, List, Vector
@@ -89,11 +90,11 @@ func segment(input: [LexToken]) -> [[LexToken]] {
     switch state {
     case .SingleToken:
       switch token {
-      case _ where token.isLeftParentheses:
+      case _ where token.isA(.LeftParentheses):
         flushCurrentSegment()
         count = 1
         state = .List
-      case _ where token.isRightParentheses:
+      case _ where token.isA(.RightParentheses):
         flushCurrentSegment()
         count = 1
         state = .Vector
@@ -103,10 +104,10 @@ func segment(input: [LexToken]) -> [[LexToken]] {
       currentSegment.append(token)
     case .List:
       switch token {
-      case _ where token.isLeftParentheses:
+      case _ where token.isA(.LeftParentheses):
         count += 1
         currentSegment.append(token)
-      case _ where token.isRightParentheses:
+      case _ where token.isA(.RightParentheses):
         count -= 1
         currentSegment.append(token)
         if count == 0 {
@@ -118,10 +119,10 @@ func segment(input: [LexToken]) -> [[LexToken]] {
       }
     case .Vector:
       switch token {
-      case _ where token.isLeftSquareBracket:
+      case _ where token.isA(.LeftSquareBracket):
         count += 1
         currentSegment.append(token)
-      case _ where token.isRightSquareBracket:
+      case _ where token.isA(.RightSquareBracket):
         count -= 1
         currentSegment.append(token)
         if count == 0 {

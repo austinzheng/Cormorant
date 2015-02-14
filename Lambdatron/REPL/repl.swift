@@ -31,17 +31,15 @@ class ReadEvaluatePrintLoop {
     interpreter.readInput = getString
 
     while true {
-      let rawData = prompt.gets()
-      let optionalData : NSString? = NSString(CString: rawData, encoding: NSUTF8StringEncoding)
-      if let data = optionalData {
-        if (data.length == 0
-          || data.characterAtIndex(data.length-1) != UInt16(UnicodeScalar("\n").value)) {
+      let data = prompt.gets()
+      if let string = String(CString: data, encoding: NSUTF8StringEncoding) {
+        if string.isEmpty || string[string.endIndex.predecessor()] != "\n" {
             // Something wrong with the input
             return false
         }
         // Remove the trailing newline
-        let trimmedData = data.substringToIndex(data.length-1)
-        if let (command, args) = SpecialCommand.instanceWith(trimmedData) {
+        let trimmed = string[string.startIndex..<string.endIndex.predecessor()]
+        if let (command, args) = SpecialCommand.instanceWith(trimmed) {
           // REPL special command
           let shouldReturn = command.execute(args, logger: logger, repl: self)
           if shouldReturn {
@@ -50,7 +48,7 @@ class ReadEvaluatePrintLoop {
         }
         else {
           // Language form
-          let result = interpreter.evaluate(trimmedData)
+          let result = interpreter.evaluate(trimmed)
           switch result {
           case let .Success(v): println(interpreter.describe(v))
           case let .LexFailure(f): println("Lexing error \(f)")

@@ -11,7 +11,7 @@ import Foundation
 private func fileDataForRawPath(p: String) -> String? {
   let fileURL = NSURL(fileURLWithPath: p.stringByExpandingTildeInPath)
   if let fileURL = fileURL {
-    return NSString(contentsOfURL: fileURL, encoding: NSUTF8StringEncoding, error: nil)
+    return String(contentsOfURL: fileURL, encoding: NSUTF8StringEncoding, error: nil)
   }
   return nil
 }
