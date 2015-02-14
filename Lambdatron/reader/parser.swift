@@ -22,9 +22,24 @@ private enum NextFormTreatment {
   case UnquoteSplice
 }
 
-enum TokenCollectionResult {
-  case Tokens([LexToken])
-  case Error(ParseError)
+private enum TokenCollectionResult {
+  case Tokens([LexToken]), Error(ParseError)
+}
+
+private enum RegexResult {
+  case Success(ConsValue), Error(ParseError)
+}
+
+/// Given a pattern, try to build a regex pattern object.
+private func constructRegex(pattern: String) -> RegexResult {
+  var error : NSError? = nil
+  let regex = NSRegularExpression(pattern: pattern, options: nil, error: &error)
+  if let regex = regex {
+    return .Success(.Regex(regex))
+  }
+  else {
+    return .Error(ParseError.invalidRegexError(pattern, message: error?.localizedDescription ?? "(none)"))
+  }
 }
 
 /// Given an array containing all lexical tokens, a starting index, and a type of collection (list, vector, or map), go
@@ -174,6 +189,9 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         wrapStack.append(.Unquote)
       case .TildeAt:
         wrapStack.append(.UnquoteSplice)
+      case .HashLeftBrace, .HashQuote, .HashLeftParentheses, .HashUnderscore:
+        // TODO: Implement support for all of these
+        return .Failure(ParseError(.UnimplementedFeatureError))
       }
     case .Nil:
       buffer.append(wrappedConsItem(.Nil, &wrapStack))
@@ -181,6 +199,11 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       buffer.append(wrappedConsItem(.CharAtom(c), &wrapStack))
     case let .StringLiteral(s):
       buffer.append(wrappedConsItem(.StringAtom(s), &wrapStack))
+    case let .RegexPattern(s):
+      switch constructRegex(s) {
+      case let .Success(regex): buffer.append(wrappedConsItem(regex, &wrapStack))
+      case let .Error(error): return .Failure(error)
+      }
     case let .Integer(v):
       buffer.append(wrappedConsItem(.IntAtom(v), &wrapStack))
     case let .FlPtNumber(n):
@@ -351,10 +374,18 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
       return createTopLevelReaderMacro(.Unquote)
     case .TildeAt:
       return createTopLevelReaderMacro(.UnquoteSplice)
+    case .HashLeftBrace, .HashQuote, .HashLeftParentheses, .HashUnderscore:
+      // TODO: Implement support for all of these
+      return .Failure(ParseError(.UnimplementedFeatureError))
     }
   case .Nil: return .Success(.Nil)
   case let .CharLiteral(c): return .Success(.CharAtom(c))
   case let .StringLiteral(s): return .Success(.StringAtom(s))
+  case let .RegexPattern(s):
+    switch constructRegex(s) {
+    case let .Success(regex): return .Success(regex)
+    case let .Error(error): return .Failure(error)
+    }
   case let .Integer(v): return .Success(.IntAtom(v))
   case let .FlPtNumber(n): return .Success(.FloatAtom(n))
   case let .Boolean(b): return .Success(.BoolAtom(b))

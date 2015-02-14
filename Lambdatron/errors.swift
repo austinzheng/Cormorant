@@ -16,6 +16,7 @@ public enum MetadataKey {
   case ActualArity      // A description of the actual arity for a function
   case Index            // An out-of-bounds value used to index into a collection
   case Symbol           // A symbol which was invalid or unbound
+  case RegexPattern     // A regex pattern string
   case Custom           // A secondary message or informational string not covered by any of the above cases
 }
 
@@ -27,6 +28,7 @@ public struct LexError : Printable {
     case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
     case InvalidCharacterError = "InvalidCharacterError"
     case InvalidKeywordError = "InvalidKeywordError"
+    case InvalidDispatchMacroError = "InvalidDispatchMacroError"
     case NonTerminatedStringError = "NonTerminatedStringError"
   }
   public let error : ErrorType
@@ -42,6 +44,7 @@ public struct LexError : Printable {
     case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
     case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
     case .InvalidKeywordError: return "(\(name)): invalid keyword"
+    case .InvalidDispatchMacroError: return "(\(name)): invalid dispatch macro"
     case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
     }
   }
@@ -55,6 +58,8 @@ public struct ParseError : Printable {
     case MismatchedDelimiterError = "MismatchedDelimiterError"
     case MismatchedReaderMacroError = "MismatchedReaderMacroError"
     case MapKeyValueMismatchError = "MapKeyValueMismatchError"
+    case InvalidRegexError = "InvalidRegexError"
+    case UnimplementedFeatureError = "UnimplementedFeatureError"
   }
   public let error : ErrorType
   public let metadata : MetaDict
@@ -63,20 +68,37 @@ public struct ParseError : Printable {
     self.error = error; self.metadata = metadata ?? [:]
   }
 
+  static func invalidRegexError(pattern: String, message: String, metadata: MetaDict? = nil) -> ParseError {
+    var meta = metadata ?? [:]
+    meta[.RegexPattern] = pattern
+    meta[.Message] = message
+    let error = ParseError(.InvalidRegexError, metadata: meta)
+    return error
+  }
+
   public var description : String {
     let name = error.rawValue
+    var buffer : String
     switch error {
     case .EmptyInputError:
-      return "(\(name)): empty input"
+      buffer = "(\(name)): empty input"
     case .BadStartTokenError:
-      return "(\(name)): collection or form started with invalid delimiter"
+      buffer = "(\(name)): collection or form started with invalid delimiter"
     case .MismatchedDelimiterError:
-      return "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
+      buffer = "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
     case .MismatchedReaderMacroError:
-      return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
+      buffer = "(\(name)): mismatched reader macro (', `, ~, or ~@)"
     case .MapKeyValueMismatchError:
-      return "(\(name)): map literal must be declared with an even number of forms"
+      buffer = "(\(name)): map literal must be declared with an even number of forms"
+    case .InvalidRegexError:
+      buffer = "(\(name)): regex pattern is not valid"
+      if let message = metadata[.Message] {
+        buffer += "\n * message: \(message)"
+      }
+    case .UnimplementedFeatureError:
+      buffer = "(\(name)): feature not yet implemented"
     }
+    return buffer
   }
 }
 

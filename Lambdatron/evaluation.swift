@@ -275,8 +275,8 @@ extension ConsValue {
 
   func evaluate(ctx: Context) -> EvalResult {
     switch self {
-    case FunctionLiteral, BuiltInFunction: return .Success(self)
-    case let Symbol(v):
+    case .FunctionLiteral, .BuiltInFunction: return .Success(self)
+    case let .Symbol(v):
       // Look up the value of v
       switch ctx[v] {
       case .Invalid:
@@ -290,12 +290,12 @@ extension ConsValue {
       case .BoundMacro:
         return .Failure(EvalError(.EvaluatingMacroError))
       }
-    case Nil, BoolAtom, IntAtom, FloatAtom, CharAtom, StringAtom, Keyword:
+    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Regex, .Keyword:
       return .Success(self)
-    case let List(l):
+    case let .List(l):
       // Evaluate the value of the list 'l'
       return evaluateList(l, ctx)
-    case let Vector(v):
+    case let .Vector(v):
       // Evaluate the value of the vector literal 'v'
       var buffer : [ConsValue] = []
       for form in v {
@@ -307,7 +307,7 @@ extension ConsValue {
         }
       }
       return .Success(.Vector(buffer))
-    case let Map(m):
+    case let .Map(m):
       // Evaluate the value of the map literal 'm'
       var newMap : MapType = [:]
       for (key, value) in m {
@@ -325,8 +325,8 @@ extension ConsValue {
         }
       }
       return .Success(.Map(newMap))
-    case Special: return .Failure(EvalError(.EvaluatingSpecialFormError))
-    case ReaderMacroForm: return .Failure(EvalError(.EvaluatingMacroError))
+    case .Special: return .Failure(EvalError(.EvaluatingSpecialFormError))
+    case .ReaderMacroForm: return .Failure(EvalError(.EvaluatingMacroError))
     }
   }
 }

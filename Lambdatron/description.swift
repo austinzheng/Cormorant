@@ -51,6 +51,8 @@ extension ConsValue {
       return debug ? "ConsValue.CharAtom(\(desc))" : "\(desc)"
     case let StringAtom(v):
       return debug ? "ConsValue.StringAtom(\"\(v)\")" : "\"\(v)\""
+    case let .Regex(re):
+      return debug ? "ConsValue.Regex(#\"\(re.pattern)\")" : "#\"\(re.pattern)\""
     case let List(list):
       let desc = describeList(list, ctx, debug: debug)
       return debug ? "ConsValue.List(\(desc))" : desc

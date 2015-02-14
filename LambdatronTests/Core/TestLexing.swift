@@ -54,4 +54,14 @@ class TestLexing : InterpreterTest {
     // Bad escape sequence: '\1'
     expectThat("\"hello\\ntest\\1\"", shouldFailLexingAs: .InvalidEscapeSequenceError)
   }
+
+  /// Bad dispatch macros should result in a dispatch macro error.
+  func testBadDispatchMacros() {
+    expectThat("#[", shouldFailLexingAs: .InvalidDispatchMacroError)
+    expectThat("#<", shouldFailLexingAs: .InvalidDispatchMacroError)
+    expectThat("##", shouldFailLexingAs: .InvalidDispatchMacroError)
+    expectThat("#\\", shouldFailLexingAs: .InvalidDispatchMacroError)
+    expectThat("#123", shouldFailLexingAs: .InvalidDispatchMacroError)
+    expectThat("#abc", shouldFailLexingAs: .InvalidDispatchMacroError)
+  }
 }

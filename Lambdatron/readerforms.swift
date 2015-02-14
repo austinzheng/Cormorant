@@ -62,7 +62,7 @@ private func constructForm(result: ExpandResult, successForm: ConsValue -> ConsV
 }
 
 func expandSyntaxQuotedList(list: ListType<ConsValue>) -> ExpandResult {
-  // We have a list, such that we have (` (a b c d e))
+  // We have a list, such that we have `(a b c d e)
   // We need to reader-expand each individual a, b, c, then wrap it all in a (seq (cons X))
   switch list {
   case let list as Cons<ConsValue>:
@@ -71,7 +71,9 @@ func expandSyntaxQuotedList(list: ListType<ConsValue>) -> ExpandResult {
     var expansionBuffer : [ConsValue] = []
     for symbol in symbols {
       switch symbol {
-      case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Symbol, .Keyword, .Special, .BuiltInFunction:
+      case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom:
+        fallthrough
+      case .Regex, .Symbol, .Keyword, .Special, .BuiltInFunction:
         // A literal or symbol in the list is recursively syntax-quoted
         let expanded = symbol.expandSyntaxQuotedItem()
         switch expanded {
@@ -157,9 +159,9 @@ extension ConsValue {
   // NOTE: This will be the top-level syntax quote reader expansion method
   func readerExpand() -> ExpandResult {
     switch self {
-    case Nil, BoolAtom, IntAtom, FloatAtom, CharAtom, StringAtom:
+    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom:
       return .Success(self)
-    case Symbol, Keyword, Special, BuiltInFunction:
+    case .Regex, .Symbol, .Keyword, .Special, .BuiltInFunction:
       return .Success(self)
     case let .ReaderMacroForm(rm):
       // 'form' represents a reader macro (e.g. `X or ~X)
@@ -230,9 +232,9 @@ extension ConsValue {
     }
   }
   
-  // If we are expanding an expression (' a), we call this method on 'a'; it'll give us back (quote a)
+  // If we are expanding an expression 'a, we call this method on 'a'; it'll give us back (quote a)
   func expandQuotedItem() -> ExpandResult {
-    // Expanding (' a) always results in (quote a)
+    // Expanding 'a always results in (quote a)
     let expansion : ExpandResult = {
       switch self {
       case .ReaderMacroForm:
@@ -256,15 +258,15 @@ extension ConsValue {
     return constructForm(expansion) { .List(Cons(.Special(.Quote), next: Cons($0))) }
   }
 
-  /// When expanding an expression in the form (` a), this method is called on 'a'; it returns (seq (concat a)).
+  /// When expanding an expression in the form `a, this method is called on 'a'; it returns (seq (concat a)).
   func expandSyntaxQuotedItem() -> ExpandResult {
     // ` differs in behavior depending on exactly what a is; it is most complex when a is a sequence
     switch self {
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword:
-      // Expanding (` LIT) always results in LIT
+      // Expanding `LIT always results in LIT
       return .Success(self)
-    case Symbol, Special, BuiltInFunction:
-      // Expanding (` a) results in (quote a)
+    case .Regex, .Symbol, .Special, .BuiltInFunction:
+      // Expanding `a results in (quote a)
       return .Success(.List(Cons(.Special(.Quote), next: Cons(self))))
     case let .ReaderMacroForm(rm):
       // Recursively expand the inner reader macro.

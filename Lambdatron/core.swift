@@ -46,6 +46,7 @@ public enum ConsValue : Printable, Hashable {
   case FloatAtom(Double)
   case CharAtom(Character)
   case StringAtom(String)
+  case Regex(NSRegularExpression)
   case Symbol(InternedSymbol)
   case Keyword(InternedKeyword)
   case List(ListType<ConsValue>)
@@ -64,6 +65,7 @@ public enum ConsValue : Printable, Hashable {
     case let .FloatAtom(v): return v.hashValue
     case let .CharAtom(c): return c.hashValue
     case let .StringAtom(s): return s.hashValue
+    case let .Regex(re): return re.hashValue
     case let .Symbol(s): return s.hashValue
     case let .Keyword(k): return k.hashValue
     case let .List(l): return l.hashValue

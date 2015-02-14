@@ -25,6 +25,10 @@ enum SyntaxToken {
   case Backquote                  // isolate grave accent '`'
   case Tilde                      // tilde '~'
   case TildeAt                    // tilde followed by at '~@'
+  case HashLeftBrace              // hash-left brace '#{'
+  case HashQuote                  // hash-quote '#''
+  case HashLeftParentheses        // hash-left parentheses '#('
+  case HashUnderscore             // hash-underscore '#_'
 }
 
 /// Tokens that come out of the lex() function, intended as input to the parser.
@@ -33,6 +37,7 @@ enum LexToken {
   case Nil                        // nil
   case CharLiteral(Character)     // character literal
   case StringLiteral(String)      // string (denoted by double quotes)
+  case RegexPattern(String)       // a pattern for a regular expression, denoted by #"SomeRegexPattern"
   case Integer(Int)               // integer number
   case FlPtNumber(Double)         // floating-point number
   case Boolean(Bool)              // boolean (true or false)
@@ -57,6 +62,7 @@ private struct Lexer {
     case Syntax(SyntaxToken)
     case CharLiteral(Character)
     case StringLiteral(String)
+    case RegexPattern(String)
     case Unknown(String)
   }
 
@@ -66,6 +72,10 @@ private struct Lexer {
 
   enum CharacterLexResult {
     case Success(Character), Failure(LexError)
+  }
+
+  enum RawLexTokenLexResult {
+    case Success(RawLexToken), Failure(LexError)
   }
 
   enum RawLexTokenArrayLexResult {
@@ -153,6 +163,12 @@ private struct Lexer {
         case let .Success(character): rawTokenBuffer.append(.CharLiteral(character))
         case let .Failure(error): return .Failure(error)
         }
+      case "#":
+        flushTokenToBuffer()                          // Hash represents some sort of dispatch macro (#(, #', #"", etc)
+        switch consumeHash(string, index: &index) {
+        case let .Success(token): rawTokenBuffer.append(token)
+        case let .Failure(error): return .Failure(error)
+        }
       case _ where isWhitespace(char):
         flushTokenToBuffer()                          // Whitespace/newline or equivalent (e.g. commas)
         index = index.successor()
@@ -177,6 +193,7 @@ private struct Lexer {
       case let .Syntax(s): tokenBuffer.append(.Syntax(s))
       case let .CharLiteral(c): tokenBuffer.append(.CharLiteral(c))
       case let .StringLiteral(s): tokenBuffer.append(.StringLiteral(s))
+      case let .RegexPattern(s): tokenBuffer.append(.RegexPattern(s))
       case let .Unknown(unknown):
         // Figure out what to do with the token
         if let specialForm = SpecialForm(rawValue: unknown) {
@@ -299,6 +316,41 @@ private struct Lexer {
     else {
       index = index.successor()
       return .Tilde
+    }
+  }
+
+  /// Given a string and a start index which points to a '#' in the string, determine the proper dispatch macro the '#'
+  /// corresponds to and build it, updating the index appropriately.
+  static func consumeHash(str: String, inout index: String.Index) -> RawLexTokenLexResult {
+    // Precondition: str[index] must be '#'.
+    if index == str.endIndex.predecessor() {
+      // The '#' is at the end of the string (this is invalid)
+      return .Failure(LexError(.InvalidDispatchMacroError))
+    }
+    // Examine the character that comes after the '#'
+    let this = str[index.successor()]
+    switch this {
+    case "{":           // Set start marker
+      index = index.successor().successor()
+      return .Success(.Syntax(.HashLeftBrace))
+    case "\"":          // Regex pattern
+      index = index.successor()
+      let result = consumeString(str, index: &index)
+      switch result {
+      case let .Success(s): return .Success(.RegexPattern(s))
+      case let .Failure(f): return .Failure(f)
+      }
+    case "'":           // Var-quote
+      index = index.successor().successor()
+      return .Success(.Syntax(.HashQuote))
+    case "(":           // Inline function start
+      index = index.successor().successor()
+      return .Success(.Syntax(.HashLeftParentheses))
+    case "_":           // Ignore next form
+      index = index.successor().successor()
+      return .Success(.Syntax(.HashUnderscore))
+    default:
+      return .Failure(LexError(.InvalidDispatchMacroError))
     }
   }
 

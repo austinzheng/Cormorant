@@ -111,6 +111,11 @@ public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
     case let .StringAtom(s2): return s1 == s2
     default: return false
     }
+  case let .Regex(r1):
+    switch rhs {
+    case let .Regex(r2): return r1.isEqual(r2)
+    default: return false
+    }
   case let .List(l1):
     switch rhs {
     case let .List(l2): return l1 == l2
