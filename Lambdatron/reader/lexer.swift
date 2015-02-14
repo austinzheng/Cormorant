@@ -374,6 +374,44 @@ private struct Lexer {
       index = followingIndex
       return .Success(firstCharacter)
     }
+    if firstCharacter == "u"  {
+      // Possible unicode character literal
+      var thisIndex = start.successor()
+      if let d0 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
+        if let d1 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
+          if let d2 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
+            if let d3 = digitAsNumber(str, &thisIndex, .Hexadecimal) {
+              if thisIndex == str.endIndex || characterTerminatesLiteral(str[thisIndex]) {
+                index = thisIndex
+                let value : Int = 4096*d0 + 256*d1 + 16*d2 + d3
+                return .Success(Character(UnicodeScalar(value)))
+              }
+            }
+          }
+        }
+      }
+      // Note that there are no named characters whose names begin with 'u', so this is acceptable.
+      return .Failure(LexError(.InvalidUnicodeError))
+    }
+    if firstCharacter == "o" {
+      // Possible octal character literal
+      var thisIndex = start.successor()
+      if let d0 = digitAsNumber(str, &thisIndex, .Octal) {
+        if let d1 = digitAsNumber(str, &thisIndex, .Octal) {
+          if let d2 = digitAsNumber(str, &thisIndex, .Octal) {
+            if thisIndex == str.endIndex || characterTerminatesLiteral(str[thisIndex]) {
+              index = thisIndex
+              let value : Int = 64*d0 + 8*d1 + d2
+              if value < 256 { return .Success(Character(UnicodeScalar(value))) }
+            }
+          }
+        }
+      }
+      // Note that there are no named characters whose names begin with 'o', so this is acceptable.
+      return .Failure(LexError(.InvalidOctalError))
+    }
+
+    // At this point, the character is either a named character or invalid.
     // Find the end of the character.
     var current = followingIndex
     while current < str.endIndex {
@@ -466,4 +504,35 @@ private func escapeFor(sequence: Character) -> Character? {
   case "\\": return "\\"
   default: return nil
   }
+}
+
+private enum NumberType { case Decimal, Octal, Hexadecimal }
+
+/// Given a string, an index within the string, and a type of number, return the numeric value of the character at the
+/// index, or nil if the index is invalid or the character is not a valid digit for the number type. This function
+/// will advance the index as long as the index isn't past the end of the string.
+private func digitAsNumber(string: String, inout idx: String.Index, type: NumberType) -> Int? {
+  if idx >= string.endIndex { return nil }
+  var value : Int? = nil
+  switch string[idx] {
+  case "0": value = 0
+  case "1": value = 1
+  case "2": value = 2
+  case "3": value = 3
+  case "4": value = 4
+  case "5": value = 5
+  case "6": value = 6
+  case "7": value = 7
+  case "8" where type == .Decimal || type == .Hexadecimal: value = 8
+  case "9" where type == .Decimal || type == .Hexadecimal: value = 9
+  case "a", "A" where type == .Hexadecimal: value = 10
+  case "b", "B" where type == .Hexadecimal: value = 11
+  case "c", "C" where type == .Hexadecimal: value = 12
+  case "d", "D" where type == .Hexadecimal: value = 13
+  case "e", "E" where type == .Hexadecimal: value = 14
+  case "f", "F" where type == .Hexadecimal: value = 15
+  default: break
+  }
+  idx = idx.successor()
+  return value
 }

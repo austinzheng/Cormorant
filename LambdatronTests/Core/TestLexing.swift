@@ -47,6 +47,26 @@ class TestLexing : InterpreterTest {
     expectThat("\\reversebackquote", shouldFailLexingAs: .InvalidCharacterError)
   }
 
+  /// Invalid Unicode character literals should result in a lexing error.
+  func testInvalidUnicode() {
+    expectThat("\\uF", shouldFailLexingAs: .InvalidUnicodeError)
+    expectThat("\\u0F", shouldFailLexingAs: .InvalidUnicodeError)
+    expectThat("\\u00F", shouldFailLexingAs: .InvalidUnicodeError)
+    expectThat("\\u00Fg", shouldFailLexingAs: .InvalidUnicodeError)
+    expectThat("\\u00FFF", shouldFailLexingAs: .InvalidUnicodeError)
+    expectThat("\\u00F1!", shouldFailLexingAs: .InvalidUnicodeError)
+  }
+
+  /// Invalid octal character literals should result in a lexing error.
+  func testInvalidOctal() {
+    expectThat("\\o3", shouldFailLexingAs: .InvalidOctalError)
+    expectThat("\\o33", shouldFailLexingAs: .InvalidOctalError)
+    expectThat("\\o339", shouldFailLexingAs: .InvalidOctalError)
+    expectThat("\\o1234", shouldFailLexingAs: .InvalidOctalError)
+    expectThat("\\o121g", shouldFailLexingAs: .InvalidOctalError)
+    expectThat("\\o400", shouldFailLexingAs: .InvalidOctalError)
+  }
+
   /// Bad escape sequences in strings should result in a lexing error.
   func testBadEscapeSequences() {
     // Bad escape sequence: '\b'

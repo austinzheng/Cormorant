@@ -78,7 +78,7 @@ Lambdatron has the following features:
 * `nil`
 * integers
 * floating-point numbers (e.g. `1.234`)
-* character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`), which can be used in function position
+* character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`), which can be used in function position. Character literals can also be specified using the hexadecimal `\uNNNN` or octal `\oNNN` forms.
 * keywords (`:else`), which can be used in function position
 
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` (unquote) can be used to force evaluation of the unquote form, while `~@` (unquote-splice) can be used to force evaluation of a form to a collection whose elements are then spliced in.
@@ -154,7 +154,6 @@ These are objectives I am working on right now, or plan on doing in the near fut
 - Performance optimization (once development stabilizes)
 - Full unit test suite (once development stabilizes)
 - Metadata
-- Support for `\uNNNN` and `\oNNN` character literals
 
 
 ### (Very) Long Term Goals

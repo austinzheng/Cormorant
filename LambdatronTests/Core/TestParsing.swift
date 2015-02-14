@@ -122,6 +122,10 @@ class TestCharacterParsing : InterpreterTest {
   /// Characters should be properly parsed.
   func testParsingBasicCharacter() {
     expectThat("\\z", shouldEvalTo: .CharAtom("z"))
+    expectThat("\\o", shouldEvalTo: .CharAtom("o"))
+    expectThat("\\u", shouldEvalTo: .CharAtom("u"))
+    expectThat("\\5", shouldEvalTo: .CharAtom("5"))
+    expectThat("\\!", shouldEvalTo: .CharAtom("!"))
   }
 
   /// The backslash character '\\' should be properly parsed.
@@ -159,6 +163,20 @@ class TestCharacterParsing : InterpreterTest {
   func testParsingBackspace() {
     let backspace = Character(UnicodeScalar(8))
     expectThat("\\backspace", shouldEvalTo: .CharAtom(backspace))
+  }
+
+  /// Unicode character literals should parse correctly.
+  func testUnicodeChars() {
+    expectThat("\\u0024", shouldEvalTo: .CharAtom("$"))
+    expectThat("\\u00f2", shouldEvalTo: .CharAtom("ò"))
+    expectThat("\\u00aB", shouldEvalTo: .CharAtom("«"))
+  }
+
+  /// Octal character literals should parse correctly.
+  func testOctalChars() {
+    expectThat("\\o045", shouldEvalTo: .CharAtom("%"))
+    expectThat("\\o164", shouldEvalTo: .CharAtom("t"))
+    expectThat("\\o377", shouldEvalTo: .CharAtom("ÿ"))
   }
 
   /// The lexer and parser should properly parse characters in the context of a collection.

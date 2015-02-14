@@ -27,6 +27,8 @@ public struct LexError : Printable {
   public enum ErrorType : String {
     case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
     case InvalidCharacterError = "InvalidCharacterError"
+    case InvalidUnicodeError = "InvalidUnicodeError"
+    case InvalidOctalError = "InvalidOctalError"
     case InvalidKeywordError = "InvalidKeywordError"
     case InvalidDispatchMacroError = "InvalidDispatchMacroError"
     case NonTerminatedStringError = "NonTerminatedStringError"
@@ -43,6 +45,8 @@ public struct LexError : Printable {
     switch self.error {
     case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
     case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
+    case .InvalidUnicodeError: return "(\(name)): invalid Unicode character literal; must be in the form \\uNNNN"
+    case .InvalidOctalError: return "(\(name)): invalid octal character literal; must be in the form \\oNNN"
     case .InvalidKeywordError: return "(\(name)): invalid keyword"
     case .InvalidDispatchMacroError: return "(\(name)): invalid dispatch macro"
     case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
