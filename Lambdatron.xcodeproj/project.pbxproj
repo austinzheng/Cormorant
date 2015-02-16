@@ -93,6 +93,13 @@
 		1AC8D3121A3F645E00B72D49 /* math.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8D3111A3F645E00B72D49 /* math.swift */; };
 		1AC8D3151A3F64C500B72D49 /* miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC8D3141A3F64C500B72D49 /* miscellaneous.swift */; };
 		1ACD33191A4500E700A75CAE /* interned.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACD33181A4500E700A75CAE /* interned.swift */; };
+		1ACEDAA61A91D35700C6EB43 /* TestGet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAA51A91D35700C6EB43 /* TestGet.swift */; };
+		1ACEDAA81A91D36900C6EB43 /* TestAssoc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAA71A91D36900C6EB43 /* TestAssoc.swift */; };
+		1ACEDAAA1A91D37200C6EB43 /* TestDissoc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAA91A91D37200C6EB43 /* TestDissoc.swift */; };
+		1ACEDAAD1A91D39E00C6EB43 /* TestComparisons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAAC1A91D39E00C6EB43 /* TestComparisons.swift */; };
+		1ACEDAAF1A91D3DE00C6EB43 /* TestIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAAE1A91D3DE00C6EB43 /* TestIO.swift */; };
+		1ACEDAB11A91D3ED00C6EB43 /* TestEval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAB01A91D3ED00C6EB43 /* TestEval.swift */; };
+		1ACEDAB31A91D40400C6EB43 /* TestReadString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAB21A91D40400C6EB43 /* TestReadString.swift */; };
 		1ACFB1901A21BD82000FB61F /* commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB18F1A21BD82000FB61F /* commands.swift */; };
 		1ACFB1921A21C011000FB61F /* logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1911A21C011000FB61F /* logging.swift */; };
 		1ACFB1941A256008000FB61F /* repl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1931A256008000FB61F /* repl.swift */; };
@@ -190,6 +197,13 @@
 		1AC8D3111A3F645E00B72D49 /* math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = math.swift; path = builtin/math.swift; sourceTree = "<group>"; };
 		1AC8D3141A3F64C500B72D49 /* miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = miscellaneous.swift; path = builtin/miscellaneous.swift; sourceTree = "<group>"; };
 		1ACD33181A4500E700A75CAE /* interned.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = interned.swift; sourceTree = "<group>"; };
+		1ACEDAA51A91D35700C6EB43 /* TestGet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestGet.swift; path = Builtins/TestGet.swift; sourceTree = "<group>"; };
+		1ACEDAA71A91D36900C6EB43 /* TestAssoc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestAssoc.swift; path = Builtins/TestAssoc.swift; sourceTree = "<group>"; };
+		1ACEDAA91A91D37200C6EB43 /* TestDissoc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDissoc.swift; path = Builtins/TestDissoc.swift; sourceTree = "<group>"; };
+		1ACEDAAC1A91D39E00C6EB43 /* TestComparisons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestComparisons.swift; path = Builtins/TestComparisons.swift; sourceTree = "<group>"; };
+		1ACEDAAE1A91D3DE00C6EB43 /* TestIO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestIO.swift; path = Builtins/TestIO.swift; sourceTree = "<group>"; };
+		1ACEDAB01A91D3ED00C6EB43 /* TestEval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestEval.swift; path = Builtins/TestEval.swift; sourceTree = "<group>"; };
+		1ACEDAB21A91D40400C6EB43 /* TestReadString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReadString.swift; path = Builtins/TestReadString.swift; sourceTree = "<group>"; };
 		1ACFB18F1A21BD82000FB61F /* commands.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = commands.swift; path = REPL/commands.swift; sourceTree = "<group>"; };
 		1ACFB1911A21C011000FB61F /* logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = logging.swift; path = REPL/logging.swift; sourceTree = "<group>"; };
 		1ACFB1931A256008000FB61F /* repl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = repl.swift; path = REPL/repl.swift; sourceTree = "<group>"; };
@@ -242,6 +256,9 @@
 				1A0288C51A834E1400589C23 /* TestConj.swift */,
 				1A5710DB1A813C2B003C5181 /* TestConcat.swift */,
 				1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */,
+				1ACEDAA51A91D35700C6EB43 /* TestGet.swift */,
+				1ACEDAA71A91D36900C6EB43 /* TestAssoc.swift */,
+				1ACEDAA91A91D37200C6EB43 /* TestDissoc.swift */,
 				1A870DF21A8DD091006D9518 /* TestReduce.swift */,
 				1A8B44F51A7F4D4C00E33480 /* TestSymbol.swift */,
 				1A8B44F71A7F4D7400E33480 /* TestKeyword.swift */,
@@ -249,8 +266,12 @@
 				1A15797A1A71FF290013D21B /* TestDouble.swift */,
 				1A1687791A6DE49100DB26E2 /* TestQueries.swift */,
 				1AEEFEED1A884F0500F682BB /* TestEquals.swift */,
+				1ACEDAAC1A91D39E00C6EB43 /* TestComparisons.swift */,
 				1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */,
+				1ACEDAAE1A91D3DE00C6EB43 /* TestIO.swift */,
+				1ACEDAB21A91D40400C6EB43 /* TestReadString.swift */,
 				1A1579781A6FA45B0013D21B /* TestRand.swift */,
+				1ACEDAB01A91D3ED00C6EB43 /* TestEval.swift */,
 			);
 			name = Builtins;
 			sourceTree = "<group>";
@@ -561,11 +582,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A2822A31A73715E004A0E35 /* TestLists.swift in Sources */,
+				1ACEDAA81A91D36900C6EB43 /* TestAssoc.swift in Sources */,
 				1AAC2DB01A68E8780019A5DD /* core.swift in Sources */,
 				1AAC2DB91A68E8780019A5DD /* context.swift in Sources */,
 				1AC46BB91A832E3E00C83D27 /* TestTestHelpers.swift in Sources */,
 				1A16877A1A6DE49100DB26E2 /* TestQueries.swift in Sources */,
 				1AAC2DBA1A68E8780019A5DD /* interned.swift in Sources */,
+				1ACEDAAF1A91D3DE00C6EB43 /* TestIO.swift in Sources */,
 				1AAC2DC21A68E8860019A5DD /* primitives.swift in Sources */,
 				1A15797B1A71FF290013D21B /* TestDouble.swift in Sources */,
 				1A5710D51A813BAE003C5181 /* TestRest.swift in Sources */,
@@ -584,6 +607,7 @@
 				1AAC2DC31A68E8860019A5DD /* querying.swift in Sources */,
 				1AAC2DBF1A68E8830019A5DD /* loader.swift in Sources */,
 				1A16877F1A6F362F00DB26E2 /* TestDo.swift in Sources */,
+				1ACEDAA61A91D35700C6EB43 /* TestGet.swift in Sources */,
 				1A0B02D61A69E328007EF0F2 /* TestFnPosition.swift in Sources */,
 				1AF4FC531A6F3BDD00AE218E /* TestDef.swift in Sources */,
 				1A7580121A7DE475000FF45D /* TestLexing.swift in Sources */,
@@ -592,20 +616,24 @@
 				1A92A89B1A8C69A9004E0653 /* TestLoop.swift in Sources */,
 				1A2FDF4F1A6B928800E627A2 /* TestParsing.swift in Sources */,
 				1A1687751A6DDF4800DB26E2 /* TestEvaluating.swift in Sources */,
+				1ACEDAAD1A91D39E00C6EB43 /* TestComparisons.swift in Sources */,
 				1A7AF6C91A78D811006FC934 /* TestArithmetic.swift in Sources */,
 				1A1687781A6DE1EF00DB26E2 /* TestIf.swift in Sources */,
 				1A870DF31A8DD091006D9518 /* TestReduce.swift in Sources */,
 				1A0288C61A834E1400589C23 /* TestConj.swift in Sources */,
 				1AAC2DC51A68E8860019A5DD /* miscellaneous.swift in Sources */,
+				1ACEDAB11A91D3ED00C6EB43 /* TestEval.swift in Sources */,
 				1A8B44FA1A7F4D9C00E33480 /* TestInt.swift in Sources */,
 				1A82882A1A8C7E530092B828 /* TestAttempt.swift in Sources */,
 				1A8B44F41A7F4D2300E33480 /* TestHashmap.swift in Sources */,
 				1AAC2DB51A68E8780019A5DD /* specialforms.swift in Sources */,
+				1ACEDAAA1A91D37200C6EB43 /* TestDissoc.swift in Sources */,
 				1A0B02D81A69E357007EF0F2 /* InterpreterTest.swift in Sources */,
 				1AAC2DB31A68E8780019A5DD /* description.swift in Sources */,
 				1A5710DC1A813C2B003C5181 /* TestConcat.swift in Sources */,
 				1AAC2DBC1A68E8780019A5DD /* util.swift in Sources */,
 				1AE74F691A7F3DD60096ABA3 /* lists.swift in Sources */,
+				1ACEDAB31A91D40400C6EB43 /* TestReadString.swift in Sources */,
 				1A8288281A8C75A40092B828 /* TestRecur.swift in Sources */,
 				1AAC2DB11A68E8780019A5DD /* errors.swift in Sources */,
 				1A8B44F61A7F4D4C00E33480 /* TestSymbol.swift in Sources */,
