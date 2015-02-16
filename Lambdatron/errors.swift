@@ -22,10 +22,10 @@ public enum MetadataKey {
 
 public typealias MetaDict = [MetadataKey : String]
 
-/// An error object describing a failure during the lexing, parsing, or reader expansion stages.
+/// An object representing an error that occurs during the lexing, parsing, or reader macro expansion stages.
 public struct ReadError : Printable {
   public enum ErrorType : String {
-    case InvalidStringEscapeSequenceError = "InvalidEscapeSequenceError"
+    case InvalidStringEscapeSequenceError = "InvalidStringEscapeSequenceError"
     case InvalidCharacterError = "InvalidCharacterError"
     case InvalidUnicodeError = "InvalidUnicodeError"
     case InvalidOctalError = "InvalidOctalError"
@@ -39,8 +39,8 @@ public struct ReadError : Printable {
     case MapKeyValueMismatchError = "MapKeyValueMismatchError"
     case InvalidRegexError = "InvalidRegexError"
     case UnimplementedFeatureError = "UnimplementedFeatureError"
-    case IllegalFormError = "IllegalFormError"
-    case UnquoteSpliceMisuseError = "SyntaxQuoteMisuseError"
+    case IllegalExpansionFormError = "IllegalExpansionFormError"
+    case UnquoteSpliceMisuseError = "UnquoteSpliceMisuseError"
   }
   public let error : ErrorType
   public let metadata : MetaDict
@@ -65,7 +65,7 @@ public struct ReadError : Printable {
     case .MismatchedReaderMacroError: return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
     case .MapKeyValueMismatchError: return "(\(name)): map literal must be declared with an even number of forms"
     case .InvalidRegexError: return "(\(name)): regex pattern is not valid"
-    case .IllegalFormError: return "(\(name)): form of illegal type provided to reader macro"
+    case .IllegalExpansionFormError: return "(\(name)): form of illegal type provided to reader macro"
     case .UnquoteSpliceMisuseError: return "(\(name)): ~@ used improperly (outside the context of a collection)"
     case .UnimplementedFeatureError: return "(\(name)): unimplemented feature"
     }

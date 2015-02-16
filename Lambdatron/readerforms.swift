@@ -136,7 +136,7 @@ func expandSyntaxQuotedList(list: ListType<ConsValue>) -> ExpandResult {
           return expanded
         }
       case .FunctionLiteral:
-        return .Failure(ReadError(.IllegalFormError))
+        return .Failure(ReadError(.IllegalExpansionFormError))
       }
     }
 
@@ -228,7 +228,7 @@ extension ConsValue {
       }
       return .Success(.Map(newMap))
     case .FunctionLiteral:
-      return .Failure(ReadError(.IllegalFormError))
+      return .Failure(ReadError(.IllegalExpansionFormError))
     }
   }
   
@@ -298,7 +298,7 @@ extension ConsValue {
         .List(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Hashmap), next: Cons($0))))
       }
     case .FunctionLiteral:
-      return .Failure(ReadError(.IllegalFormError))
+      return .Failure(ReadError(.IllegalExpansionFormError))
     }
   }
 }
