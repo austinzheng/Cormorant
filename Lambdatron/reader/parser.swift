@@ -23,11 +23,11 @@ private enum NextFormTreatment {
 }
 
 private enum TokenCollectionResult {
-  case Tokens([LexToken]), Error(ParseError)
+  case Tokens([LexToken]), Error(ReadError)
 }
 
 private enum RegexResult {
-  case Success(ConsValue), Error(ParseError)
+  case Success(ConsValue), Error(ReadError)
 }
 
 /// Given a pattern, try to build a regex pattern object.
@@ -38,7 +38,7 @@ private func constructRegex(pattern: String) -> RegexResult {
     return .Success(.Regex(regex))
   }
   else {
-    return .Error(ParseError.invalidRegexError(pattern, message: error?.localizedDescription ?? "(none)"))
+    return .Error(ReadError(.InvalidRegexError))
   }
 }
 
@@ -58,7 +58,7 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
   case let x where x.isA(.LeftParentheses) && type == .List: break
   case let x where x.isA(.LeftSquareBracket) && type == .Vector: break
   case let x where x.isA(.LeftBrace) && type == .Map: break
-  default: return .Error(ParseError(.BadStartTokenError))
+  default: return .Error(ReadError(.BadStartTokenError))
   }
   // The 'nesting level' of the delimiter token. For example, if we were processing a vector and we saw the tokens
   //  '[', '[', '[', ']', and '[', our nesting level would be 3. We use this to determine the end of the collection
@@ -101,7 +101,7 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
       break
     }
   }
-  return count == 0 ? .Tokens(buffer) : .Error(ParseError(.MismatchedDelimiterError))
+  return count == 0 ? .Tokens(buffer) : .Error(ReadError(.MismatchedDelimiterError))
 }
 
 /// Given a reader form and the 'wrapStack' array, pop a wrap command off the array and wrap the reader form within the
@@ -132,7 +132,7 @@ private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatmen
 
 private enum TokenListResult {
   case Success([ConsValue])
-  case Failure(ParseError)
+  case Failure(ReadError)
 }
 
 /// Given a list of LexTokens comprising the tokens *inside* a collection form (such as a list), return a list of
@@ -164,7 +164,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .RightParentheses:
         // Note that this should fail because anytime we see a left parentheses, we call listWithToken(), which consumes
         //  all tokens up to and including the corresponding right parentheses.
-        return .Failure(ParseError(.MismatchedDelimiterError))
+        return .Failure(ReadError(.MismatchedDelimiterError))
       case .LeftSquareBracket:
         let vector = vectorWithTokens(collectTokens(tokens, &idx, .Vector), ctx)
         switch vector {
@@ -172,7 +172,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         case let .Failure(f): return .Failure(f)
         }
       case .RightSquareBracket:
-        return .Failure(ParseError(.MismatchedDelimiterError))
+        return .Failure(ReadError(.MismatchedDelimiterError))
       case .LeftBrace:
         let map = mapWithTokens(collectTokens(tokens, &idx, .Map), ctx)
         switch map {
@@ -180,7 +180,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         case let .Failure(f): return .Failure(f)
         }
       case .RightBrace:
-        return .Failure(ParseError(.MismatchedDelimiterError))
+        return .Failure(ReadError(.MismatchedDelimiterError))
       case .Quote:
         wrapStack.append(.Quote)
       case .Backquote:
@@ -191,7 +191,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         wrapStack.append(.UnquoteSplice)
       case .HashLeftBrace, .HashQuote, .HashLeftParentheses, .HashUnderscore:
         // TODO: Implement support for all of these
-        return .Failure(ParseError(.UnimplementedFeatureError))
+        return .Failure(ReadError(.UnimplementedFeatureError))
       }
     case .Nil:
       buffer.append(wrappedConsItem(.Nil, &wrapStack))
@@ -226,7 +226,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
   if wrapStack.count > 0 {
     // If there are still items in the wrapStack, this means that we have a dangling wrappable item (e.g. a dangling
     //  syntax quote).
-    return .Failure(ParseError(.MismatchedReaderMacroError))
+    return .Failure(ReadError(.MismatchedReaderMacroError))
   }
 
   return .Success(buffer)
@@ -236,7 +236,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
 // still, annoyingly, a thing.
 private enum ListResult {
   case Success(ListType<ConsValue>)
-  case Failure(ParseError)
+  case Failure(ReadError)
 }
 
 /// Given a list of tokens that corresponds to a single list (e.g. <(>, <1>, <2>, <)>), build a List data structure.
@@ -258,7 +258,7 @@ private func listWithTokens(tokens: TokenCollectionResult, ctx: Context) -> List
 
 private enum VectorResult {
   case Success([ConsValue])
-  case Failure(ParseError)
+  case Failure(ReadError)
 }
 
 /// Given a list of tokens that corresponds to a single vector (e.g. <[>, <1>, <2>, <]>), build a Vector data structure.
@@ -280,7 +280,7 @@ private func vectorWithTokens(tokens: TokenCollectionResult, ctx: Context) -> Ve
 
 private enum MapResult {
   case Success(MapType)
-  case Failure(ParseError)
+  case Failure(ReadError)
 }
 
 /// Given a list of tokens that corresponds to a single map (e.g. <{>, <:a>, <100>, <}>), build a Map data structure.
@@ -298,7 +298,7 @@ private func mapWithTokens(tokens: TokenCollectionResult, ctx: Context) -> MapRe
       var newMap : MapType = [:]
       if processedForms.count % 2 != 0 {
         // Invalid; need an even number of tokens
-        return .Failure(ParseError(.MapKeyValueMismatchError))
+        return .Failure(ReadError(.MapKeyValueMismatchError))
       }
       for var i=0; i<processedForms.count - 1; i += 2 {
         let key = processedForms[i]
@@ -314,7 +314,7 @@ private func mapWithTokens(tokens: TokenCollectionResult, ctx: Context) -> MapRe
 
 enum ParseResult {
   case Success(ConsValue)
-  case Failure(ParseError)
+  case Failure(ReadError)
 }
 
 /// Given an array of lexical tokens, parse them into a ConsValue data structure, or return an error if this is not
@@ -323,7 +323,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   var index = 0
   var wrapStack : [NextFormTreatment] = []
   if tokens.count == 0 {
-    return .Failure(ParseError(.EmptyInputError))
+    return .Failure(ReadError(.EmptyInputError))
   }
 
   /// Parse the entire top-level form and wrap it inside a reader macro.
@@ -338,7 +338,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
       case let .Failure(f): return .Failure(f)
       }
     }
-    return .Failure(ParseError(.MismatchedReaderMacroError))
+    return .Failure(ReadError(.MismatchedReaderMacroError))
   }
 
   // Figure out how to parse
@@ -351,21 +351,21 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
       case let .Failure(f): return .Failure(f)
       }
     case .RightParentheses:
-      return .Failure(ParseError(.BadStartTokenError))
+      return .Failure(ReadError(.BadStartTokenError))
     case .LeftSquareBracket:
       switch vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
       case let .Success(result): return .Success(.Vector(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightSquareBracket:
-      return .Failure(ParseError(.BadStartTokenError))
+      return .Failure(ReadError(.BadStartTokenError))
     case .LeftBrace:
       switch mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
       case let .Success(result): return .Success(.Map(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightBrace:
-      return .Failure(ParseError(.BadStartTokenError))
+      return .Failure(ReadError(.BadStartTokenError))
     case .Quote:
       return createTopLevelReaderMacro(.Quote)
     case .Backquote:
@@ -376,7 +376,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
       return createTopLevelReaderMacro(.UnquoteSplice)
     case .HashLeftBrace, .HashQuote, .HashLeftParentheses, .HashUnderscore:
       // TODO: Implement support for all of these
-      return .Failure(ParseError(.UnimplementedFeatureError))
+      return .Failure(ReadError(.UnimplementedFeatureError))
     }
   case .Nil: return .Success(.Nil)
   case let .CharLiteral(c): return .Success(.CharAtom(c))

@@ -30,7 +30,7 @@ public struct ReaderMacro : Printable, Hashable {
 
 enum ExpandResult {
   case Success(ConsValue)
-  case Failure(ReaderMacroExpandError)
+  case Failure(ReadError)
 
   /// Either invoke the actual 'expandSyntaxQuotedItem' method, or pass an error through
   func expandSyntaxQuotedItem() -> ExpandResult {
@@ -136,7 +136,7 @@ func expandSyntaxQuotedList(list: ListType<ConsValue>) -> ExpandResult {
           return expanded
         }
       case .FunctionLiteral:
-        return .Failure(ReaderMacroExpandError(.IllegalFormError))
+        return .Failure(ReadError(.IllegalFormError))
       }
     }
 
@@ -175,7 +175,7 @@ extension ConsValue {
         return .Success(form)
       case .UnquoteSplice:
         // Not allowed
-        return .Failure(ReaderMacroExpandError(.UnquoteSpliceMisuseError))
+        return .Failure(ReadError(.UnquoteSpliceMisuseError))
       }
     case let .List(list):
       // Only if the list literal is encapsulating a reader macro form does anything happen
@@ -228,7 +228,7 @@ extension ConsValue {
       }
       return .Success(.Map(newMap))
     case .FunctionLiteral:
-      return .Failure(ReaderMacroExpandError(.IllegalFormError))
+      return .Failure(ReadError(.IllegalFormError))
     }
   }
   
@@ -279,7 +279,7 @@ extension ConsValue {
       case .Unquote:
         return .Success(form)
       case .UnquoteSplice:
-        return .Failure(ReaderMacroExpandError(.UnquoteSpliceMisuseError))
+        return .Failure(ReadError(.UnquoteSpliceMisuseError))
       }
     case let .List(list):
       // We have a list, e.g. `(a b c d e)
@@ -298,7 +298,7 @@ extension ConsValue {
         .List(Cons(.Special(.Apply), next: Cons(.BuiltInFunction(.Hashmap), next: Cons($0))))
       }
     case .FunctionLiteral:
-      return .Failure(ReaderMacroExpandError(.IllegalFormError))
+      return .Failure(ReadError(.IllegalFormError))
     }
   }
 }

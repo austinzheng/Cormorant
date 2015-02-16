@@ -19,8 +19,7 @@ private func fileDataForRawPath(p: String) -> String? {
 private enum DoFormFileDataResult {
   case Success(Params)
   case NoDataFailure
-  case ParseFailure(ParseError)
-  case ReaderExpandFailure(ReaderMacroExpandError)
+  case ReadFailure(ReadError)
 }
 
 private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult {
@@ -32,9 +31,9 @@ private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult 
         let expanded = parsedData.readerExpand()
         switch expanded {
         case let .Success(expanded): buffer.append(expanded)
-        case let .Failure(f): return .ReaderExpandFailure(f)
+        case let .Failure(f): return .ReadFailure(f)
         }
-      case let .Failure(f): return .ParseFailure(f)
+      case let .Failure(f): return .ReadFailure(f)
       }
     }
     return .Success(buffer)
@@ -74,10 +73,8 @@ func main() {
         }
       case .NoDataFailure:
         println("Couldn't read data from input file, or input file was empty")
-      case let .ParseFailure(f):
-        println("Parse error \(f)")
-      case let .ReaderExpandFailure(f):
-        println("Reader macro expansion error \(f)")
+      case let .ReadFailure(f):
+        println("Read error \(f)")
       }
     }
 

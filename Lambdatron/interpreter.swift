@@ -17,9 +17,7 @@ public struct Form {
 /// An enum describing possible results from evaluating an input to the interpreter.
 public enum Result {
   case Success(ConsValue)
-  case LexFailure(LexError)
-  case ParseFailure(ParseError)
-  case ReaderFailure(ReaderMacroExpandError)
+  case ReadFailure(ReadError)
   case EvalFailure(EvalError)
 }
 
@@ -72,11 +70,11 @@ public class Interpreter {
             return .EvalFailure(EvalError(.RecurMisuseError, message: "recur object was returned to the top level"))
           case let .Failure(f): return .EvalFailure(f)
           }
-        case let .Failure(f): return .ReaderFailure(f)
+        case let .Failure(f): return .ReadFailure(f)
         }
-      case let .Failure(f): return .ParseFailure(f)
+      case let .Failure(f): return .ReadFailure(f)
       }
-    case let .Failure(f): return .LexFailure(f)
+    case let .Failure(f): return .ReadFailure(f)
     }
   }
 

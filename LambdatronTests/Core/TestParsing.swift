@@ -307,24 +307,6 @@ class TestMapParsing : InterpreterTest {
 /// Test certain conditions which are expected to lead to parsing failures.
 class TestParsingFailure : InterpreterTest {
 
-  func expectThat(input: String, shouldFailAs expected: ParseError.ErrorType) {
-    let result = interpreter.evaluate(input)
-    switch result {
-    case let .Success(s):
-      XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
-    case .LexFailure:
-      XCTFail("lexer error")
-    case let .ParseFailure(actual):
-      let expectedName = expected.rawValue
-      let actualName = actual.error.rawValue
-      XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
-    case .ReaderFailure:
-      XCTFail("reader error")
-    case let .EvalFailure(actual):
-      XCTFail("evaluation error")
-    }
-  }
-
   /// Invalid regex patterns, including the empty pattern "", should fail.
   func testInvalidRegexes() {
     expectThat("#\"\"", shouldFailAs: .InvalidRegexError)

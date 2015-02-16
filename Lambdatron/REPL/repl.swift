@@ -51,9 +51,7 @@ class ReadEvaluatePrintLoop {
           let result = interpreter.evaluate(trimmed)
           switch result {
           case let .Success(v): println(interpreter.describe(v))
-          case let .LexFailure(f): println("Lexing error \(f)")
-          case let .ParseFailure(f): println("Parsing error \(f)")
-          case let .ReaderFailure(f): println("Reader expansion error \(f)")
+          case let .ReadFailure(f): println("Read error \(f)")
           case let .EvalFailure(f): println("Evaluation error \(f)")
           }
         }

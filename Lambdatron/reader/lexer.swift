@@ -10,7 +10,7 @@ import Foundation
 
 enum LexResult {
   case Success([LexToken])
-  case Failure(LexError)
+  case Failure(ReadError)
 }
 
 /// Tokens representing special syntax characters.
@@ -67,19 +67,19 @@ private struct Lexer {
   }
 
   enum StringLexResult {
-    case Success(String), Failure(LexError)
+    case Success(String), Failure(ReadError)
   }
 
   enum CharacterLexResult {
-    case Success(Character), Failure(LexError)
+    case Success(Character), Failure(ReadError)
   }
 
   enum RawLexTokenLexResult {
-    case Success(RawLexToken), Failure(LexError)
+    case Success(RawLexToken), Failure(ReadError)
   }
 
   enum RawLexTokenArrayLexResult {
-    case Success([RawLexToken]), Failure(LexError)
+    case Success([RawLexToken]), Failure(ReadError)
   }
 
   // Character sets
@@ -206,7 +206,7 @@ private struct Lexer {
         }
         else if unknown == ":" {
           // This is an invalid keyword (no body).
-          return .Failure(LexError(.InvalidKeywordError))
+          return .Failure(ReadError(.InvalidKeywordError))
         }
         else if unknown[unknown.startIndex] == ":" {
           // This is a keyword (starts with ":" and has at least one other character)
@@ -277,7 +277,7 @@ private struct Lexer {
         // Found a control character. Consume the character following it.
         if current == str.endIndex.predecessor() {
           // An escape character cannot be the last character in the input
-          return .Failure(LexError(.InvalidEscapeSequenceError))
+          return .Failure(ReadError(.InvalidStringEscapeSequenceError))
         }
         if let escape = escapeFor(str[current.successor()]) {
           // Append the escape character and skip two characters.
@@ -286,7 +286,7 @@ private struct Lexer {
         }
         else {
           // The escape sequence was not valid.
-          return .Failure(LexError(.InvalidEscapeSequenceError))
+          return .Failure(ReadError(.InvalidStringEscapeSequenceError))
         }
       default:
         // Any other token is just skipped.
@@ -295,7 +295,7 @@ private struct Lexer {
       }
     }
     // If we've gotten here we've reached the end of str, but without terminating our string literal.
-    return .Failure(LexError(.NonTerminatedStringError))
+    return .Failure(ReadError(.NonTerminatedStringError))
   }
 
   /// Given a string and a start index, determine whether the token at the start index is '~' or '~@', returning a
@@ -325,7 +325,7 @@ private struct Lexer {
     // Precondition: str[index] must be '#'.
     if index == str.endIndex.predecessor() {
       // The '#' is at the end of the string (this is invalid)
-      return .Failure(LexError(.InvalidDispatchMacroError))
+      return .Failure(ReadError(.InvalidDispatchMacroError))
     }
     // Examine the character that comes after the '#'
     let this = str[index.successor()]
@@ -350,7 +350,7 @@ private struct Lexer {
       index = index.successor().successor()
       return .Success(.Syntax(.HashUnderscore))
     default:
-      return .Failure(LexError(.InvalidDispatchMacroError))
+      return .Failure(ReadError(.InvalidDispatchMacroError))
     }
   }
 
@@ -360,7 +360,7 @@ private struct Lexer {
     // Precondition: str[index] is the "\" character that begins the character literal.
     if index == str.endIndex.predecessor() {
       // No character literals can start at the very end of the string.
-      return .Failure(LexError(.InvalidCharacterError))
+      return .Failure(ReadError(.InvalidCharacterError))
     }
 
     let start = index.successor()
@@ -391,7 +391,7 @@ private struct Lexer {
         }
       }
       // Note that there are no named characters whose names begin with 'u', so this is acceptable.
-      return .Failure(LexError(.InvalidUnicodeError))
+      return .Failure(ReadError(.InvalidUnicodeError))
     }
     if firstCharacter == "o" {
       // Possible octal character literal
@@ -408,7 +408,7 @@ private struct Lexer {
         }
       }
       // Note that there are no named characters whose names begin with 'o', so this is acceptable.
-      return .Failure(LexError(.InvalidOctalError))
+      return .Failure(ReadError(.InvalidOctalError))
     }
 
     // At this point, the character is either a named character or invalid.
@@ -432,7 +432,7 @@ private struct Lexer {
     default:
       // Reset index
       index = start.predecessor()
-      return .Failure(LexError(.InvalidCharacterError))
+      return .Failure(ReadError(.InvalidCharacterError))
     }
   }
 

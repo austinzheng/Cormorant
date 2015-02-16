@@ -22,41 +22,16 @@ public enum MetadataKey {
 
 public typealias MetaDict = [MetadataKey : String]
 
-/// An error object involving the failure of the lexer to properly lex some input string.
-public struct LexError : Printable {
+/// An error object describing a failure during the lexing, parsing, or reader expansion stages.
+public struct ReadError : Printable {
   public enum ErrorType : String {
-    case InvalidEscapeSequenceError = "InvalidEscapeSequenceError"
+    case InvalidStringEscapeSequenceError = "InvalidEscapeSequenceError"
     case InvalidCharacterError = "InvalidCharacterError"
     case InvalidUnicodeError = "InvalidUnicodeError"
     case InvalidOctalError = "InvalidOctalError"
     case InvalidKeywordError = "InvalidKeywordError"
     case InvalidDispatchMacroError = "InvalidDispatchMacroError"
     case NonTerminatedStringError = "NonTerminatedStringError"
-  }
-  public let error : ErrorType
-  public let metadata : MetaDict
-
-  init(_ error: ErrorType, metadata: MetaDict? = nil) {
-    self.error = error; self.metadata = metadata ?? [:]
-  }
-
-  public var description : String {
-    let name = self.error.rawValue
-    switch self.error {
-    case .InvalidEscapeSequenceError: return "(\(name)): invalid or unfinished escape sequence"
-    case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
-    case .InvalidUnicodeError: return "(\(name)): invalid Unicode character literal; must be in the form \\uNNNN"
-    case .InvalidOctalError: return "(\(name)): invalid octal character literal; must be in the form \\oNNN"
-    case .InvalidKeywordError: return "(\(name)): invalid keyword"
-    case .InvalidDispatchMacroError: return "(\(name)): invalid dispatch macro"
-    case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
-    }
-  }
-}
-
-/// An enum describing errors that can cause parsing to fail.
-public struct ParseError : Printable {
-  public enum ErrorType : String {
     case EmptyInputError = "EmptyInputError"
     case BadStartTokenError = "BadStartTokenError"
     case MismatchedDelimiterError = "MismatchedDelimiterError"
@@ -64,51 +39,6 @@ public struct ParseError : Printable {
     case MapKeyValueMismatchError = "MapKeyValueMismatchError"
     case InvalidRegexError = "InvalidRegexError"
     case UnimplementedFeatureError = "UnimplementedFeatureError"
-  }
-  public let error : ErrorType
-  public let metadata : MetaDict
-
-  init(_ error: ErrorType, metadata: MetaDict? = nil) {
-    self.error = error; self.metadata = metadata ?? [:]
-  }
-
-  static func invalidRegexError(pattern: String, message: String, metadata: MetaDict? = nil) -> ParseError {
-    var meta = metadata ?? [:]
-    meta[.RegexPattern] = pattern
-    meta[.Message] = message
-    let error = ParseError(.InvalidRegexError, metadata: meta)
-    return error
-  }
-
-  public var description : String {
-    let name = error.rawValue
-    var buffer : String
-    switch error {
-    case .EmptyInputError:
-      buffer = "(\(name)): empty input"
-    case .BadStartTokenError:
-      buffer = "(\(name)): collection or form started with invalid delimiter"
-    case .MismatchedDelimiterError:
-      buffer = "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
-    case .MismatchedReaderMacroError:
-      buffer = "(\(name)): mismatched reader macro (', `, ~, or ~@)"
-    case .MapKeyValueMismatchError:
-      buffer = "(\(name)): map literal must be declared with an even number of forms"
-    case .InvalidRegexError:
-      buffer = "(\(name)): regex pattern is not valid"
-      if let message = metadata[.Message] {
-        buffer += "\n * message: \(message)"
-      }
-    case .UnimplementedFeatureError:
-      buffer = "(\(name)): feature not yet implemented"
-    }
-    return buffer
-  }
-}
-
-/// An enum describing errors that can happen while expanding reader macros.
-public struct ReaderMacroExpandError : Printable {
-  public enum ErrorType : String {
     case IllegalFormError = "IllegalFormError"
     case UnquoteSpliceMisuseError = "SyntaxQuoteMisuseError"
   }
@@ -122,10 +52,22 @@ public struct ReaderMacroExpandError : Printable {
   public var description : String {
     let name = error.rawValue
     switch error {
-    case .IllegalFormError:
-      return "(\(name)): form of illegal type provided to reader macro"
-    case .UnquoteSpliceMisuseError:
-      return "(\(name)): ~@ used improperly (outside the context of a collection)"
+    case .InvalidStringEscapeSequenceError: return "(\(name)): invalid or unfinished string escape sequence"
+    case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
+    case .InvalidUnicodeError: return "(\(name)): invalid Unicode character literal; must be in the form \\uNNNN"
+    case .InvalidOctalError: return "(\(name)): invalid octal character literal; must be in the form \\oNNN"
+    case .InvalidKeywordError: return "(\(name)): invalid keyword"
+    case .InvalidDispatchMacroError: return "(\(name)): invalid dispatch macro"
+    case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
+    case .EmptyInputError: return "(\(name)): empty input"
+    case .BadStartTokenError: return "(\(name)): collection or form started with invalid delimiter"
+    case .MismatchedDelimiterError: return "(\(name)): mismatched delimiter ('(', '[', '{', ')', ']', or '}')"
+    case .MismatchedReaderMacroError: return "(\(name)): mismatched reader macro (', `, ~, or ~@)"
+    case .MapKeyValueMismatchError: return "(\(name)): map literal must be declared with an even number of forms"
+    case .InvalidRegexError: return "(\(name)): regex pattern is not valid"
+    case .IllegalFormError: return "(\(name)): form of illegal type provided to reader macro"
+    case .UnquoteSpliceMisuseError: return "(\(name)): ~@ used improperly (outside the context of a collection)"
+    case .UnimplementedFeatureError: return "(\(name)): unimplemented feature"
     }
   }
 }

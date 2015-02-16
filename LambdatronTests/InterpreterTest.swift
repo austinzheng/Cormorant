@@ -68,12 +68,8 @@ class InterpreterTest : XCTestCase {
     switch result {
     case let .Success(actual):
       XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
-    case .LexFailure:
-      XCTFail("lexer error")
-    case .ParseFailure:
-      XCTFail("parser error")
-    case .ReaderFailure:
-      XCTFail("reader error")
+    case let .ReadFailure(f):
+      XCTFail("read error: \(f.description)")
     case let .EvalFailure(f):
       XCTFail("evaluation error: \(f.description)")
     }
@@ -93,14 +89,25 @@ class InterpreterTest : XCTestCase {
       default:
         XCTFail("reference form failed to evaluate successfully; this is a problem with the unit test")
       }
-    case .LexFailure:
-      XCTFail("lexer error")
-    case .ParseFailure:
-      XCTFail("parser error")
-    case .ReaderFailure:
-      XCTFail("reader error")
+    case let .ReadFailure(f):
+      XCTFail("read error: \(f.description)")
     case let .EvalFailure(f):
       XCTFail("evaluation error: \(f.description)")
+    }
+  }
+
+  /// Given an input string, evaluate it and expect a particular read failure.
+  func expectThat(input: String, shouldFailAs expected: ReadError.ErrorType) {
+    let result = interpreter.evaluate(input)
+    switch result {
+    case let .Success(s):
+      XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
+    case let .ReadFailure(actual):
+      let expectedName = expected.rawValue
+      let actualName = actual.error.rawValue
+      XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
+    case .EvalFailure:
+      XCTFail("evaluation error; shouldn't even get here")
     }
   }
 
@@ -110,12 +117,8 @@ class InterpreterTest : XCTestCase {
     switch result {
     case let .Success(s):
       XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
-    case .LexFailure:
-      XCTFail("lexer error")
-    case .ParseFailure:
-      XCTFail("parser error")
-    case .ReaderFailure:
-      XCTFail("reader error")
+    case .ReadFailure:
+      XCTFail("read error")
     case let .EvalFailure(actual):
       let expectedName = expected.rawValue
       let actualName = actual.error.rawValue
