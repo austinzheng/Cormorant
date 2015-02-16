@@ -26,22 +26,6 @@ private enum TokenCollectionResult {
   case Tokens([LexToken]), Error(ReadError)
 }
 
-private enum RegexResult {
-  case Success(ConsValue), Error(ReadError)
-}
-
-/// Given a pattern, try to build a regex pattern object.
-private func constructRegex(pattern: String) -> RegexResult {
-  var error : NSError? = nil
-  let regex = NSRegularExpression(pattern: pattern, options: nil, error: &error)
-  if let regex = regex {
-    return .Success(.Regex(regex))
-  }
-  else {
-    return .Error(ReadError(.InvalidRegexError))
-  }
-}
-
 /// Given an array containing all lexical tokens, a starting index, and a type of collection (list, vector, or map), go
 /// through the array to collect and return all tokens that make up the collection whose left delimiter is found at the
 /// starting index. This function also updates the index to the position immediately following the token which closes

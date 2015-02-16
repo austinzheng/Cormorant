@@ -95,11 +95,11 @@ private func readString(string: String, ctx: Context, fn: String) -> EvalResult 
       switch expanded {
       case let .Success(expanded):
         return .Success(expanded)
-      case .Failure: return .Failure(EvalError(.ReadError, fn))
+      case let .Failure(err): return .Failure(EvalError.readError(forFn: fn, error: err))
       }
-    case .Failure: return .Failure(EvalError(.ReadError, fn))
+    case let .Failure(err): return .Failure(EvalError.readError(forFn: fn, error: err))
     }
-  case .Failure: return .Failure(EvalError(.ReadError, fn))
+  case let .Failure(err): return .Failure(EvalError.readError(forFn: fn, error: err))
   }
 }
 

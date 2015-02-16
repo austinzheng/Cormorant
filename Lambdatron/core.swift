@@ -78,6 +78,13 @@ public enum ConsValue : Printable, Hashable {
     }
   }
 
+  var asBool : Bool? {
+    switch self {
+    case let .BoolAtom(b): return b
+    default: return nil
+    }
+  }
+
   func asInteger() -> Int? {
     switch self {
     case let .IntAtom(v): return v
@@ -88,6 +95,13 @@ public enum ConsValue : Printable, Hashable {
   func asString() -> String? {
     switch self {
     case let .StringAtom(s): return s
+    default: return nil
+    }
+  }
+
+  var asRegexPattern : NSRegularExpression? {
+    switch self {
+    case let .Regex(r): return r
     default: return nil
     }
   }
@@ -134,9 +148,9 @@ public enum ConsValue : Printable, Hashable {
     }
   }
   
-  func asBuiltIn() -> LambdatronBuiltIn? {
+  func asBuiltIn() -> BuiltIn? {
     switch self {
-    case let .BuiltInFunction(b): return b.function
+    case let .BuiltInFunction(b): return b
     default: return nil
     }
   }

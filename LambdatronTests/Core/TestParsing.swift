@@ -102,7 +102,7 @@ class TestRegexParsing : InterpreterTest {
   func testParsingNonemptyRegex() {
     expectThat("#\"[0-9]+\"", shouldEvalTo: .Regex(NSRegularExpression(pattern: "[0-9]+", options: nil, error: nil)!))
     // Fancy regex for matching all numbers
-    expectThat("#\"^[+-]?(\\\\d+\\\\.?\\\\d*|\\\\.\\\\d+)([eE][+-]?\\\\d+)?$\"",
+    expectThat("#\"^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$\"",
       shouldEvalTo: .Regex(NSRegularExpression(pattern: "^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$",
         options: nil, error: nil)!))
   }

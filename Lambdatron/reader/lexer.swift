@@ -133,7 +133,7 @@ private struct Lexer {
       case "\"":
         flushTokenToBuffer()                          // User starting a string with an opening "
         // Consume the string starting at the current position.
-        switch consumeString(string, index: &index) {
+        switch consumeString(string, index: &index, raw: false) {
         case let .Success(string): rawTokenBuffer.append(.StringLiteral(string))
         case let .Failure(error): return .Failure(error)
         }
@@ -257,7 +257,7 @@ private struct Lexer {
   /// Given a string representing an entire buffer, as well as an index representing a position in the buffer
   /// corresponding to the start of a string literal, try to parse out the string. This function returns a string or nil
   /// if unsuccessful. Only if successful, it will also update the index position.
-  static func consumeString(str: String, inout index: String.Index) -> StringLexResult {
+  static func consumeString(str: String, inout index: String.Index, raw: Bool) -> StringLexResult {
     // Precondition: str[index] must be the double quote denoting the beginning of the string to consume.
 
     var current = index
@@ -274,6 +274,10 @@ private struct Lexer {
         index = current.successor()
         return .Success(buffer)
       case "\\":
+        if raw {
+          // No special privileges for escape characters...
+          fallthrough
+        }
         // Found a control character. Consume the character following it.
         if current == str.endIndex.predecessor() {
           // An escape character cannot be the last character in the input
@@ -335,7 +339,7 @@ private struct Lexer {
       return .Success(.Syntax(.HashLeftBrace))
     case "\"":          // Regex pattern
       index = index.successor()
-      let result = consumeString(str, index: &index)
+      let result = consumeString(str, index: &index, raw: true)
       switch result {
       case let .Success(s): return .Success(.RegexPattern(s))
       case let .Failure(f): return .Failure(f)

@@ -15,6 +15,29 @@ import Foundation
   exit(EXIT_FAILURE)
 }
 
+// MARK: Regex
+
+enum RegexResult {
+  case Success(ConsValue), Error(ReadError)
+}
+
+func rangeIsValid(r: NSRange) -> Bool {
+  return !(r.location == NSNotFound && r.length == 0)
+}
+
+/// Given a pattern, try to build a regex pattern object.
+func constructRegex(pattern: String) -> RegexResult {
+  var error : NSError? = nil
+  let regex = NSRegularExpression(pattern: pattern, options: nil, error: &error)
+  if let regex = regex {
+    return .Success(.Regex(regex))
+  }
+  else {
+    return .Error(ReadError(.InvalidRegexError))
+  }
+}
+
+
 // MARK: Reference wrapper for structs
 
 final class Box<T> {

@@ -86,10 +86,10 @@ private func evaluateSpecialForm(list: Cons<ConsValue>, specialForm: SpecialForm
 }
 
 /// Evaluate a list with a built-in function in function position.
-private func evaluateBuiltIn(list: Cons<ConsValue>, builtIn: LambdatronBuiltIn, ctx: Context) -> EvalResult {
+private func evaluateBuiltIn(list: Cons<ConsValue>, builtIn: BuiltIn, ctx: Context) -> EvalResult {
   ctx.log(.Eval, message: "evaluating as built-in function: \(describeList(list, ctx))")
   switch collectFunctionParams(list.next, ctx) {
-  case let .Success(values): return builtIn(values, ctx)
+  case let .Success(values): return builtIn.function(values, ctx)
   case let .Failure(f): return .Failure(f)
   }
 }
@@ -179,7 +179,7 @@ private func evaluateKeyType(list: Cons<ConsValue>, key: ConsValue, ctx: Context
 func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResult {
   if let builtIn = first.asBuiltIn() {
     ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))")
-    return builtIn(args, ctx)
+    return builtIn.function(args, ctx)
   }
   else if let function = first.asFunction() {
     ctx.log(.Eval, message: "applying arguments: \(args.describe(ctx)) to function \(first.describe(ctx))")

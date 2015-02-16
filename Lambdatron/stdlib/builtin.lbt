@@ -21,6 +21,11 @@
 (def int .int)
 (def double .double)
 
+(def re-pattern .re-pattern)
+(def re-first .re-first)
+(def re-seq .re-seq)
+(def re-iterate .re-iterate)
+
 (def read .read)
 (def read-string .read-string)
 (def print .print)

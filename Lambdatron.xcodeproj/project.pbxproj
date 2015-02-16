@@ -100,10 +100,12 @@
 		1ACEDAAF1A91D3DE00C6EB43 /* TestIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAAE1A91D3DE00C6EB43 /* TestIO.swift */; };
 		1ACEDAB11A91D3ED00C6EB43 /* TestEval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAB01A91D3ED00C6EB43 /* TestEval.swift */; };
 		1ACEDAB31A91D40400C6EB43 /* TestReadString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEDAB21A91D40400C6EB43 /* TestReadString.swift */; };
+		1ACEDAB41A931FD300C6EB43 /* regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD750351A8F463F00A4885E /* regex.swift */; };
 		1ACFB1901A21BD82000FB61F /* commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB18F1A21BD82000FB61F /* commands.swift */; };
 		1ACFB1921A21C011000FB61F /* logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1911A21C011000FB61F /* logging.swift */; };
 		1ACFB1941A256008000FB61F /* repl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFB1931A256008000FB61F /* repl.swift */; };
 		1AD0C7B51A6595E000988ECD /* primitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD0C7B41A6595E000988ECD /* primitives.swift */; };
+		1AD750361A8F463F00A4885E /* regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD750351A8F463F00A4885E /* regex.swift */; };
 		1AD78B821A86D2C200970022 /* TestScoping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD78B811A86D2C200970022 /* TestScoping.swift */; };
 		1AD78B841A86D71000970022 /* TestDefmacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD78B831A86D71000970022 /* TestDefmacro.swift */; };
 		1ADAAD9C1A11E2FB00C2223E /* specialforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ADAAD9B1A11E2FB00C2223E /* specialforms.swift */; };
@@ -208,6 +210,7 @@
 		1ACFB1911A21C011000FB61F /* logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = logging.swift; path = REPL/logging.swift; sourceTree = "<group>"; };
 		1ACFB1931A256008000FB61F /* repl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = repl.swift; path = REPL/repl.swift; sourceTree = "<group>"; };
 		1AD0C7B41A6595E000988ECD /* primitives.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = primitives.swift; path = builtin/primitives.swift; sourceTree = "<group>"; };
+		1AD750351A8F463F00A4885E /* regex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = regex.swift; path = builtin/regex.swift; sourceTree = "<group>"; };
 		1AD78B811A86D2C200970022 /* TestScoping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestScoping.swift; path = Core/TestScoping.swift; sourceTree = "<group>"; };
 		1AD78B831A86D71000970022 /* TestDefmacro.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDefmacro.swift; path = SpecialForms/TestDefmacro.swift; sourceTree = "<group>"; };
 		1ADAAD9B1A11E2FB00C2223E /* specialforms.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = specialforms.swift; sourceTree = "<group>"; };
@@ -426,6 +429,7 @@
 				1AC8D3091A3F636800B72D49 /* builtin.swift */,
 				1AC8D30D1A3F63CC00B72D49 /* collections.swift */,
 				1AD0C7B41A6595E000988ECD /* primitives.swift */,
+				1AD750351A8F463F00A4885E /* regex.swift */,
 				1AC8D30F1A3F63FC00B72D49 /* querying.swift */,
 				1AC8D3111A3F645E00B72D49 /* math.swift */,
 				1AC8D3141A3F64C500B72D49 /* miscellaneous.swift */,
@@ -550,6 +554,7 @@
 				1A0B02C81A68F96F007EF0F2 /* interpreter.swift in Sources */,
 				1AC8D30A1A3F636800B72D49 /* builtin.swift in Sources */,
 				1A4FE1721A7AAC3900140124 /* lists.swift in Sources */,
+				1AD750361A8F463F00A4885E /* regex.swift in Sources */,
 				1A5DE9731A1D8D1400973951 /* operators.swift in Sources */,
 				1A22BCB71A25B02A00D34872 /* parser.swift in Sources */,
 				1A22BCB51A25B02A00D34872 /* lexer.swift in Sources */,
@@ -622,6 +627,7 @@
 				1A870DF31A8DD091006D9518 /* TestReduce.swift in Sources */,
 				1A0288C61A834E1400589C23 /* TestConj.swift in Sources */,
 				1AAC2DC51A68E8860019A5DD /* miscellaneous.swift in Sources */,
+				1ACEDAB41A931FD300C6EB43 /* regex.swift in Sources */,
 				1ACEDAB11A91D3ED00C6EB43 /* TestEval.swift in Sources */,
 				1A8B44FA1A7F4D9C00E33480 /* TestInt.swift in Sources */,
 				1A82882A1A8C7E530092B828 /* TestAttempt.swift in Sources */,

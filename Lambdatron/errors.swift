@@ -140,6 +140,11 @@ public struct EvalError : Printable {
     return error
   }
 
+  static func readError(forFn fn: String, error: ReadError) -> EvalError {
+    let metadata : MetaDict = [.Message: error.description]
+    return EvalError(.ReadError, fn, metadata: metadata)
+  }
+
   public var description : String {
     let desc : String = {
       switch self.error {

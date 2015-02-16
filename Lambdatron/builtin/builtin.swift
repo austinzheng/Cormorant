@@ -36,6 +36,12 @@ public enum BuiltIn : String, Printable {
   case Int = ".int"
   case Double = ".double"
 
+  // Regex
+  case RegexPattern = ".re-pattern"
+  case RegexFirst = ".re-first"
+  case RegexSeq = ".re-seq"
+  case RegexIterate = ".re-iterate"
+
   // I/O
   case Read = ".read"
   case ReadString = ".read-string"
@@ -110,6 +116,10 @@ public enum BuiltIn : String, Printable {
     case Keyword: return pr_keyword
     case Int: return pr_int
     case Double: return pr_double
+    case RegexPattern: return re_pattern
+    case RegexFirst: return re_first
+    case RegexSeq: return re_seq
+    case RegexIterate: return re_iterate
     case Read: return pr_read
     case ReadString: return pr_readString
     case Print: return pr_print
