@@ -215,7 +215,7 @@ func pr_isPos(args: Params, ctx: Context) -> EvalResult {
   case let .Integer(v):
     return .Success(.BoolAtom(v > 0))
   case let .Float(v):
-    return .Success(.BoolAtom(!v.isSignMinus && !v.isZero))
+    return .Success(.BoolAtom(!v.isSignMinus && !v.isNaN && !v.isZero))
   case .Invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
@@ -232,7 +232,8 @@ func pr_isNeg(args: Params, ctx: Context) -> EvalResult {
   case let .Integer(v):
     return .Success(.BoolAtom(v < 0))
   case let .Float(v):
-    return .Success(.BoolAtom(v.isSignMinus && !v.isZero))
+    println("v is \(v)")
+    return .Success(.BoolAtom(v.isSignMinus && !v.isNaN && !v.isZero))
   case .Invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }

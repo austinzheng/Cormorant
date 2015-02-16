@@ -472,7 +472,34 @@ class testIsPos : InterpreterTest {
 }
 
 class testIsNeg : InterpreterTest {
-  // TODO
+  // .neg? should return true for negative numbers.
+  func testWithNegativeNumbers() {
+    expectThat("(.neg? -1)", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.neg? -0.0000001)", shouldEvalTo: .BoolAtom(true))
+  }
+
+  // .neg? should return false for positive numbers.
+  func testWithPositiveNumbers() {
+    expectThat("(.neg? 1)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.neg? 0.0000001)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  // .neg? should return false for zero.
+  func testWithZero() {
+    expectThat("(.neg? 0)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.neg? 0.0)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  // .neg? should return true for negative infinity.
+  func testWithNegInf() {
+    expectThat("(.neg? (./ -1.0 0.0))", shouldEvalTo: .BoolAtom(true))
+  }
+
+  // .neg? should return false for other special float values.
+  func testWithSpecial() {
+    expectThat("(.neg? (./ 1.0 0.0))", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.neg? (./ 0.0 0.0))", shouldEvalTo: .BoolAtom(false))
+  }
 }
 
 class testIsZero : InterpreterTest {
