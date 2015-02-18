@@ -156,3 +156,15 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
   }
   return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a regex pattern"))
 }
+
+/// Given a string, return an escaped version suitable for use as a template.
+func re_quoteReplacement(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".re-quote-replacement"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("3", actual: args.count, fn))
+  }
+  if let str = args[0].asString() {
+    return .Success(.StringAtom(NSRegularExpression.escapedTemplateForString(str)))
+  }
+  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
+}

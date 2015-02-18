@@ -25,6 +25,7 @@
 (def re-first .re-first)
 (def re-seq .re-seq)
 (def re-iterate .re-iterate)
+(def re-quote-replacement .re-quote-replacement)
 
 (def read .read)
 (def read-string .read-string)

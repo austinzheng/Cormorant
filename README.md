@@ -65,7 +65,7 @@ Lambdatron has the following features:
 
 **Strings**, declared using double quotes: `"this is a string literal"`. Strings can be manipulated using `first`, `rest`, etc.
 
-**Regular expressions**, declared as such: `#"[0-9]+"`, and backed by `NSRegularExpression`. Use `re-pattern` to create a regex at runtime. Use `re-first` to get the first match of a pattern in a string, and `re-seq` to get a list of all matches of a pattern in a string. Call `re-iterate` with a pattern, a string, and a function that takes at least two arguments; the function will be called once for each match with a vector of match tokens and a vector of ranges. The function can return `true` to end iteration, or any other value to allow iteration to continue.
+**Regular expressions**, declared as such: `#"[0-9]+"`, and backed by `NSRegularExpression`. Use `re-pattern` to create a regex at runtime. Use `re-first` to get the first match of a pattern in a string, and `re-seq` to get a list of all matches of a pattern in a string. Call `re-iterate` with a pattern, a string, and a function that takes two arguments; the function will be called once for each match with a vector of match tokens and a vector of ranges. The function can return `true` to end iteration, or any other value to allow iteration to continue.
 
 **Functions** are first-class citizens which capture their environment (except for values defined using `def`). Create them using `fn`, followed by an optional name, a vector containing parameter bindings, and one or more forms comprising the function body. Or create a function bound to a global name using `defn`. Multiple arities can be defined by passing in one or more lists, each of which starts with a vector containing parameter bindings followed by the function body. Define varargs by passing in a parameter binding vector ending with `&` and the name of a vector to place the rest of the arguments (e.g. `[a b & others]`).
 
@@ -93,7 +93,7 @@ The following special forms, reader macros, and functions are built into the int
 - Reader macros: `'`, `` ` ``, `~`, `~@`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`, `reduce`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
-- Regular expressions: `re-pattern`, `re-first`, `re-seq`, `re-iterate`
+- Regular expressions: `re-pattern`, `re-first`, `re-seq`, `re-iterate`, `re-quote-replacement`
 - I/O: `read`, `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`

@@ -41,6 +41,7 @@ public enum BuiltIn : String, Printable {
   case RegexFirst = ".re-first"
   case RegexSeq = ".re-seq"
   case RegexIterate = ".re-iterate"
+  case RegexQuoteReplace = ".re-quote-replacement"
 
   // I/O
   case Read = ".read"
@@ -120,6 +121,7 @@ public enum BuiltIn : String, Printable {
     case RegexFirst: return re_first
     case RegexSeq: return re_seq
     case RegexIterate: return re_iterate
+    case RegexQuoteReplace: return re_quoteReplacement
     case Read: return pr_read
     case ReadString: return pr_readString
     case Print: return pr_print
