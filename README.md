@@ -93,6 +93,7 @@ The following special forms, reader macros, and functions are built into the int
 - Reader macros: `'`, `` ` ``, `~`, `~@`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`, `reduce`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
+- String manipulation: `subs`, `lower-case`, `upper-case`, `replace`, `replace-first`
 - Regular expressions: `re-pattern`, `re-first`, `re-seq`, `re-iterate`, `re-quote-replacement`
 - I/O: `read`, `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `seq?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`

@@ -18,7 +18,7 @@ func re_pattern(args: Params, ctx: Context) -> EvalResult {
   switch pattern {
   case let .StringAtom(string):
     switch constructRegex(string) {
-    case let .Success(regex): return .Success(regex)
+    case let .Success(regex): return .Success(.Regex(regex))
     case let .Error(err): return .Failure(EvalError.readError(forFn: fn, error: err))
     }
   case .Regex:
@@ -128,8 +128,12 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
           }
         }
         // Call the user-defined function with two arguments: a vector of the result strings, and a vector of the
-        //  corresponding ranges
-        let result = apply(function, Params(.Vector(buffer), .Vector(ranges)), ctx, fn)
+        //  corresponding ranges. However, if there are *no* match groups, the arguments are just the match string, and
+        //  just the range vector.
+        let result = apply(function,
+          Params(buffer.count == 1 ? buffer[0] : .Vector(buffer), ranges.count == 1 ? ranges[0] : .Vector(ranges)),
+          ctx,
+          fn)
         // The result determines whether we continue or stop early. Either a failure or the function returning a Boolean
         //  true will stop the enumeration.
         switch result {

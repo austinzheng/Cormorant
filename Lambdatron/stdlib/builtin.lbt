@@ -21,6 +21,12 @@
 (def int .int)
 (def double .double)
 
+(def subs .subs)
+(def lower-case .lower-case)
+(def upper-case .upper-case)
+(def replace .replace)
+(def replace-first .replace-first)
+
 (def re-pattern .re-pattern)
 (def re-first .re-first)
 (def re-seq .re-seq)

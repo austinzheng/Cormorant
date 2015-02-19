@@ -36,6 +36,13 @@ public enum BuiltIn : String, Printable {
   case Int = ".int"
   case Double = ".double"
 
+  // String-related
+  case Subs = ".subs"
+  case Lowercase = ".lower-case"
+  case Uppercase = ".upper-case"
+  case Replace = ".replace"
+  case ReplaceFirst = ".replace-first"
+
   // Regex
   case RegexPattern = ".re-pattern"
   case RegexFirst = ".re-first"
@@ -117,6 +124,11 @@ public enum BuiltIn : String, Printable {
     case Keyword: return pr_keyword
     case Int: return pr_int
     case Double: return pr_double
+    case Subs: return str_subs
+    case Lowercase: return str_lowercase
+    case Uppercase: return str_uppercase
+    case Replace: return str_replace
+    case ReplaceFirst: return str_replaceFirst
     case RegexPattern: return re_pattern
     case RegexFirst: return re_first
     case RegexSeq: return re_seq

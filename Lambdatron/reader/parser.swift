@@ -185,7 +185,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       buffer.append(wrappedConsItem(.StringAtom(s), &wrapStack))
     case let .RegexPattern(s):
       switch constructRegex(s) {
-      case let .Success(regex): buffer.append(wrappedConsItem(regex, &wrapStack))
+      case let .Success(regex): buffer.append(wrappedConsItem(.Regex(regex), &wrapStack))
       case let .Error(error): return .Failure(error)
       }
     case let .Integer(v):
@@ -367,7 +367,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   case let .StringLiteral(s): return .Success(.StringAtom(s))
   case let .RegexPattern(s):
     switch constructRegex(s) {
-    case let .Success(regex): return .Success(regex)
+    case let .Success(regex): return .Success(.Regex(regex))
     case let .Error(error): return .Failure(error)
     }
   case let .Integer(v): return .Success(.IntAtom(v))

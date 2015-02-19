@@ -9,18 +9,27 @@
 import Foundation
 
 /// An enum wrapping one of several numerical types, or an invalid value sigil.
-internal enum NumericalType {
+enum NumericalType {
   case Integer(Int)
   case Float(Double)
   case Invalid
 }
 
 /// Convert a given ConsValue argument into the equivalent NumericalType token.
-internal func extractNumber(n: ConsValue) -> NumericalType {
+func extractNumber(n: ConsValue) -> NumericalType {
   switch n {
   case let .IntAtom(v): return .Integer(v)
   case let .FloatAtom(v): return .Float(v)
   default: return .Invalid
+  }
+}
+
+/// Convert a given ConsValue argument into an integer, if possible.
+func extractInt(n: ConsValue) -> Int? {
+  switch n {
+  case let .IntAtom(v): return v
+  case let .FloatAtom(v): return Int(v)
+  default: return nil
   }
 }
 

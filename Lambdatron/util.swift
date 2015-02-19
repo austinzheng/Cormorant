@@ -18,7 +18,7 @@ import Foundation
 // MARK: Regex
 
 enum RegexResult {
-  case Success(ConsValue), Error(ReadError)
+  case Success(NSRegularExpression), Error(ReadError)
 }
 
 func rangeIsValid(r: NSRange) -> Bool {
@@ -30,7 +30,7 @@ func constructRegex(pattern: String) -> RegexResult {
   var error : NSError? = nil
   let regex = NSRegularExpression(pattern: pattern, options: nil, error: &error)
   if let regex = regex {
-    return .Success(.Regex(regex))
+    return .Success(regex)
   }
   else {
     return .Error(ReadError(.InvalidRegexError))
