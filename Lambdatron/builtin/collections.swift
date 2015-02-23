@@ -441,6 +441,32 @@ func pr_assoc(args: Params, ctx: Context) -> EvalResult {
   }
 }
 
+/// Given a countable collection, return the number of items.
+func pr_count(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".count"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  switch args[0] {
+  case .Nil:
+    return .Success(.IntAtom(0))
+  case let .StringAtom(str):
+    return .Success(.IntAtom(str.utf16Count))
+  case let .List(list):
+    var count = 0
+    for _ in list {
+      count++
+    }
+    return .Success(.IntAtom(count))
+  case let .Vector(vector):
+    return .Success(.IntAtom(vector.count))
+  case let .Map(map):
+    return .Success(.IntAtom(map.count))
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be nil, a collection, or a string"))
+  }
+}
+
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
 func pr_dissoc(args: Params, ctx: Context) -> EvalResult {
   let fn = ".dissoc"

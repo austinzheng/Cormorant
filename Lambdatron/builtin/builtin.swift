@@ -28,6 +28,7 @@ public enum BuiltIn : String, Printable {
   case Get = ".get"
   case Assoc = ".assoc"
   case Dissoc = ".dissoc"
+  case Count = ".count"
   case Reduce = ".reduce"
 
   // Primitive-related
@@ -119,6 +120,7 @@ public enum BuiltIn : String, Printable {
     case Get: return pr_get
     case Assoc: return pr_assoc
     case Dissoc: return pr_dissoc
+    case Count: return pr_count
     case Reduce: return pr_reduce
     case Symbol: return pr_symbol
     case Keyword: return pr_keyword
