@@ -473,7 +473,6 @@ private struct Lexer {
     }
 
     // The classic 'isNumber()' function.
-    // TODO: Replace this with a REAL number parser
     formatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
     if let number = formatter.numberFromString(str) {
       switch mode {

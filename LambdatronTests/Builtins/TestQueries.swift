@@ -460,7 +460,35 @@ class testIsVector : InterpreterTest {
 }
 
 class testIsMap : InterpreterTest {
-  // TODO
+  /// .map? should return true when called with map arguments.
+  func testIsMapWithMaps() {
+    expectThat("(.map? {})", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.map? {:foo \"foo\" 'bar 15293})", shouldEvalTo: .BoolAtom(true))
+    expectThat("(.map? {'(1 2 3) {:foo :bar} [5 6] true \"hello\" nil})", shouldEvalTo: .BoolAtom(true))
+  }
+
+  /// .map? should return false when called with non-map arguments
+  func testIsMapWithOthers() {
+    expectThat("(.map? nil)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? true)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? false)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? 65182)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? 0.00001238)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? \\y)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? 'y)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? :y)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? \"foobar\")", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? #\"[0-9]+\")", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? '(1 2 3))", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? [1 2 3])", shouldEvalTo: .BoolAtom(false))
+    expectThat("(.map? .map?)", shouldEvalTo: .BoolAtom(false))
+  }
+
+  /// .map? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.map?)")
+    expectArityErrorFrom("(.map? {} {})")
+  }
 }
 
 class testIsSeq : InterpreterTest {

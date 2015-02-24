@@ -56,30 +56,24 @@ func str_subs(args: Params, ctx: Context) -> EvalResult {
   return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
 }
 
-/// Given a string, return an equivalent string but with all letters in uppercase.
+/// Given any type of object, return an equivalent string but with all letters in uppercase.
 func str_uppercase(args: Params, ctx: Context) -> EvalResult {
   let fn = ".upper-case"
-  // TODO: once 'str' is implemented, this function should take any type of argument and str it
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  if let s = args[0].asString() {
-    return .Success(.StringAtom(s.uppercaseString))
-  }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a string"))
+  let s = args[0].toString(ctx)
+  return .Success(.StringAtom(s.uppercaseString))
 }
 
-/// Given a string, return an equivalent string but with all letters in lowercase.
+/// Given any type of object, return an equivalent string but with all letters in lowercase.
 func str_lowercase(args: Params, ctx: Context) -> EvalResult {
   let fn = ".upper-case"
-  // TODO: once 'str' is implemented, this function should take any type of argument and str it
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  if let s = args[0].asString() {
-    return .Success(.StringAtom(s.lowercaseString))
-  }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a string"))
+  let s = args[0].toString(ctx)
+  return .Success(.StringAtom(s.lowercaseString))
 }
 
 /// Given a string, a match object, and a replacement object, replace all occurrences of the match in the string.
