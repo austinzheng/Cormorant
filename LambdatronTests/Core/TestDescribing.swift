@@ -34,8 +34,9 @@ class TestDescribing : InterpreterTest {
   func expectThat(input: String, shouldBeDescribedAs expected: String) {
     let result = interpreter.evaluate(input)
     switch result {
-    case let .Success(actual):
-      XCTAssert(expected == interpreter.describe(actual), "expected: \(expected), got: \(actual)")
+    case let .Success(raw):
+      let actual = interpreter.describe(raw)
+      XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
     case let .ReadFailure(f):
       XCTFail("read error: \(f.description)")
     case let .EvalFailure(f):

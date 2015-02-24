@@ -11,6 +11,6 @@
 ["hello" :goodbye \c \d \e foo 1692 true]
 #"[0-9]+"
 {:hello "wor\"l\"d" '(a b :c [:d true]) 15629 true {\c 999 \d -0.12993}}
-{true {\d -0.12993, \c 999}, (a b :c [:d true]) 15629, :hello "wor\"l\"d"}
+{(a b :c [:d true]) 15629, :hello "wor\"l\"d", true {\d -0.12993, \c 999}}
 
 // ONLY ADD STRINGS TO THE BOTTOM OF THIS LIST. MOVING EXISTING STRINGS WILL BREAK THE TESTS.

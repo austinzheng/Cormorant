@@ -44,6 +44,9 @@ protocol Context : class {
   /// Return whether or not a Var is bound.
   func varIsBound(symbol: InternedSymbol) -> Bool
 
+  /// Return a unique gensym.
+  func produceGensym(prefix: String, suffix: String?) -> InternedSymbol
+
   /// Given an interned symbol, return its name.
   func nameForSymbol(symbol: InternedSymbol) -> String
 
@@ -76,11 +79,12 @@ private class BaseContext {
 
   var namesToIds : [String : InternedSymbol] = [:]
   var idsToNames : [InternedSymbol : String] = [:]
-  var symbolIdCounter = 0
 
   var keywordsToIds : [String : InternedKeyword] = [:]
   var idsToKeywords : [InternedKeyword : String] = [:]
-  var keywordIdCounter = 0
+
+  var identifierCounter : UInt = 0
+  var gensymCounter : UInt = 0
 
   func varIsValid(symbol: InternedSymbol) -> Bool {
     let binding = bindings[symbol] ?? .Invalid
@@ -98,6 +102,12 @@ private class BaseContext {
     }
   }
 
+  func produceGensym(prefix: String, suffix: String?) -> InternedSymbol {
+    let name = "\(prefix)\(gensymCounter)" + (suffix ?? "")
+    gensymCounter += 1
+    return internSymbol(name)
+  }
+
   /// Given a symbol, return the name for the symbol (if one exists).
   func existingNameForSymbol(symbol: InternedSymbol) -> String? {
     return idsToNames[symbol]
@@ -111,8 +121,8 @@ private class BaseContext {
   /// Create a new interned symbol for the given symbol name.
   func internSymbol(name: String) -> InternedSymbol {
     // Precondition: name is not currently used by any symbol.
-    let newSymbol = InternedSymbol(symbolIdCounter)
-    symbolIdCounter++
+    let newSymbol = InternedSymbol(identifierCounter)
+    identifierCounter += 1
     namesToIds[name] = newSymbol
     idsToNames[newSymbol] = name
     return newSymbol
@@ -131,8 +141,8 @@ private class BaseContext {
   /// Create a new interned keyword for the given keyword name.
   func internKeyword(name: String) -> InternedKeyword {
     // Precondition: name is not currently used by any keyword.
-    let newKeyword = InternedKeyword(keywordIdCounter)
-    keywordIdCounter++
+    let newKeyword = InternedKeyword(identifierCounter)
+    identifierCounter += 1
     keywordsToIds[name] = newKeyword
     idsToKeywords[newKeyword] = name
     return newKeyword
@@ -151,8 +161,8 @@ private final class RootContext : BaseContext, Context {
     self.interpreter = interpreter
     // Start ID counters after those for the base context
     super.init()
-    self.symbolIdCounter = globalContext.symbolIdCounter + 1
-    self.keywordIdCounter = globalContext.keywordIdCounter + 1
+    identifierCounter = globalContext.identifierCounter + 1
+    gensymCounter = globalContext.gensymCounter + 1
   }
 
   override func varIsValid(symbol: InternedSymbol) -> Bool {
@@ -296,6 +306,10 @@ final class ChildContext : Context {
 
   func varIsBound(symbol: InternedSymbol) -> Bool {
     return root.varIsBound(symbol)
+  }
+
+  func produceGensym(prefix: String, suffix: String?) -> InternedSymbol {
+    return root.produceGensym(prefix, suffix: suffix)
   }
 
   func nameForSymbol(symbol: InternedSymbol) -> String {
