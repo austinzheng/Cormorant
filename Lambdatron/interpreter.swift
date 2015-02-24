@@ -60,7 +60,7 @@ public class Interpreter {
       let parsed = parse(lexed, context)
       switch parsed {
       case let .Success(parsed):
-        let expanded = parsed.readerExpand()
+        let expanded = parsed.expand()
         switch expanded {
         case let .Success(expanded):
           let result = evaluateForm(expanded, context)
@@ -97,7 +97,7 @@ public class Interpreter {
       let parsed = parse(lexed, context)
       switch parsed {
       case let .Success(parsed):
-        let expanded = parsed.readerExpand()
+        let expanded = parsed.expand()
         switch expanded {
         case let .Success(expanded):
           return Form(expanded)

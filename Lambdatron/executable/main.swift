@@ -28,7 +28,7 @@ private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult 
     for segment in segments {
       switch parse(segment, ctx) {
       case let .Success(parsedData):
-        let expanded = parsedData.readerExpand()
+        let expanded = parsedData.expand()
         switch expanded {
         case let .Success(expanded): buffer.append(expanded)
         case let .Failure(f): return .ReadFailure(f)

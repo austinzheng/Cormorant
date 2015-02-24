@@ -10,6 +10,18 @@ import Foundation
 
 typealias LambdatronSpecialForm = (Params, Context) -> EvalResult
 
+// Constants for ConsValue-wrapped special forms.
+internal let QUOTE = ConsValue.Special(.Quote)
+internal let IF = ConsValue.Special(.If)
+internal let DO = ConsValue.Special(.Do)
+internal let DEF = ConsValue.Special(.Def)
+internal let LET = ConsValue.Special(.Let)
+internal let FN = ConsValue.Special(.Fn)
+internal let DEFMACRO = ConsValue.Special(.Defmacro)
+internal let LOOP = ConsValue.Special(.Loop)
+internal let RECUR = ConsValue.Special(.Recur)
+internal let APPLY = ConsValue.Special(.Apply)
+
 /// An enum describing all the special forms recognized by the interpreter.
 public enum SpecialForm : String, Printable {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs

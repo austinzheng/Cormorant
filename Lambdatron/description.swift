@@ -93,7 +93,7 @@ extension ConsValue {
     case let .Special(v):
       return v.rawValue
     case let .ReaderMacroForm(v):
-      return "{{reader_macro}}"
+      return v.describe(ctx)
     }
   }
 

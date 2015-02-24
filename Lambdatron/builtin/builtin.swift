@@ -10,6 +10,12 @@ import Foundation
 
 typealias LambdatronBuiltIn = (Params, Context) -> EvalResult
 
+internal let LIST = ConsValue.BuiltInFunction(.List)
+internal let VECTOR = ConsValue.BuiltInFunction(.Vector)
+internal let HASHMAP = ConsValue.BuiltInFunction(.Hashmap)
+internal let CONCAT = ConsValue.BuiltInFunction(.Concat)
+internal let SEQ = ConsValue.BuiltInFunction(.Seq)
+
 /// An enum describing every built-in function included with the interpreter.
 public enum BuiltIn : String, Printable {
   

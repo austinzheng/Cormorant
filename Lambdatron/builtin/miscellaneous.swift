@@ -91,7 +91,7 @@ private func readString(string: String, ctx: Context, fn: String) -> EvalResult 
     let parsed = parse(lexed, ctx)
     switch parsed {
     case let .Success(parsed):
-      let expanded = parsed.readerExpand()
+      let expanded = parsed.expand()
       switch expanded {
       case let .Success(expanded):
         return .Success(expanded)

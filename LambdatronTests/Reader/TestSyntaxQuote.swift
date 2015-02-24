@@ -21,7 +21,7 @@ class TestSyntaxQuote : XCTestCase {
       let parsed = parse(lexed, interpreter.context)
       switch parsed {
       case let .Success(parsed):
-        let expanded = parsed.readerExpand()
+        let expanded = parsed.expand()
         switch expanded {
         case let .Success(expanded):
           let actualOutput = expanded.describe(interpreter.context)
@@ -123,6 +123,10 @@ class TestSyntaxQuote : XCTestCase {
 
   func testDoubleSyntaxQuoteDoubleUnquote() {
     test("``~~a", shouldExpandTo: "a")
+  }
+
+  func testTripleSyntaxQuoteTripleUnquote() {
+    test("```~~~a", shouldExpandTo: "a")
   }
 
   func testDoubleSyntaxQuoteListDoubleUnquote() {

@@ -54,6 +54,11 @@ func listFromMappedCollection<T, U : SequenceType, V where T == U.Generator.Elem
   return head ?? tail
 }
 
+/// A convenience function that builds a list from a variable number of similarly-typed arguments.
+func listFromItems<T>(items: T...) -> ListType<T> {
+  return listFromCollection(items)
+}
+
 /// An abstract class representing a linked list.
 public class ListType<T : Hashable> : Hashable, SequenceType {
   public var hashValue : Int { return 0 }
