@@ -170,6 +170,14 @@ class TestSyntaxQuote : XCTestCase {
     test("``(a `b ~@(`c `(d ~@e) ~@f) g)", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote b))))))))))))))))) (.list (.seq (.concat (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote d)))))))) (.list (quote e)))))))) f))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote g)))))))))))))")
   }
 
+  func testDeeplyNestedUnspliceQuotes2() {
+    test("``(a ~@(b `c ~@('d `e (f g)) h))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote b)) (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) ((quote d) (quote e) (f g)) (.list (quote h))))))))))")
+  }
+
+  func testDeeplyNestedUnspliceQuotes3() {
+    test("``(a ~@(~@(b `c `d)))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (b (quote c) (quote d))))))))))")
+  }
+
   func testUnquotedList() {
     test("`(a ~(b `c))", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list (b (quote c)))))")
   }
