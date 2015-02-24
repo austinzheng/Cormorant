@@ -8,150 +8,146 @@
 
 import Foundation
 
-/// Given a list of ConsValue items, return a description (e.g. "(a b c d e)" for a five-item list).
-func describeList(list: ListType<ConsValue>, ctx: Context?, debug: Bool = false) -> String {
-  var descBuffer : [String] = []
-  for item in list {
-    descBuffer.append(item.describe(ctx, debug: debug))
+
+// MARK: Describe
+
+/// Given a list, return a description (e.g. "(a b c d e)" for a five-item list).
+func describeList(list: ListType<ConsValue>, c: Context?, debug: Bool = false) -> String {
+  let descs = map(list) { debug ? $0.debugDescribe(c) : $0.describe(c) }
+  let final = join(" ", descs)
+  return "(\(final))"
+}
+
+/// Given a vector, return a description.
+func describeVector(vector: VectorType, c: Context?, debug: Bool = false) -> String {
+  let descs = map(vector) { debug ? $0.debugDescribe(c) : $0.describe(c) }
+  let final = join(" ", descs)
+  return "[\(final)]"
+}
+
+/// Given a map, return a description.
+func describeMap(m: MapType, c: Context?, debug: Bool = false) -> String {
+  let descs = map(m) {
+    (debug ? $0.0.debugDescribe(c) : $0.0.describe(c)) + " " + (debug ? $0.1.debugDescribe(c) : $0.1.describe(c))
   }
-  let finalDesc = join(" ", descBuffer)
-  return "(\(finalDesc))"
+  let final = join(", ", descs)
+  return "{\(final)}"
 }
 
 extension ConsValue {
 
-  func describe(ctx: Context?) -> String {
-    return describe(ctx, debug: false)
-  }
-
-  func describe(ctx: Context?, debug: Bool) -> String {
+  /// Return the stringified version of an object.
+  func toString(ctx: Context) -> String {
     switch self {
-    case let Symbol(v):
-      if let ctx = ctx {
-        let name = ctx.nameForSymbol(v)
-        return debug ? "ConsValue.Symbol(\(name))" : name
-      }
-      return debug ? "ConsValue.Symbol(id:\(v.identifier))" : "symbol:\(v.identifier)"
-    case let Keyword(v):
-      if let ctx = ctx {
-        let name = ctx.nameForKeyword(v)
-        return debug ? "ConsValue.Keyword(:\(name))" : ":" + name
-      }
-      return debug ? "ConsValue.Keyword(id:\(v.identifier))" : "keyword:\(v.identifier)"
-    case Nil:
-      return debug ? "ConsValue.Nil" : "nil"
-    case let BoolAtom(v):
-      return debug ? "ConsValue.BoolAtom(\(v))" : v.description
-    case let IntAtom(v):
-      return debug ? "ConsValue.IntAtom(\(v))" : v.description
-    case let FloatAtom(v):
-      return debug ? "ConsValue.FloatAtom(\(v)" : v.description
-    case let CharAtom(v):
-      let desc = charLiteralDesc(v)
-      return debug ? "ConsValue.CharAtom(\(desc))" : "\(desc)"
-    case let StringAtom(v):
-      return debug ? "ConsValue.StringAtom(\"\(v)\")" : "\"\(v)\""
+    case let .Nil:
+      return ""
+    case let .CharAtom(char):
+      return String(char)
+    case let .StringAtom(str):
+      return str
     case let .Regex(re):
-      return debug ? "ConsValue.Regex(#\"\(re.pattern)\")" : "#\"\(re.pattern)\""
-    case let List(list):
-      let desc = describeList(list, ctx, debug: debug)
-      return debug ? "ConsValue.List(\(desc))" : desc
-    case let Vector(v):
-      let internals = join(" ", v.map({$0.describe(ctx, debug: debug)}))
-      return debug ? "ConsValue.Vector([\(internals)])" : "[\(internals)]"
-    case let Map(m):
-      var components : [String] = []
-      for (key, value) in m {
-        components.append(key.describe(ctx, debug: debug))
-        components.append(value.describe(ctx, debug: debug))
-      }
-      let internals = join(" ", components)
-      return debug ? "ConsValue.Map({\(internals)})" : "{\(internals)}"
-    case let FunctionLiteral(v):
-      return debug ? "ConsValue.FunctionLiteral(\(v.describe(ctx)))" : v.describe(ctx)
-    case let Special(v):
-      return debug ? "ConsValue.Special(\(v.rawValue))" : v.rawValue
-    case let BuiltInFunction(v):
-      return debug ? "ConsValue.BuiltInFunction(\(v.rawValue))" : v.rawValue
-    case let ReaderMacroForm(v):
-      return debug ? "ConsValue.ReaderMacroForm(\(v.description))" : v.description
+      return re.pattern
+    default:
+      return self.describe(ctx)
     }
   }
-}
 
-
-// MARK: Functions
-
-extension Function {
-  
+  /// Return a description of an object. If the object is a string, any constituent characters will be converted to the
+  /// appropriate two-character escape sequence if necessary.
   func describe(ctx: Context?) -> String {
-    var count = variadic == nil ? 0 : 1
-    count += specificFns.count
-    if count == 1 {
-      // Only one arity
-      let funcString : String = {
-        if let v = self.variadic {
-          return v.describe(ctx)
-        }
-        else {
-          var generator = self.specificFns.generate()
-          // FORCE UNWRAP: self.specificFns must have at least one object for this block to be run.
-          let item = generator.next()!.1
-          return item.describe(ctx)
-        }
-        }()
-      return "(fn \(funcString))"
-    }
-    else {
-      var descs : [String] = []
-      for (_, fn) in specificFns {
-        descs.append("(\(fn.describe(ctx)))")
-      }
-      if let variadic = variadic {
-        descs.append("(\(variadic.describe(ctx)))")
-      }
-      let joined = join(" ", descs)
-      return "(fn \(joined))"
-    }
-  }
-}
-
-extension SingleFn {
-  
-  func describe(ctx: Context?) -> String {
-    // Print out the description. For example, "[a b] (print a) (+ a b 1)"
-    var paramVector : [String] = []
-    if let ctx = ctx {
-      for p in parameters {
-        paramVector.append(ctx.nameForSymbol(p))
-      }
-    }
-    else {
-      for p in parameters {
-        paramVector.append("symbol:\(p.identifier)")
-      }
-    }
-    if let v = variadicParameter {
-      paramVector.append("%")
+    switch self {
+    case .Nil:
+      return "nil"
+    case let .BoolAtom(bool):
+      return bool ? "true" : "false"
+    case let .IntAtom(int):
+      return int.description
+    case let .FloatAtom(double):
+      return double.description
+    case let .CharAtom(char):
+      return charLiteralDesc(char)
+    case let .StringAtom(str):
+      return "\"" + stringByEscaping(str) + "\""
+    case let .Regex(re):
+      return "#\"" + re.pattern + "\""
+    case let .Symbol(symbol):
       if let ctx = ctx {
-        paramVector.append(ctx.nameForSymbol(v))
+        return ctx.nameForSymbol(symbol)
       }
-      else {
-        paramVector.append("symbol:\(v.identifier)")
+      return "symbol:\(symbol.identifier)"
+    case let .Keyword(keyword):
+      if let ctx = ctx {
+        return ":" + ctx.nameForKeyword(keyword)
       }
+      return "keyword:\(keyword.identifier)"
+    case let .List(list):
+      return describeList(list, ctx, debug: false)
+    case let .Vector(vector):
+      return describeVector(vector, ctx, debug: false)
+    case let .Map(map):
+      return describeMap(map, ctx, debug: false)
+    case let .FunctionLiteral(v):
+      return "{{function}}"
+    case let .BuiltInFunction(v):
+      return v.rawValue
+    case let .Special(v):
+      return v.rawValue
+    case let .ReaderMacroForm(v):
+      return "{{reader_macro}}"
     }
-    
-    let paramRaw = join(" ", paramVector)
-    let paramString = "[\(paramRaw)]"
-    let formsVector = forms.map({$0.describe(ctx)})
-    var finalVector = [paramString] + formsVector
-    return join(" ", finalVector)
   }
-  
-  var description : String {
-    return describe(nil)
+
+  /// Return a debug description of an object.
+  func debugDescribe(ctx: Context?) -> String {
+    switch self {
+    case .Nil:
+      return "Object.Nil"
+    case let .BoolAtom(bool):
+      let desc = bool ? "true" : "false"
+      return "Object.BoolAtom(\(desc))"
+    case let .IntAtom(int):
+      return "Object.IntAtom(\(int.description))"
+    case let .FloatAtom(double):
+      return "Object.FloatAtom(\(double.description))"
+    case let .CharAtom(char):
+      return "Object.CharAtom(\(charLiteralDesc(char)))"
+    case let .StringAtom(str):
+      return "Object.StringAtom(\"\(str)\")"
+    case let .Regex(re):
+      return "Object.Regex(#\"\(re.pattern)\")"
+    case let .Symbol(symbol):
+      if let ctx = ctx {
+        return "Object.Symbol(\(ctx.nameForSymbol(symbol)))"
+      }
+      return "Object.Symbol(id:\(symbol.identifier))"
+    case let .Keyword(keyword):
+      if let ctx = ctx {
+        return "Object.Keyword(:\(ctx.nameForKeyword(keyword)))"
+      }
+      return "Object.Keyword(id:\(keyword.identifier))"
+    case let .List(list):
+      let desc = describeList(list, ctx, debug: true)
+      return "Object.List( \(desc) )"
+    case let .Vector(vector):
+      let desc = describeVector(vector, ctx, debug: true)
+      return "Object.Vector( \(desc) )"
+    case let .Map(map):
+      let desc = describeMap(map, ctx, debug: true)
+      return "Object.Map( \(desc) )"
+    case let .FunctionLiteral(v):
+      return "Object.FunctionLiteral"
+    case let .BuiltInFunction(v):
+      return "Object.BuiltInFunction(\(v.rawValue))"
+    case let .Special(v):
+      return "Object.Special(\(v.rawValue))"
+    case let .ReaderMacroForm(v):
+      return "Object.ReaderMacroForm"
+    }
   }
 }
+
+
+// MARK: Miscellaneous
 
 // Description-related extension for the Params struct.
 extension Params {
@@ -184,4 +180,20 @@ private func charLiteralDesc(char: Character) -> String {
     }
     }()
   return "\\" + name
+}
+
+/// Given a Swift string, return the same string with escape sequences escaped out.
+func stringByEscaping(s: String) -> String {
+  var buffer : String = ""
+  for character in s {
+    switch character {
+    case "\\": buffer.extend("\\\\")
+    case "\"": buffer.extend("\\\"")
+    case "\t": buffer.extend("\\t")
+    case "\r": buffer.extend("\\r")
+    case "\n": buffer.extend("\\n")
+    default: buffer.append(character)
+    }
+  }
+  return buffer
 }

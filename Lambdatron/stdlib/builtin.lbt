@@ -22,6 +22,7 @@
 (def int .int)
 (def double .double)
 
+(def str .str)
 (def subs .subs)
 (def lower-case .lower-case)
 (def upper-case .upper-case)

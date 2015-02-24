@@ -8,6 +8,17 @@
 
 import Foundation
 
+/// Given zero or more objects, return the stringified version of the object(s), concatenating as necessary.
+func str_str(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".str"
+  if args.count == 0 {
+    return .Success(.StringAtom(""))
+  }
+  let buffer = map(args) { $0.toString(ctx) }
+  let result = join("", buffer)
+  return .Success(.StringAtom(result))
+}
+
 /// Given a string, a start index, and an optional end index, return a substring.
 func str_subs(args: Params, ctx: Context) -> EvalResult {
   let fn = ".subs"

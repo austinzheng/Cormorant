@@ -38,6 +38,7 @@ public enum BuiltIn : String, Printable {
   case Double = ".double"
 
   // String-related
+  case Str = ".str"
   case Subs = ".subs"
   case Lowercase = ".lower-case"
   case Uppercase = ".upper-case"
@@ -126,6 +127,7 @@ public enum BuiltIn : String, Printable {
     case Keyword: return pr_keyword
     case Int: return pr_int
     case Double: return pr_double
+    case .Str: return str_str
     case Subs: return str_subs
     case Lowercase: return str_lowercase
     case Uppercase: return str_uppercase

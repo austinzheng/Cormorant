@@ -451,7 +451,7 @@ func pr_count(args: Params, ctx: Context) -> EvalResult {
   case .Nil:
     return .Success(.IntAtom(0))
   case let .StringAtom(str):
-    return .Success(.IntAtom(str.utf16Count))
+    return .Success(.IntAtom(countElements(str)))
   case let .List(list):
     var count = 0
     for _ in list {

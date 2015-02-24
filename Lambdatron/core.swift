@@ -39,7 +39,7 @@ struct MapSequence : SequenceType, GeneratorType {
 }
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
-public enum ConsValue : Printable, Hashable {
+public enum ConsValue : Printable, DebugPrintable, Hashable {
   case Nil
   case BoolAtom(Bool)
   case IntAtom(Int)
@@ -77,6 +77,9 @@ public enum ConsValue : Printable, Hashable {
     case let .ReaderMacroForm(rf): return rf.hashValue
     }
   }
+
+  public var description : String { return describe(nil) }
+  public var debugDescription : String { return debugDescribe(nil) }
 
   var asBool : Bool? {
     switch self {
@@ -179,13 +182,5 @@ public enum ConsValue : Printable, Hashable {
     case let .Special(s): return s
     default: return nil
     }
-  }
-
-  public var description : String {
-    return describe(nil)
-  }
-
-  var debugDescription : String {
-    return describe(nil, debug: true)
   }
 }
