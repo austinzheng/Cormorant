@@ -162,20 +162,52 @@ class TestSyntaxQuote : XCTestCase {
     test("``(~~@(zed `a `b))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (zed (quote a) (quote b))))))))))")
   }
 
-  func testNestedUnspliceQuotes() {
+  func testNestedUnquotes() {
+    test("``(~(a ~(`b `c) d))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote a)) (.list ((quote b) (quote c))) (.list (quote d)))))))))))))")
+  }
+
+  func testDeeplyNestedUnquotes() {
+    test("``(a `b ~(`c `(d ~e) ~f) g)", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote b))))))))))))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote d)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (quote e))))))))))) (.list f))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote g)))))))))))))")
+  }
+
+  func testDeeplyNestedUnquotes2() {
+    test("``(a ~(b `c ~('d `e (f g)) h))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote b)) (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) (.list ((quote d) (quote e) (f g))) (.list (quote h)))))))))))))")
+  }
+
+  func testDeeplyNestedUnquotes3() {
+    test("``(a ~(~(b `c `d)))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (b (quote c) (quote d))))))))))))))")
+  }
+
+  func testNestedUnquoteSplices() {
     test("``(~@(a ~@(`b `c) d))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote a)) ((quote b) (quote c)) (.list (quote d))))))))))")
   }
 
-  func testDeeplyNestedUnspliceQuotes() {
+  func testDeeplyNestedUnquoteSplices() {
     test("``(a `b ~@(`c `(d ~@e) ~@f) g)", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote b))))))))))))))))) (.list (.seq (.concat (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote d)))))))) (.list (quote e)))))))) f))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote g)))))))))))))")
   }
 
-  func testDeeplyNestedUnspliceQuotes2() {
+  func testDeeplyNestedUnquoteSplices2() {
     test("``(a ~@(b `c ~@('d `e (f g)) h))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote b)) (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) ((quote d) (quote e) (f g)) (.list (quote h))))))))))")
   }
 
-  func testDeeplyNestedUnspliceQuotes3() {
+  func testDeeplyNestedUnquoteSplices3() {
     test("``(a ~@(~@(b `c `d)))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (b (quote c) (quote d))))))))))")
+  }
+
+  func testNestedUnquotesAndUnquoteSplices() {
+    test("``(~(a ~@(`b `c) d))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote a)) ((quote b) (quote c)) (.list (quote d)))))))))))))")
+  }
+
+  func testDeeplyNestedUnquotesAndUnquoteSplices() {
+    test("``(a `b ~(`c `(d ~@e) ~f) g)", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote b))))))))))))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote d)))))))) (.list (quote e)))))))) (.list f))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote g)))))))))))))")
+  }
+
+  func testDeeplyNestedUnquotesAndUnquoteSplices2() {
+    test("``(a ~(b `c ~@('d `e (f g)) h))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote b)) (.list (.seq (.concat (.list (quote quote)) (.list (quote c))))) ((quote d) (quote e) (f g)) (.list (quote h)))))))))))))")
+  }
+
+  func testDeeplyNestedUnquotesAndUnquoteSplices3() {
+    test("``(a ~@(~(b `c `d)))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (b (quote c) (quote d)))))))))))")
   }
 
   func testUnquotedList() {
