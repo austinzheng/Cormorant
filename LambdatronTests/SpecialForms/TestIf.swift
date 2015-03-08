@@ -13,14 +13,14 @@ class TestIf : InterpreterTest {
 
   /// If the predicate is true, the second form should be evaluated.
   func testTrueCase() {
-    expectThat("(if (.> 10 1) (do (.print \"good\") 10))", shouldEvalTo: .IntAtom(10))
+    expectThat("(if (.> 10 1) (do (.print \"good\") 10))", shouldEvalTo: 10)
     expectOutputBuffer(toBe: "good")
   }
 
   /// If the predicate is true, the second form should be evaluated and the third form should not be evaluated.
   func testTrueCaseWithElse() {
     expectThat("(if (.> 10 1) (do (.print \"good\") 10) (do (.print \"bad\") 20))",
-      shouldEvalTo: .IntAtom(10))
+      shouldEvalTo: 10)
     expectOutputBuffer(toBe: "good")
   }
 
@@ -33,7 +33,7 @@ class TestIf : InterpreterTest {
 
   /// If the predicate is false, the third form should be evaluated and the second form should not be evaluated.
   func testFalseCaseWithElse() {
-    expectThat("(if (.> 1 10) (do (.print \"bad\") 10) (do (.print \"good\") 20))", shouldEvalTo: .IntAtom(20))
+    expectThat("(if (.> 1 10) (do (.print \"bad\") 10) (do (.print \"good\") 20))", shouldEvalTo: 20)
     expectOutputBuffer(toBe: "good")
   }
 

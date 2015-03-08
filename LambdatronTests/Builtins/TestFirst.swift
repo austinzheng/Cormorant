@@ -32,26 +32,24 @@ class TestFirstBuiltin : InterpreterTest {
 
   /// .first should return the first element of a list.
   func testWithLists() {
-    expectThat("(.first '(true))", shouldEvalTo: .BoolAtom(true))
-    expectThat("(.first '(15 29 \"foo\" :bar nil))", shouldEvalTo: .IntAtom(15))
-    expectThat("(.first '((1 2 3) 4 5))", shouldEvalTo:
-      listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3)))
+    expectThat("(.first '(true))", shouldEvalTo: true)
+    expectThat("(.first '(15 29 \"foo\" :bar nil))", shouldEvalTo: 15)
+    expectThat("(.first '((1 2 3) 4 5))", shouldEvalTo: listWithItems(1, 2, 3))
   }
 
   /// .first should return the first element of a vector.
   func testWithVectors() {
-    expectThat("(.first [false])", shouldEvalTo: .BoolAtom(false))
-    expectThat("(.first [29981.1 \"foo\" :bar nil])", shouldEvalTo: .FloatAtom(29981.1))
-    expectThat("(.first [[1 2 3] 4 5])", shouldEvalTo:
-      vectorWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3)))
+    expectThat("(.first [false])", shouldEvalTo: false)
+    expectThat("(.first [29981.1 \"foo\" :bar nil])", shouldEvalTo: 29981.1)
+    expectThat("(.first [[1 2 3] 4 5])", shouldEvalTo: vectorWithItems(1, 2, 3))
   }
 
   /// .first should return the first element of a map.
   func testWithMaps() {
     let a = interpreter.context.keywordForName("a")
     let b = interpreter.context.keywordForName("b")
-    expectThat("(.first {:a 1})", shouldEvalTo: vectorWithItems(.Keyword(a), .IntAtom(1)))
-    expectThat("(.first {:a 1 :b 2 \\c 3})", shouldEvalTo: vectorWithItems(.Keyword(b), .IntAtom(2)))
+    expectThat("(.first {:a 1})", shouldEvalTo: vectorWithItems(.Keyword(a), 1))
+    expectThat("(.first {:a 1 :b 2 \\c 3})", shouldEvalTo: vectorWithItems(.Keyword(b), 2))
   }
 
   /// .first should reject non-collection arguments.

@@ -18,7 +18,7 @@ class TestDo : InterpreterTest {
 
   /// do with a single form should just return the result of that form.
   func testDoWithSingleForm() {
-    expectThat("(do (.+ 1 2))", shouldEvalTo: .IntAtom(3))
+    expectThat("(do (.+ 1 2))", shouldEvalTo: 3)
   }
 
   /// do with multiple forms should execute all forms in order, and return the result of the last form.
@@ -30,6 +30,6 @@ class TestDo : InterpreterTest {
 
   /// do with multiple forms should execute all forms in order, but discard return values of all but the last form.
   func testDoWithMultipleForms2() {
-    expectThat("(do 1 2 3 (.+ 4 5) 6 7 nil true)", shouldEvalTo: .BoolAtom(true))
+    expectThat("(do 1 2 3 (.+ 4 5) 6 7 nil true)", shouldEvalTo: true)
   }
 }

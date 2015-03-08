@@ -39,7 +39,7 @@ struct MapSequence : SequenceType, GeneratorType {
 }
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
-public enum ConsValue : Printable, DebugPrintable, Hashable {
+public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, Printable, DebugPrintable, Hashable {
   case Nil
   case BoolAtom(Bool)
   case IntAtom(Int)
@@ -80,6 +80,10 @@ public enum ConsValue : Printable, DebugPrintable, Hashable {
 
   public var description : String { return describe(nil) }
   public var debugDescription : String { return debugDescribe(nil) }
+
+  public init(integerLiteral value: Int) { self = .IntAtom(value) }
+  public init(floatLiteral value: Double) { self = .FloatAtom(value) }
+  public init(booleanLiteral value: Bool) { self = .BoolAtom(value) }
 
   var asBool : Bool? {
     switch self {

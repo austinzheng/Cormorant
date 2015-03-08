@@ -44,24 +44,16 @@ class TestRestBuiltin : InterpreterTest {
 
   /// .rest should return a sequence comprised of the rest of the elements in a list.
   func testWithLists() {
-    expectThat("(.rest '(true false nil 1 2.1 3))", shouldEvalTo: listWithItems(
-      .BoolAtom(false), .Nil, .IntAtom(1), .FloatAtom(2.1), .IntAtom(3)))
-    expectThat("(.rest '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo: listWithItems(
-      listWithItems(.IntAtom(3), .IntAtom(4)),
-      listWithItems(.IntAtom(5), .IntAtom(6)),
-      listWithItems(.IntAtom(7), .IntAtom(8)),
-      listWithItems()))
+    expectThat("(.rest '(true false nil 1 2.1 3))", shouldEvalTo: listWithItems(false, .Nil, 1, 2.1, 3))
+    expectThat("(.rest '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo:
+      listWithItems(listWithItems(3, 4), listWithItems(5, 6), listWithItems(7, 8), listWithItems()))
   }
 
   /// .rest should return a sequence comprised of the rest of the elements in a vector.
   func testWithVectors() {
-    expectThat("(.rest [false true nil 1 2.1 3])", shouldEvalTo: listWithItems(
-      .BoolAtom(true), .Nil, .IntAtom(1), .FloatAtom(2.1), .IntAtom(3)))
-    expectThat("(.rest [[1 2] [3 4] [5 6] [7 8] []])", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntAtom(3), .IntAtom(4)),
-      vectorWithItems(.IntAtom(5), .IntAtom(6)),
-      vectorWithItems(.IntAtom(7), .IntAtom(8)),
-      vectorWithItems()))
+    expectThat("(.rest [false true nil 1 2.1 3])", shouldEvalTo: listWithItems(true, .Nil, 1, 2.1, 3))
+    expectThat("(.rest [[1 2] [3 4] [5 6] [7 8] []])", shouldEvalTo:
+      listWithItems(vectorWithItems(3, 4), vectorWithItems(5, 6), vectorWithItems(7, 8), vectorWithItems()))
   }
 
   /// .rest should return a sequence comprised of the rest of the key-value pairs in a map.
@@ -69,13 +61,11 @@ class TestRestBuiltin : InterpreterTest {
     let a = interpreter.context.keywordForName("a")
     let b = interpreter.context.keywordForName("b")
     let c = interpreter.context.keywordForName("c")
-    expectThat("(.rest {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo: listWithItems(
-      vectorWithItems(.Keyword(c), .IntAtom(3)),
-      vectorWithItems(.Keyword(a), .IntAtom(1)),
-      vectorWithItems(.CharAtom("d"), .IntAtom(4))))
-    expectThat("(.rest {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo: listWithItems(
-      vectorWithItems(.BoolAtom(true), .StringAtom("bar")),
-      vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
+    expectThat("(.rest {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo:
+      listWithItems(vectorWithItems(.Keyword(c), 3), vectorWithItems(.Keyword(a), 1),
+        vectorWithItems(.CharAtom("d"), 4)))
+    expectThat("(.rest {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo:
+      listWithItems(vectorWithItems(true, .StringAtom("bar")), vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
   }
 
   /// .rest should reject non-collection arguments.

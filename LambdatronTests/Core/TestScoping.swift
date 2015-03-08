@@ -13,8 +13,8 @@ class TestScoping : InterpreterTest {
 
   /// let-scoping should define a new locally usable binding.
   func testLetBinding() {
-    expectThat("(let [a 500] a)", shouldEvalTo: .IntAtom(500))
-    expectThat("(let [a 1 b 200] (.+ a b))", shouldEvalTo: .IntAtom(201))
+    expectThat("(let [a 500] a)", shouldEvalTo: 500)
+    expectThat("(let [a 1 b 200] (.+ a b))", shouldEvalTo: 201)
   }
 
   /// Non-shadowed vars should be visible within a let binding.
@@ -29,7 +29,7 @@ class TestScoping : InterpreterTest {
   func testNonShadowedBindings() {
     // Three-level binding nesting: a = 10 (level 1), b = 21 (level 2), c = 17 (level 3). All 3 levels used in the final
     //  expression.
-    expectThat("(let [a 10] (let [b 21] (let [c 17] (.+ a (.+ b c)))))", shouldEvalTo: .IntAtom(48))
+    expectThat("(let [a 10] (let [b 21] (let [c 17] (.+ a (.+ b c)))))", shouldEvalTo: 48)
   }
 
   /// Bindings should properly shadow vars and bindings.
@@ -51,7 +51,7 @@ class TestScoping : InterpreterTest {
   func testBindingVisibility() {
     runCode("(def a 99)")
     // Binding expression for 'c' has access to both the def 'a' and the previously bound variable 'b'.
-    expectThat("(let [b 50] (let [c (.+ a b)] c))", shouldEvalTo: .IntAtom(149))
+    expectThat("(let [b 50] (let [c (.+ a b)] c))", shouldEvalTo: 149)
   }
 
   /// Binding expressions should have visibility into previously created bindings.

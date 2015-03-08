@@ -12,8 +12,8 @@ class TestPlus : InterpreterTest {
 
   /// Addition with integers should work.
   func testInts() {
-    expectThat("(.+ 2 3)", shouldEvalTo: .IntAtom(5))
-    expectThat("(.+ 17882 -929)", shouldEvalTo: .IntAtom(16953))
+    expectThat("(.+ 2 3)", shouldEvalTo: 5)
+    expectThat("(.+ 17882 -929)", shouldEvalTo: 16953)
   }
 
   /// Addition with floats should work.
@@ -24,8 +24,8 @@ class TestPlus : InterpreterTest {
 
   /// Addition with mixed types should work.
   func testMixed() {
-    expectThat("(.+ 1 2.3)", shouldEvalTo: .FloatAtom(3.3))
-    expectThat("(.+ 2.3 1)", shouldEvalTo: .FloatAtom(3.3))
+    expectThat("(.+ 1 2.3)", shouldEvalTo: 3.3)
+    expectThat("(.+ 2.3 1)", shouldEvalTo: 3.3)
   }
 
   /// Integer addition should trap overflow.
@@ -45,8 +45,8 @@ class TestMinus : InterpreterTest {
 
   /// Subtraction with integers should work.
   func testInts() {
-    expectThat("(.- 1 89)", shouldEvalTo: .IntAtom(-88))
-    expectThat("(.- -123 -9812)", shouldEvalTo: .IntAtom(9689))
+    expectThat("(.- 1 89)", shouldEvalTo: -88)
+    expectThat("(.- -123 -9812)", shouldEvalTo: 9689)
   }
 
   /// Subtraction with floats should work.
@@ -57,7 +57,8 @@ class TestMinus : InterpreterTest {
 
   /// Subtraction with mixed types should work.
   func testMixed() {
-    expectThat("(.- 915 1.112)", shouldEvalTo: .FloatAtom(913.888))
+    expectThat("(.- 915 1.112)", shouldEvalTo: 913.888)
+    // TODO: remove the .FloatAtom wrapper in Swift 1.2
     expectThat("(.- 1.112 915)", shouldEvalTo: .FloatAtom(-913.888))
   }
 
@@ -78,8 +79,8 @@ class TestMultiply : InterpreterTest {
 
   /// Multiplication with integers should work.
   func testInts() {
-    expectThat("(.* 20 31)", shouldEvalTo: .IntAtom(620))
-    expectThat("(.* 59 -929)", shouldEvalTo: .IntAtom(-54811))
+    expectThat("(.* 20 31)", shouldEvalTo: 620)
+    expectThat("(.* 59 -929)", shouldEvalTo: -54811)
   }
 
   /// Multiplication with floats should work.
@@ -90,8 +91,8 @@ class TestMultiply : InterpreterTest {
 
   /// Multiplication with mixed types should work.
   func testMixed() {
-    expectThat("(.* 105 2.897)", shouldEvalTo: .FloatAtom(304.185))
-    expectThat("(.* 2.897 105)", shouldEvalTo: .FloatAtom(304.185))
+    expectThat("(.* 105 2.897)", shouldEvalTo: 304.185)
+    expectThat("(.* 2.897 105)", shouldEvalTo: 304.185)
   }
 
   /// Integer multiplication should trap overflow.
@@ -135,8 +136,8 @@ class TestDivide : InterpreterTest {
 
   /// Division should return an integer result if evenly divisible, and both operands are integers.
   func testIntEvenDivision() {
-    expectThat("(./ 120 6)", shouldEvalTo: .IntAtom(20))
-    expectThat("(./ -75 15)", shouldEvalTo: .IntAtom(-5))
+    expectThat("(./ 120 6)", shouldEvalTo: 20)
+    expectThat("(./ -75 15)", shouldEvalTo: -5)
   }
 
   /// Division should trap zero divisor, but only for integer division.

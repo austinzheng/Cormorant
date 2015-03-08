@@ -24,57 +24,58 @@ class TestNilParsing : InterpreterTest {
 /// Test how boolean literals are lexed and parsed.
 class TestBoolParsing : InterpreterTest {
   func testParsingTrue() {
-    expectThat("true", shouldEvalTo: .BoolAtom(true))
+    expectThat("true", shouldEvalTo: true)
   }
 
   func testParsingFalse() {
-    expectThat("false", shouldEvalTo: .BoolAtom(false))
+    expectThat("false", shouldEvalTo: false)
   }
 
   /// The lexer and parser should properly parse true and false in the context of a collection.
   func testInCollection() {
-    expectThat("'(true true false)", shouldEvalTo: listWithItems(.BoolAtom(true), .BoolAtom(true), .BoolAtom(false)))
+    expectThat("'(true true false)", shouldEvalTo: listWithItems(true, true, false))
   }
 }
 
 /// Test how integer literals are lexed and parsed.
 class TestIntegerParsing : InterpreterTest {
   func testParsingZero() {
-    expectThat("0", shouldEvalTo: .IntAtom(0))
+    expectThat("0", shouldEvalTo: 0)
   }
 
   func testParsingPositiveNumber() {
-    expectThat("501", shouldEvalTo: .IntAtom(501))
+    expectThat("501", shouldEvalTo: 501)
   }
 
   func testParsingNegativeNumber() {
-    expectThat("-9182", shouldEvalTo: .IntAtom(-9182))
+    expectThat("-9182", shouldEvalTo: -9182)
   }
 
   /// The lexer and parser should properly parse integers in the context of a collection.
   func testInCollection() {
-    expectThat("'(-915 -1 100009)", shouldEvalTo: listWithItems(.IntAtom(-915), .IntAtom(-1), .IntAtom(100009)))
+    expectThat("'(-915 -1 100009)", shouldEvalTo: listWithItems(-915, -1, 100009))
   }
 }
 
 /// Test how floating-point literals are lexed and parsed.
 class TestFloatingPointParsing : InterpreterTest {
   func testParsingZero() {
-    expectThat("0.0", shouldEvalTo: .FloatAtom(0.0))
+    expectThat("0.0", shouldEvalTo: 0.0)
   }
 
   func testParsingPositiveNumber() {
-    expectThat("3.141592", shouldEvalTo: .FloatAtom(3.141592))
+    expectThat("3.141592", shouldEvalTo: 3.141592)
   }
 
   func testParsingNegativeNumber() {
+    // TODO: Fix this when Swift 1.2 is released
     expectThat("-29128.6812", shouldEvalTo: .FloatAtom(-29128.6812))
   }
 
   /// The lexer and parser should properly parse floating-point numbers in the context of a collection.
   func testInCollection() {
-    expectThat("'(0.00012 3190.0 -1234.5)",
-      shouldEvalTo: listWithItems(.FloatAtom(0.00012), .FloatAtom(3190.0), .FloatAtom(-1234.5)))
+    // TODO: fix this when Swift 1.2 is released
+    expectThat("'(0.00012 3190.0 -1234.5)", shouldEvalTo: listWithItems(0.00012, 3190.0, .FloatAtom(-1234.5)))
   }
 }
 
@@ -222,25 +223,18 @@ class TestListParsing : InterpreterTest {
 
   /// Single element lists should be properly parsed.
   func testParsingSingleElementList() {
-    expectThat("'(\"hello world\")", shouldEvalTo: .List(Cons(.StringAtom("hello world"))))
+    expectThat("'(\"hello world\")", shouldEvalTo: listWithItems(ConsValue.StringAtom("hello world")))
   }
 
   func testParsingMultiElementList() {
-    expectThat("'(true false nil)",
-      shouldEvalTo: .List(Cons(.BoolAtom(true), next: Cons(.BoolAtom(false), next: Cons(.Nil)))))
+    expectThat("'(true false nil)", shouldEvalTo: listWithItems(true, false, .Nil))
   }
 
   func testParsingNestedList() {
     // Piece together the final list, since it's too ugly to be constructed as a single literal
     // The target list is ((1 2) (3.14 (4 5) 6) 7)
-    let oneTwoList : ListType<ConsValue> = Cons(.IntAtom(1), next: Cons(.IntAtom(2)))
-    let fourFiveList : ListType<ConsValue> = Cons(.IntAtom(4), next: Cons(.IntAtom(5)))
-    let piList : ListType<ConsValue> = Cons(.FloatAtom(3.14),
-      next: Cons(.List(fourFiveList), next: Cons(.IntAtom(6))))
-    let fullList : ListType<ConsValue> = Cons(.List(oneTwoList),
-      next: Cons(.List(piList), next: Cons(.IntAtom(7))))
-
-    expectThat("'((1 2) (3.14 (4 5) 6) 7)", shouldEvalTo: .List(fullList))
+    let list = listWithItems(listWithItems(1, 2), listWithItems(3.14, listWithItems(4, 5), 6), 7)
+    expectThat("'((1 2) (3.14 (4 5) 6) 7)", shouldEvalTo: list)
   }
 }
 
@@ -251,29 +245,17 @@ class TestVectorParsing : InterpreterTest {
   }
 
   func testParsingSingleElementVector() {
-    expectThat("[123]", shouldEvalTo: .Vector([.IntAtom(123)]))
+    expectThat("[123]", shouldEvalTo: .Vector([123]))
   }
 
   func testParsingMultiElementVector() {
     expectThat("[1 2 nil true \"hello\" \\c]",
-      shouldEvalTo: .Vector(
-        [.IntAtom(1),
-          .IntAtom(2),
-          .Nil,
-          .BoolAtom(true),
-          .StringAtom("hello"),
-          .CharAtom("c")]))
+      shouldEvalTo: .Vector([1, 2, .Nil, true, .StringAtom("hello"), .CharAtom("c")]))
   }
 
   func testParsingNestedVector() {
     expectThat("[[1 2] [3.14 [4 5] 6] 7]",
-      shouldEvalTo: .Vector(
-        [.Vector([.IntAtom(1), .IntAtom(2)]),
-          .Vector(
-            [.FloatAtom(3.14),
-              .Vector([.IntAtom(4), .IntAtom(5)]),
-              .IntAtom(6)]),
-          .IntAtom(7)]))
+      shouldEvalTo: .Vector([.Vector([1, 2]), .Vector([3.14, .Vector([4, 5]), 6]), 7]))
   }
 }
 
@@ -284,7 +266,7 @@ class TestMapParsing : InterpreterTest {
   }
 
   func testParsingSingleElementMap() {
-    expectThat("{\"foo\" 1234}", shouldEvalTo: .Map([.StringAtom("foo"): .IntAtom(1234)]))
+    expectThat("{\"foo\" 1234}", shouldEvalTo: .Map([.StringAtom("foo"): 1234]))
   }
 
   func testParsingMultiElementMap() {
@@ -292,15 +274,15 @@ class TestMapParsing : InterpreterTest {
     let b = interpreter.context.keywordForName("b")
     let c = interpreter.context.symbolForName("c")
     expectThat("{:a \"a\" :b \\b 'c 3}",
-      shouldEvalTo: .Map([.Keyword(a): .StringAtom("a"), .Keyword(b): .CharAtom("b"), .Symbol(c): .IntAtom(3)]))
+      shouldEvalTo: .Map([.Keyword(a): .StringAtom("a"), .Keyword(b): .CharAtom("b"), .Symbol(c): 3]))
   }
 
   func testParsingNestedMap() {
     let a = interpreter.context.keywordForName("a")
     let b = interpreter.context.keywordForName("b")
     let c = interpreter.context.keywordForName("c")
-    expectThat("{:a {:b :c 1 2} 3 4}", shouldEvalTo: mapWithItems(
-      (.Keyword(a), mapWithItems((.Keyword(b), .Keyword(c)), (.IntAtom(1), .IntAtom(2)))), (.IntAtom(3), .IntAtom(4))))
+    expectThat("{:a {:b :c 1 2} 3 4}", shouldEvalTo:
+      mapWithItems((.Keyword(a), mapWithItems((.Keyword(b), .Keyword(c)), (1, 2))), (3, 4)))
   }
 }
 

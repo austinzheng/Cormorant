@@ -22,14 +22,14 @@ class TestDefmacro : InterpreterTest {
   /// defmacro should allow the user to define a single-arity macro.
   func testSingleArityMacro() {
     runCode("(defmacro testMacro [left infix right] (.list infix left right))")
-    expectThat("(testMacro 5 .+ 3)", shouldEvalTo: .IntAtom(8))
+    expectThat("(testMacro 5 .+ 3)", shouldEvalTo: 8)
   }
 
   /// defmacro should allow the user to define a macro with multiple arity definitions.
   func testMultiArityMacro() {
     runCode("(defmacro testMacro ([left infix right] (.list infix left right)) ([a postfix] (.list postfix a)))")
-    expectThat("(testMacro 2 .* 10)", shouldEvalTo: .IntAtom(20))
-    expectThat("(testMacro 102 .int?)", shouldEvalTo: .BoolAtom(true))
+    expectThat("(testMacro 2 .* 10)", shouldEvalTo: 20)
+    expectThat("(testMacro 102 .int?)", shouldEvalTo: true)
   }
 
   // defmacro should allow the user to define a multiple-arity macro.
@@ -65,7 +65,7 @@ class TestDefmacro : InterpreterTest {
     // If it were up to me, we would reject these outright. However, Clojure accepts macros defined with duplicate
     //  arguments.
     runCode("(defmacro testMacro [a a a] a)")
-    expectThat("(testMacro true \"foobar\" 1523)", shouldEvalTo: .IntAtom(1523))
+    expectThat("(testMacro true \"foobar\" 1523)", shouldEvalTo: 1523)
   }
 
   /// defmacro should reject being invoked with an argument vector that doesn't contain symbols.

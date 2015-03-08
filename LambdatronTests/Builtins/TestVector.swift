@@ -30,10 +30,9 @@ class TestVectorBuiltin : InterpreterTest {
   /// .list invoked with multiple arguments should return a multiple-argument list.
   func testMultipleArgs() {
     expectThat("(.vector 1 2 3 4)",
-      shouldEvalTo: vectorWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4)))
+      shouldEvalTo: vectorWithItems(1, 2, 3, 4))
     expectThat("(.vector nil \"hello\" \\newline 1.523 true)",
-      shouldEvalTo: vectorWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), .FloatAtom(1.523),
-        .BoolAtom(true)))
+      shouldEvalTo: vectorWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), 1.523, true))
     expectThat("(.vector '() [] {})",
       shouldEvalTo: vectorWithItems(listWithItems(), vectorWithItems(), mapWithItems()))
   }

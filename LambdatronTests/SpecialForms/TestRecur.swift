@@ -33,7 +33,7 @@ class TestRecur : InterpreterTest {
     expectRecurErrorFrom("(recur)")
     expectRecurErrorFrom("(if true (recur 50) 1)")
     // Note that, since '(recur)' is never actually evaluated, this form should work fine.
-    expectThat("(if true 1 (recur))", shouldEvalTo: .IntAtom(1))
+    expectThat("(if true 1 (recur))", shouldEvalTo: 1)
   }
 
   /// recur should reject being used in a binding vector.

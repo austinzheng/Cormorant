@@ -29,11 +29,9 @@ class TestListBuiltin : InterpreterTest {
 
   /// .list invoked with multiple arguments should return a multiple-argument list.
   func testMultipleArgs() {
-    expectThat("(.list 1 2 3 4)",
-      shouldEvalTo: listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4)))
+    expectThat("(.list 1 2 3 4)", shouldEvalTo: listWithItems(1, 2, 3, 4))
     expectThat("(.list nil \"hello\" \\newline 1.523 true)",
-      shouldEvalTo: listWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), .FloatAtom(1.523),
-        .BoolAtom(true)))
+      shouldEvalTo: listWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), 1.523, true))
     expectThat("(.list '() [] {})",
       shouldEvalTo: listWithItems(listWithItems(), vectorWithItems(), mapWithItems()))
   }

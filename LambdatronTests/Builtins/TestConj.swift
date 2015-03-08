@@ -19,15 +19,13 @@ class TestConjBuiltin : InterpreterTest {
   /// .conj should work with lists.
   func testLists() {
     expectThat("(.conj () 5)", shouldEvalTo: listWithItems(ConsValue.IntAtom(5)))
-    expectThat("(.conj '(1 2 3) \\c)", shouldEvalTo: listWithItems(.CharAtom("c"),
-      .IntAtom(1), .IntAtom(2), .IntAtom(3)))
+    expectThat("(.conj '(1 2 3) \\c)", shouldEvalTo: listWithItems(.CharAtom("c"), 1, 2, 3))
   }
 
   /// .conj should work with vectors.
   func testVectors() {
     expectThat("(.conj [] 5)", shouldEvalTo: vectorWithItems(ConsValue.IntAtom(5)))
-    expectThat("(.conj [1 2 3] \\c)", shouldEvalTo: vectorWithItems(.IntAtom(1),
-      .IntAtom(2), .IntAtom(3), .CharAtom("c")))
+    expectThat("(.conj [1 2 3] \\c)", shouldEvalTo: vectorWithItems(1, 2, 3, .CharAtom("c")))
   }
 
   /// .conj should work with maps.
@@ -35,11 +33,9 @@ class TestConjBuiltin : InterpreterTest {
     let aKeyword = interpreter.context.keywordForName("a")
     let bKeyword = interpreter.context.keywordForName("b")
     expectThat("(.conj {} [:a 100])",
-      shouldEvalTo: mapWithItems((ConsValue.Keyword(aKeyword), ConsValue.IntAtom(100))))
+      shouldEvalTo: mapWithItems((ConsValue.Keyword(aKeyword), 100)))
     expectThat("(.conj {:b \"foo\"} [:a 100])",
-      shouldEvalTo: mapWithItems(
-        (.Keyword(aKeyword), .IntAtom(100)),
-        (.Keyword(bKeyword), .StringAtom("foo"))))
+      shouldEvalTo: mapWithItems((.Keyword(aKeyword), 100), (.Keyword(bKeyword), .StringAtom("foo"))))
   }
 
   /// .conj should require the first argument to be a collection.

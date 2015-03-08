@@ -14,13 +14,13 @@ class TestFunctionEvaluation : InterpreterTest {
   /// A function should properly return the value of the last form in its body.
   func testFunctionReturnValue() {
     runCode("(def testFunc (fn [] (.+ 1 2)))")
-    expectThat("(testFunc)", shouldEvalTo: .IntAtom(3))
+    expectThat("(testFunc)", shouldEvalTo: 3)
   }
 
   /// A function should run its body forms in order and return the value of the last one.
   func testFunctionBodyEvaluation() {
     runCode("(def testFunc (fn [] (.print \"first\") (.print \"second\") (.print \"third\") 1.2345))")
-    expectThat("(testFunc)", shouldEvalTo: .FloatAtom(1.2345))
+    expectThat("(testFunc)", shouldEvalTo: 1.2345)
     expectOutputBuffer(toBe: "firstsecondthird")
   }
 
@@ -28,7 +28,7 @@ class TestFunctionEvaluation : InterpreterTest {
   func testFunctionRecursion() {
     // This lambda just counts down from a starting value and returns 'true' when done.
     expectThat("((fn rec [a] (if (.= a 0) (do (.print \"done\") true) (do (.print a) (rec (.- a 1))))) 15)",
-      shouldEvalTo: .BoolAtom(true))
+      shouldEvalTo: true)
     expectOutputBuffer(toBe: "151413121110987654321done")
   }
 
@@ -44,14 +44,14 @@ class TestFunctionEvaluation : InterpreterTest {
   /// A function should properly recurse when used with the 'recur' form.
   func testFunctionWithRecur() {
     expectThat("((fn [ctr acc] (.print \"ctr:\" ctr) (.print \"acc:\" acc) (if (.= ctr 0) acc (recur (.- ctr 1) (.+ ctr acc)))) 10 0)",
-      shouldEvalTo: .IntAtom(55))
+      shouldEvalTo: 55)
     expectOutputBuffer(toBe: "ctr: 10acc: 0ctr: 9acc: 10ctr: 8acc: 19ctr: 7acc: 27ctr: 6acc: 34ctr: 5acc: 40ctr: 4acc: 45ctr: 3acc: 49ctr: 2acc: 52ctr: 1acc: 54ctr: 0acc: 55")
   }
 
   /// A function with variadic arguments should properly recurse when used with the 'recur' form.
   func testVariadicFuncWithRecur() {
     expectThat("((fn [ctr & a] (if (.= 0 ctr) a (recur (.- ctr 1) (.rest a)))) 3 10 20 30 40 50 60)",
-      shouldEvalTo: listWithItems(.IntAtom(40), .IntAtom(50), .IntAtom(60)))
+      shouldEvalTo: listWithItems(40, 50, 60))
   }
 
   /// A function with only a vararg should properly recurse when used with the 'recur' form.
@@ -67,7 +67,7 @@ class TestFunctionEvaluation : InterpreterTest {
     expectThat("((fn [a & b] (if (.= a 0) b (recur (.- a 1) \"foobar\"))) 5 1 2 3 4)",
       shouldEvalTo: .StringAtom("foobar"))
     expectThat("((fn [a & b] (if (.= a 0) b (recur (.- a 1) 3.141592))) 5 1 2 3 4)",
-      shouldEvalTo: .FloatAtom(3.141592))
+      shouldEvalTo: 3.141592)
     expectThat("((fn [a & b] (if (.= a 0) b (recur (.- a 1) nil))) 2 8)", shouldEvalTo: .Nil)
   }
 
@@ -104,16 +104,14 @@ class TestFunctionEvaluation : InterpreterTest {
   /// A function's output should not be further evaluated.
   func testFunctionOutputEvaluation() {
     runCode("(def testFunc (fn [] (.list .+ 500 200)))")
-    expectThat("(testFunc)",
-      shouldEvalTo: .List(Cons(.BuiltInFunction(.Plus),
-        next: Cons(.IntAtom(500), next: Cons(.IntAtom(200))))))
+    expectThat("(testFunc)", shouldEvalTo: listWithItems(.BuiltInFunction(.Plus), 500, 200))
   }
 
   /// A function's arguments should be evaluated by the time the function sees them.
   func testParamEvaluation() {
     // Define a function
     runCode("(def testFunc (fn [a b] (.print a) (.print \", \") (.print b) true))")
-    expectThat("(testFunc (.+ 1 2) (.+ 3 4))", shouldEvalTo: .BoolAtom(true))
+    expectThat("(testFunc (.+ 1 2) (.+ 3 4))", shouldEvalTo: true)
     expectOutputBuffer(toBe: "3, 7")
   }
 
@@ -130,14 +128,14 @@ class TestFunctionEvaluation : InterpreterTest {
   func testBindingHierarchy() {
     runCode("(def a 187)")
     runCode("(let [b 51] (def testFunc (fn [c] (.+ (.+ a b) c))))")
-    expectThat("(testFunc 91200)", shouldEvalTo: .IntAtom(91438))
+    expectThat("(testFunc 91200)", shouldEvalTo: 91438)
   }
 
   /// A function's arguments should shadow any vars or let bindings.
   func testBindingShadowing() {
     runCode("(def a 187)")
     runCode("(let [b 51] (def testFunc (fn [a b c] (.+ (.+ a b) c))))")
-    expectThat("(testFunc 100 201 512)", shouldEvalTo: .IntAtom(813))
+    expectThat("(testFunc 100 201 512)", shouldEvalTo: 813)
   }
 
   /// A function should not capture a var's value at creation time.
@@ -145,9 +143,9 @@ class TestFunctionEvaluation : InterpreterTest {
     // Define a function that returns a var
     runCode("(def testFunc (fn [] a))")
     runCode("(def a 500)")
-    expectThat("(testFunc)", shouldEvalTo: .IntAtom(500))
+    expectThat("(testFunc)", shouldEvalTo: 500)
     runCode("(def a false)")
-    expectThat("(testFunc)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(testFunc)", shouldEvalTo: false)
   }
 
   /// A function with more than 16 arguments should capture their values correctly.
@@ -164,34 +162,34 @@ class TestMacroEvaluation : InterpreterTest {
   /// A macro should properly return the value of the last form in its body for evaluation.
   func testMacroReturnValue() {
     runCode("(defmacro testMacro [] 3)")
-    expectThat("(testMacro)", shouldEvalTo: .IntAtom(3))
+    expectThat("(testMacro)", shouldEvalTo: 3)
   }
 
   /// A macro should run its body forms in order and return the value of the last one.
   func testMacroBodyEvaluation() {
     runCode("(defmacro testMacro [] (.print \"first\") (.print \"second\") (.print \"third\") 1.2345)")
-    expectThat("(testMacro)", shouldEvalTo: .FloatAtom(1.2345))
+    expectThat("(testMacro)", shouldEvalTo: 1.2345)
     expectOutputBuffer(toBe: "firstsecondthird")
   }
 
   /// A macro should properly recurse when used with the 'recur' form.
   func testMacroWithRecur() {
     runCode("(defmacro testMacro [ctr acc] (.print \"ctr:\" ctr) (.print \"acc:\" acc) (if (.= ctr 0) acc (recur (.- ctr 1) (.+ ctr acc))))")
-    expectThat("(testMacro 10 0)", shouldEvalTo: .IntAtom(55))
+    expectThat("(testMacro 10 0)", shouldEvalTo: 55)
     expectOutputBuffer(toBe: "ctr: 10acc: 0ctr: 9acc: 10ctr: 8acc: 19ctr: 7acc: 27ctr: 6acc: 34ctr: 5acc: 40ctr: 4acc: 45ctr: 3acc: 49ctr: 2acc: 52ctr: 1acc: 54ctr: 0acc: 55")
   }
 
   /// A macro's output form should be automatically evaluated to produce a value.
   func testMacroOutputEvaluation() {
     runCode("(defmacro testMacro [] (.list .+ 500 200))")
-    expectThat("(testMacro)", shouldEvalTo: .IntAtom(700))
+    expectThat("(testMacro)", shouldEvalTo: 700)
   }
 
   /// A macro's output form should be evaluated with regards to both argument and external bindings.
   func testMacroOutputWithArgs() {
     runCode("(def a 11)")
     runCode("(defmacro testMacro [b] (.list .+ a b))")
-    expectThat("(testMacro 12)", shouldEvalTo: .IntAtom(23))
+    expectThat("(testMacro 12)", shouldEvalTo: 23)
   }
 
   /// A macro's parameters should be passed to the macro without being evaluated or otherwise touched.
@@ -206,7 +204,7 @@ class TestMacroEvaluation : InterpreterTest {
   func testMacroUntouchedParam() {
     // Note that only either 'then' or 'else' can ever be evaluated.
     runCode("(defmacro testMacro [pred then else] (if pred then else))")
-    expectThat("(testMacro true (do (.print \"good\") 123) (.print \"bad\"))", shouldEvalTo: .IntAtom(123))
+    expectThat("(testMacro true (do (.print \"good\") 123) (.print \"bad\"))", shouldEvalTo: 123)
     expectOutputBuffer(toBe: "good")
   }
 
@@ -214,14 +212,14 @@ class TestMacroEvaluation : InterpreterTest {
   func testBindingHierarchy() {
     runCode("(def a 187)")
     runCode("(let [b 51] (defmacro testMacro [c] (.+ (.+ a b) c)))")
-    expectThat("(testMacro 91200)", shouldEvalTo: .IntAtom(91438))
+    expectThat("(testMacro 91200)", shouldEvalTo: 91438)
   }
 
   /// A macro's arguments should shadow any vars or let bindings.
   func testBindingShadowing() {
     runCode("(def a 187)")
     runCode("(let [b 51] (defmacro testMacro [a b c] (.+ (.+ a b) c)))")
-    expectThat("(testMacro 100 201 512)", shouldEvalTo: .IntAtom(813))
+    expectThat("(testMacro 100 201 512)", shouldEvalTo: 813)
   }
 
   /// A macro should not capture a var's value at creation time.
@@ -229,9 +227,9 @@ class TestMacroEvaluation : InterpreterTest {
     // Define a function that returns a var
     runCode("(defmacro testMacro [] a)")
     runCode("(def a 500)")
-    expectThat("(testMacro)", shouldEvalTo: .IntAtom(500))
+    expectThat("(testMacro)", shouldEvalTo: 500)
     runCode("(def a false)")
-    expectThat("(testMacro)", shouldEvalTo: .BoolAtom(false))
+    expectThat("(testMacro)", shouldEvalTo: false)
   }
 
   /// If a symbol in a macro is not part of the lexical context, lookup at expansion time should evaluate to a var.
@@ -241,9 +239,9 @@ class TestMacroEvaluation : InterpreterTest {
     runCode("(defmacro testMacro [a] (.list .+ a b))")
     runCode("(def b 125)")
     // testMacro, when run, must resort to getting the var named 'b'
-    expectThat("(testMacro 6)", shouldEvalTo: .IntAtom(131))
+    expectThat("(testMacro 6)", shouldEvalTo: 131)
     runCode("(def b 918)")
-    expectThat("(testMacro 6)", shouldEvalTo: .IntAtom(924))
+    expectThat("(testMacro 6)", shouldEvalTo: 924)
   }
 
   /// A macro should capture its lexical context and bind valid symbols to items in that context as necessary.
@@ -253,8 +251,8 @@ class TestMacroEvaluation : InterpreterTest {
     runCode("(let [b 51] (defmacro testMacro [a] (.list .+ a b)))")
     runCode("(def b 125)")
     // testMacro, when run, always resolves 'b' to its binding when the macro was defined
-    expectThat("(testMacro 6)", shouldEvalTo: .IntAtom(57))
+    expectThat("(testMacro 6)", shouldEvalTo: 57)
     runCode("(def b 918)")
-    expectThat("(testMacro 6)", shouldEvalTo: .IntAtom(57))
+    expectThat("(testMacro 6)", shouldEvalTo: 57)
   }
 }

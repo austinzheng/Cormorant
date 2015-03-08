@@ -24,17 +24,14 @@ class TestListBasics : XCTestCase {
 
   /// A non-empty Cons should work properly in the context of a for-in loop.
   func testConsIteration() {
-    let sublist : ConsValue = .List(Cons(.BoolAtom(true), next: Cons(.BoolAtom(false))))
-    let vector : ConsValue = .Vector([.Nil, .FloatAtom(1.23456), .CharAtom("\n")])
-    var testCons = Cons(.IntAtom(15),
-      next: Cons(sublist,
-        next: Cons(vector,
-          next: Cons(.StringAtom("foobar")))))
+    let sublist = listWithItems(true, false)
+    let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
+    var testCons = listFromItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
     for item in testCons {
       if counter == 0 {
-        XCTAssert(item == .IntAtom(15),
+        XCTAssert(item == 15,
           "The first item in the list should have been the integer 15.")
       }
       else if counter == 1 {
@@ -59,18 +56,15 @@ class TestListBasics : XCTestCase {
 
   /// A non-empty cons should work properly with enumerate.
   func testConsEnumerateIteration() {
-    let sublist : ConsValue = .List(Cons(.BoolAtom(true), next: Cons(.BoolAtom(false))))
-    let vector : ConsValue = .Vector([.Nil, .FloatAtom(1.23456), .CharAtom("\n")])
-    var testCons = Cons(.IntAtom(15),
-      next: Cons(sublist,
-        next: Cons(vector,
-          next: Cons(.StringAtom("foobar")))))
+    let sublist = listWithItems(true, false)
+    let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
+    var testCons = listFromItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
     for (idx, item) in enumerate(testCons) {
       XCTAssert(idx == counter, "The idx reported by enumerate() should always be in sync with 'counter'.")
       if counter == 0 {
-        XCTAssert(item == .IntAtom(15),
+        XCTAssert(item == 15,
           "The first item in the list should have been the integer 15.")
       }
       else if counter == 1 {

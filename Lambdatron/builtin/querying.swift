@@ -15,8 +15,8 @@ func pr_isNil(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .Nil: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .Nil: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -27,8 +27,8 @@ func pr_isNumber(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .IntAtom, .FloatAtom: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .IntAtom, .FloatAtom: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -39,8 +39,8 @@ func pr_isInteger(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .IntAtom: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .IntAtom: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -51,8 +51,8 @@ func pr_isFloat(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .FloatAtom: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .FloatAtom: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -63,8 +63,8 @@ func pr_isString(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .StringAtom: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .StringAtom: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -75,8 +75,8 @@ func pr_isChar(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .CharAtom: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .CharAtom: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -87,8 +87,8 @@ func pr_isSymbol(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .Symbol: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .Symbol: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -99,8 +99,8 @@ func pr_isKeyword(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .Keyword: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .Keyword: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -111,8 +111,8 @@ func pr_isFunction(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .FunctionLiteral, .BuiltInFunction: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .FunctionLiteral, .BuiltInFunction: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -126,9 +126,9 @@ func pr_isEvalable(args: Params, ctx: Context) -> EvalResult {
   // TODO: sets should also be eval'able, as they are in Clojure
   switch args[0] {
   case .Symbol, .Keyword, .FunctionLiteral, .Vector, .Map, .Special, .BuiltInFunction:
-    return .Success(.BoolAtom(true))
+    return .Success(true)
   default:
-    return .Success(.BoolAtom(false))
+    return .Success(false)
   }
 }
 
@@ -140,7 +140,7 @@ func pr_isTrue(args: Params, ctx: Context) -> EvalResult {
   }
   switch args[0] {
   case let .BoolAtom(b): return .Success(.BoolAtom(b == true))
-  default: return .Success(.BoolAtom(false))
+  default: return .Success(false)
   }
 }
 
@@ -152,7 +152,7 @@ func pr_isFalse(args: Params, ctx: Context) -> EvalResult {
   }
   switch args[0] {
   case let .BoolAtom(b): return .Success(.BoolAtom(b == false))
-  default: return .Success(.BoolAtom(false))
+  default: return .Success(false)
   }
 }
 
@@ -163,8 +163,8 @@ func pr_isList(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .List: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .List: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -175,8 +175,8 @@ func pr_isVector(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .Vector: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .Vector: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -187,8 +187,8 @@ func pr_isMap(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .Map: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .Map: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -199,8 +199,8 @@ func pr_isSeq(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .List, .Vector, .Map: return .Success(.BoolAtom(true))
-  default: return .Success(.BoolAtom(false))
+  case .List, .Vector, .Map: return .Success(true)
+  default: return .Success(false)
   }
 }
 
@@ -232,7 +232,6 @@ func pr_isNeg(args: Params, ctx: Context) -> EvalResult {
   case let .Integer(v):
     return .Success(.BoolAtom(v < 0))
   case let .Float(v):
-    println("v is \(v)")
     return .Success(.BoolAtom(v.isSignMinus && !v.isNaN && !v.isZero))
   case .Invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
@@ -265,7 +264,7 @@ func pr_isSubnormal(args: Params, ctx: Context) -> EvalResult {
   let num = extractNumber(args[0])
   switch num {
   case let .Integer(v):
-    return .Success(.BoolAtom(false))
+    return .Success(false)
   case let .Float(v):
     return .Success(.BoolAtom(v.isSubnormal))
   case .Invalid:
@@ -282,7 +281,7 @@ func pr_isInfinite(args: Params, ctx: Context) -> EvalResult {
   let num = extractNumber(args[0])
   switch num {
   case let .Integer(v):
-    return .Success(.BoolAtom(false))
+    return .Success(false)
   case let .Float(v):
     return .Success(.BoolAtom(v.isInfinite))
   case .Invalid:
@@ -299,7 +298,7 @@ func pr_isNaN(args: Params, ctx: Context) -> EvalResult {
   let num = extractNumber(args[0])
   switch num {
   case let .Integer(v):
-    return .Success(.BoolAtom(false))
+    return .Success(false)
   case let .Float(v):
     return .Success(.BoolAtom(v.isNaN))
   case .Invalid:

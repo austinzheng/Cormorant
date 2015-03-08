@@ -13,12 +13,12 @@ class TestAttempt : InterpreterTest {
 
   /// attempt should return the value of the first successful form.
   func testAttemptSuccess() {
-    expectThat("(attempt (.+ \\a \\b) (.+) (recur) 12345)", shouldEvalTo: .IntAtom(12345))
+    expectThat("(attempt (.+ \\a \\b) (.+) (recur) 12345)", shouldEvalTo: 12345)
   }
 
   /// attempt should not evaluate any forms after the first successful form.
   func testAttemptEvaluation() {
-    expectThat("(attempt 12345 (.print \"bad\") (.print \"also bad\"))", shouldEvalTo: .IntAtom(12345))
+    expectThat("(attempt 12345 (.print \"bad\") (.print \"also bad\"))", shouldEvalTo: 12345)
     expectOutputBuffer(toBe: "")
   }
 

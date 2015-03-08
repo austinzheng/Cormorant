@@ -449,7 +449,7 @@ func pr_count(args: Params, ctx: Context) -> EvalResult {
   }
   switch args[0] {
   case .Nil:
-    return .Success(.IntAtom(0))
+    return .Success(0)
   case let .StringAtom(str):
     return .Success(.IntAtom(countElements(str)))
   case let .List(list):
@@ -470,8 +470,12 @@ func pr_count(args: Params, ctx: Context) -> EvalResult {
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
 func pr_dissoc(args: Params, ctx: Context) -> EvalResult {
   let fn = ".dissoc"
-  if args.count < 1 {
+  if args.count == 0 {
     return .Failure(EvalError.arityError("> 1", actual: args.count, fn))
+  }
+  if args.count == 1 {
+    // If there are no values, just return the argument unchanged.
+    return .Success(args[0])
   }
   switch args[0] {
   case .Nil:

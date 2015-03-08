@@ -22,8 +22,7 @@ class TestHashmapBuiltin : InterpreterTest {
     let internedKeywordB = interpreter.context.keywordForName("b")
     let internedSymbolA = interpreter.context.symbolForName("a")
     let internedSymbolB = interpreter.context.symbolForName("b")
-    expectThat("(.hashmap :a 15)",
-      shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .IntAtom(15))))
+    expectThat("(.hashmap :a 15)", shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), 15)))
     expectThat("(.hashmap :a 'a :b 'b)",
       shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .Symbol(internedSymbolA)),
         (.Keyword(internedKeywordB), .Symbol(internedSymbolB))))
@@ -34,9 +33,7 @@ class TestHashmapBuiltin : InterpreterTest {
   /// .hashmap should return a hash map when invoked with its arguments.
   func testHashmap2() {
     expectThat("(.hashmap 1 2 3 (.hashmap 4 5) 6 7)",
-      shouldEvalTo: mapWithItems((.IntAtom(1), .IntAtom(2)),
-        (.IntAtom(3), mapWithItems((.IntAtom(4), .IntAtom(5)))),
-        (.IntAtom(6), .IntAtom(7))))
+      shouldEvalTo: mapWithItems((1, 2), (3, mapWithItems((4, 5))), (6, 7)))
   }
 
   /// .hashmap invoked with an odd number of arguments should return an error.

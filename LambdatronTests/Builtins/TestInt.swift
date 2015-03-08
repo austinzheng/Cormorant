@@ -12,17 +12,17 @@ class TestIntBuiltin : InterpreterTest {
 
   /// .int should return integer values unchanged.
   func testWithInt() {
-    expectThat("(.int 51222)", shouldEvalTo: .IntAtom(51222))
+    expectThat("(.int 51222)", shouldEvalTo: 51222)
   }
 
   /// .int should coerce and truncate floating-point values to integers.
   func testWithDouble() {
-    expectThat("(.int 1.99912)", shouldEvalTo: .IntAtom(1))
+    expectThat("(.int 1.99912)", shouldEvalTo: 1)
   }
 
   /// .int should coerce characters to their raw values.
   func testWithChar() {
-    expectThat("(.int \\g)", shouldEvalTo: .IntAtom(103))
+    expectThat("(.int \\g)", shouldEvalTo: 103)
   }
 
   /// .int should fail with any non-numeric argument.

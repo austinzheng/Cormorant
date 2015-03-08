@@ -20,25 +20,22 @@ class TestFn : InterpreterTest {
 
   /// fn should allow the user to define a single-arity function.
   func testSingleArityFn() {
-    expectThat("((fn [a b c] (.+ (.+ a b) c)) 10 11 -8)", shouldEvalTo: .IntAtom(13))
+    expectThat("((fn [a b c] (.+ (.+ a b) c)) 10 11 -8)", shouldEvalTo: 13)
   }
 
   /// fn should allow the user to define a function with multiple arity definitions.
   func testMultiArityFn() {
-    expectThat("((fn ([a] (.+ a 100)) ([a b] (.- a b)) ([a b c] (.* (.+ a b) c))) 14 23 3)",
-      shouldEvalTo: .IntAtom(111))
+    expectThat("((fn ([a] (.+ a 100)) ([a b] (.- a b)) ([a b c] (.* (.+ a b) c))) 14 23 3)", shouldEvalTo: 111)
   }
 
   // fn should allow the user to define a multiple-arity function.
   func testVariadicFn() {
-    expectThat("((fn [a b & c] (.concat (.list a b) c)) 5 16 3 2 9)",
-      shouldEvalTo: listWithItems(.IntAtom(5), .IntAtom(16), .IntAtom(3), .IntAtom(2), .IntAtom(9)))
+    expectThat("((fn [a b & c] (.concat (.list a b) c)) 5 16 3 2 9)", shouldEvalTo: listWithItems(5, 16, 3, 2, 9))
   }
 
   // fn should allow the user to define a function with only a variadic argument.
   func testVarargOnlyFn() {
-    expectThat("((fn [& a] a) 1 2 3 4 5)",
-      shouldEvalTo: listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3), .IntAtom(4), .IntAtom(5)))
+    expectThat("((fn [& a] a) 1 2 3 4 5)", shouldEvalTo: listWithItems(1, 2, 3, 4, 5))
   }
 
   // fn should reject an attempt to define a function with multiple bodies with the same arity.
@@ -67,7 +64,7 @@ class TestFn : InterpreterTest {
   func testArgVectorDuplicateSymbols() {
     // If it were up to me, we would reject these outright. However, Clojure accepts functions defined with duplicate
     //  arguments.
-    expectThat("((fn [a a a] a) true \"foobar\" 1523)", shouldEvalTo: .IntAtom(1523))
+    expectThat("((fn [a a a] a) true \"foobar\" 1523)", shouldEvalTo: 1523)
   }
 
   /// fn should reject being invoked with an argument vector that doesn't contain symbols.

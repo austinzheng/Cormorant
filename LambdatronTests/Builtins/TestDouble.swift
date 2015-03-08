@@ -12,12 +12,12 @@ class TestDoubleBuiltin : InterpreterTest {
 
   /// .double should return floating-point number arguments unchanged.
   func testWithDouble() {
-    expectThat("(.double 12.12355)", shouldEvalTo: .FloatAtom(12.12355))
+    expectThat("(.double 12.12355)", shouldEvalTo: 12.12355)
   }
 
   /// .double should coerce integer arguments to floating-point values.
   func testWithInt() {
-    expectThat("(.double 19012)", shouldEvalTo: .FloatAtom(19012.0))
+    expectThat("(.double 19012)", shouldEvalTo: 19012.0)
   }
 
   /// .double should fail with any non-numeric argument.

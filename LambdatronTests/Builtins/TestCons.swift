@@ -54,16 +54,9 @@ class TestConsBuiltin : InterpreterTest {
   // .cons should produce a list with the first item and the rest of the list.
   func testWithList() {
     let bar = interpreter.context.keywordForName("bar")
-    expectThat("(.cons 1.234 '(\"foo\" [1 2] true :bar))", shouldEvalTo: listWithItems(
-      .FloatAtom(1.234),
-      .StringAtom("foo"),
-      vectorWithItems(.IntAtom(1), .IntAtom(2)),
-      .BoolAtom(true),
-      .Keyword(bar)))
-    expectThat("(.cons '(1 2 3) '(4 5))", shouldEvalTo: listWithItems(
-      listWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3)),
-      .IntAtom(4),
-      .IntAtom(5)))
+    expectThat("(.cons 1.234 '(\"foo\" [1 2] true :bar))", shouldEvalTo:
+      listWithItems(1.234, .StringAtom("foo"), vectorWithItems(1, 2), true, .Keyword(bar)))
+    expectThat("(.cons '(1 2 3) '(4 5))", shouldEvalTo: listWithItems(listWithItems(1, 2, 3), 4, 5))
   }
 
   // .cons should produce a single-item list if the second item is an empty vector.
@@ -78,16 +71,10 @@ class TestConsBuiltin : InterpreterTest {
   // .cons should produce a list with the first item and all items in the vector.
   func testWithVector() {
     let bar = interpreter.context.symbolForName("bar")
-    expectThat("(.cons \\newline [nil '(1 2) 'bar \\z])", shouldEvalTo: listWithItems(
-      .CharAtom("\n"),
-      .Nil,
-      listWithItems(.IntAtom(1), .IntAtom(2)),
-      .Symbol(bar),
-      .CharAtom("z")))
-    expectThat("(.cons '[1 2 3] '[4 5])", shouldEvalTo: listWithItems(
-      vectorWithItems(.IntAtom(1), .IntAtom(2), .IntAtom(3)),
-      .IntAtom(4),
-      .IntAtom(5)))
+    expectThat("(.cons \\newline [nil '(1 2) 'bar \\z])", shouldEvalTo:
+      listWithItems(.CharAtom("\n"), .Nil, listWithItems(1, 2), .Symbol(bar), .CharAtom("z")))
+    expectThat("(.cons '[1 2 3] '[4 5])", shouldEvalTo:
+      listWithItems(vectorWithItems(1, 2, 3), 4, 5))
   }
 
   // .cons should produce a single-item list if the second item is an empty list.
@@ -103,17 +90,13 @@ class TestConsBuiltin : InterpreterTest {
   func testWithMap() {
     let foo = interpreter.context.symbolForName("foo")
     let bar = interpreter.context.keywordForName("bar")
-    expectThat("(.cons :bar {1 \"one\" 2 \"two\" 'foo \\5 100.1 nil})", shouldEvalTo: listWithItems(
-      .Keyword(bar),
-      vectorWithItems(.IntAtom(2), .StringAtom("two")),
-      vectorWithItems(.FloatAtom(100.1), .Nil),
-      vectorWithItems(.Symbol(foo), .CharAtom("5")),
-    vectorWithItems(.IntAtom(1), .StringAtom("one"))))
-    expectThat("(.cons {1 \"one\" 2 \"two\"} {3 \"three\" 4 \"four\" 5 \"five\"})", shouldEvalTo: listWithItems(
-      mapWithItems((.IntAtom(1), .StringAtom("one")), (.IntAtom(2), .StringAtom("two"))),
-      vectorWithItems(.IntAtom(5), .StringAtom("five")),
-      vectorWithItems(.IntAtom(3), .StringAtom("three")),
-      vectorWithItems(.IntAtom(4), .StringAtom("four"))))
+    expectThat("(.cons :bar {1 \"one\" 2 \"two\" 'foo \\5 100.1 nil})", shouldEvalTo:
+      listWithItems(.Keyword(bar), vectorWithItems(2, .StringAtom("two")), vectorWithItems(100.1, .Nil),
+        vectorWithItems(.Symbol(foo), .CharAtom("5")), vectorWithItems(1, .StringAtom("one"))))
+    expectThat("(.cons {1 \"one\" 2 \"two\"} {3 \"three\" 4 \"four\" 5 \"five\"})", shouldEvalTo:
+      listWithItems(mapWithItems((1, .StringAtom("one")), (2, .StringAtom("two"))),
+        vectorWithItems(5, .StringAtom("five")), vectorWithItems(3, .StringAtom("three")),
+        vectorWithItems(4, .StringAtom("four"))))
   }
 
   // .cons should reject invalid collection types.

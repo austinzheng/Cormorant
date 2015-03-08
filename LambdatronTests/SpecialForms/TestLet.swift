@@ -13,7 +13,7 @@ class TestLet : InterpreterTest {
 
   /// let should accept an empty binding vector.
   func testEmptyBindingVector() {
-    expectThat("(let [] 155)", shouldEvalTo: .IntAtom(155))
+    expectThat("(let [] 155)", shouldEvalTo: 155)
   }
 
   /// let should return nil if it has no constituent forms.

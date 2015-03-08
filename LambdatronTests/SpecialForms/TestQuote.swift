@@ -13,21 +13,18 @@ class TestQuote : InterpreterTest {
 
   /// quote should return the second argument unchanged.
   func testQuoteReturnsArgument() {
-    expectThat("(quote 12345)", shouldEvalTo: .IntAtom(12345))
+    expectThat("(quote 12345)", shouldEvalTo: 12345)
   }
 
   /// quote should return the second argument unchanged, even if it's a list.
   func testQuoteReturnsList() {
     let code = interpreter.context.symbolForName("+")
-    expectThat("(quote (+ 1 2))",
-      shouldEvalTo: .List(Cons(.Symbol(code), next:Cons(.IntAtom(1), next: Cons(.IntAtom(2))))))
+    expectThat("(quote (+ 1 2))", shouldEvalTo: listWithItems(.Symbol(code), 1, 2))
   }
 
   /// An outer 'quote' should not cause any inner 'quotes' to be resolved.
   func testQuoteWithNestedQuote() {
-    expectThat("(quote (1 (quote 2)))",
-      shouldEvalTo: .List(Cons(.IntAtom(1),
-        next: Cons(.List(Cons(.Special(.Quote), next: Cons(.IntAtom(2))))))))
+    expectThat("(quote (1 (quote 2)))", shouldEvalTo: listWithItems(1, listWithItems(QUOTE, 2)))
   }
 
   /// 'quote' with zero arguments should return nil.
@@ -37,7 +34,7 @@ class TestQuote : InterpreterTest {
 
   /// 'quote' with more than one argument should ignore and not execute any form after the first.
   func testQuoteTwoArity() {
-    expectThat("(quote 1.9999123 (.print \"hello\") 2)", shouldEvalTo: .FloatAtom(1.9999123))
+    expectThat("(quote 1.9999123 (.print \"hello\") 2)", shouldEvalTo: 1.9999123)
     expectOutputBuffer(toBe: "")
   }
 }

@@ -41,12 +41,12 @@ class TestVectorNth : InterpreterTest {
 
   /// nth should return the fallback when called on a vector with a negative index.
   func testNegativeIndexWithFallback() {
-    expectThat("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] -10 999)", shouldEvalTo: .IntAtom(999))
+    expectThat("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] -10 999)", shouldEvalTo: 999)
   }
 
   /// nth should return the fallback when called on a vector with an out-of-bounds positive index.
   func testTooLargeIndexWithFallback() {
-    expectThat("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] 108 998)", shouldEvalTo: .IntAtom(998))
+    expectThat("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] 108 998)", shouldEvalTo: 998)
   }
 
   /// nth should fail when called on a vector with a non-integer index, even if there is a fallback.
@@ -88,12 +88,12 @@ class TestListNth : InterpreterTest {
 
   /// nth should return the fallback when called on a list with a negative index.
   func testNegativeIndexWithFallback() {
-    expectThat("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") -10 997)", shouldEvalTo: .IntAtom(997))
+    expectThat("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") -10 997)", shouldEvalTo: 997)
   }
 
   /// nth should return the fallback when called on a list with an out-of-bounds positive index.
   func testTooLargeIndexWithFallback() {
-    expectThat("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") 108 996)", shouldEvalTo: .IntAtom(996))
+    expectThat("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") 108 996)", shouldEvalTo: 996)
   }
 
   /// nth should fail when called on a list with a non-integer index, even if there is a fallback.
@@ -135,12 +135,12 @@ class TestStringNth : InterpreterTest {
 
   /// nth should return the fallback when called on a string with a negative index.
   func testNegativeIndexWithFallback() {
-    expectThat("(.nth \"the quick brown fox\" -10 995)", shouldEvalTo: .IntAtom(995))
+    expectThat("(.nth \"the quick brown fox\" -10 995)", shouldEvalTo: 995)
   }
 
   /// nth should return the fallback when called on a string with an out-of-bounds positive index.
   func testTooLargeIndexWithFallback() {
-    expectThat("(.nth \"the quick brown fox\" 108 994)", shouldEvalTo: .IntAtom(994))
+    expectThat("(.nth \"the quick brown fox\" 108 994)", shouldEvalTo: 994)
   }
 
   /// nth should fail when called on a string with a non-integer index, even if there is a fallback.
