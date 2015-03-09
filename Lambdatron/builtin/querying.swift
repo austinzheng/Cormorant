@@ -192,18 +192,6 @@ func pr_isMap(args: Params, ctx: Context) -> EvalResult {
   }
 }
 
-/// Return whether or not the argument is a sequence.
-func pr_isSeq(args: Params, ctx: Context) -> EvalResult {
-  let fn = ".seq?"
-  if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
-  }
-  switch args[0] {
-  case .List, .Vector, .Map: return .Success(true)
-  default: return .Success(false)
-  }
-}
-
 /// Return whether or not a number is positive.
 func pr_isPos(args: Params, ctx: Context) -> EvalResult {
   let fn = ".pos?"

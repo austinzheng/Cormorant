@@ -8,7 +8,7 @@
 
 import Foundation
 
-class testIsNil : InterpreterTest {
+class TestIsNil : InterpreterTest {
   /// .nil? should return true for 'nil'.
   func testIsNilWithNil() {
     expectThat("(.nil? nil)", shouldEvalTo: true)
@@ -38,7 +38,7 @@ class testIsNil : InterpreterTest {
   }
 }
 
-class testIsNumber : InterpreterTest {
+class TestIsNumber : InterpreterTest {
   /// .number? should return true for any integer.
   func testIsNumberWithInts() {
     expectThat("(.number? 0)", shouldEvalTo: true)
@@ -80,7 +80,7 @@ class testIsNumber : InterpreterTest {
   }
 }
 
-class testIsInt : InterpreterTest {
+class TestIsInt : InterpreterTest {
   /// .int? should return true for any integer.
   func testIsIntWithInts() {
     expectThat("(.int? 0)", shouldEvalTo: true)
@@ -122,7 +122,7 @@ class testIsInt : InterpreterTest {
   }
 }
 
-class testIsFloat : InterpreterTest {
+class TestIsFloat : InterpreterTest {
   /// .float? should return false for any integer.
   func testIsFloatWithInts() {
     expectThat("(.float? 0)", shouldEvalTo: false)
@@ -164,7 +164,7 @@ class testIsFloat : InterpreterTest {
   }
 }
 
-class testIsString : InterpreterTest {
+class TestIsString : InterpreterTest {
   /// .string? should return true for strings.
   func testIsStringWithString() {
     expectThat("(.string? \"\")", shouldEvalTo: true)
@@ -196,7 +196,7 @@ class testIsString : InterpreterTest {
   }
 }
 
-class testIsChar : InterpreterTest {
+class TestIsChar : InterpreterTest {
   /// .char? should return true for characters.
   func testIsCharWithCharacter() {
     runCode("(def a \\a)")
@@ -229,7 +229,7 @@ class testIsChar : InterpreterTest {
   }
 }
 
-class testIsSymbol : InterpreterTest {
+class TestIsSymbol : InterpreterTest {
   /// .symbol? should return true for symbols.
   func testIsSymbolWithSymbol() {
     runCode("(def a 'b)")
@@ -262,7 +262,7 @@ class testIsSymbol : InterpreterTest {
   }
 }
 
-class testIsKeyword : InterpreterTest {
+class TestIsKeyword : InterpreterTest {
   /// .keyword? should return true for keywords.
   func testIsKeywordWithKeyword() {
     runCode("(def a :some-keyword)")
@@ -295,7 +295,7 @@ class testIsKeyword : InterpreterTest {
   }
 }
 
-class testIsFn : InterpreterTest {
+class TestIsFn : InterpreterTest {
   /// .fn? should return true for user-defined functions.
   func testIsFnWithUserDefined() {
     expectThat("(.fn? (fn [a b] (.+ a b)))", shouldEvalTo: true)
@@ -333,11 +333,11 @@ class testIsFn : InterpreterTest {
   }
 }
 
-class testIsEval : InterpreterTest {
+class TestIsEval : InterpreterTest {
   // TODO
 }
 
-class testIsTrue : InterpreterTest {
+class TestIsTrue : InterpreterTest {
   // .true? should return true for the value true.
   func testIsTrueWithBooleans() {
     expectThat("(.true? true)", shouldEvalTo: true)
@@ -367,7 +367,7 @@ class testIsTrue : InterpreterTest {
   }
 }
 
-class testIsFalse : InterpreterTest {
+class TestIsFalse : InterpreterTest {
   // .false? should return true for the value false.
   func testIsFalseWithBooleans() {
     expectThat("(.false? true)", shouldEvalTo: false)
@@ -397,7 +397,7 @@ class testIsFalse : InterpreterTest {
   }
 }
 
-class testIsList : InterpreterTest {
+class TestIsList : InterpreterTest {
   /// .list? should return true when called with list arguments.
   func testIsListWithLists() {
     expectThat("(.list? ())", shouldEvalTo: true)
@@ -428,7 +428,7 @@ class testIsList : InterpreterTest {
   }
 }
 
-class testIsVector : InterpreterTest {
+class TestIsVector : InterpreterTest {
   /// .vector? should return true when called with vector arguments.
   func testIsListWithLists() {
     expectThat("(.vector? [])", shouldEvalTo: true)
@@ -459,7 +459,7 @@ class testIsVector : InterpreterTest {
   }
 }
 
-class testIsMap : InterpreterTest {
+class TestIsMap : InterpreterTest {
   /// .map? should return true when called with map arguments.
   func testIsMapWithMaps() {
     expectThat("(.map? {})", shouldEvalTo: true)
@@ -491,15 +491,38 @@ class testIsMap : InterpreterTest {
   }
 }
 
-class testIsSeq : InterpreterTest {
-  // TODO
+class TestIsPos : InterpreterTest {
+  // .pos? should return true for positive numbers.
+  func testWithPositiveNumbers() {
+    expectThat("(.pos? 1)", shouldEvalTo: true)
+    expectThat("(.pos? 0.0000001)", shouldEvalTo: true)
+  }
+
+  // .pos? should return false for negative numbers.
+  func testWithNegativeNumbers() {
+    expectThat("(.pos? -1)", shouldEvalTo: false)
+    expectThat("(.pos? -0.0000001)", shouldEvalTo: false)
+  }
+
+  // .pos? should return false for zero.
+  func testWithZero() {
+    expectThat("(.pos? 0)", shouldEvalTo: false)
+    expectThat("(.pos? 0.0)", shouldEvalTo: false)
+  }
+
+  // .pos? should return true for positive infinity.
+  func testWithPosInf() {
+    expectThat("(.pos? (./ 1.0 0.0))", shouldEvalTo: true)
+  }
+
+  // .pos? should return false for other special float values.
+  func testWithSpecial() {
+    expectThat("(.pos? (./ -1.0 0.0))", shouldEvalTo: false)
+    expectThat("(.pos? (./ 0.0 0.0))", shouldEvalTo: false)
+  }
 }
 
-class testIsPos : InterpreterTest {
-  // TODO
-}
-
-class testIsNeg : InterpreterTest {
+class TestIsNeg : InterpreterTest {
   // .neg? should return true for negative numbers.
   func testWithNegativeNumbers() {
     expectThat("(.neg? -1)", shouldEvalTo: true)
@@ -530,7 +553,7 @@ class testIsNeg : InterpreterTest {
   }
 }
 
-class testIsZero : InterpreterTest {
+class TestIsZero : InterpreterTest {
   // .zero? should return true for numerical zero values.
   func testIsZeroWithNumbers() {
     expectThat("(.zero? 0)", shouldEvalTo: true)
@@ -564,7 +587,7 @@ class testIsZero : InterpreterTest {
   }
 }
 
-class testIsSubnormal : InterpreterTest {
+class TestIsSubnormal : InterpreterTest {
   /// .subnormal? should return true for subnormal double values and false for non-subnormal double values.
   func testWithDoubles() {
     expectThat("(.subnormal? 0.00000000001)", shouldEvalTo: false)
@@ -604,7 +627,7 @@ class testIsSubnormal : InterpreterTest {
   }
 }
 
-class testIsInfinite : InterpreterTest {
+class TestIsInfinite : InterpreterTest {
   /// .infinite? should return true for infinite double values and false for non-infinite double values.
   func testWithDoubles() {
     expectThat("(.infinite? 100000000000000.0)", shouldEvalTo: false)
@@ -649,7 +672,7 @@ class testIsInfinite : InterpreterTest {
   }
 }
 
-class testIsNaN : InterpreterTest {
+class TestIsNaN : InterpreterTest {
   /// .nan? should return true for double values equal to NaN, and false for non-NaN double values.
   func testWithDoubles() {
     expectThat("(.nan? 100000000000000.0)", shouldEvalTo: false)

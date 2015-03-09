@@ -80,7 +80,6 @@ public enum BuiltIn : String, Printable {
   case IsList = ".list?"
   case IsVector = ".vector?"
   case IsMap = ".map?"
-  case IsSeq = ".seq?"
   case IsPos = ".pos?"
   case IsNeg = ".neg?"
   case IsZero = ".zero?"
@@ -163,7 +162,6 @@ public enum BuiltIn : String, Printable {
     case IsList: return pr_isList
     case IsVector: return pr_isVector
     case IsMap: return pr_isMap
-    case IsSeq: return pr_isSeq
     case IsPos: return pr_isPos
     case IsNeg: return pr_isNeg
     case IsZero: return pr_isZero

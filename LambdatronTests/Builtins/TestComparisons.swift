@@ -9,7 +9,7 @@
 import Foundation
 
 /// Test the '.==' built-in function.
-class testNumericEqualsBuiltin : InterpreterTest {
+class TestNumericEqualsBuiltin : InterpreterTest {
 
   /// .== should properly compare two integers.
   func testInts() {
@@ -60,7 +60,7 @@ class testNumericEqualsBuiltin : InterpreterTest {
 }
 
 /// Test the '.<' built-in function.
-class testLtBuiltin : InterpreterTest {
+class TestLtBuiltin : InterpreterTest {
 
   /// .< should properly compare two integers.
   func testInts() {
@@ -111,7 +111,7 @@ class testLtBuiltin : InterpreterTest {
 }
 
 /// Test the '.<=' built-in function.
-class testLteqBuiltin : InterpreterTest {
+class TestLteqBuiltin : InterpreterTest {
 
   /// .<= should properly compare two integers.
   func testInts() {
@@ -162,7 +162,7 @@ class testLteqBuiltin : InterpreterTest {
 }
 
 /// Test the '.>' built-in function.
-class testGtBuiltin : InterpreterTest {
+class TestGtBuiltin : InterpreterTest {
 
   /// .> should properly compare two integers.
   func testInts() {
@@ -213,7 +213,7 @@ class testGtBuiltin : InterpreterTest {
 }
 
 /// Test the '.>=' built-in function.
-class testGteqBuiltin : InterpreterTest {
+class TestGteqBuiltin : InterpreterTest {
 
   /// .>= should properly compare two integers.
   func testInts() {

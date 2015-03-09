@@ -57,7 +57,7 @@
 (def list? .list?)
 (def vector? .vector?)
 (def map? .map?)
-(def seq? .seq?)
+(def seq? .list?)
 (def pos? .pos?)
 (def neg? .neg?)
 (def zero? .zero?)
