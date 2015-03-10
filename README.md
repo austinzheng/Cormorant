@@ -9,7 +9,7 @@ An interpreter for a non-trivial subset of [Clojure](http://clojure.org/), imple
 Application
 -----------
 
-Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.1 or later to build.
+Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.1.1 or later to build. Lambdatron runs on 10.9 or higher.
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
@@ -140,6 +140,8 @@ The code snippet is lexed, parsed, and expanded before the benchmark, and the ex
 ### Unit Tests
 
 Lambdatron has a comprehensive unit test suite that exercises the interpreter (not the standard library). Run the unit tests from within Xcode.
+
+Lambdatron relies on Travis CI for continuous integration. Click on the badge at the top of the README to see more information about CI testing.
 
 
 Development Objectives
