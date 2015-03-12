@@ -219,12 +219,12 @@ func sf_fn(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
-  let name : InternedSymbol? = args[0].asSymbol()
+  let name : InternedSymbol? = args[0].asSymbol
   let rest = (name == nil) ? args : args.rest()
   if rest.count == 0 {
     return .Failure(EvalError.arityError("at least 2 (if first arg is a name)", actual: args.count, fn))
   }
-  if rest[0].asVector() != nil {
+  if rest[0].asVector != nil {
     // Single arity
     let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
     if let actualSingleArity = singleArity {
@@ -255,9 +255,9 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
   if args.count < 2 {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
   }
-  if let name = args[0].asSymbol() {
+  if let name = args[0].asSymbol {
     let rest = args.rest()
-    if rest[0].asVector() != nil {
+    if rest[0].asVector != nil {
       // Single arity
       let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
       if let actualSingleArity = singleArity {
@@ -305,7 +305,7 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
-  if let bindingsVector = args[0].asVector() {
+  if let bindingsVector = args[0].asVector {
     // The first argument must be a vector of bindings and values
     // Evaluate each binding's initializer and bind it to the corresponding symbol
     if bindingsVector.count % 2 != 0 {
@@ -498,7 +498,7 @@ private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
     if vector.count == 0 {
       return nil
     }
-    if let params = vector[0].asVector() {
+    if let params = vector[0].asVector {
       if let paramTuple = extractParameters(params, ctx) {
         // Now we've taken out the parameters (they are symbols in a vector
         let (paramNames, variadic) = paramTuple

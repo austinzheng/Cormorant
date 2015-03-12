@@ -232,7 +232,7 @@ func pr_conj(args: Params, ctx: Context) -> EvalResult {
   case let .Vector(vector):
     return .Success(.Vector(vector + [toAdd]))
   case let .Map(m):
-    if let vector = toAdd.asVector() {
+    if let vector = toAdd.asVector {
       if vector.count != 2 {
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "vector arg to map conj must be a two-element pair vector"))
@@ -264,7 +264,7 @@ func pr_concat(args: Params, ctx: Context) -> EvalResult {
     case .Nil: continue
     case let .StringAtom(s):
       // Attempt to take the string and turn it into a list which precedes whatever we've built so far.
-      if let list = listFromString(s, postfix: head).asList() {
+      if let list = listFromString(s, postfix: head).asList {
         head = list
       }
       // Otherwise, if nil just skip this string
@@ -291,7 +291,7 @@ func pr_nth(args: Params, ctx: Context) -> EvalResult {
   if args.count < 2 || args.count > 3 {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
-  if let idx = args[1].asInteger() {
+  if let idx = args[1].asInteger {
     let fallback : ConsValue? = args.count == 3 ? args[2] : nil
     if idx < 0 {
       // Index can't be negative
@@ -356,14 +356,14 @@ func pr_get(args: Params, ctx: Context) -> EvalResult {
   
   switch args[0] {
   case let .StringAtom(s):
-    if let idx = key.asInteger() {
+    if let idx = key.asInteger {
       if let character = characterAtIndex(s, idx) {
         return .Success(.CharAtom(character))
       }
     }
     return .Success(fallback)
   case let .Vector(v):
-    if let idx = key.asInteger() {
+    if let idx = key.asInteger {
       if idx >= 0 && idx < v.count {
         return .Success(v[idx])
       }
@@ -401,7 +401,7 @@ func pr_assoc(args: Params, ctx: Context) -> EvalResult {
     // Each pair is an index and a new value. Update a copy of the vector and return that.
     var copy = vector
     for var i=0; i<rest.count - 1; i += 2 {
-      if let idx = rest[i].asInteger() {
+      if let idx = rest[i].asInteger {
         if idx < 0 || idx > copy.count {
           return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
         }

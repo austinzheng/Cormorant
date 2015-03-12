@@ -16,7 +16,7 @@ class TestKeywordBuiltin : InterpreterTest {
     let value = runCode("(.keyword :foobar)")
     let expected = interpreter.context.keywordForName("foobar")
     if let value = value {
-      XCTAssert(value.asKeyword()? == expected, ".keyword should properly return a novel keyword from a keyword")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return a novel keyword from a keyword")
     }
   }
 
@@ -26,7 +26,7 @@ class TestKeywordBuiltin : InterpreterTest {
     let value = runCode("(.keyword :foobar)")
     let expected = interpreter.context.keywordForName("foobar")
     if let value = value {
-      XCTAssert(value.asKeyword()? == expected, ".keyword should properly return an existing keyword from a keyword")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return an existing keyword from a keyword")
     }
   }
 
@@ -40,7 +40,7 @@ class TestKeywordBuiltin : InterpreterTest {
     let value = runCode("(.keyword \"foobar\")")
     let expected = interpreter.context.keywordForName("foobar")
     if let value = value {
-      XCTAssert(value.asKeyword()? == expected, ".keyword should properly return a novel keyword from a string")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return a novel keyword from a string")
     }
   }
 
@@ -50,7 +50,7 @@ class TestKeywordBuiltin : InterpreterTest {
     let value = runCode("(.keyword \"foobar\")")
     let expected = interpreter.context.keywordForName("foobar")
     if let value = value {
-      XCTAssert(value.asKeyword()? == expected, ".keyword should properly return an existing keyword from a string")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return an existing keyword from a string")
     }
   }
 
@@ -59,7 +59,7 @@ class TestKeywordBuiltin : InterpreterTest {
     let value = runCode("(.keyword 'foobar)")
     let expected = interpreter.context.keywordForName("foobar")
     if let value = value {
-      XCTAssert(value.asKeyword()? == expected, ".keyword should properly return a novel keyword from a symbol")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return a novel keyword from a symbol")
     }
   }
 
@@ -69,7 +69,7 @@ class TestKeywordBuiltin : InterpreterTest {
     let value = runCode("(.keyword 'foobar)")
     let expected = interpreter.context.keywordForName("foobar")
     if let value = value {
-      XCTAssert(value.asKeyword()? == expected, ".keyword should properly return an existing keyword from a symbol")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return an existing keyword from a symbol")
     }
   }
 

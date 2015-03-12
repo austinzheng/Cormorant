@@ -39,7 +39,7 @@ func pr_readString(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let string = args[0]
-  if let string = string.asString() {
+  if let string = string.asString {
     return readString(string, ctx, fn)
   }
   // Must pass in a string
@@ -78,7 +78,7 @@ func pr_eval(args: Params, ctx: Context) -> EvalResult {
 /// Force a failure. Call with zero arguments or a string containing an error message.
 func pr_fail(args: Params, ctx: Context) -> EvalResult {
   let fn = ".fail"
-  let message = args.first?.asString() ?? "(fail was called)"
+  let message = args.first?.asString ?? "(fail was called)"
   return .Failure(EvalError.runtimeError(fn, message: message))
 }
 

@@ -35,7 +35,7 @@ func re_first(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   if let pattern = args[0].asRegexPattern {
-    if let str = args[1].asString() {
+    if let str = args[1].asString {
       // Do a search
       let utf16Str = str as NSString
       let result = pattern.firstMatchInString(str, options: nil, range: NSRange(location: 0, length: utf16Str.length))
@@ -76,7 +76,7 @@ func re_seq(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   if let pattern = args[0].asRegexPattern {
-    if let str = args[1].asString() {
+    if let str = args[1].asString {
       let utf16Str = str as NSString
       var resultBuffer : [ConsValue] = []
 
@@ -110,7 +110,7 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
   }
   if let pattern = args[0].asRegexPattern {
-    if let str = args[1].asString() {
+    if let str = args[1].asString {
       let utf16Str = str as NSString
       let function = args[2]
       var error: EvalError? = nil
@@ -167,7 +167,7 @@ func re_quoteReplacement(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
   }
-  if let str = args[0].asString() {
+  if let str = args[0].asString {
     return .Success(.StringAtom(NSRegularExpression.escapedTemplateForString(str)))
   }
   return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))

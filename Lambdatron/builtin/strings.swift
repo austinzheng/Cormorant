@@ -25,7 +25,7 @@ func str_subs(args: Params, ctx: Context) -> EvalResult {
   if !(args.count == 2 || args.count == 3) {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
-  if let s = args[0].asString() {
+  if let s = args[0].asString {
     if let start = extractInt(args[1]) {
       // Use the UTF16 view, since that facilitates indexing into the string using integers (i.e. Clojure's behavior)
       let utf16Str = s as NSString
@@ -95,7 +95,7 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
   if args.count != 3 {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
   }
-  if let s = args[0].asString() {
+  if let s = args[0].asString {
     let match = args[1]
     let replacement = args[2]
     switch match {

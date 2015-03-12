@@ -92,14 +92,14 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     }
   }
 
-  func asInteger() -> Int? {
+  var asInteger : Int? {
     switch self {
     case let .IntAtom(v): return v
     default: return nil
     }
   }
 
-  func asString() -> String? {
+  var asString : String? {
     switch self {
     case let .StringAtom(s): return s
     default: return nil
@@ -120,49 +120,49 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     }
   }
 
-  func asSymbol() -> InternedSymbol? {
+  var asSymbol : InternedSymbol? {
     switch self {
     case let .Symbol(s): return s
     default: return nil
     }
   }
 
-  func asKeyword() -> InternedKeyword? {
+  var asKeyword : InternedKeyword? {
     switch self {
     case let .Keyword(k): return k
     default: return nil
     }
   }
 
-  func asList() -> ListType<ConsValue>? {
+  var asList : ListType<ConsValue>? {
     switch self {
     case let .List(l): return l
     default: return nil
     }
   }
 
-  func asVector() -> VectorType? {
+  var asVector : VectorType? {
     switch self {
     case let .Vector(v): return v
     default: return nil
     }
   }
 
-  func asMap() -> MapType? {
+  var asMap : MapType? {
     switch self {
     case let .Map(m): return m
     default: return nil
     }
   }
   
-  func asBuiltIn() -> BuiltIn? {
+  var asBuiltIn : BuiltIn? {
     switch self {
     case let .BuiltInFunction(b): return b
     default: return nil
     }
   }
   
-  func asFunction() -> Function? {
+  var asFunction : Function? {
     switch self {
     case let .FunctionLiteral(f): return f
     default: return nil
