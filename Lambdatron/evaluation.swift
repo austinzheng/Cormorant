@@ -219,7 +219,7 @@ func evaluateList(list: ListType<ConsValue>, ctx: Context) -> EvalResult {
   case let list as Cons<ConsValue>:
     // 0: The list is a non-empty list.
     // 1: Decide whether 'a' is either a special form or a reference to a macro.
-    if let specialForm = list.value.asSpecialForm() {
+    if let specialForm = list.value.asSpecialForm {
       // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
       return evaluateSpecialForm(list, specialForm, ctx)
     }

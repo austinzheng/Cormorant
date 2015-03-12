@@ -169,6 +169,13 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     }
   }
 
+  var asSpecialForm : SpecialForm? {
+    switch self {
+    case let .Special(s): return s
+    default: return nil
+    }
+  }
+
   func asMacro(ctx: Context) -> Macro? {
     switch self {
     case let .Symbol(identifier):
@@ -177,13 +184,6 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
       case let .BoundMacro(m): return m
       case .Invalid, .Unbound, .Param, .Literal: return nil
       }
-    default: return nil
-    }
-  }
-
-  func asSpecialForm() -> SpecialForm? {
-    switch self {
-    case let .Special(s): return s
     default: return nil
     }
   }

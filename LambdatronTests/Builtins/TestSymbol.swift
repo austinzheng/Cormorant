@@ -16,7 +16,7 @@ class TestSymbolBuiltin : InterpreterTest {
     let value = runCode("(.symbol 'foobar)")
     let expected = interpreter.context.symbolForName("foobar")
     if let value = value {
-      XCTAssert(value.asSymbol? == expected, ".symbol should properly return a not-before-defined symbol")
+      XCTAssert(value.asSymbol == expected, ".symbol should properly return a not-before-defined symbol")
     }
   }
 
@@ -26,7 +26,7 @@ class TestSymbolBuiltin : InterpreterTest {
     let value = runCode("(.symbol 'foobar)")
     let expected = interpreter.context.symbolForName("foobar")
     if let value = value {
-      XCTAssert(value.asSymbol? == expected, ".symbol should properly return a previously defined symbol")
+      XCTAssert(value.asSymbol == expected, ".symbol should properly return a previously defined symbol")
     }
   }
 
@@ -40,7 +40,7 @@ class TestSymbolBuiltin : InterpreterTest {
     let value = runCode("(.symbol \"foobar\")")
     let expected = interpreter.context.symbolForName("foobar")
     if let value = value {
-      XCTAssert(value.asSymbol? == expected, ".symbol should properly return a novel symbol from a string")
+      XCTAssert(value.asSymbol == expected, ".symbol should properly return a novel symbol from a string")
     }
   }
 
@@ -50,7 +50,7 @@ class TestSymbolBuiltin : InterpreterTest {
     let value = runCode("(.symbol \"foobar\")")
     let expected = interpreter.context.symbolForName("foobar")
     if let value = value {
-      XCTAssert(value.asSymbol? == expected, ".symbol should properly return a previously defined symbol")
+      XCTAssert(value.asSymbol == expected, ".symbol should properly return a previously defined symbol")
     }
   }
 
