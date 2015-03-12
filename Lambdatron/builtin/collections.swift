@@ -379,34 +379,6 @@ func pr_get(args: Params, ctx: Context) -> EvalResult {
 /// Given a supported collection and one or more key-value pairs, associate the new values with the keys.
 func pr_assoc(args: Params, ctx: Context) -> EvalResult {
   let fn = ".assoc"
-  func updateMapFromArray(raw: Params, inout starting: MapType) {
-    for var i=0; i<raw.count - 1; i += 2 {
-      let key = raw[i]
-      let value = raw[i+1]
-      starting[key] = value
-    }
-  }
-
-  func updateVectorFromArray(raw: Params, inout buffer: VectorType, count: Int) -> EvalError? {
-    for var i=0; i<raw.count - 1; i += 2 {
-      let idx = raw[i]
-      if let idx = idx.asInteger() {
-        if idx >= 0 && idx < count {
-          let value = raw[i+1]
-          buffer[idx] = value
-        }
-        else {
-          return EvalError.outOfBoundsError(fn, idx: idx)
-        }
-      }
-      else {
-        return EvalError.invalidArgumentError(fn,
-          message: "key arguments must be integers if .assoc is called on a vector")
-      }
-    }
-    return nil
-  }
-
   // This function requires at least one collection/nil and one key/index-value pair
   if args.count < 3 {
     return .Failure(EvalError.arityError("3 or more", actual: args.count, fn))
@@ -421,20 +393,38 @@ func pr_assoc(args: Params, ctx: Context) -> EvalResult {
   case .Nil:
     // Put key-value pairs in a new map
     var newMap : MapType = [:]
-    updateMapFromArray(rest, &newMap)
-    return .Success(.Map(newMap))
-  case let .Vector(v):
-    // Each pair is an index and a new value. Update a copy of the vector and return that.
-    var newVector = v
-    let possibleError = updateVectorFromArray(rest, &newVector, v.count)
-    if let error = possibleError {
-      return .Failure(error)
+    for var i=0; i<rest.count - 1; i += 2 {
+      newMap[rest[i]] = rest[i + 1]
     }
-    return .Success(.Vector(newVector))
-  case let .Map(m):
-    var newMap = m
-    updateMapFromArray(rest, &newMap)
     return .Success(.Map(newMap))
+  case let .Vector(vector):
+    // Each pair is an index and a new value. Update a copy of the vector and return that.
+    var copy = vector
+    for var i=0; i<rest.count - 1; i += 2 {
+      if let idx = rest[i].asInteger() {
+        if idx < 0 || idx > copy.count {
+          return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
+        }
+        else if idx == copy.count {
+          copy.append(rest[i + 1])
+        }
+        else {
+          copy[idx] = rest[i + 1]
+        }
+      }
+      else {
+        return .Failure(EvalError.invalidArgumentError(fn,
+          message: "key arguments must be integers if .assoc is called on a vector"))
+      }
+    }
+    return .Success(.Vector(copy))
+  case let .Map(m):
+    // Update or add all keys with their corresponding values.
+    var copy = m
+    for var i=0; i<rest.count - 1; i += 2 {
+      copy[rest[i]] = rest[i + 1]
+    }
+    return .Success(.Map(copy))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "first argument must be a vector, map, or nil"))
