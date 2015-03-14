@@ -297,21 +297,21 @@ class TestIsKeyword : InterpreterTest {
 
 class TestIsFn : InterpreterTest {
   /// .fn? should return true for user-defined functions.
-  func testIsFnWithUserDefined() {
+  func testWithUserDefinedFns() {
     expectThat("(.fn? (fn [a b] (.+ a b)))", shouldEvalTo: true)
     runCode("(def testfn (fn [a b] (.+ 1 2 a b)))")
     expectThat("(.fn? testfn)", shouldEvalTo: true)
   }
 
   /// .fn? should return true for built-in functions.
-  func testIsFnWithBuiltIns() {
+  func testWithBuiltIns() {
     expectThat("(.fn? .+)", shouldEvalTo: true)
     expectThat("(.fn? .fn?)", shouldEvalTo: true)
     expectThat("(.fn? .cons)", shouldEvalTo: true)
   }
 
   /// .fn? should return false for any non-function type.
-  func testIsFnWithOthers() {
+  func testWithOthers() {
     expectThat("(.fn? 1025)", shouldEvalTo: false)
     expectThat("(.fn? 3.141592)", shouldEvalTo: false)
     expectThat("(.fn? nil)", shouldEvalTo: false)
@@ -326,7 +326,7 @@ class TestIsFn : InterpreterTest {
     expectThat("(.fn? {})", shouldEvalTo: false)
   }
 
-  // .fn? should take exactly one argument.
+  /// .fn? should take exactly one argument.
   func testArity() {
     expectArityErrorFrom("(.fn?)")
     expectArityErrorFrom("(.fn? .+ .+)")
@@ -334,17 +334,75 @@ class TestIsFn : InterpreterTest {
 }
 
 class TestIsEval : InterpreterTest {
-  // TODO
+  /// .eval? should return true for user-defined functions.
+  func testWithUserDefinedFns() {
+    expectThat("(.eval? (fn [a b] (.+ a b)))", shouldEvalTo: true)
+    runCode("(def testfn (fn [a b] (.+ 1 2 a b)))")
+    expectThat("(.eval? testfn)", shouldEvalTo: true)
+  }
+
+  /// .eval? should return true for built-in functions.
+  func testWithBuiltIns() {
+    expectThat("(.eval? .+)", shouldEvalTo: true)
+    expectThat("(.eval? .fn?)", shouldEvalTo: true)
+    expectThat("(.eval? .cons)", shouldEvalTo: true)
+  }
+
+  /// .eval? should return true for symbols.
+  func testWithSymbols() {
+    expectThat("(.eval? 'a)", shouldEvalTo: true)
+    expectThat("(.eval? 'foobar)", shouldEvalTo: true)
+  }
+
+  /// .eval? should return true for keywords.
+  func testWithKeywords() {
+    expectThat("(.eval? :a)", shouldEvalTo: true)
+    expectThat("(.eval? :foobar)", shouldEvalTo: true)
+  }
+
+  /// .eval? should return true for vectors.
+  func testWithVectors() {
+    expectThat("(.eval? [])", shouldEvalTo: true)
+    expectThat("(.eval? [1 2 3 4 5])", shouldEvalTo: true)
+  }
+
+  /// .eval? should return true for maps.
+  func testWithMaps() {
+    expectThat("(.eval? {})", shouldEvalTo: true)
+    expectThat("(.eval? {1 2 3 4 5 6})", shouldEvalTo: true)
+  }
+
+  /// .eval? should return false for any non-evaluable type.
+  func testWithOthers() {
+    expectThat("(.fn? 1025)", shouldEvalTo: false)
+    expectThat("(.fn? 3.141592)", shouldEvalTo: false)
+    expectThat("(.fn? nil)", shouldEvalTo: false)
+    expectThat("(.fn? true)", shouldEvalTo: false)
+    expectThat("(.fn? false)", shouldEvalTo: false)
+    expectThat("(.fn? \"\")", shouldEvalTo: false)
+    expectThat("(.fn? \\a)", shouldEvalTo: false)
+    expectThat("(.fn? 'a)", shouldEvalTo: false)
+    expectThat("(.fn? :a)", shouldEvalTo: false)
+    expectThat("(.fn? [])", shouldEvalTo: false)
+    expectThat("(.fn? {})", shouldEvalTo: false)
+  }
+
+
+  /// .eval? should take exactly one argument.
+  func testArity() {
+    expectArityErrorFrom("(.eval?)")
+    expectArityErrorFrom("(.eval? .+ .+)")
+  }
 }
 
 class TestIsTrue : InterpreterTest {
-  // .true? should return true for the value true.
+  /// .true? should return true for the value true.
   func testIsTrueWithBooleans() {
     expectThat("(.true? true)", shouldEvalTo: true)
     expectThat("(.true? false)", shouldEvalTo: false)
   }
 
-  // .true? should return false for any value that isn't exactly true.
+  /// .true? should return false for any value that isn't exactly true.
   func testIsTrueWithOthers() {
     expectThat("(.true? 0)", shouldEvalTo: false)
     expectThat("(.true? 0.0)", shouldEvalTo: false)
@@ -360,7 +418,7 @@ class TestIsTrue : InterpreterTest {
     expectThat("(.true? .+)", shouldEvalTo: false)
   }
 
-  // .true? should take exactly one argument.
+  /// .true? should take exactly one argument.
   func testArity() {
     expectArityErrorFrom("(.true?)")
     expectArityErrorFrom("(.true? true true)")
@@ -368,13 +426,13 @@ class TestIsTrue : InterpreterTest {
 }
 
 class TestIsFalse : InterpreterTest {
-  // .false? should return true for the value false.
+  /// .false? should return true for the value false.
   func testIsFalseWithBooleans() {
     expectThat("(.false? true)", shouldEvalTo: false)
     expectThat("(.false? false)", shouldEvalTo: true)
   }
 
-  // .false? should return false for any value that isn't exactly false.
+  /// .false? should return false for any value that isn't exactly false.
   func testIsFalseWithOthers() {
     expectThat("(.false? 0)", shouldEvalTo: false)
     expectThat("(.false? 0.0)", shouldEvalTo: false)
@@ -390,7 +448,7 @@ class TestIsFalse : InterpreterTest {
     expectThat("(.false? .+)", shouldEvalTo: false)
   }
 
-  // .false? should take exactly one argument.
+  /// .false? should take exactly one argument.
   func testArity() {
     expectArityErrorFrom("(.false?)")
     expectArityErrorFrom("(.false? false false)")
@@ -492,30 +550,30 @@ class TestIsMap : InterpreterTest {
 }
 
 class TestIsPos : InterpreterTest {
-  // .pos? should return true for positive numbers.
+  /// .pos? should return true for positive numbers.
   func testWithPositiveNumbers() {
     expectThat("(.pos? 1)", shouldEvalTo: true)
     expectThat("(.pos? 0.0000001)", shouldEvalTo: true)
   }
 
-  // .pos? should return false for negative numbers.
+  /// .pos? should return false for negative numbers.
   func testWithNegativeNumbers() {
     expectThat("(.pos? -1)", shouldEvalTo: false)
     expectThat("(.pos? -0.0000001)", shouldEvalTo: false)
   }
 
-  // .pos? should return false for zero.
+  /// .pos? should return false for zero.
   func testWithZero() {
     expectThat("(.pos? 0)", shouldEvalTo: false)
     expectThat("(.pos? 0.0)", shouldEvalTo: false)
   }
 
-  // .pos? should return true for positive infinity.
+  /// .pos? should return true for positive infinity.
   func testWithPosInf() {
     expectThat("(.pos? (./ 1.0 0.0))", shouldEvalTo: true)
   }
 
-  // .pos? should return false for other special float values.
+  /// .pos? should return false for other special float values.
   func testWithSpecial() {
     expectThat("(.pos? (./ -1.0 0.0))", shouldEvalTo: false)
     expectThat("(.pos? (./ 0.0 0.0))", shouldEvalTo: false)
@@ -523,30 +581,30 @@ class TestIsPos : InterpreterTest {
 }
 
 class TestIsNeg : InterpreterTest {
-  // .neg? should return true for negative numbers.
+  /// .neg? should return true for negative numbers.
   func testWithNegativeNumbers() {
     expectThat("(.neg? -1)", shouldEvalTo: true)
     expectThat("(.neg? -0.0000001)", shouldEvalTo: true)
   }
 
-  // .neg? should return false for positive numbers.
+  /// .neg? should return false for positive numbers.
   func testWithPositiveNumbers() {
     expectThat("(.neg? 1)", shouldEvalTo: false)
     expectThat("(.neg? 0.0000001)", shouldEvalTo: false)
   }
 
-  // .neg? should return false for zero.
+  /// .neg? should return false for zero.
   func testWithZero() {
     expectThat("(.neg? 0)", shouldEvalTo: false)
     expectThat("(.neg? 0.0)", shouldEvalTo: false)
   }
 
-  // .neg? should return true for negative infinity.
+  /// .neg? should return true for negative infinity.
   func testWithNegInf() {
     expectThat("(.neg? (./ -1.0 0.0))", shouldEvalTo: true)
   }
 
-  // .neg? should return false for other special float values.
+  /// .neg? should return false for other special float values.
   func testWithSpecial() {
     expectThat("(.neg? (./ 1.0 0.0))", shouldEvalTo: false)
     expectThat("(.neg? (./ 0.0 0.0))", shouldEvalTo: false)
@@ -554,7 +612,7 @@ class TestIsNeg : InterpreterTest {
 }
 
 class TestIsZero : InterpreterTest {
-  // .zero? should return true for numerical zero values.
+  /// .zero? should return true for numerical zero values.
   func testIsZeroWithNumbers() {
     expectThat("(.zero? 0)", shouldEvalTo: true)
     expectThat("(.zero? 0.0)", shouldEvalTo: true)
@@ -564,7 +622,7 @@ class TestIsZero : InterpreterTest {
     expectThat("(.zero? -1293.58812)", shouldEvalTo: false)
   }
 
-  // .zero? should fail for any non-number type.
+  /// .zero? should fail for any non-number type.
   func testIsZeroWithOthers() {
     expectThat("(.zero? nil)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.zero? true)", shouldFailAs: .InvalidArgumentError)
