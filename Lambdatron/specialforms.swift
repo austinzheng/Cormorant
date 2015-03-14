@@ -175,25 +175,21 @@ func sf_let(args: Params, ctx: Context) -> EvalResult {
     // Create a new context whose parent is the current context. This new context will be updated in-place for each
     //  expression in the binding vector that is evaluated.
     let newContext = ChildContext(parent: ctx)
-    var ctr = 0
-    while ctr < bindingsVector.count {
-      let bindingSymbol = bindingsVector[ctr]
+
+    for (bindingSymbol, expression) in PairSequence(bindingsVector) {
       switch bindingSymbol {
       case let .Symbol(s):
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
-        let expression = bindingsVector[ctr+1]
         let result = expression.evaluate(newContext)
         switch result {
-        case let .Success(result):
-          newContext.pushBinding(.Literal(result), forSymbol: s)
+        case let .Success(result): newContext.pushBinding(.Literal(result), forSymbol: s)
         default: return result
         }
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "even-indexed arguments in a binding vector must be symbols"))
       }
-      ctr += 2
     }
     
     // Create an implicit 'do' statement with the remainder of the args
@@ -315,12 +311,10 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
     //  context.
     let thisContext = ChildContext(parent: ctx)
     var symbols : [InternedSymbol] = []
-    var ctr = 0
-    while ctr < bindingsVector.count {
-      let name = bindingsVector[ctr]
+
+    for (name, expression) in PairSequence(bindingsVector) {
       switch name {
       case let .Symbol(s):
-        let expression = bindingsVector[ctr+1]
         let result = expression.evaluate(thisContext)
         switch result {
         case let .Success(result):
@@ -336,9 +330,9 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "even-indexed arguments in a binding vector must be symbols"))
       }
-      ctr += 2
     }
     let forms = args.rest()
+
     // Now, run the loop body
     while true {
       let result = sf_do(forms, thisContext)

@@ -284,9 +284,7 @@ private func mapWithTokens(tokens: TokenCollectionResult, ctx: Context) -> MapRe
         // Invalid; need an even number of tokens
         return .Failure(ReadError(.MapKeyValueMismatchError))
       }
-      for var i=0; i<processedForms.count - 1; i += 2 {
-        let key = processedForms[i]
-        let value = processedForms[i+1]
+      for (key, value) in PairSequence(processedForms) {
         newMap[key] = value
       }
       return .Success(newMap)

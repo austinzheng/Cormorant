@@ -30,9 +30,7 @@ func pr_hashmap(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("even number", actual: args.count, fn))
   }
   var buffer : MapType = [:]
-  for var i=0; i<args.count-1; i += 2 {
-    let key = args[i]
-    let value = args[i+1]
+  for (key, value) in PairSequence(args) {
     buffer[key] = value
   }
   return .Success(.Map(buffer))
@@ -393,23 +391,23 @@ func pr_assoc(args: Params, ctx: Context) -> EvalResult {
   case .Nil:
     // Put key-value pairs in a new map
     var newMap : MapType = [:]
-    for var i=0; i<rest.count - 1; i += 2 {
-      newMap[rest[i]] = rest[i + 1]
+    for (key, value) in PairSequence(rest) {
+      newMap[key] = value
     }
     return .Success(.Map(newMap))
   case let .Vector(vector):
     // Each pair is an index and a new value. Update a copy of the vector and return that.
     var copy = vector
-    for var i=0; i<rest.count - 1; i += 2 {
-      if let idx = rest[i].asInteger {
+    for (key, value) in PairSequence(rest) {
+      if let idx = key.asInteger {
         if idx < 0 || idx > copy.count {
           return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
         }
         else if idx == copy.count {
-          copy.append(rest[i + 1])
+          copy.append(value)
         }
         else {
-          copy[idx] = rest[i + 1]
+          copy[idx] = value
         }
       }
       else {
@@ -421,8 +419,8 @@ func pr_assoc(args: Params, ctx: Context) -> EvalResult {
   case let .Map(m):
     // Update or add all keys with their corresponding values.
     var copy = m
-    for var i=0; i<rest.count - 1; i += 2 {
-      copy[rest[i]] = rest[i + 1]
+    for (key, value) in PairSequence(rest) {
+      copy[key] = value
     }
     return .Success(.Map(copy))
   default:

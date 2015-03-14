@@ -15,6 +15,41 @@ import Foundation
   exit(EXIT_FAILURE)
 }
 
+
+// MARK: Sequences
+
+/// A sequence wrapping another sequence, representing pairs of items. The wrapped sequence must have an even number of
+/// items.
+struct PairSequence<T : SequenceType> : SequenceType {
+  private let seq : T
+
+  init(_ seq: T) { self.seq = seq }
+
+  func generate() -> PairSequenceGenerator<T> {
+    return PairSequenceGenerator(seq)
+  }
+}
+
+struct PairSequenceGenerator<T : SequenceType> : GeneratorType {
+  private let seq : T
+  private var g : T.Generator
+
+  private init(_ seq: T) { self.seq = seq; g = seq.generate() }
+
+  mutating func next() -> (T.Generator.Element, T.Generator.Element)? {
+    if let n1 = g.next() {
+      if let n2 = g.next() {
+        return (n1, n2)
+      }
+      else {
+        preconditionFailure("Precondition violated: underlying sequence has an odd number of elements.")
+      }
+    }
+    return nil
+  }
+}
+
+
 // MARK: Regex
 
 enum RegexResult {
@@ -72,8 +107,8 @@ func characterAtIndex(s: String, idx: Int) -> Character? {
 /// Retrieve the first character in a Swift string.
 func firstCharacter(s: String) -> Character {
   // Precondition: string is not empty
-  assert(!s.isEmpty)
-  return characterAtIndex(s, 0)!
+  precondition(!s.isEmpty, "string is not empty")
+  return s[s.startIndex]
 }
 
 /// Build a list out of a string, or return the nil literal if the string is empty.
