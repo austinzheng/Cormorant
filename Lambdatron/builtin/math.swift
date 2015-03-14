@@ -8,57 +8,6 @@
 
 import Foundation
 
-/// An enum wrapping one of several numerical types, or an invalid value sigil.
-enum NumericalType {
-  case Integer(Int)
-  case Float(Double)
-  case Invalid
-}
-
-/// Convert a given ConsValue argument into the equivalent NumericalType token.
-func extractNumber(n: ConsValue) -> NumericalType {
-  switch n {
-  case let .IntAtom(v): return .Integer(v)
-  case let .FloatAtom(v): return .Float(v)
-  default: return .Invalid
-  }
-}
-
-/// Convert a given ConsValue argument into an integer, if possible.
-func extractInt(n: ConsValue) -> Int? {
-  switch n {
-  case let .IntAtom(v): return v
-  case let .FloatAtom(v): return Int(v)
-  default: return nil
-  }
-}
-
-private typealias IntTestFn = (Int, Int) -> Bool
-private typealias DoubleTestFn = (Double, Double) -> Bool
-
-private func test(args: Params, ipred: IntTestFn, dpred: DoubleTestFn, fn: String) -> EvalResult {
-  if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
-  }
-  let first = extractNumber(args[0])
-  let second = extractNumber(args[1])
-  switch first {
-  case let .Integer(v1):
-    switch second {
-    case let .Integer(v2): return .Success(.BoolAtom(ipred(v1, v2)))
-    case let .Float(v2): return .Success(.BoolAtom(dpred(Double(v1), v2)))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-    }
-  case let .Float(v1):
-    switch second {
-    case let .Integer(v2): return .Success(.BoolAtom(dpred(v1, Double(v2))))
-    case let .Float(v2): return .Success(.BoolAtom(dpred(v1, v2)))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-    }
-  case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
-  }
-}
-
 /// Evaluate the equality of two numeric forms.
 func pr_numericEquals(args: Params, ctx: Context) -> EvalResult {
   return test(args, ==, ==, ".==")
@@ -305,5 +254,34 @@ func pr_quot(args: Params, ctx: Context) -> EvalResult {
     }
   case .Invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
+  }
+}
+
+
+// MARK: Private helpers
+
+private typealias IntTestFn = (Int, Int) -> Bool
+private typealias DoubleTestFn = (Double, Double) -> Bool
+
+private func test(args: Params, ipred: IntTestFn, dpred: DoubleTestFn, fn: String) -> EvalResult {
+  if args.count != 2 {
+    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+  }
+  let first = extractNumber(args[0])
+  let second = extractNumber(args[1])
+  switch first {
+  case let .Integer(v1):
+    switch second {
+    case let .Integer(v2): return .Success(.BoolAtom(ipred(v1, v2)))
+    case let .Float(v2): return .Success(.BoolAtom(dpred(Double(v1), v2)))
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
+    }
+  case let .Float(v1):
+    switch second {
+    case let .Integer(v2): return .Success(.BoolAtom(dpred(v1, Double(v2))))
+    case let .Float(v2): return .Success(.BoolAtom(dpred(v1, v2)))
+    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
+    }
+  case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

@@ -38,6 +38,31 @@ struct MapSequence : SequenceType, GeneratorType {
   }
 }
 
+/// An enum wrapping one of several numerical types, or an invalid value sigil.
+enum NumericalType {
+  case Integer(Int)
+  case Float(Double)
+  case Invalid
+}
+
+/// Convert a given ConsValue argument into the equivalent NumericalType token.
+func extractNumber(n: ConsValue) -> NumericalType {
+  switch n {
+  case let .IntAtom(v): return .Integer(v)
+  case let .FloatAtom(v): return .Float(v)
+  default: return .Invalid
+  }
+}
+
+/// Convert a given ConsValue argument into an integer, if possible.
+func extractInt(n: ConsValue) -> Int? {
+  switch n {
+  case let .IntAtom(v): return v
+  case let .FloatAtom(v): return Int(v)
+  default: return nil
+  }
+}
+
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
 public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, Printable, DebugPrintable, Hashable {
   case Nil

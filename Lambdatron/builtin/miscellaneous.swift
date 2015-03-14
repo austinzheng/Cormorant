@@ -82,6 +82,9 @@ func pr_fail(args: Params, ctx: Context) -> EvalResult {
   return .Failure(EvalError.runtimeError(fn, message: message))
 }
 
+
+// MARK: Private helpers
+
 /// Given a string and a context, lex, parse, and reader-expand the string into a Lambdatron data structure.
 private func readString(string: String, ctx: Context, fn: String) -> EvalResult {
   // Lex and parse the string
