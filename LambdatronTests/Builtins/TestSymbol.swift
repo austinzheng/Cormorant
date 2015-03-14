@@ -61,9 +61,10 @@ class TestSymbolBuiltin : InterpreterTest {
     expectThat("(.symbol false)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.symbol 123)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.symbol 1.23)", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.symbol #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
     expectThat("(.symbol :a)", shouldFailAs: .InvalidArgumentError)
     expectThat("(.symbol \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol '())", shouldFailAs: .InvalidArgumentError)
+    expectThat("(.symbol ())", shouldFailAs: .InvalidArgumentError)
     expectThat("(.symbol [])", shouldFailAs: .InvalidArgumentError)
     expectThat("(.symbol {})", shouldFailAs: .InvalidArgumentError)
   }

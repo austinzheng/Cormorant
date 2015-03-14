@@ -15,7 +15,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil nil)", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true nil)", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 nil)", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons '() nil)", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () nil)", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
     expectThat("(.cons {} nil)", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -24,7 +24,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil \"\")", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true \"\")", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 \"\")", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons '() \"\")", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () \"\")", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
     expectThat("(.cons {} \"\")", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -47,7 +47,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil ())", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true ())", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 ())", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons '() ())", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () ())", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
     expectThat("(.cons {} ())", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -64,7 +64,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil [])", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true [])", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 [])", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons '() [])", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () [])", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
     expectThat("(.cons {} [])", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -82,7 +82,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil {})", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true {})", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 {})", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons '() {})", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () {})", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
     expectThat("(.cons {} {})", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 

@@ -63,7 +63,7 @@ class TestListNth : InterpreterTest {
 
   /// nth should fail with an out-of-bounds error when called on an empty list.
   func testEmptyList() {
-    expectThat("(.nth '() 0)", shouldFailAs: .OutOfBoundsError)
+    expectThat("(.nth () 0)", shouldFailAs: .OutOfBoundsError)
   }
 
   /// nth should fail with an out-of-bounds error when called on a list with a negative index.

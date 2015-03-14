@@ -32,7 +32,7 @@ class TestListBuiltin : InterpreterTest {
     expectThat("(.list 1 2 3 4)", shouldEvalTo: listWithItems(1, 2, 3, 4))
     expectThat("(.list nil \"hello\" \\newline 1.523 true)",
       shouldEvalTo: listWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), 1.523, true))
-    expectThat("(.list '() [] {})",
+    expectThat("(.list () [] {})",
       shouldEvalTo: listWithItems(listWithItems(), vectorWithItems(), mapWithItems()))
   }
 }

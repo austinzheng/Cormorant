@@ -26,7 +26,7 @@ class TestHashmapBuiltin : InterpreterTest {
     expectThat("(.hashmap :a 'a :b 'b)",
       shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .Symbol(internedSymbolA)),
         (.Keyword(internedKeywordB), .Symbol(internedSymbolB))))
-    expectThat("(.hashmap '() [] nil {})",
+    expectThat("(.hashmap () [] nil {})",
       shouldEvalTo: mapWithItems((listWithItems(), vectorWithItems()), (.Nil, mapWithItems())))
   }
 

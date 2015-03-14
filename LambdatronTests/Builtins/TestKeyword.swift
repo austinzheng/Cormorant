@@ -80,8 +80,9 @@ class TestKeywordBuiltin : InterpreterTest {
     expectThat("(.keyword false)", shouldEvalTo: .Nil)
     expectThat("(.keyword 123)", shouldEvalTo: .Nil)
     expectThat("(.keyword 1.23)", shouldEvalTo: .Nil)
+    expectThat("(.keyword #\"[0-9]+\")", shouldEvalTo: .Nil)
     expectThat("(.keyword \\a)", shouldEvalTo: .Nil)
-    expectThat("(.keyword '())", shouldEvalTo: .Nil)
+    expectThat("(.keyword ())", shouldEvalTo: .Nil)
     expectThat("(.keyword [])", shouldEvalTo: .Nil)
     expectThat("(.keyword {})", shouldEvalTo: .Nil)
   }

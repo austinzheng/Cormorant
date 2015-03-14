@@ -33,7 +33,7 @@ class TestVectorBuiltin : InterpreterTest {
       shouldEvalTo: vectorWithItems(1, 2, 3, 4))
     expectThat("(.vector nil \"hello\" \\newline 1.523 true)",
       shouldEvalTo: vectorWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), 1.523, true))
-    expectThat("(.vector '() [] {})",
+    expectThat("(.vector () [] {})",
       shouldEvalTo: vectorWithItems(listWithItems(), vectorWithItems(), mapWithItems()))
   }
 }
