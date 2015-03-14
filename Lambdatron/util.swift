@@ -16,7 +16,41 @@ import Foundation
 }
 
 
+// MARK: Numbers
+
+/// An enum wrapping one of several numerical types, or an invalid value sigil.
+enum NumericalType {
+  case Integer(Int)
+  case Float(Double)
+  case Invalid
+}
+
+
 // MARK: Sequences
+
+/// A wrapper for a Map that provides a different iterator for use with the interpreter. This iterator returns each
+/// element as a Vector containing the key and value ConsValues.
+struct MapSequence : SequenceType, GeneratorType {
+  let map : MapType
+  var generator : DictionaryGenerator<ConsValue, ConsValue>
+
+  init(_ map: MapType) { self.map = map; self.generator = map.generate() }
+
+  func generate() -> MapSequence { return self }
+
+  /// If the wrapped map is not empty, return the first key-value pair in the MapSequence as a Vector.
+  func first() -> ConsValue? {
+    var t = self.generate()
+    return t.next()
+  }
+
+  mutating func next() -> ConsValue? {
+    if let (key, value) = generator.next() {
+      return .Vector([key, value])
+    }
+    return nil
+  }
+}
 
 /// A sequence wrapping another sequence, representing pairs of items. The wrapped sequence must have an even number of
 /// items.

@@ -73,7 +73,7 @@ private func expandSyntaxQuotedList(list: ListType<ConsValue>) -> ListExpandResu
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword:
       // Atomic items are wrapped in 'list': ATOM --> (list ATOM)
       b.append(.List(Cons(.BuiltInFunction(.List), next: Cons(element))))
-    case .Regex, .Symbol, .Special, .BuiltInFunction:
+    case .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Symbols, etc are wrapped in 'list' and 'quote': sym --> (list (quote sym))
       b.append(.List(Cons(.BuiltInFunction(.List),
         next: Cons(.List(Cons(.Special(.Quote), next: Cons(element)))))))
@@ -200,7 +200,7 @@ extension ConsValue {
   private func readerExpand() -> ExpandResult {
 //    println("DBG: calling 'readerExpand' with item \(describe(nil))")
     switch self {
-    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Regex, .Symbol, .Keyword, .Special, .BuiltInFunction:
+    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Symbol, .Keyword, .Auxiliary, .Special, .BuiltInFunction:
       return .Success(self)
     case let .ReaderMacroForm(rm):
       // 'form' represents a reader macro (e.g. `X or ~X)
@@ -230,7 +230,7 @@ extension ConsValue {
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword:
       // Expanding `LIT always results in LIT
       return .Success(self)
-    case .Regex, .Symbol, .Special, .BuiltInFunction:
+    case .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Expanding `a results in (quote a)
       return .Success(.List(listFromItems(QUOTE, self)))
     case let .ReaderMacroForm(rm):

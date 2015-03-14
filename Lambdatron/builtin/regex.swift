@@ -18,10 +18,10 @@ func re_pattern(args: Params, ctx: Context) -> EvalResult {
   switch pattern {
   case let .StringAtom(string):
     switch constructRegex(string) {
-    case let .Success(regex): return .Success(.Regex(regex))
+    case let .Success(regex): return .Success(.Auxiliary(regex))
     case let .Error(err): return .Failure(EvalError.readError(forFn: fn, error: err))
     }
-  case .Regex:
+  case let .Auxiliary(aux) where aux is NSRegularExpression:
     return .Success(pattern)
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string or regex pattern"))

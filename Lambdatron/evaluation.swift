@@ -290,7 +290,7 @@ extension ConsValue {
       case .BoundMacro:
         return .Failure(EvalError(.EvaluatingMacroError))
       }
-    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Regex, .Keyword:
+    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword, .Auxiliary:
       return .Success(self)
     case let .List(l):
       // Evaluate the value of the list 'l'

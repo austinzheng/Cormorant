@@ -198,7 +198,7 @@ func pr_isPos(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let num = extractNumber(args[0])
+  let num = args[0].extractNumber()
   switch num {
   case let .Integer(v):
     return .Success(.BoolAtom(v > 0))
@@ -215,7 +215,7 @@ func pr_isNeg(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let num = extractNumber(args[0])
+  let num = args[0].extractNumber()
   switch num {
   case let .Integer(v):
     return .Success(.BoolAtom(v < 0))
@@ -232,7 +232,7 @@ func pr_isZero(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let num = extractNumber(args[0])
+  let num = args[0].extractNumber()
   switch num {
   case let .Integer(v):
     return .Success(.BoolAtom(v == 0))
@@ -249,7 +249,7 @@ func pr_isSubnormal(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let num = extractNumber(args[0])
+  let num = args[0].extractNumber()
   switch num {
   case let .Integer(v):
     return .Success(false)
@@ -266,7 +266,7 @@ func pr_isInfinite(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let num = extractNumber(args[0])
+  let num = args[0].extractNumber()
   switch num {
   case let .Integer(v):
     return .Success(false)
@@ -283,7 +283,7 @@ func pr_isNaN(args: Params, ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let num = extractNumber(args[0])
+  let num = args[0].extractNumber()
   switch num {
   case let .Integer(v):
     return .Success(false)

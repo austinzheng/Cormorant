@@ -14,55 +14,6 @@ public typealias VectorType = [ConsValue]
 /// An opaque type representing a Map data structure.
 public typealias MapType = [ConsValue:ConsValue]
 
-/// A wrapper for a Map that provides a different iterator for use with the interpreter. This iterator returns each
-/// element as a Vector containing the key and value ConsValues.
-struct MapSequence : SequenceType, GeneratorType {
-  let map : MapType
-  var generator : DictionaryGenerator<ConsValue, ConsValue>
-
-  init(_ map: MapType) { self.map = map; self.generator = map.generate() }
-
-  func generate() -> MapSequence { return self }
-
-  /// If the wrapped map is not empty, return the first key-value pair in the MapSequence as a Vector.
-  func first() -> ConsValue? {
-    var t = self.generate()
-    return t.next()
-  }
-
-  mutating func next() -> ConsValue? {
-    if let (key, value) = generator.next() {
-      return .Vector([key, value])
-    }
-    return nil
-  }
-}
-
-/// An enum wrapping one of several numerical types, or an invalid value sigil.
-enum NumericalType {
-  case Integer(Int)
-  case Float(Double)
-  case Invalid
-}
-
-/// Convert a given ConsValue argument into the equivalent NumericalType token.
-func extractNumber(n: ConsValue) -> NumericalType {
-  switch n {
-  case let .IntAtom(v): return .Integer(v)
-  case let .FloatAtom(v): return .Float(v)
-  default: return .Invalid
-  }
-}
-
-/// Convert a given ConsValue argument into an integer, if possible.
-func extractInt(n: ConsValue) -> Int? {
-  switch n {
-  case let .IntAtom(v): return v
-  case let .FloatAtom(v): return Int(v)
-  default: return nil
-  }
-}
-
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
 public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, Printable, DebugPrintable, Hashable {
   case Nil
@@ -71,9 +22,9 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
   case FloatAtom(Double)
   case CharAtom(Character)
   case StringAtom(String)
-  case Regex(NSRegularExpression)
   case Symbol(InternedSymbol)
   case Keyword(InternedKeyword)
+  case Auxiliary(AuxiliaryType)
   case List(ListType<ConsValue>)
   case Vector(VectorType)
   case Map(MapType)
@@ -90,9 +41,9 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     case let .FloatAtom(v): return v.hashValue
     case let .CharAtom(c): return c.hashValue
     case let .StringAtom(s): return s.hashValue
-    case let .Regex(re): return re.hashValue
     case let .Symbol(s): return s.hashValue
     case let .Keyword(k): return k.hashValue
+    case let .Auxiliary(a): return a.hashValue
     case let .List(l): return l.hashValue
     case let .Vector(v): return v.count == 0 ? 0 : v[0].hashValue
     case let .Map(m): return m.count
@@ -127,13 +78,6 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
   var asString : String? {
     switch self {
     case let .StringAtom(s): return s
-    default: return nil
-    }
-  }
-
-  var asRegexPattern : NSRegularExpression? {
-    switch self {
-    case let .Regex(r): return r
     default: return nil
     }
   }
@@ -201,6 +145,20 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     }
   }
 
+  var asStringBuilder : StringBuilderType? {
+    switch self {
+    case let .Auxiliary(aux): return aux as? StringBuilderType
+    default: return nil
+    }
+  }
+
+  var asRegexPattern : NSRegularExpression? {
+    switch self {
+    case let .Auxiliary(aux): return aux as? NSRegularExpression
+    default: return nil
+    }
+  }
+
   func asMacro(ctx: Context) -> Macro? {
     switch self {
     case let .Symbol(identifier):
@@ -209,6 +167,24 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
       case let .BoundMacro(m): return m
       case .Invalid, .Unbound, .Param, .Literal: return nil
       }
+    default: return nil
+    }
+  }
+
+  /// Extract value into an equivalent NumericalType token.
+  func extractNumber() -> NumericalType {
+    switch self {
+    case let .IntAtom(v): return .Integer(v)
+    case let .FloatAtom(v): return .Float(v)
+    default: return .Invalid
+    }
+  }
+
+  /// Extract value into an integer, if possible.
+  func extractInt() -> Int? {
+    switch self {
+    case let .IntAtom(v): return v
+    case let .FloatAtom(v): return Int(v)
     default: return nil
     }
   }

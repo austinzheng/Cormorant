@@ -45,8 +45,8 @@ extension ConsValue {
       return String(char)
     case let .StringAtom(str):
       return str
-    case let .Regex(re):
-      return re.pattern
+    case let .Auxiliary(aux):
+      return aux.toString()
     default:
       return self.describe(ctx)
     }
@@ -68,8 +68,6 @@ extension ConsValue {
       return charLiteralDesc(char)
     case let .StringAtom(str):
       return "\"" + stringByEscaping(str) + "\""
-    case let .Regex(re):
-      return "#\"" + re.pattern + "\""
     case let .Symbol(symbol):
       if let ctx = ctx {
         return ctx.nameForSymbol(symbol)
@@ -80,6 +78,8 @@ extension ConsValue {
         return ":" + ctx.nameForKeyword(keyword)
       }
       return "keyword:\(keyword.identifier)"
+    case let .Auxiliary(aux):
+      return aux.describe()
     case let .List(list):
       return describeList(list, ctx, debug: false)
     case let .Vector(vector):
@@ -113,8 +113,6 @@ extension ConsValue {
       return "Object.CharAtom(\(charLiteralDesc(char)))"
     case let .StringAtom(str):
       return "Object.StringAtom(\"\(str)\")"
-    case let .Regex(re):
-      return "Object.Regex(#\"\(re.pattern)\")"
     case let .Symbol(symbol):
       if let ctx = ctx {
         return "Object.Symbol(\(ctx.nameForSymbol(symbol)))"
@@ -125,6 +123,8 @@ extension ConsValue {
         return "Object.Keyword(:\(ctx.nameForKeyword(keyword)))"
       }
       return "Object.Keyword(id:\(keyword.identifier))"
+    case let .Auxiliary(aux):
+      return aux.debugDescribe()
     case let .List(list):
       let desc = describeList(list, ctx, debug: true)
       return "Object.List( \(desc) )"

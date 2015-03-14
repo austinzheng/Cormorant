@@ -65,9 +65,7 @@ func pr_int(args: Params, ctx: Context) -> EvalResult {
     // FORCE UNWRAP: the string must always have at least one character, by definition
     let castValue = generator.next()!
     return .Success(.IntAtom(Int(castValue.value)))
-  case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .List, .Vector, .Map:
-    fallthrough
-  case .Regex, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
+  case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .Auxiliary, .List, .Vector, .Map, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a number or a character"))
   }
@@ -84,11 +82,7 @@ func pr_double(args: Params, ctx: Context) -> EvalResult {
     return .Success(.FloatAtom(Double(v)))
   case let .FloatAtom(v):
     return .Success(args[0])
-  case .CharAtom:
-    fallthrough
-  case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .List, .Vector, .Map:
-    fallthrough
-  case .Regex, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
+  case .Symbol, .Keyword, .Nil, .BoolAtom, .CharAtom, .StringAtom, .Auxiliary, .List, .Vector, .Map, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

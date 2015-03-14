@@ -51,6 +51,11 @@ public enum BuiltIn : String, Printable {
   case Replace = ".replace"
   case ReplaceFirst = ".replace-first"
 
+  // String builder
+  case Sb = ".sb"
+  case SbAppend = ".sb-append"
+  case SbReverse = ".sb-reverse"
+
   // Regex
   case RegexPattern = ".re-pattern"
   case RegexFirst = ".re-first"
@@ -112,77 +117,80 @@ public enum BuiltIn : String, Printable {
   
   var function : LambdatronBuiltIn {
     switch self {
-    case List: return pr_list
-    case Vector: return pr_vector
-    case Hashmap: return pr_hashmap
-    case Cons: return pr_cons
-    case First: return pr_first
-    case Rest: return pr_rest
-    case Next: return pr_next
-    case Conj: return pr_conj
-    case Concat: return pr_concat
-    case Nth: return pr_nth
-    case Seq: return pr_seq
-    case Get: return pr_get
-    case Assoc: return pr_assoc
-    case Dissoc: return pr_dissoc
-    case Count: return pr_count
-    case Reduce: return pr_reduce
-    case Symbol: return pr_symbol
-    case Keyword: return pr_keyword
-    case Int: return pr_int
-    case Double: return pr_double
+    case .List: return pr_list
+    case .Vector: return pr_vector
+    case .Hashmap: return pr_hashmap
+    case .Cons: return pr_cons
+    case .First: return pr_first
+    case .Rest: return pr_rest
+    case .Next: return pr_next
+    case .Conj: return pr_conj
+    case .Concat: return pr_concat
+    case .Nth: return pr_nth
+    case .Seq: return pr_seq
+    case .Get: return pr_get
+    case .Assoc: return pr_assoc
+    case .Dissoc: return pr_dissoc
+    case .Count: return pr_count
+    case .Reduce: return pr_reduce
+    case .Symbol: return pr_symbol
+    case .Keyword: return pr_keyword
+    case .Int: return pr_int
+    case .Double: return pr_double
     case .Str: return str_str
-    case Subs: return str_subs
-    case Lowercase: return str_lowercase
-    case Uppercase: return str_uppercase
-    case Replace: return str_replace
-    case ReplaceFirst: return str_replaceFirst
-    case RegexPattern: return re_pattern
-    case RegexFirst: return re_first
-    case RegexSeq: return re_seq
-    case RegexIterate: return re_iterate
-    case RegexQuoteReplace: return re_quoteReplacement
-    case Read: return pr_read
-    case ReadString: return pr_readString
-    case Print: return pr_print
-    case Println: return pr_println
-    case IsNil: return pr_isNil
-    case IsNumber: return pr_isNumber
-    case IsInteger: return pr_isInteger
-    case IsFloat: return pr_isFloat
-    case IsString: return pr_isString
-    case IsChar: return pr_isChar
-    case IsSymbol: return pr_isSymbol
-    case IsKeyword: return pr_isKeyword
-    case IsFn: return pr_isFunction
-    case IsEvalable: return pr_isEvalable
-    case IsTrue: return pr_isTrue
-    case IsFalse: return pr_isFalse
-    case IsList: return pr_isList
-    case IsVector: return pr_isVector
-    case IsMap: return pr_isMap
-    case IsPos: return pr_isPos
-    case IsNeg: return pr_isNeg
-    case IsZero: return pr_isZero
-    case IsSubnormal: return pr_isSubnormal
-    case IsInfinite: return pr_isInfinite
-    case IsNaN: return pr_isNaN
-    case Equals: return pr_equals
-    case NumericEquals: return pr_numericEquals
-    case GreaterThan: return pr_gt
-    case GreaterThanOrEqual: return pr_gteq
-    case LessThan: return pr_lt
-    case LessThanOrEqual: return pr_lteq
-    case Plus: return pr_plus
-    case Minus: return pr_minus
-    case Multiply: return pr_multiply
-    case Divide: return pr_divide
-    case Remainder: return pr_rem
-    case Quotient: return pr_quot
-    case Rand: return pr_rand
-    case Eval: return pr_eval
-    case Fail: return pr_fail
+    case .Subs: return str_subs
+    case .Lowercase: return str_lowercase
+    case .Uppercase: return str_uppercase
+    case .Replace: return str_replace
+    case .ReplaceFirst: return str_replaceFirst
+    case .Sb: return sb_sb
+    case .SbAppend: return sb_append
+    case .SbReverse: return sb_reverse
+    case .RegexPattern: return re_pattern
+    case .RegexFirst: return re_first
+    case .RegexSeq: return re_seq
+    case .RegexIterate: return re_iterate
+    case .RegexQuoteReplace: return re_quoteReplacement
+    case .Read: return pr_read
+    case .ReadString: return pr_readString
+    case .Print: return pr_print
+    case .Println: return pr_println
+    case .IsNil: return pr_isNil
+    case .IsNumber: return pr_isNumber
+    case .IsInteger: return pr_isInteger
+    case .IsFloat: return pr_isFloat
+    case .IsString: return pr_isString
+    case .IsChar: return pr_isChar
+    case .IsSymbol: return pr_isSymbol
+    case .IsKeyword: return pr_isKeyword
+    case .IsFn: return pr_isFunction
+    case .IsEvalable: return pr_isEvalable
+    case .IsTrue: return pr_isTrue
+    case .IsFalse: return pr_isFalse
+    case .IsList: return pr_isList
+    case .IsVector: return pr_isVector
+    case .IsMap: return pr_isMap
+    case .IsPos: return pr_isPos
+    case .IsNeg: return pr_isNeg
+    case .IsZero: return pr_isZero
+    case .IsSubnormal: return pr_isSubnormal
+    case .IsInfinite: return pr_isInfinite
+    case .IsNaN: return pr_isNaN
+    case .Equals: return pr_equals
+    case .NumericEquals: return pr_numericEquals
+    case .GreaterThan: return pr_gt
+    case .GreaterThanOrEqual: return pr_gteq
+    case .LessThan: return pr_lt
+    case .LessThanOrEqual: return pr_lteq
+    case .Plus: return pr_plus
+    case .Minus: return pr_minus
+    case .Multiply: return pr_multiply
+    case .Divide: return pr_divide
+    case .Remainder: return pr_rem
+    case .Quotient: return pr_quot
+    case .Rand: return pr_rand
+    case .Eval: return pr_eval
+    case .Fail: return pr_fail
     }
   }
   

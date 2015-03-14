@@ -39,8 +39,8 @@ func pr_plus(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
+  let num0 = args[0].extractNumber()
+  let num1 = args[1].extractNumber()
   
   switch num0 {
   case let .Integer(v1):
@@ -73,8 +73,8 @@ func pr_minus(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
+  let num0 = args[0].extractNumber()
+  let num1 = args[1].extractNumber()
   
   switch num0 {
   case let .Integer(v1):
@@ -107,8 +107,8 @@ func pr_multiply(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
+  let num0 = args[0].extractNumber()
+  let num1 = args[1].extractNumber()
   
   switch num0 {
   case let .Integer(v1):
@@ -141,8 +141,8 @@ func pr_divide(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
+  let num0 = args[0].extractNumber()
+  let num1 = args[1].extractNumber()
   
   switch num0 {
   case let .Integer(v1):
@@ -187,8 +187,8 @@ func pr_rem(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
+  let num0 = args[0].extractNumber()
+  let num1 = args[1].extractNumber()
   
   switch num0 {
   case let .Integer(v1):
@@ -225,8 +225,8 @@ func pr_quot(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let num0 = extractNumber(args[0])
-  let num1 = extractNumber(args[1])
+  let num0 = args[0].extractNumber()
+  let num1 = args[1].extractNumber()
 
   switch num0 {
   case let .Integer(v1):
@@ -267,8 +267,8 @@ private func test(args: Params, ipred: IntTestFn, dpred: DoubleTestFn, fn: Strin
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let first = extractNumber(args[0])
-  let second = extractNumber(args[1])
+  let first = args[0].extractNumber()
+  let second = args[1].extractNumber()
   switch first {
   case let .Integer(v1):
     switch second {

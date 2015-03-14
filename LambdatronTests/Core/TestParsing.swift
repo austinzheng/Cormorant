@@ -101,10 +101,11 @@ class TestRegexParsing : InterpreterTest {
 
   /// Valid regular expression literals should be successfully lexed and parsed into regex patterns.
   func testParsingNonemptyRegex() {
-    expectThat("#\"[0-9]+\"", shouldEvalTo: .Regex(NSRegularExpression(pattern: "[0-9]+", options: nil, error: nil)!))
+    expectThat("#\"[0-9]+\"",
+      shouldEvalTo: .Auxiliary(NSRegularExpression(pattern: "[0-9]+", options: nil, error: nil)!))
     // Fancy regex for matching all numbers
     expectThat("#\"^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$\"",
-      shouldEvalTo: .Regex(NSRegularExpression(pattern: "^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$",
+      shouldEvalTo: .Auxiliary(NSRegularExpression(pattern: "^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$",
         options: nil, error: nil)!))
   }
 
@@ -112,9 +113,9 @@ class TestRegexParsing : InterpreterTest {
   func testInCollection() {
     expectThat("[#\"abc\" #\"def\" #\"ghi\"]", shouldEvalTo:
       vectorWithItems(
-        .Regex(NSRegularExpression(pattern: "abc", options: nil, error: nil)!),
-        .Regex(NSRegularExpression(pattern: "def", options: nil, error: nil)!),
-        .Regex(NSRegularExpression(pattern: "ghi", options: nil, error: nil)!)))
+        .Auxiliary(NSRegularExpression(pattern: "abc", options: nil, error: nil)!),
+        .Auxiliary(NSRegularExpression(pattern: "def", options: nil, error: nil)!),
+        .Auxiliary(NSRegularExpression(pattern: "ghi", options: nil, error: nil)!)))
   }
 }
 

@@ -29,6 +29,10 @@
 (def replace .replace)
 (def replace-first .replace-first)
 
+(def sb .sb)
+(def sb-append .sb-append)
+(def sb-reverse .sb-reverse)
+
 (def re-pattern .re-pattern)
 (def re-first .re-first)
 (def re-seq .re-seq)

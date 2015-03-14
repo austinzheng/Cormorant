@@ -65,7 +65,7 @@ Lambdatron has the following features:
 
 **Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function. Maps can be used in function position in order to get a value for a key.
 
-**Strings**, declared using double quotes: `"this is a string literal"`. Strings can be manipulated using `first`, `rest`, etc.
+**Strings**, declared using double quotes: `"this is a string literal"`. Strings can be manipulated using `first`, `rest`, etc. Lambdatron also supports a mutating **string builder** which can be used to efficiently construct strings through concatenation. Create one using `sb`, work with the buffer using `sb-append` and `sb-reverse`, and turn it back into a string using `str`.
 
 **Regular expressions**, declared as such: `#"[0-9]+"`, and backed by `NSRegularExpression`. Use `re-pattern` to create a regex at runtime. Use `re-first` to get the first match of a pattern in a string, and `re-seq` to get a list of all matches of a pattern in a string. Call `re-iterate` with a pattern, a string, and a function that takes two arguments; the function will be called once for each match with a vector of match tokens and a vector of ranges. The function can return `true` to end iteration, or any other value to allow iteration to continue.
 
@@ -96,6 +96,7 @@ The following special forms, reader macros, and functions are built into the int
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`, `count`, `reduce`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
 - String manipulation: `str`, `subs`, `lower-case`, `upper-case`, `replace`, `replace-first`
+- String building: `sb`, `sb-append`, `sb-reverse`
 - Regular expressions: `re-pattern`, `re-first`, `re-seq`, `re-iterate`, `re-quote-replacement`
 - I/O: `read`, `print`, `println`
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
