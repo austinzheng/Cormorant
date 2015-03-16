@@ -261,14 +261,14 @@ extension ConsValue {
       let asList = listFromCollection(v)
       let result = expandSyntaxQuotedList(asList)
       return constructForm(result) {
-        listFromItems(APPLY, VECTOR, .List(Cons(SEQ, next: Cons(CONCAT, next: $0))))
+        listFromItems(APPLY, VECTOR, .List(listFromItems(SEQ, .List(Cons(CONCAT, next: $0)))))
       }
     case let .Map(m):
       // Turn the syntax-quoted map `{a b} into (apply (map `(a b)))
       let asList = listFromMap(m)
       let result = expandSyntaxQuotedList(asList)
       return constructForm(result) {
-        listFromItems(APPLY, HASHMAP, .List(Cons(SEQ, next: Cons(CONCAT, next: $0))))
+        listFromItems(APPLY, HASHMAP, .List(listFromItems(SEQ, .List(Cons(CONCAT, next: $0)))))
       }
     case .FunctionLiteral:
       return .Failure(ReadError(.IllegalExpansionFormError))

@@ -214,12 +214,20 @@ class TestSyntaxQuote : XCTestCase {
     test("``(a ~@(~(b `c `d)))", shouldExpandTo: "(.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote a)))))))) (.list (.seq (.concat (.list (b (quote c) (quote d)))))))))))")
   }
 
+  func testListInSyntaxQuotedList() {
+    test("`(a (b c) d)", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list (.seq (.concat (.list (quote b)) (.list (quote c))))) (.list (quote d))))")
+  }
+
   func testUnquotedList() {
     test("`(a ~(b `c))", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list (b (quote c)))))")
   }
 
   func testSyntaxUnquotedList() {
     test("`(a ~@(b `c))", shouldExpandTo: "(.seq (.concat (.list (quote a)) (b (quote c))))")
+  }
+
+  func testArrayInSyntaxQuotedList() {
+    test("`(a [b c] d)", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list (apply .vector (.seq (.concat (.list (quote b)) (.list (quote c)))))) (.list (quote d))))")
   }
 
   func testUnquotedArray() {
@@ -230,11 +238,15 @@ class TestSyntaxQuote : XCTestCase {
     test("`(a ~@[b `c])", shouldExpandTo: "(.seq (.concat (.list (quote a)) [b (quote c)]))")
   }
 
-  func testUnquotedDictionary() {
+  func testMapInSyntaxQuotedList() {
+    test("`(a {b c} d)", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list (apply .hashmap (.seq (.concat (.list (quote b)) (.list (quote c)))))) (.list (quote d))))")
+  }
+
+  func testUnquotedMap() {
     test("`(a ~{b `c})", shouldExpandTo: "(.seq (.concat (.list (quote a)) (.list {b (quote c)})))")
   }
 
-  func testUnquoteSplicedDictionary() {
+  func testUnquoteSplicedMap() {
     test("`(a ~@{b `c})", shouldExpandTo: "(.seq (.concat (.list (quote a)) {b (quote c)}))")
   }
 
