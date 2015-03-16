@@ -61,10 +61,8 @@ func pr_int(args: Params, ctx: Context) -> EvalResult {
   case let .CharAtom(v):
     // Note: this function assumes that characters being stored consist of a single Unicode code point. If the character
     //  consists of multiple code points, only the first will be cast to an integer.
-    var generator = String(v).unicodeScalars.generate()
-    // FORCE UNWRAP: the string must always have at least one character, by definition
-    let castValue = generator.next()!
-    return .Success(.IntAtom(Int(castValue.value)))
+    let scalars = String(v).unicodeScalars
+    return .Success(.IntAtom(Int(scalars[scalars.startIndex].value)))
   case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .Auxiliary, .List, .Vector, .Map, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a number or a character"))
