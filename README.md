@@ -1,7 +1,7 @@
 Lambdatron
 ==========
 
-[![Build Status](https://travis-ci.org/austinzheng/swift-lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/swift-lambdatron)
+[![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
 
 An interpreter for a non-trivial subset of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
