@@ -48,6 +48,19 @@ class TestStrBuiltin : InterpreterTest {
     expectThat("(.str #\"(?x) #hello 123\")", shouldEvalTo: .StringAtom("(?x) #hello 123"))
   }
 
+  /// .str should properly convert string builders into strings.
+  func testStringBuilders() {
+    runCode("(def a (.sb))")
+    expectThat("(.str a)", shouldEvalTo: .StringAtom(""))
+    runCode("(def b (.sb \"foobar\"))")
+    expectThat("(.str b)", shouldEvalTo: .StringAtom("foobar"))
+    runCode("(def c (.sb \"foo\"))")
+    runCode("(.sb-append c \" bar\")")
+    runCode("(.sb-append c \" baz\")")
+    runCode("(.sb-reverse c)")
+    expectThat("(.str c)", shouldEvalTo: .StringAtom("zab rab oof"))
+  }
+
   /// .str should describe characters as themselves.
   func testCharacters() {
     expectThat("(.str \\n)", shouldEvalTo: .StringAtom("n"))
