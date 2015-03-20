@@ -43,6 +43,11 @@ class TestSeqBuiltin : InterpreterTest {
         listWithItems()))
   }
 
+  /// .seq should return a sequence from a lazy seq, evaluating if necessary.
+  func testWithLazySeqs() {
+    expectThat("(.seq (.lazy-seq (fn [] '(1 2 3 4 5 6 7))))", shouldEvalTo: listWithItems(1, 2, 3, 4, 5, 6, 7))
+  }
+
   /// .seq should return a sequence comprised of the elements in a vector.
   func testWithVectors() {
     expectThat("(.seq [false true nil 1 2.1 3])", shouldEvalTo: listWithItems(false, true, .Nil, 1, 2.1, 3))

@@ -15,7 +15,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil nil)", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true nil)", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 nil)", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons () nil)", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () nil)", shouldEvalTo: listWithItems(ConsValue.Seq(EmptyNode)))
     expectThat("(.cons {} nil)", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -24,7 +24,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil \"\")", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true \"\")", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 \"\")", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons () \"\")", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () \"\")", shouldEvalTo: listWithItems(ConsValue.Seq(EmptyNode)))
     expectThat("(.cons {} \"\")", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -47,7 +47,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil ())", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true ())", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 ())", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons () ())", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () ())", shouldEvalTo: listWithItems(ConsValue.Seq(EmptyNode)))
     expectThat("(.cons {} ())", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -59,12 +59,34 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons '(1 2 3) '(4 5))", shouldEvalTo: listWithItems(listWithItems(1, 2, 3), 4, 5))
   }
 
+  /// .cons should produce a list with the first item and the lazy seq.
+  func testWithEmptyLazySeq() {
+    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") nil)))")
+    runCode("(def b (.cons 10 a))")
+    // Validate 'cons' worked by taking apart the list
+    expectThat("(.first b)", shouldEvalTo: 10)
+    expectEmptyOutputBuffer()
+    expectThat("(.rest b)", shouldEvalTo: listWithItems())
+    expectOutputBuffer(toBe: "executed thunk")
+  }
+
+  /// .cons should produce a list with the first item and an empty lazy seq.
+  func testWithLazySeq() {
+    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") [0 1 2 3])))")
+    runCode("(def b (.cons 10 a))")
+    // Validate 'cons' worked by taking apart the list
+    expectThat("(.first b)", shouldEvalTo: 10)
+    expectEmptyOutputBuffer()
+    expectThat("(.rest b)", shouldEvalTo: listWithItems(0, 1, 2, 3))
+    expectOutputBuffer(toBe: "executed thunk")
+  }
+
   // .cons should produce a single-item list if the second item is an empty vector.
   func testWithEmptyVector() {
     expectThat("(.cons nil [])", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true [])", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 [])", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons () [])", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () [])", shouldEvalTo: listWithItems(ConsValue.Seq(EmptyNode)))
     expectThat("(.cons {} [])", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 
@@ -82,7 +104,7 @@ class TestConsBuiltin : InterpreterTest {
     expectThat("(.cons nil {})", shouldEvalTo: listWithItems(ConsValue.Nil))
     expectThat("(.cons true {})", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
     expectThat("(.cons 1 {})", shouldEvalTo: listWithItems(ConsValue.IntAtom(1)))
-    expectThat("(.cons () {})", shouldEvalTo: listWithItems(ConsValue.List(Empty())))
+    expectThat("(.cons () {})", shouldEvalTo: listWithItems(ConsValue.Seq(EmptyNode)))
     expectThat("(.cons {} {})", shouldEvalTo: listWithItems(ConsValue.Map([:])))
   }
 

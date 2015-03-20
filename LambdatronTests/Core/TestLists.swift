@@ -14,9 +14,9 @@ class TestListBasics : XCTestCase {
 
   /// An empty Cons should work properly in the context of a for-in loop.
   func testEmptyConsIteration() {
-    var emptyCons : ListType<ConsValue> = Empty()
+    var emptyCons : SeqType = EmptyNode
     var untouched = true
-    for item in emptyCons {
+    for item in SeqIterator(emptyCons) {
       untouched = false
     }
     XCTAssert(untouched, "An empty Cons list should not iterate even a single time through a for-in loop.")
@@ -26,25 +26,45 @@ class TestListBasics : XCTestCase {
   func testConsIteration() {
     let sublist = listWithItems(true, false)
     let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
-    var testCons = listFromItems(15, sublist, vector, .StringAtom("foobar"))
+    var testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
-    for item in testCons {
+    for item in SeqIterator(testCons)! {
       if counter == 0 {
-        XCTAssert(item == 15,
-          "The first item in the list should have been the integer 15.")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == 15,
+            "The first item in the list should have been the integer 15.")
+        case .Error:
+          XCTFail("The first item in the list didn't expand properly")
+        }
       }
       else if counter == 1 {
-        XCTAssert(item == sublist,
-          "The second item in the list should have been the sublist.")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == sublist,
+            "The second item in the list should have been the sublist.")
+        case .Error:
+          XCTFail("The second item in the list didn't expand properly")
+        }
       }
       else if counter == 2 {
-        XCTAssert(item == vector,
-          "The third item in the list should have been the vector.")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == vector,
+            "The third item in the list should have been the vector.")
+        case .Error:
+          XCTFail("The third item in the list didn't expand properly")
+        }
       }
       else if counter == 3 {
-        XCTAssert(item == .StringAtom("foobar"),
-          "The fourth item in the list should have been the string \"foobar\".")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == .StringAtom("foobar"),
+            "The fourth item in the list should have been the string \"foobar\".")
+        case .Error:
+          XCTFail("The fourth item in the list didn't expand properly")
+        }
       }
       else {
         XCTFail("The list should only be visited 4 times.")
@@ -58,26 +78,46 @@ class TestListBasics : XCTestCase {
   func testConsEnumerateIteration() {
     let sublist = listWithItems(true, false)
     let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
-    var testCons = listFromItems(15, sublist, vector, .StringAtom("foobar"))
+    var testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
-    for (idx, item) in enumerate(testCons) {
+    for (idx, item) in enumerate(SeqIterator(testCons)!) {
       XCTAssert(idx == counter, "The idx reported by enumerate() should always be in sync with 'counter'.")
       if counter == 0 {
-        XCTAssert(item == 15,
-          "The first item in the list should have been the integer 15.")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == 15,
+            "The first item in the list should have been the integer 15.")
+        case .Error:
+          XCTFail("The first item in the list didn't expand properly")
+        }
       }
       else if counter == 1 {
-        XCTAssert(item == sublist,
-          "The second item in the list should have been the sublist.")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == sublist,
+            "The second item in the list should have been the sublist.")
+        case .Error:
+          XCTFail("The second item in the list didn't expand properly")
+        }
       }
       else if counter == 2 {
-        XCTAssert(item == vector,
-          "The third item in the list should have been the vector.")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == vector,
+            "The third item in the list should have been the vector.")
+        case .Error:
+          XCTFail("The third item in the list didn't expand properly")
+        }
       }
       else if counter == 3 {
-        XCTAssert(item == .StringAtom("foobar"),
-          "The fourth item in the list should have been the string \"foobar\".")
+        switch item {
+        case let .Success(item):
+          XCTAssert(item == .StringAtom("foobar"),
+            "The fourth item in the list should have been the string \"foobar\".")
+        case .Error:
+          XCTFail("The fourth item in the list didn't expand properly")
+        }
       }
       else {
         XCTFail("The list should only be visited 4 times.")

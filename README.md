@@ -57,9 +57,14 @@ These will disappear as the feature set is filled out.
 Features
 --------
 
-Lambdatron has the following features:
+Lambdatron has a number of possibly useful features. Lambdatron's data structures should share identical semantics with Clojure's data structures (in that they are immutable and persistent), although some of them are implemented using Swift's naive copy-on-write features rather than as proper persistent data structures.
 
-**Lists**, the bread and butter of Lisp. Create a list using `cons`, extract the first element using `first`, or create a list without its first element using `rest`. Create the empty list using `()`. Or use the `list` function to create a list from zero or more arguments.
+**Sequences**, like in Clojure. Sequences are immutable, and come in several flavors. You can prepend items using `cons`, extract the first element using `first`, or get the sequence consisting of all but the first element using `rest`. Create a sequence or get a sequence view using `seq`.
+
+* Cons lists, the bread and butter of Lisp. Create the empty list using `()`. Or use the `list` function to create a list from zero or more arguments.
+* Lazy sequences, which store a [thunk](http://en.wikipedia.org/wiki/Thunk) whose evaluation is deferred until absolutely necessary, after which they cache their value. Create a lazy sequence using the stdlib `lazy-seq` macro. Some of the stdlib and built-in functions may also return lazy sequences.
+* Lightweight views into strings, vectors, and hashmaps, which allow treating those collections like sequences without requiring expensive copying operations. These are transparent to the end user.
+* Contiguous lists backed by an `Array`. These are transparent to the end user.
 
 **Vectors**, declared using square brackets: `[1 2 true "Lisp"]`, or the `vector` function. Unlike lists, vectors can't be used to invoke functions. Vectors can be used in function position with an integer index argument.
 
@@ -93,13 +98,13 @@ The following special forms, reader macros, and functions are built into the int
 
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'`, `` ` ``, `~`, `~@`
-- Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `get`, `assoc`, `dissoc`, `count`, `reduce`
+- Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `lazy-seq`, `get`, `assoc`, `dissoc`, `count`, `reduce`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
 - String manipulation: `str`, `subs`, `lower-case`, `upper-case`, `replace`, `replace-first`
 - String building: `sb`, `sb-append`, `sb-reverse`
 - Regular expressions: `re-pattern`, `re-first`, `re-seq`, `re-iterate`, `re-quote-replacement`
 - I/O: `read`, `print`, `println`
-- Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `list?`, `vector?`, `map?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
+- Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `seq?`, `vector?`, `map?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `<=` `>`, `>=`
 - Miscellaneous: `read-string`, `rand`, `eval`, `fail`
@@ -156,7 +161,6 @@ These are objectives I am working on right now, or plan on doing in the near fut
 
 - Expanding standard library
 - Support for sets
-- Support for regular expressions
 - Basic namespacing
 - Ability to type in multiple forms at the top level
 - Metacontext - allow consumer to define custom functions visible to the user
@@ -170,7 +174,6 @@ These are objectives I am working on right now, or plan on doing in the near fut
 These are objectives that are either too big in scope to schedule, too technically challenging at this time, or of uncertain utility.
 
 - Persistent data structures
-- Proper support for lazy collections
 - STM and support for multithreading
 - Destructuring via pattern matching
 - Custom types (e.g. `deftype`) and multimethods (may not be possible at the moment)

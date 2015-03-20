@@ -25,7 +25,7 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
   case Symbol(InternedSymbol)
   case Keyword(InternedKeyword)
   case Auxiliary(AuxiliaryType)
-  case List(ListType<ConsValue>)
+  case Seq(SeqType)
   case Vector(VectorType)
   case Map(MapType)
   case FunctionLiteral(Function)
@@ -44,7 +44,7 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     case let .Symbol(s): return s.hashValue
     case let .Keyword(k): return k.hashValue
     case let .Auxiliary(a): return a.hashValue
-    case let .List(l): return l.hashValue
+    case let .Seq(seq): return seq.hashValue
     case let .Vector(v): return v.count == 0 ? 0 : v[0].hashValue
     case let .Map(m): return m.count
     case let .FunctionLiteral(f): return 0
@@ -54,12 +54,19 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     }
   }
 
-  public var description : String { return describe(nil) }
-  public var debugDescription : String { return debugDescribe(nil) }
+  public var description : String { return describe(nil).asString }
+  public var debugDescription : String { return debugDescribe(nil).asString }
 
   public init(integerLiteral value: Int) { self = .IntAtom(value) }
   public init(floatLiteral value: Double) { self = .FloatAtom(value) }
   public init(booleanLiteral value: Bool) { self = .BoolAtom(value) }
+
+  var isNil : Bool {
+    switch self {
+    case let .Nil: return true
+    default: return false
+    }
+  }
 
   var asBool : Bool? {
     switch self {
@@ -103,9 +110,9 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
     }
   }
 
-  var asList : ListType<ConsValue>? {
+  var asSeq : SeqType? {
     switch self {
-    case let .List(l): return l
+    case let .Seq(seq): return seq
     default: return nil
     }
   }

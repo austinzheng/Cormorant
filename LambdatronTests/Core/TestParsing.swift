@@ -215,11 +215,11 @@ class TestKeywordParsing : InterpreterTest {
 /// Test how lists are lexed and parsed.
 class TestListParsing : InterpreterTest {
   func testParsingEmptyList() {
-    expectThat("()", shouldEvalTo: .List(Empty()))
+    expectThat("()", shouldEvalTo: .Seq(EmptyNode))
   }
 
   func testParsingNilList() {
-    expectThat("'(nil)", shouldEvalTo: .List(Cons(.Nil)))
+    expectThat("'(nil)", shouldEvalTo: .Seq(sequence(.Nil)))
   }
 
   /// Single element lists should be properly parsed.

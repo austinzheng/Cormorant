@@ -61,6 +61,15 @@ class TestConcatBuiltin : InterpreterTest {
     expectThat("(.concat '(1) '(2 3) '(4))", shouldEvalTo: targetList)
   }
 
+  /// .concat should concatenate lazy sequences.
+  func testWithLazySeqs() {
+    expectThat("(.concat (.lazy-seq (fn [] '(1 2))))", shouldEvalTo: listWithItems(1, 2))
+    expectThat("(.concat (.lazy-seq (fn [] '(1 2))) (.lazy-seq (fn [] [5 6 7])))",
+      shouldEvalTo: listWithItems(1, 2, 5, 6, 7))
+    expectThat("(.concat (.lazy-seq (fn [] [1])) (.lazy-seq (fn [] [2])) (.lazy-seq (fn [] ())) (.lazy-seq (fn [] '(3))))",
+      shouldEvalTo: listWithItems(1, 2, 3))
+  }
+
   /// .concat should concatenate vectors.
   func testWithVectors() {
     let targetList = listWithItems(1, 2, 3, 4)
@@ -92,6 +101,56 @@ class TestConcatBuiltin : InterpreterTest {
     expectThat("(.concat {1 2 true nil} '(3) [4 5 6 7] \"bar\")", shouldEvalTo:
       listWithItems(vectorWithItems(1, 2), vectorWithItems(true, .Nil), 3, 4, 5, 6, 7, .CharAtom("b"), .CharAtom("a"),
         .CharAtom("r")))
+  }
+
+  /// .concat should properly concatenate mixed items involving strings.
+  func testItemsAgainstStrings() {
+    expectThat("(.concat {10 11} \"foo\" {5 6})", shouldEvalTo:
+      listWithItems(vectorWithItems(10, 11), .CharAtom("f"), .CharAtom("o"), .CharAtom("o"), vectorWithItems(5, 6)))
+    expectThat("(.concat [true nil] \"foo\" [3 4])", shouldEvalTo:
+      listWithItems(true, .Nil, .CharAtom("f"), .CharAtom("o"), .CharAtom("o"), 3, 4))
+    expectThat("(.concat '(99 0) \"foo\" '(3 4))", shouldEvalTo:
+      listWithItems(99, 0, .CharAtom("f"), .CharAtom("o"), .CharAtom("o"), 3, 4))
+    expectThat("(.concat \"ba\" \"baz\" \"foo\")", shouldEvalTo:
+      listWithItems(.CharAtom("b"), .CharAtom("a"), .CharAtom("b"), .CharAtom("a"), .CharAtom("z"), .CharAtom("f"),
+        .CharAtom("o"), .CharAtom("o")))
+    expectThat("(.concat (.lazy-seq (fn [] [11 12])) \"foo\" (.lazy-seq (fn [] '(3 4))))",
+      shouldEvalTo: listWithItems(11, 12, .CharAtom("f"), .CharAtom("o"), .CharAtom("o"), 3, 4))
+  }
+
+  /// .concat should properly concatenate mixed items involving lists.
+  func testItemsAgainstLists() {
+    expectThat("(.concat {10 11} '(1 2) {5 6})", shouldEvalTo:
+      listWithItems(vectorWithItems(10, 11), 1, 2, vectorWithItems(5, 6)))
+    expectThat("(.concat [true nil] '(1 2) [3 4])", shouldEvalTo: listWithItems(true, .Nil, 1, 2, 3, 4))
+    expectThat("(.concat '(99 0) '(1 2) '(3 4))", shouldEvalTo: listWithItems(99, 0, 1, 2, 3, 4))
+    expectThat("(.concat \"ba\" '(1 2) \"foo\")", shouldEvalTo:
+      listWithItems(.CharAtom("b"), .CharAtom("a"), 1, 2, .CharAtom("f"), .CharAtom("o"), .CharAtom("o")))
+    expectThat("(.concat (.lazy-seq (fn [] [11 12])) '(1 2) (.lazy-seq (fn [] '(3 4))))",
+      shouldEvalTo: listWithItems(11, 12, 1, 2, 3, 4))
+  }
+
+  /// .concat should properly concatenate mixed items involving vectors.
+  func testItemsAgainstVectors() {
+    expectThat("(.concat {10 11} [1 2] {5 6})", shouldEvalTo:
+      listWithItems(vectorWithItems(10, 11), 1, 2, vectorWithItems(5, 6)))
+    expectThat("(.concat [true nil] [1 2] [3 4])", shouldEvalTo: listWithItems(true, .Nil, 1, 2, 3, 4))
+    expectThat("(.concat \"ba\" [1 2] \"foo\")", shouldEvalTo:
+      listWithItems(.CharAtom("b"), .CharAtom("a"), 1, 2, .CharAtom("f"), .CharAtom("o"), .CharAtom("o")))
+    expectThat("(.concat (.lazy-seq (fn [] [11 12])) [1 2] (.lazy-seq (fn [] '(3 4))))",
+      shouldEvalTo: listWithItems(11, 12, 1, 2, 3, 4))
+  }
+
+  /// .concat should properly concatenate mixed items involving vectors.
+  func testItemsAgainstMaps() {
+    expectThat("(.concat {10 11} {1 2} {5 6})", shouldEvalTo:
+      listWithItems(vectorWithItems(10, 11), vectorWithItems(1, 2), vectorWithItems(5, 6)))
+    expectThat("(.concat [true nil] {1 2} [3 4])", shouldEvalTo:
+      listWithItems(true, .Nil, vectorWithItems(1, 2), 3, 4))
+    expectThat("(.concat \"b\" {1 2} \"foo\")", shouldEvalTo:
+      listWithItems(.CharAtom("b"), vectorWithItems(1, 2), .CharAtom("f"), .CharAtom("o"), .CharAtom("o")))
+    expectThat("(.concat (.lazy-seq (fn [] [11 12])) {1 2} (.lazy-seq (fn [] '(3 4))))",
+      shouldEvalTo: listWithItems(11, 12, vectorWithItems(1, 2), 3, 4))
   }
 
   /// .concat should reject non-collection arguments.

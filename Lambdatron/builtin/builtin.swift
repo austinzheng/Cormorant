@@ -31,6 +31,7 @@ public enum BuiltIn : String, Printable {
   case Concat = ".concat"
   case Nth = ".nth"
   case Seq = ".seq"
+  case LazySeq = ".lazy-seq"
   case Get = ".get"
   case Assoc = ".assoc"
   case Dissoc = ".dissoc"
@@ -82,7 +83,7 @@ public enum BuiltIn : String, Printable {
   case IsEvalable = ".eval?"
   case IsTrue = ".true?"
   case IsFalse = ".false?"
-  case IsList = ".list?"
+  case IsSeq = ".seq?"
   case IsVector = ".vector?"
   case IsMap = ".map?"
   case IsPos = ".pos?"
@@ -128,6 +129,7 @@ public enum BuiltIn : String, Printable {
     case .Concat: return pr_concat
     case .Nth: return pr_nth
     case .Seq: return pr_seq
+    case .LazySeq: return pr_lazyseq
     case .Get: return pr_get
     case .Assoc: return pr_assoc
     case .Dissoc: return pr_dissoc
@@ -167,7 +169,7 @@ public enum BuiltIn : String, Printable {
     case .IsEvalable: return pr_isEvalable
     case .IsTrue: return pr_isTrue
     case .IsFalse: return pr_isFalse
-    case .IsList: return pr_isList
+    case .IsSeq: return pr_isSeq
     case .IsVector: return pr_isVector
     case .IsMap: return pr_isMap
     case .IsPos: return pr_isPos

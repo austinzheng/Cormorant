@@ -50,7 +50,11 @@ class ReadEvaluatePrintLoop {
           // Language form
           let result = interpreter.evaluate(trimmed)
           switch result {
-          case let .Success(v): println(interpreter.describe(v))
+          case let .Success(v):
+            switch interpreter.describe(v) {
+            case let .Desc(d): println(d)
+            case let .Error(err): println("Read error \(err)")
+            }
           case let .ReadFailure(f): println("Read error \(f)")
           case let .EvalFailure(f): println("Evaluation error \(f)")
           }

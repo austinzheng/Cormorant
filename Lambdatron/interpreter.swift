@@ -110,7 +110,7 @@ public class Interpreter {
   }
 
   /// Given a Lambdatron form, return a prettified description.
-  public func describe(form: ConsValue) -> String {
+  public func describe(form: ConsValue) -> DescribeResult {
     return form.describe(context)
   }
 

@@ -463,34 +463,40 @@ class TestIsFalse : InterpreterTest {
   }
 }
 
-class TestIsList : InterpreterTest {
-  /// .list? should return true when called with list arguments.
-  func testIsListWithLists() {
-    expectThat("(.list? ())", shouldEvalTo: true)
-    expectThat("(.list? '(1 2 3 4 5))", shouldEvalTo: true)
-    expectThat("(.list? '(true nil \"foobar\" \\c :c 'c))", shouldEvalTo: true)
+class TestIsSeq : InterpreterTest {
+  /// .seq? should return true when called with list arguments.
+  func testWithLists() {
+    expectThat("(.seq? ())", shouldEvalTo: true)
+    expectThat("(.seq? '(1 2 3 4 5))", shouldEvalTo: true)
+    expectThat("(.seq? '(true nil \"foobar\" \\c :c 'c))", shouldEvalTo: true)
   }
 
-  /// .list? should return false when called with non-list arguments.
-  func testIsListWithOthers() {
-    expectThat("(.list? nil)", shouldEvalTo: false)
-    expectThat("(.list? true)", shouldEvalTo: false)
-    expectThat("(.list? false)", shouldEvalTo: false)
-    expectThat("(.list? 1523)", shouldEvalTo: false)
-    expectThat("(.list? -92.123571)", shouldEvalTo: false)
-    expectThat("(.list? \\v)", shouldEvalTo: false)
-    expectThat("(.list? 'v)", shouldEvalTo: false)
-    expectThat("(.list? :v)", shouldEvalTo: false)
-    expectThat("(.list? \"foobar\")", shouldEvalTo: false)
-    expectThat("(.list? [1 2 3])", shouldEvalTo: false)
-    expectThat("(.list? {:a 1 :b 2})", shouldEvalTo: false)
-    expectThat("(.list? .list?)", shouldEvalTo: false)
+  /// .seq? should return true when called with lazy seqs.
+  func testWithLazySeqs() {
+    expectThat("(.seq? (.lazy-seq (fn [])))", shouldEvalTo: true)
+    expectThat("(.seq? (.lazy-seq (fn [] '(1 2 3 4 5))))", shouldEvalTo: true)
   }
 
-  /// .list? should take exactly one argument.
+  /// .seq? should return false when called with non-list arguments.
+  func testWithOthers() {
+    expectThat("(.seq? nil)", shouldEvalTo: false)
+    expectThat("(.seq? true)", shouldEvalTo: false)
+    expectThat("(.seq? false)", shouldEvalTo: false)
+    expectThat("(.seq? 1523)", shouldEvalTo: false)
+    expectThat("(.seq? -92.123571)", shouldEvalTo: false)
+    expectThat("(.seq? \\v)", shouldEvalTo: false)
+    expectThat("(.seq? 'v)", shouldEvalTo: false)
+    expectThat("(.seq? :v)", shouldEvalTo: false)
+    expectThat("(.seq? \"foobar\")", shouldEvalTo: false)
+    expectThat("(.seq? [1 2 3])", shouldEvalTo: false)
+    expectThat("(.seq? {:a 1 :b 2})", shouldEvalTo: false)
+    expectThat("(.seq? .seq?)", shouldEvalTo: false)
+  }
+
+  /// .seq? should take exactly one argument.
   func testArity() {
-    expectArityErrorFrom("(.list?)")
-    expectArityErrorFrom("(.list? () ())")
+    expectArityErrorFrom("(.seq?)")
+    expectArityErrorFrom("(.seq? () ())")
   }
 }
 

@@ -142,7 +142,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         //  actual List, and advance the idx as well.
         let list = listWithTokens(collectTokens(tokens, &idx, .List), ctx)
         switch list {
-        case let .Success(list): buffer.append(wrappedConsItem(.List(list), &wrapStack))
+        case let .Success(list): buffer.append(wrappedConsItem(.Seq(list), &wrapStack))
         case let .Failure(f): return .Failure(f)
         }
       case .RightParentheses:
@@ -219,7 +219,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
 // We need all these small enums because "unimplemented IR generation feature non-fixed multi-payload enum layout" is
 // still, annoyingly, a thing.
 private enum ListResult {
-  case Success(ListType<ConsValue>)
+  case Success(SeqType)
   case Failure(ReadError)
 }
 
@@ -233,7 +233,7 @@ private func listWithTokens(tokens: TokenCollectionResult, ctx: Context) -> List
     }
     let processedForms = processTokenList(tokens, ctx)
     switch processedForms {
-    case let .Success(processedForms): return .Success(listFromCollection(processedForms))
+    case let .Success(processedForms): return .Success(sequence(processedForms))
     case let .Failure(f): return .Failure(f)
     }
   case let .Error(e): return .Failure(e)
@@ -329,7 +329,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
     switch s {
     case .LeftParentheses:
       switch listWithTokens(collectTokens(tokens, &index, .List), ctx) {
-      case let .Success(result): return .Success(.List(result))
+      case let .Success(result): return .Success(.Seq(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightParentheses:

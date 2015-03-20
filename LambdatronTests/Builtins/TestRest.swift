@@ -12,23 +12,25 @@ class TestRestBuiltin : InterpreterTest {
 
   /// .rest should return the empty list if passed in nil.
   func testWithNil() {
-    expectThat("(.rest nil)", shouldEvalTo: .List(Empty()))
+    expectThat("(.rest nil)", shouldEvalTo: .Seq(EmptyNode))
   }
 
   /// .rest should return the empty list for empty collections.
   func testWithEmptyCollections() {
-    expectThat("(.rest \"\")", shouldEvalTo: .List(Empty()))
-    expectThat("(.rest ())", shouldEvalTo: .List(Empty()))
-    expectThat("(.rest [])", shouldEvalTo: .List(Empty()))
-    expectThat("(.rest {})", shouldEvalTo: .List(Empty()))
+    expectThat("(.rest \"\")", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest ())", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest (.lazy-seq (fn [])))", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest [])", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest {})", shouldEvalTo: .Seq(EmptyNode))
   }
 
   /// .rest should return the empty list for single-element collections.
   func testWithOneElement() {
-    expectThat("(.rest \"a\")", shouldEvalTo: .List(Empty()))
-    expectThat("(.rest '(:a))", shouldEvalTo: .List(Empty()))
-    expectThat("(.rest [\\a])", shouldEvalTo: .List(Empty()))
-    expectThat("(.rest {'a 10})", shouldEvalTo: .List(Empty()))
+    expectThat("(.rest \"a\")", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest (.lazy-seq (fn [] '(10))))", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest '(:a))", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest [\\a])", shouldEvalTo: .Seq(EmptyNode))
+    expectThat("(.rest {'a 10})", shouldEvalTo: .Seq(EmptyNode))
   }
 
   /// .rest should return a sequence comprised of the rest of the characters of a string.
@@ -47,6 +49,19 @@ class TestRestBuiltin : InterpreterTest {
     expectThat("(.rest '(true false nil 1 2.1 3))", shouldEvalTo: listWithItems(false, .Nil, 1, 2.1, 3))
     expectThat("(.rest '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo:
       listWithItems(listWithItems(3, 4), listWithItems(5, 6), listWithItems(7, 8), listWithItems()))
+  }
+
+  /// .rest should return the rest of a lazy seq, forcing evaluation if necessary.
+  func testWithLazySeqs() {
+    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") '(\"foo\" \"bar\" \"baz\"))))")
+    expectEmptyOutputBuffer()
+    // At this point, the thunk should fire
+    expectThat("(.rest a)", shouldEvalTo: listWithItems(.StringAtom("bar"), .StringAtom("baz")))
+    expectOutputBuffer(toBe: "executed thunk")
+    clearOutputBuffer()
+    // Don't re-evalaute the thunk
+    expectThat("(.rest a)", shouldEvalTo: listWithItems(.StringAtom("bar"), .StringAtom("baz")))
+    expectEmptyOutputBuffer()
   }
 
   /// .rest should return a sequence comprised of the rest of the elements in a vector.

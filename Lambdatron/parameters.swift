@@ -21,7 +21,7 @@ struct Params : Printable, CollectionType, GeneratorType {
   /// When Params is being used as a generator, indicates the current parameter number.
   private var index = 0
 
-  var description : String { return describe(nil) }
+  var description : String { return describe(nil).asString }
 
   var startIndex : Int { return 0 }
   var endIndex : Int { return count }

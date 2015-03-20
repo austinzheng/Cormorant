@@ -52,6 +52,24 @@ class TestFirstBuiltin : InterpreterTest {
     expectThat("(.first {:a 1 :b 2 \\c 3})", shouldEvalTo: vectorWithItems(.Keyword(b), 2))
   }
 
+  /// .first should return the first element of a lazy seq, forcing evaluation if necessary.
+  func testWithLazySeqs() {
+    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") '(\"foo\" \"bar\" \"baz\"))))")
+    expectEmptyOutputBuffer()
+    // At this point, the thunk should fire
+    expectThat("(.first a)", shouldEvalTo: .StringAtom("foo"))
+    expectOutputBuffer(toBe: "executed thunk")
+    clearOutputBuffer()
+    // Don't re-evalaute the thunk
+    expectThat("(.first a)", shouldEvalTo: .StringAtom("foo"))
+    expectEmptyOutputBuffer()
+  }
+
+  /// .first should return nil if passed a lazy seq with no elements.
+  func testWithEmptyLazySeq() {
+    expectThat("(.first (.lazy-seq (fn [])))", shouldEvalTo: .Nil)
+  }
+
   /// .first should reject non-collection arguments.
   func testWithInvalidTypes() {
     expectThat("(.first true)", shouldFailAs: .InvalidArgumentError)

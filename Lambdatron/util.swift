@@ -144,13 +144,3 @@ func firstCharacter(s: String) -> Character {
   precondition(!s.isEmpty, "string is not empty")
   return s[s.startIndex]
 }
-
-/// Build a list out of a string, or return the nil literal if the string is empty.
-func listFromString(s: String, postfix: ListType<ConsValue>? = nil) -> ConsValue {
-  if s.isEmpty {
-    return .Nil
-  }
-  // The 'map' takes each character and wraps it in a CharAtom().
-  let list : ListType<ConsValue> = listFromMappedCollection(s, postfix: postfix) { .CharAtom($0) }
-  return .List(list)
-}

@@ -94,7 +94,7 @@ func re_seq(args: Params, ctx: Context) -> EvalResult {
           resultBuffer.append(.Vector(buffer))
         }
       }
-      return .Success(.List(listFromCollection(resultBuffer)))
+      return .Success(.Seq(sequence(resultBuffer)))
     }
     else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "second argument must be a string"))

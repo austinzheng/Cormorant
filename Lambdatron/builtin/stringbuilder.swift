@@ -14,7 +14,14 @@ func sb_sb(args: Params, ctx: Context) -> EvalResult {
   if args.count > 1 {
     return .Failure(EvalError.arityError("0 or 1", actual: args.count, fn))
   }
-  return .Success(.Auxiliary(args.count == 0 ? StringBuilderType() : StringBuilderType(args[0].toString(ctx))))
+  if args.count == 0 {
+    return .Success(.Auxiliary(StringBuilderType()))
+  }
+  let result = args[0].toString(ctx)
+  switch result {
+  case let .Desc(desc): return .Success(.Auxiliary(StringBuilderType(desc)))
+  case let .Error(err): return .Failure(err)
+  }
 }
 
 /// Given a string builder and some value, append that value to the string builder's buffer.
@@ -24,8 +31,14 @@ func sb_append(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   if let builder = args[0].asStringBuilder {
-    builder.append(args[1].toString(ctx))
-    return .Success(args[0])
+    let result = args[1].toString(ctx)
+    switch result {
+    case let .Desc(desc):
+      builder.append(desc)
+      return .Success(args[0])
+    case let .Error(err):
+      return .Failure(err)
+    }
   }
   return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string builder"))
 }

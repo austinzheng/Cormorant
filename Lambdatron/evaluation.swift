@@ -20,6 +20,13 @@ enum EvalResult {
 enum CollectResult {
   case Success(Params)
   case Failure(EvalError)
+
+  func force() -> Params {
+    switch self {
+    case let .Success(s): return s
+    case .Failure: internalError("CollectResult force method called improperly")
+    }
+  }
 }
 
 func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
@@ -44,17 +51,24 @@ func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
 
 /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
 /// to perform argument evaluation as part of the process of calling a function.
-func collectFunctionParams(list : ListType<ConsValue>, ctx: Context) -> CollectResult {
+func collectFunctionParams(list : SeqType, ctx: Context) -> CollectResult {
   var buffer = Params()
-  for param in list {
-    switch param.evaluate(ctx) {
-    case let .Success(result):
-      buffer.append(result)
-    case .Recur:
-      // Cannot use 'recur' as a function argument
-      return .Failure(EvalError(.RecurMisuseError))
-    case let .Failure(f):
-      return .Failure(f)
+  for param in SeqIterator(list) {
+    switch param {
+    case let .Success(param):
+      switch param.evaluate(ctx) {
+      case let .Success(result):
+        buffer.append(result)
+      case .Recur:
+        // Cannot use 'recur' as a function argument
+        return .Failure(EvalError(.RecurMisuseError))
+      case let .Failure(f):
+        // Param expression couldn't be evaluated successfully
+        return .Failure(f)
+      }
+    case let .Error(err):
+      // List failure during iteration (e.g. bad lazy seq)
+      return .Failure(err)
     }
   }
   return .Success(buffer)
@@ -62,116 +76,154 @@ func collectFunctionParams(list : ListType<ConsValue>, ctx: Context) -> CollectR
 
 /// Collect the literal values of all cells within a list, starting from a given first item. This method is intended
 /// to collect symbols as part of the process of calling a macro or special form.
-func collectSymbols(list: ListType<ConsValue>) -> Params {
+func collectSymbols(list: SeqType) -> CollectResult {
   var buffer = Params()
-  for param in list {
-    buffer.append(param)
+  for param in SeqIterator(list) {
+    switch param {
+    case let .Success(param):
+      buffer.append(param)
+    case let .Error(err):
+      // List failure during iteration (e.g. bad lazy seq)
+      return .Failure(err)
+    }
   }
-  return buffer
+  return .Success(buffer)
 }
 
 
 // MARK: List evaluation
 
+/// Given a SeqResult that might contain a ListType, process the ListType if it exists, or just pass any error through.
+private func unwrapAndProcessSeqResult(result: SeqResult, f: SeqType -> EvalResult) -> EvalResult {
+  switch result {
+  case let .Seq(sequence):
+    return f(sequence)
+  case let .Error(err):
+    return .Failure(err)
+  }
+}
+
 /// Evaluate a list with a special form in function position.
-private func evaluateSpecialForm(list: Cons<ConsValue>, specialForm: SpecialForm, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating as special form: \(describeList(list, ctx))")
+private func evaluateSpecialForm(specialForm: SpecialForm, parameters: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating as special form: \(describeList(list, ctx))")
   // How it works:
   // 1. Arguments are passed in as-is
   // 2. The special form decides whether or not to evaluate or use the arguments
   // 3. The special form returns a value
-  let symbols = collectSymbols(list.next)
-  let result = specialForm.function(symbols, ctx)
-  return result
+  return unwrapAndProcessSeqResult(parameters) { parameters in
+    let symbols = collectSymbols(parameters)
+    switch symbols {
+    case let .Success(symbols):
+      let result = specialForm.function(symbols, ctx)
+      return result
+    case let .Failure(err): return .Failure(err)
+    }
+  }
 }
 
 /// Evaluate a list with a built-in function in function position.
-private func evaluateBuiltIn(list: Cons<ConsValue>, builtIn: BuiltIn, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating as built-in function: \(describeList(list, ctx))")
-  switch collectFunctionParams(list.next, ctx) {
-  case let .Success(values): return builtIn.function(values, ctx)
-  case let .Failure(f): return .Failure(f)
+private func evaluateBuiltIn(builtIn: BuiltIn, arguments: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating as built-in function: \(describeList(list, ctx))")
+  return unwrapAndProcessSeqResult(arguments) { arguments in
+    switch collectFunctionParams(arguments, ctx) {
+    case let .Success(values): return builtIn.function(values, ctx)
+    case let .Failure(f): return .Failure(f)
+    }
   }
 }
 
 /// Expand and evaluate a list with a macro in function position.
-private func evaluateMacro(list: Cons<ConsValue>, macro: Macro, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating as macro expansion: \(describeList(list,ctx))")
+private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating as macro expansion: \(describeList(list,ctx))")
   // How it works:
   // 1. Arguments are passed in as-is
   // 2. The macro uses the arguments and its body to create a replacement form (piece of code) in its place
   // 3. This replacement form is then evaluated to return a value
-  let symbols = collectSymbols(list.next)
-  let expanded = macro.macroexpand(symbols)
-  switch expanded {
-  case let .Success(v):
-    ctx.log(.Eval, message: "macroexpansion complete; new form: \(v.describe(ctx))")
-    let result = v.evaluate(ctx)
-    return result
-  case .Recur, .Failure: return expanded
+  return unwrapAndProcessSeqResult(parameters) { parameters in
+    let symbols = collectSymbols(parameters)
+    switch symbols {
+    case let .Success(symbols):
+      let expanded = macro.macroexpand(symbols)
+      switch expanded {
+      case let .Success(v):
+        ctx.log(.Eval, message: "macroexpansion complete; new form: \(v.describe(ctx))")
+        let result = v.evaluate(ctx)
+        return result
+      case .Recur, .Failure: return expanded
+      }
+    case let .Failure(err): return .Failure(err)
+    }
   }
 }
 
 /// Evaluate a list with a user-defined function in function position.
-private func evaluateFunction(list: Cons<ConsValue>, function: Function, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating as function: \(describeList(list, ctx))")
+private func evaluateFunction(function: Function, arguments: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating as function: \(describeList(list, ctx))")
   // How it works:
   // 1. Arguments are evaluated before the function is ever invoked
   // 2. The function only gets the results of the evaluated arguments, and never sees the literal argument forms
   // 3. The function returns a value
-  switch collectFunctionParams(list.next, ctx) {
-  case let .Success(values): return function.evaluate(values)
-  case let .Failure(f): return .Failure(f)
+  return unwrapAndProcessSeqResult(arguments) { arguments in
+    switch collectFunctionParams(arguments, ctx) {
+    case let .Success(values): return function.evaluate(values)
+    case let .Failure(f): return .Failure(f)
+    }
   }
 }
 
 /// Evaluate a list with a vector in function position.
-private func evaluateVector(list: Cons<ConsValue>, vector: VectorType, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating with vector in function position: \(describeList(list, ctx))")
+private func evaluateVector(vector: VectorType, arguments: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating with vector in function position: \(describeList(list, ctx))")
   // How it works:
   // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
   // 2. Normal function call
-  switch collectFunctionParams(list.next, ctx) {
-  case let .Success(args):
-    if args.count != 1 {
-      // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
-      // behavior.
-      return .Failure(EvalError.arityError("1", actual: args.count, "(vector)"))
+  return unwrapAndProcessSeqResult(arguments) { arguments in
+    switch collectFunctionParams(arguments, ctx) {
+    case let .Success(args):
+      if args.count != 1 {
+        // Using vector in fn position disallows the user from specifying a fallback. This is to match Clojure's
+        // behavior.
+        return .Failure(EvalError.arityError("1", actual: args.count, "(vector)"))
+      }
+      let allArgs = args.prefixedBy(.Vector(vector))
+      return pr_nth(allArgs, ctx)
+    case let .Failure(f): return .Failure(f)
     }
-    let allArgs = args.prefixedBy(.Vector(vector))
-    return pr_nth(allArgs, ctx)
-  case let .Failure(f): return .Failure(f)
   }
 }
 
 /// Evaluate a list with a map in function position.
-private func evaluateMap(list: Cons<ConsValue>, map: MapType, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating with map in function position: \(describeList(list, ctx))")
+private func evaluateMap(map: MapType, arguments: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating with map in function position: \(describeList(list, ctx))")
   // How it works:
   // 1. (*map* *args*...) is translated into (get *map* *args*...).
   // 2. Normal function call
-  switch collectFunctionParams(list.next, ctx) {
-  case let .Success(args):
-    let allArgs = args.prefixedBy(.Map(map))
-    return pr_get(allArgs, ctx)
-  case let .Failure(f): return .Failure(f)
+  return unwrapAndProcessSeqResult(arguments) { arguments in
+    switch collectFunctionParams(arguments, ctx) {
+    case let .Success(args):
+      let allArgs = args.prefixedBy(.Map(map))
+      return pr_get(allArgs, ctx)
+    case let .Failure(f): return .Failure(f)
+    }
   }
 }
 
 /// Evaluate a list with a symbol or keyword in function position.
-private func evaluateKeyType(list: Cons<ConsValue>, key: ConsValue, ctx: Context) -> EvalResult {
-  ctx.log(.Eval, message: "evaluating symbol or keyword in function position: \(describeList(list, ctx))")
+private func evaluateKeyType(key: ConsValue, arguments: SeqResult, ctx: Context) -> EvalResult {
+//  ctx.log(.Eval, message: "evaluating symbol or keyword in function position: \(describeList(list, ctx))")
   // How it works:
   // 1. (*key* *map* *fallback*) is translated into (get *map* *key* *fallback*).
   // 2. Normal function call
-  switch collectFunctionParams(list.next, ctx) {
-  case let .Success(args):
-    if !(args.count == 1 || args.count == 2) {
-      return .Failure(EvalError.arityError("1 or 2", actual: args.count, "(key type)"))
+  return unwrapAndProcessSeqResult(arguments) { arguments in
+    switch collectFunctionParams(arguments, ctx) {
+    case let .Success(args):
+      if !(args.count == 1 || args.count == 2) {
+        return .Failure(EvalError.arityError("1 or 2", actual: args.count, "(key type)"))
+      }
+      let allArgs = args.count == 1 ? Params(args[0], key) : Params(args[0], key, args[1])
+      return pr_get(allArgs, ctx)
+    case let .Failure(f): return .Failure(f)
     }
-    let allArgs = args.count == 1 ? Params(args[0], key) : Params(args[0], key, args[1])
-    return pr_get(allArgs, ctx)
-  case let .Failure(f): return .Failure(f)
   }
 }
 
@@ -210,61 +262,71 @@ func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResu
 }
 
 /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
-func evaluateList(list: ListType<ConsValue>, ctx: Context) -> EvalResult {
+func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
   // This method is run in order to evaluate a list form (a b c d).
   // 'a' must resolve to something that can be used in function position. 'b', 'c', and 'd' are arguments to the
   // function.
 
-  switch list {
-  case let list as Cons<ConsValue>:
-    // 0: The list is a non-empty list.
-    // 1: Decide whether 'a' is either a special form or a reference to a macro.
-    if let specialForm = list.value.asSpecialForm {
-      // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
-      return evaluateSpecialForm(list, specialForm, ctx)
-    }
-    else if let macro = list.value.asMacro(ctx) {
-      // Macros can't be returned by functions or other macros, nor can they be evaluated themselves.
-      return evaluateMacro(list, macro, ctx)
-    }
+  let result = list.first
+  switch result {
+  case let .Success(first):
+    switch list.isEmpty {
+    case let .Boolean(listIsEmpty):
+      if listIsEmpty {
+        // 0: An empty list just returns itself.
+        return .Success(.Seq(list))
+      }
 
-    // 2: Evaluate the form 'a'.
-    let fpItemResult = list.value.evaluate(ctx)
-    switch fpItemResult {
-    case let .Success(fpItem):
-      // 3: Decide whether or not the evaluated form of 'a' is something that can be used in function position.
-      if let builtIn = fpItem.asBuiltIn {
-        return evaluateBuiltIn(list, builtIn, ctx)
+      // 1: Decide whether 'a' is either a special form or a reference to a macro.
+      if let specialForm = first.asSpecialForm {
+        // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
+        return evaluateSpecialForm(specialForm, list.rest, ctx)
       }
-      else if let function = fpItem.asFunction {
-        return evaluateFunction(list, function, ctx)
+      else if let macro = first.asMacro(ctx) {
+        // Macros can't be returned by functions or other macros, nor can they be evaluated themselves.
+        return evaluateMacro(macro, list.rest, ctx)
       }
-      else if let vector = fpItem.asVector {
-        return evaluateVector(list, vector, ctx)
+
+      // 2: Evaluate the form 'a'.
+      let fpItemResult = first.evaluate(ctx)
+      switch fpItemResult {
+      case let .Success(fpItem):
+        // 3: Decide whether or not the evaluated form of 'a' is something that can be used in function position.
+        if let builtIn = fpItem.asBuiltIn {
+          return evaluateBuiltIn(builtIn, list.rest, ctx)
+        }
+        else if let function = fpItem.asFunction {
+          return evaluateFunction(function, list.rest, ctx)
+        }
+        else if let vector = fpItem.asVector {
+          return evaluateVector(vector, list.rest, ctx)
+        }
+        else if let map = fpItem.asMap {
+          return evaluateMap(map, list.rest, ctx)
+        }
+        else if let symbol = fpItem.asSymbol {
+          return evaluateKeyType(.Symbol(symbol), list.rest, ctx)
+        }
+        else if let keyword = fpItem.asKeyword {
+          return evaluateKeyType(.Keyword(keyword), list.rest, ctx)
+        }
+        else {
+          // 3a: 'a' is not something that can be used in function position (e.g. nil)
+          return .Failure(EvalError(.NotEvalableError))
+        }
+      case .Recur:
+        // 2a: Evaluating the form 'a' resulted in a recur sentinel; this is not acceptable.
+        return .Failure(EvalError(.RecurMisuseError))
+      case .Failure:
+        // 2b: Evaluating the form 'a' failed; for example, it was a function that threw some error.
+        return fpItemResult
       }
-      else if let map = fpItem.asMap {
-        return evaluateMap(list, map, ctx)
-      }
-      else if let symbol = fpItem.asSymbol {
-        return evaluateKeyType(list, .Symbol(symbol), ctx)
-      }
-      else if let keyword = fpItem.asKeyword {
-        return evaluateKeyType(list, .Keyword(keyword), ctx)
-      }
-      else {
-        // 3a: 'a' is not something that can be used in function position (e.g. nil)
-        return .Failure(EvalError(.NotEvalableError))
-      }
-    case .Recur:
-      // 2a: Evaluating the form 'a' resulted in a recur sentinel; this is not acceptable.
-      return .Failure(EvalError(.RecurMisuseError))
-    case .Failure:
-      // 2b: Evaluating the form 'a' failed; for example, it was a function that threw some error.
-      return fpItemResult
+    case let .Error(err):
+      // Couldn't tell if list was empty
+      return .Failure(err)
     }
-  default:
-    // 0: An empty list just returns itself.
-    return .Success(.List(list))
+  case let .Error(err):
+    return .Failure(err)
   }
 }
 
@@ -283,22 +345,20 @@ extension ConsValue {
         return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : ctx.nameForSymbol(v)]))
       case .Unbound:
         return .Failure(EvalError(.UnboundSymbolError, metadata: [.Symbol : ctx.nameForSymbol(v)]))
-      case let .Literal(l):
-        return .Success(l)
-      case let .Param(p):
-        return .Success(p)
+      case let .Literal(literal): return .Success(literal)
+      case let .Param(param): return .Success(param)
       case .BoundMacro:
         return .Failure(EvalError(.EvaluatingMacroError))
       }
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword, .Auxiliary:
       return .Success(self)
-    case let .List(l):
-      // Evaluate the value of the list 'l'
-      return evaluateList(l, ctx)
-    case let .Vector(v):
+    case let .Seq(seq):
+      // Evaluate the value of the sequence
+      return evaluateList(seq, ctx)
+    case let .Vector(vector):
       // Evaluate the value of the vector literal 'v'
       var buffer : [ConsValue] = []
-      for form in v {
+      for form in vector {
         let result = form.evaluate(ctx)
         switch result {
         case let .Success(result): buffer.append(result)

@@ -35,7 +35,7 @@ class TestDescribing : InterpreterTest {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(raw):
-      let actual = interpreter.describe(raw)
+      let actual = interpreter.describe(raw).asString
       XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
     case let .ReadFailure(f):
       XCTFail("read error: \(f.description)")

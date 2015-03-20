@@ -156,14 +156,14 @@ func pr_isFalse(args: Params, ctx: Context) -> EvalResult {
   }
 }
 
-/// Return whether or not the argument is a list.
-func pr_isList(args: Params, ctx: Context) -> EvalResult {
-  let fn = ".list?"
+/// Return whether or not the argument is a sequence.
+func pr_isSeq(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".seq?"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case .List: return .Success(true)
+  case .Seq: return .Success(true)
   default: return .Success(false)
   }
 }

@@ -8,45 +8,103 @@
 
 import Foundation
 
+/// An enum containing either a description, or an error caused while trying to calculate the description.
+public enum DescribeResult : Printable, StringLiteralConvertible {
+  case Desc(String)
+  case Error(EvalError)
+
+  public var description : String { return asString }
+
+  /// Return either the description, or a human-readable string representation of the error.
+  public var asString : String {
+    switch self {
+    case let .Desc(s): return s
+    case let .Error(err): return err.description
+    }
+  }
+
+  func force() -> String {
+    switch self {
+    case let .Desc(s): return s
+    case let .Error(err): internalError("DescribeResult's 'force' method used improperly")
+    }
+  }
+
+  public init(extendedGraphemeClusterLiteral value: Character) { self = .Desc(String(value)) }
+  public init(stringLiteral value: String) { self = .Desc(value) }
+  public init(unicodeScalarLiteral value: Character) { self = .Desc(String(value)) }
+}
+
 
 // MARK: Describe
 
 /// Given a list, return a description (e.g. "(a b c d e)" for a five-item list).
-func describeList(list: ListType<ConsValue>, c: Context?, debug: Bool = false) -> String {
-  let descs = map(list) { debug ? $0.debugDescribe(c) : $0.describe(c) }
-  let final = join(" ", descs)
-  return "(\(final))"
+func describeSeq(seq: SeqType, ctx: Context?, debug: Bool = false) -> DescribeResult {
+  var buffer : [String] = []
+  for item in SeqIterator(seq) {
+    switch item {
+    case let .Success(item):
+      // Successfully got the item out of the list, now describe it
+      let result = debug ? item.debugDescribe(ctx) : item.describe(ctx)
+      switch result {
+      case let .Desc(item): buffer.append(item)
+      case .Error: return result
+      }
+    case let .Error(err):
+      return .Error(err)
+    }
+  }
+  let final = join(" ", buffer)
+  return .Desc("(\(final))")
 }
 
 /// Given a vector, return a description.
-func describeVector(vector: VectorType, c: Context?, debug: Bool = false) -> String {
-  let descs = map(vector) { debug ? $0.debugDescribe(c) : $0.describe(c) }
-  let final = join(" ", descs)
-  return "[\(final)]"
+func describeVector(vector: VectorType, ctx: Context?, debug: Bool = false) -> DescribeResult {
+  var buffer : [String] = []
+  for item in vector {
+    let result = debug ? item.debugDescribe(ctx) : item.describe(ctx)
+    switch result {
+    case let .Desc(item): buffer.append(item)
+    case .Error: return result
+    }
+  }
+  let final = join(" ", buffer)
+  return .Desc("[\(final)]")
 }
 
 /// Given a map, return a description.
-func describeMap(m: MapType, c: Context?, debug: Bool = false) -> String {
-  let descs = map(m) {
-    (debug ? $0.0.debugDescribe(c) : $0.0.describe(c)) + " " + (debug ? $0.1.debugDescribe(c) : $0.1.describe(c))
+func describeMap(map: MapType, ctx: Context?, debug: Bool = false) -> DescribeResult {
+  var buffer : [String] = []
+  for (key, value) in map {
+    let result = debug ? key.debugDescribe(ctx) : key.describe(ctx)
+    switch result {
+    case let .Desc(key):
+      let result = debug ? value.debugDescribe(ctx) : value.describe(ctx)
+      switch result {
+      case let .Desc(value):
+        buffer.append("\(key) \(value)")
+      case .Error: return result
+      }
+    case .Error: return result
+    }
   }
-  let final = join(", ", descs)
-  return "{\(final)}"
+  let final = join(", ", buffer)
+  return .Desc("{\(final)}")
 }
 
 extension ConsValue {
 
   /// Return the stringified version of an object.
-  func toString(ctx: Context) -> String {
+  func toString(ctx: Context) -> DescribeResult {
     switch self {
     case let .Nil:
       return ""
     case let .CharAtom(char):
-      return String(char)
+      return .Desc(String(char))
     case let .StringAtom(str):
-      return str
+      return .Desc(str)
     case let .Auxiliary(aux):
-      return aux.toString()
+      return .Desc(aux.toString())
     default:
       return self.describe(ctx)
     }
@@ -54,34 +112,34 @@ extension ConsValue {
 
   /// Return a description of an object. If the object is a string, any constituent characters will be converted to the
   /// appropriate two-character escape sequence if necessary.
-  func describe(ctx: Context?) -> String {
+  func describe(ctx: Context?) -> DescribeResult {
     switch self {
     case .Nil:
       return "nil"
     case let .BoolAtom(bool):
-      return bool ? "true" : "false"
+      return .Desc(bool ? "true" : "false")
     case let .IntAtom(int):
-      return int.description
+      return .Desc(int.description)
     case let .FloatAtom(double):
-      return double.description
+      return .Desc(double.description)
     case let .CharAtom(char):
-      return charLiteralDesc(char)
+      return .Desc(charLiteralDesc(char))
     case let .StringAtom(str):
-      return "\"" + stringByEscaping(str) + "\""
+      return .Desc("\"" + stringByEscaping(str) + "\"")
     case let .Symbol(symbol):
       if let ctx = ctx {
-        return ctx.nameForSymbol(symbol)
+        return .Desc(ctx.nameForSymbol(symbol))
       }
-      return "symbol:\(symbol.identifier)"
+      return .Desc("symbol:\(symbol.identifier)")
     case let .Keyword(keyword):
       if let ctx = ctx {
-        return ":" + ctx.nameForKeyword(keyword)
+        return .Desc(":" + ctx.nameForKeyword(keyword))
       }
-      return "keyword:\(keyword.identifier)"
+      return .Desc("keyword:\(keyword.identifier)")
     case let .Auxiliary(aux):
-      return aux.describe()
-    case let .List(list):
-      return describeList(list, ctx, debug: false)
+      return .Desc(aux.describe())
+    case let .Seq(list):
+      return describeSeq(list, ctx, debug: false)
     case let .Vector(vector):
       return describeVector(vector, ctx, debug: false)
     case let .Map(map):
@@ -89,57 +147,66 @@ extension ConsValue {
     case let .FunctionLiteral(v):
       return "{{function}}"
     case let .BuiltInFunction(v):
-      return v.rawValue
+      return .Desc(v.rawValue)
     case let .Special(v):
-      return v.rawValue
+      return .Desc(v.rawValue)
     case let .ReaderMacroForm(v):
-      return v.describe(ctx)
+      return .Desc(v.describe(ctx))
     }
   }
 
   /// Return a debug description of an object.
-  func debugDescribe(ctx: Context?) -> String {
+  func debugDescribe(ctx: Context?) -> DescribeResult {
     switch self {
     case .Nil:
       return "Object.Nil"
     case let .BoolAtom(bool):
       let desc = bool ? "true" : "false"
-      return "Object.BoolAtom(\(desc))"
+      return .Desc("Object.BoolAtom(\(desc))")
     case let .IntAtom(int):
-      return "Object.IntAtom(\(int.description))"
+      return .Desc("Object.IntAtom(\(int.description))")
     case let .FloatAtom(double):
-      return "Object.FloatAtom(\(double.description))"
+      return .Desc("Object.FloatAtom(\(double.description))")
     case let .CharAtom(char):
-      return "Object.CharAtom(\(charLiteralDesc(char)))"
+      return .Desc("Object.CharAtom(\(charLiteralDesc(char)))")
     case let .StringAtom(str):
-      return "Object.StringAtom(\"\(str)\")"
+      return .Desc("Object.StringAtom(\"\(str)\")")
     case let .Symbol(symbol):
       if let ctx = ctx {
-        return "Object.Symbol(\(ctx.nameForSymbol(symbol)))"
+        return .Desc("Object.Symbol(\(ctx.nameForSymbol(symbol)))")
       }
-      return "Object.Symbol(id:\(symbol.identifier))"
+      return .Desc("Object.Symbol(id:\(symbol.identifier))")
     case let .Keyword(keyword):
       if let ctx = ctx {
-        return "Object.Keyword(:\(ctx.nameForKeyword(keyword)))"
+        return .Desc("Object.Keyword(:\(ctx.nameForKeyword(keyword)))")
       }
-      return "Object.Keyword(id:\(keyword.identifier))"
+      return .Desc("Object.Keyword(id:\(keyword.identifier))")
     case let .Auxiliary(aux):
-      return aux.debugDescribe()
-    case let .List(list):
-      let desc = describeList(list, ctx, debug: true)
-      return "Object.List( \(desc) )"
+      return .Desc(aux.debugDescribe())
+    case let .Seq(seq):
+      let result = describeSeq(seq, ctx, debug: true)
+      switch result {
+      case let .Desc(desc): return .Desc("Object.Seq( \(desc) )")
+      case .Error: return result
+      }
     case let .Vector(vector):
-      let desc = describeVector(vector, ctx, debug: true)
-      return "Object.Vector( \(desc) )"
+      let result = describeVector(vector, ctx, debug: true)
+      switch result {
+      case let .Desc(desc): return .Desc("Object.Vector( \(desc) )")
+      case .Error: return result
+      }
     case let .Map(map):
-      let desc = describeMap(map, ctx, debug: true)
-      return "Object.Map( \(desc) )"
+      let result = describeMap(map, ctx, debug: true)
+      switch result {
+      case let .Desc(desc): return .Desc("Object.Map( \(desc) )")
+      case .Error: return result
+      }
     case let .FunctionLiteral(v):
       return "Object.FunctionLiteral"
     case let .BuiltInFunction(v):
-      return "Object.BuiltInFunction(\(v.rawValue))"
+      return .Desc("Object.BuiltInFunction(\(v.rawValue))")
     case let .Special(v):
-      return "Object.Special(\(v.rawValue))"
+      return .Desc("Object.Special(\(v.rawValue))")
     case let .ReaderMacroForm(v):
       return "Object.ReaderMacroForm"
     }
@@ -152,12 +219,16 @@ extension ConsValue {
 // Description-related extension for the Params struct.
 extension Params {
 
-  func describe(ctx: Context?) -> String {
+  func describe(ctx: Context?) -> DescribeResult {
     var buffer : [String] = []
     for param in self {
-      buffer.append(param.describe(ctx))
+      let result = param.describe(ctx)
+      switch result {
+      case let .Desc(description): buffer.append(description)
+      case .Error: return result
+      }
     }
-    return "Params: {{" + join(" ", buffer) + "}}"
+    return .Desc("Params: {{" + join(" ", buffer) + "}}")
   }
 }
 

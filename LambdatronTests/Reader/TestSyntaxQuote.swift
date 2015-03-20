@@ -24,7 +24,7 @@ class TestSyntaxQuote : XCTestCase {
         let expanded = parsed.expand()
         switch expanded {
         case let .Success(expanded):
-          let actualOutput = expanded.describe(interpreter.context)
+          let actualOutput = expanded.describe(interpreter.context).asString
           XCTAssert(actualOutput == output, "expected: \(output), got: \(actualOutput)")
         case let .Failure(f):
           XCTFail("reader macro expansion error: \(f.description)")

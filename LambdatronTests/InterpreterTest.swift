@@ -9,10 +9,11 @@
 import Foundation
 import XCTest
 
+let EmptyNode = Empty()
+
 /// Convenience function: given a bunch of ConsValues, return a list.
 func listWithItems(items: ConsValue...) -> ConsValue {
-  let list = listFromCollection(items, prefix: nil, postfix: nil)
-  return .List(list)
+  return .Seq(items.count == 0 ? Empty() : ContiguousList(items))
 }
 
 /// Convenience functions: given a bunch of ConsValues, return a vector.
@@ -56,10 +57,12 @@ class InterpreterTest : XCTestCase {
     switch result {
     case let .Success(s):
       return s
-    default:
-      XCTFail("runCode did not successfully evaluate the input code")
-      return nil
+    case let .ReadFailure(err):
+      XCTFail("runCode did not successfully evaluate the input \"\(input)\"; read error: \(err.description)")
+    case let .EvalFailure(err):
+      XCTFail("runCode did not successfully evaluate the input \"\(input)\"; eval error: \(err.description)")
     }
+    return nil
   }
 
   /// Given an input string, evaluate it and compare the output to an expected ConsValue output.
@@ -148,5 +151,41 @@ class InterpreterTest : XCTestCase {
   /// Compare an input string to the contents of the output buffer.
   func expectOutputBuffer(toBe expected: String) {
     XCTAssert(outputBuffer == expected, "expected: \(expected), got: \(outputBuffer)")
+  }
+
+  /// Test whether the output buffer is empty or not.
+  func expectEmptyOutputBuffer() {
+    XCTAssert(outputBuffer.isEmpty, "Output buffer was not empty; got: \(outputBuffer)")
+  }
+
+  /// Test whether or not a ListType matches the items in a collection.
+  func expectList<T : SequenceType where T.Generator.Element == ConsValue>(list: SeqType, toMatch match: T) {
+    var listGenerator = SeqIterator(list).generate()
+    var matchGenerator = match.generate()
+
+    while true {
+      let thisListItem = listGenerator.next()
+      let thisMatchItem = matchGenerator.next()
+      if thisMatchItem == nil && thisListItem == nil {
+        // Reached the end of the lists, and both match
+        return
+      }
+      else if thisMatchItem == nil || thisListItem == nil {
+        // Reached the end of only one of the lists; length mismatch
+        XCTFail("List did not match expected collection \(match); length mismatch")
+        return
+      }
+      switch thisListItem! {
+      case let .Success(value):
+        if value != thisMatchItem! {
+          XCTFail("Item mismatch: expected: \(thisMatchItem!), got: \(value)")
+          return
+        }
+        continue
+      case let .Error(err):
+        XCTFail("Evaluation error while iterating through list: \(err.description)")
+        return
+      }
+    }
   }
 }

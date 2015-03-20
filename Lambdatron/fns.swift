@@ -107,7 +107,7 @@ struct SingleFn {
         for var j=i; j<arguments.count; j++ {
           varargBuffer.append(arguments[j])
         }
-        newContext.pushBinding(.Literal(.List(listFromCollection(varargBuffer))), forSymbol: variadicParameter)
+        newContext.pushBinding(.Literal(.Seq(sequence(varargBuffer))), forSymbol: variadicParameter)
       }
       else {
         newContext.pushBinding(.Literal(.Nil), forSymbol: variadicParameter)

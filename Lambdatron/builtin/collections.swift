@@ -11,10 +11,10 @@ import Foundation
 /// Given zero or more arguments, construct a list whose components are the arguments (or the empty list).
 func pr_list(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
-    return .Success(.List(Empty()))
+    return .Success(.Seq(Empty()))
   }
-  let list = listFromCollection(args)
-  return .Success(.List(list))
+  let list = sequence(args.asArray)
+  return .Success(.Seq(list))
 }
 
 /// Given zero or more arguments, construct a vector whose components are the arguments (or the empty vector).
@@ -47,23 +47,23 @@ func pr_cons(args: Params, ctx: Context) -> EvalResult {
   switch second {
   case .Nil:
     // Create a new list consisting of just the first object
-    return .Success(.List(Cons(first)))
-  case let .StringAtom(s):
+    return .Success(.Seq(sequence(first)))
+  case let .StringAtom(str):
     // Create a new list consisting of the first object, followed by the seq of the string
-    let list = listFromString(s)
-    return pr_cons(Params(first, list), ctx)
-  case let .List(l):
+    let seq = cons(first, next: StringSequenceView(str))
+    return .Success(.Seq(seq))
+  case let .Seq(seq):
     // Create a new list consisting of the first object followed by the second list (which can be empty)
-    return .Success(.List(Cons(first, next: l)))
-  case let .Vector(v):
+    return .Success(.Seq(cons(first, next: seq)))
+  case let .Vector(vector):
     // Create a new list consisting of the first object, followed by a list comprised of the vector's items
-    let list = listFromCollection(v, prefix: first)
-    return .Success(.List(list))
+    let seq = cons(first, next: VectorSequenceView(vector))
+    return .Success(.Seq(seq))
   case let .Map(m):
     // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
     //  key-value pairs
-    let list : ListType<ConsValue> = listFromCollection(MapSequence(m))
-    return .Success(.List(Cons(first, next: list)))
+    let seq = cons(first, next: HashmapSequenceView(m))
+    return .Success(.Seq(seq))
   default: return .Failure(EvalError.invalidArgumentError(fn,
     message: "second argument must be a string, list, vector, map, or nil"))
   }
@@ -80,9 +80,15 @@ func pr_first(args: Params, ctx: Context) -> EvalResult {
   case .Nil:
     return .Success(.Nil)
   case let .StringAtom(s):
-    return pr_first(Params(listFromString(s)), ctx)
-  case let .List(l):
-    return .Success(l.getValue() ?? .Nil)
+    switch StringSequenceView(s).first {
+    case let .Success(s): return .Success(s)
+    case let .Error(err): return .Failure(err)
+    }
+  case let .Seq(seq):
+    switch seq.first {
+    case let .Success(s): return .Success(s)
+    case let .Error(err): return .Failure(err)
+    }
   case let .Vector(v):
     return .Success(v.count == 0 ? .Nil : v[0])
   case let .Map(map):
@@ -101,36 +107,28 @@ func pr_rest(args: Params, ctx: Context) -> EvalResult {
   }
   let first = args[0]
   switch first {
-  case .Nil: return .Success(.List(Empty()))
+  case .Nil:
+    return .Success(.Seq(Empty()))
   case let .StringAtom(s):
-    return pr_rest(Params(listFromString(s)), ctx)
-  case let .List(list):
-    switch list {
-    case let list as Cons<ConsValue>:
-      // List has one or more item; return 'next'
-      return .Success(.List(list.next))
-    default:
-      // List has zero items; return the empty list.
-      return .Success(.List(Empty()))
+    switch StringSequenceView(s).rest {
+    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Error(err): return .Failure(err)
+    }
+  case let .Seq(seq):
+    // Ask the sequence what the rest of its items are
+    switch seq.rest {
+    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Error(err): return .Failure(err)
     }
   case let .Vector(vector):
-    if vector.count < 2 {
-      // Vector has zero or one items
-      return .Success(.List(Empty()))
+    switch VectorSequenceView(vector).rest {
+    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Error(err): return .Failure(err)
     }
-    // Build a list out of the rest of the collection.
-    let list = listFromCollection(vector[1..<vector.count])
-    return .Success(.List(list))
   case let .Map(map):
-    // Make a list containing all values...
-    let list : ListType<ConsValue> = listFromCollection(MapSequence(map))
-    // ...then return the second (throwing away the first)
-    switch list {
-    case let list as Cons<ConsValue>:
-      return .Success(.List(list.next))
-    default:
-      // Map has zero items
-      return .Success(.List(Empty()))
+    switch HashmapSequenceView(map).rest {
+    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Error(err): return .Failure(err)
     }
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
@@ -141,46 +139,47 @@ func pr_rest(args: Params, ctx: Context) -> EvalResult {
 /// Given a sequence, return the sequence comprised of all items but the first, or nil if there are no more items.
 func pr_next(args: Params, ctx: Context) -> EvalResult {
   let fn = ".next"
-  // NOTE: This function appears identical to pr_rest, except for returning .Nil instead of the empty list when there
-  //  are no more items. I expect this code to diverge if/when lazy seqs are ever implemented, and so it is copied over
-  //  verbatim rather than being refactored.
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
   case .Nil: return .Success(.Nil)
-  case let .StringAtom(s):
-    return pr_next(Params(listFromString(s)), ctx)
-  case let .List(list):
-    switch list {
-    case let list as Cons<ConsValue>:
-      return .Success(list.next.isEmpty ? .Nil : .List(list.next))
-    default:
-      // List has zero items; return the empty list.
-      return .Success(.Nil)
+  case let .StringAtom(str):
+    switch StringSequenceView(str).rest {
+    case let .Seq(rest):
+      switch rest.isEmpty {
+      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Error(err): return .Failure(err)
+      }
+    case let .Error(err): return .Failure(err)
+    }
+  case let .Seq(seq):
+    switch seq.rest {
+    case let .Seq(rest):
+      switch rest.isEmpty {
+      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Error(err): return .Failure(err)
+      }
+    case let .Error(err): return .Failure(err)
     }
   case let .Vector(vector):
-    if vector.count < 2 {
-      // Vector has zero or one items
-      return .Success(.Nil)
+    switch VectorSequenceView(vector).rest {
+    case let .Seq(rest):
+      switch rest.isEmpty {
+      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Error(err): return .Failure(err)
+      }
+    case let .Error(err): return .Failure(err)
     }
-    // Build a list out of the rest of the collection.
-    let list = listFromCollection(vector[1..<vector.count])
-    return .Success(.List(list))
-  case let .Map(map):
-    if map.count < 2 {
-      return .Success(.Nil)
-    }
-    // Make a list containing all values...
-    let list : ListType<ConsValue> = listFromCollection(MapSequence(map))
-    // ...then return the second
-    switch list {
-    case let list as Cons<ConsValue>:
-      return .Success(.List(list.next))
-    default:
-      // Map has zero items
-      return .Success(.List(Empty()))
+  case let .Map(m):
+    switch HashmapSequenceView(m).rest {
+    case let .Seq(rest):
+      switch rest.isEmpty {
+      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Error(err): return .Failure(err)
+      }
+    case let .Error(err): return .Failure(err)
     }
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
@@ -196,22 +195,33 @@ func pr_seq(args: Params, ctx: Context) -> EvalResult {
   }
   switch args[0] {
   case .Nil: return .Success(.Nil)
-  case let .StringAtom(s):
-    return .Success(listFromString(s))
-  case let .List(l):
-    return .Success(l.isEmpty ? .Nil : .List(l))
+  case let .StringAtom(str):
+    return .Success(str.isEmpty ? .Nil : .Seq(StringSequenceView(str)))
+  case let .Seq(seq):
+    if let result = sequence(seq) {
+      switch result {
+      case let .Seq(s): return .Success(.Seq(s))
+      case let .Error(err): return .Failure(err)
+      }
+    }
+    return .Success(.Nil)     // Sequence was empty; return nil
   case let .Vector(vector):
-    // Turn the vector into a list
-    return .Success(vector.isEmpty ? .Nil : .List(listFromCollection(vector)))
+    return .Success(vector.isEmpty ? .Nil : .Seq(VectorSequenceView(vector)))
   case let .Map(m):
-    // Turn the map into a list
-    if m.isEmpty { return .Success(.Nil) }
-    let list : ListType<ConsValue> = listFromCollection(MapSequence(m))
-    return .Success(.List(list))
+    return .Success(m.isEmpty ? .Nil : .Seq(HashmapSequenceView(m)))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a string, list, vector, map, or nil"))
   }
+}
+
+/// Given a form to evaluate to create a sequence, return a corresponding lazy sequence.
+func pr_lazyseq(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".lazy-seq"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  return .Success(.Seq(LazySeq(args[0], ctx: ctx)))
 }
 
 /// Given a collection and an item to 'add' to the collection, return a new collection with the added item.
@@ -224,8 +234,8 @@ func pr_conj(args: Params, ctx: Context) -> EvalResult {
   let toAdd = args[1]
   switch coll {
   case .Nil:
-    return .Success(.List(Cons(toAdd)))
-  case .List:
+    return .Success(.Seq(sequence(toAdd)))
+  case .Seq:
     return pr_cons(Params(toAdd, coll), ctx)
   case let .Vector(vector):
     return .Success(.Vector(vector + [toAdd]))
@@ -248,39 +258,51 @@ func pr_conj(args: Params, ctx: Context) -> EvalResult {
   }
 }
 
+// TODO: This should return a lazy sequence in the future
 /// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
 func pr_concat(args: Params, ctx: Context) -> EvalResult {
   let fn = ".concat"
   if args.count == 0 {
-    return .Success(.List(Empty()))
+    return .Success(.Seq(Empty()))
   }
-  var head : ListType<ConsValue> = Empty()
+  var head : SeqType = Empty()
 
   // Go through the arguments in *reverse* order
-  for item in lazy(reverse(args)) {
+  for (idx, item) in enumerate(reverse(args)) {
     switch item {
     case .Nil: continue
-    case let .StringAtom(s):
-      // Attempt to take the string and turn it into a list which precedes whatever we've built so far.
-      if let list = listFromString(s, postfix: head).asList {
-        head = list
+    case let .StringAtom(str):
+      head = str.isEmpty ? head : StringSequenceView(str, next: head)
+    case let .Seq(seq):
+      if idx == 0 {
+        // If this is the first (really, the last) list, just use it.
+        head = seq
       }
-      // Otherwise, if nil just skip this string
-    case let .List(list):
-      // Make a copy of this list, connected to our in-progress list.
-      head = list.copy(postfix: head)
+      else {
+        switch seq.isEmpty {
+        case let .Boolean(seqIsEmpty):
+          if seqIsEmpty {
+            // Skip empty seqs
+            continue
+          }
+          // Make a copy of this list, connected to our in-progress list.
+          switch ContiguousList.fromSequence(seq, next: head) {
+          case let .Seq(seq): head = seq
+          case let .Error(err): return .Failure(err)
+          }
+        case let .Error(err): return .Failure(err)
+        }
+      }
     case let .Vector(vector):
-      // Add all the items in the vector to our in-progress list.
-      head = listFromCollection(vector, prefix: nil, postfix: head)
+      head = vector.isEmpty ? head : VectorSequenceView(vector, next: head)
     case let .Map(map):
-      // Add all the key-value pairs in the map to our in-progress list.
-      head = listFromCollection(MapSequence(map), postfix: head)
+      head = map.isEmpty ? head : HashmapSequenceView(map, next: head)
     default:
       return .Failure(EvalError.invalidArgumentError(fn,
         message: "arguments must be strings, lists, vectors, maps, or nil"))
     }
   }
-  return .Success(.List(head))
+  return .Success(.Seq(head))
 }
 
 /// Given a sequence and an index, return the item at that index, or return an optional 'not found' value.
@@ -309,10 +331,14 @@ func pr_nth(args: Params, ctx: Context) -> EvalResult {
       else {
         return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
       }
-    case let .List(l):
-      for (ctr, item) in enumerate(l) {
-        if ctr == idx {
-          return .Success(item)
+    case let .Seq(seq):
+      for (ctr, item) in enumerate(SeqIterator(seq)) {
+        // Go through the list. If we can find the item at the right index without running into an error, return it.
+        switch item {
+        case let .Success(item):
+          if ctr == idx { return .Success(item) }
+        case let .Error(err):
+          return .Failure(err)
         }
       }
       // The list is empty, or we reached the end of the list prematurely.
@@ -440,9 +466,9 @@ func pr_count(args: Params, ctx: Context) -> EvalResult {
     return .Success(0)
   case let .StringAtom(str):
     return .Success(.IntAtom(countElements(str)))
-  case let .List(list):
+  case let .Seq(seq):
     var count = 0
-    for _ in list {
+    for _ in SeqIterator(seq) {
       count++
     }
     return .Success(.IntAtom(count))
@@ -490,33 +516,37 @@ func pr_reduce(args: Params, ctx: Context) -> EvalResult {
   let coll = args.count == 3 ? args[2] : args[1]
   let initial : ConsValue? = args.count == 3 ? args[1] : nil
 
-  let sequence : ConsSequence? = {
-    switch coll {
-    case .Nil, .StringAtom, .List, .Vector, .Map:
-      return ConsSequence(coll, prefix: initial)
-    default:
-      return nil
-    }
-    }()
-  if let seq = sequence {
+  if let seq = SeqIterator(coll, prefix: initial) {
     // The sequence was one of the supported types.
     var generator = seq.generate()
     var initial = generator.next()
     if let acc = initial {
       // There is at least one item.
-      var accumulator = acc
-      var firstRun = true
-      while let this = generator.next() {
-        // Update accumulator with the value of (function accumulator this)
-        let params = Params(accumulator, this)
-        let result = apply(function, params, ctx, fn)
-        switch result {
-        case let .Success(result):
-          accumulator = result
-        default: return result
+      switch acc {
+      case let .Success(acc):
+        var accumulator = acc
+        var firstRun = true
+        while let this = generator.next() {
+          switch this {
+          case let .Success(this):
+            // Update accumulator with the value of (function accumulator this)
+            let params = Params(accumulator, this)
+            let result = apply(function, params, ctx, fn)
+            switch result {
+            case let .Success(result):
+              accumulator = result
+            default: return result
+            }
+          case let .Error(err):
+            // Subsequent item was a lazy sequence that failed to expand properly
+            return .Failure(err)
+          }
         }
+        return .Success(accumulator)
+      case let .Error(err):
+        // First item was a lazy sequence that failed to expand properly
+        return .Failure(err)
       }
-      return .Success(accumulator)
     }
     else {
       // There are no items at all (initial was not provided). Return (function).

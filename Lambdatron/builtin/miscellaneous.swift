@@ -14,7 +14,11 @@ func pr_equals(args: Params, ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  return .Success(.BoolAtom(args[0] == args[1]))
+  let compareResult : BoolOrEvalError = args[0] == args[1]
+  switch compareResult {
+  case let .Boolean(b): return .Success(.BoolAtom(b))
+  case let .Error(err): return .Failure(err)
+  }
 }
 
 /// Read in a string from the host interpreter's readInput function, and then expand it into a Lambdatron form.
@@ -108,13 +112,20 @@ private func readString(string: String, ctx: Context, fn: String) -> EvalResult 
 
 /// Print zero or more args to screen, either with or without a trailing newline.
 private func printOrPrintln(args: Params, ctx: Context, isPrintln: Bool) -> EvalResult {
-  func toString(v: ConsValue) -> String {
-    switch v {
-    case let .StringAtom(s): return s
-    default: return v.describe(ctx)
+  var descs : [String] = []
+  for arg in args {
+    if let str = arg.asString {
+      // Strings are used as-is
+      descs.append(str)
+    }
+    else {
+      // Everything else is described. If a lazy-seq is involved, we need to guard agains failure.
+      switch arg.describe(ctx) {
+      case let .Desc(desc): descs.append(desc)
+      case let .Error(err): return .Failure(err)
+      }
     }
   }
-  let descs = map(args, toString)
   let outStr = descs.count > 0 ? join(" ", descs) : ""
   ctx.writeOutput?(isPrintln ? outStr + "\n" : outStr)
   return .Success(.Nil)

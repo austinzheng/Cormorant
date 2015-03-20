@@ -14,7 +14,14 @@ func str_str(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.StringAtom(""))
   }
-  let buffer = map(args) { $0.toString(ctx) }
+  var buffer : [String] = []
+  for arg in args {
+    let result = arg.toString(ctx)
+    switch result {
+    case let .Desc(desc): buffer.append(desc)
+    case let .Error(err): return .Failure(err)
+    }
+  }
   let result = join("", buffer)
   return .Success(.StringAtom(result))
 }
@@ -63,7 +70,10 @@ func str_uppercase(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let s = args[0].toString(ctx)
-  return .Success(.StringAtom(s.uppercaseString))
+  switch s {
+  case let .Desc(s): return .Success(.StringAtom(s.uppercaseString))
+  case let .Error(err): return .Failure(err)
+  }
 }
 
 /// Given any type of object, return an equivalent string but with all letters in lowercase.
@@ -73,7 +83,10 @@ func str_lowercase(args: Params, ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let s = args[0].toString(ctx)
-  return .Success(.StringAtom(s.lowercaseString))
+  switch s {
+  case let .Desc(s): return .Success(.StringAtom(s.lowercaseString))
+  case let .Error(err): return .Failure(err)
+  }
 }
 
 /// Given a string, a match object, and a replacement object, replace all occurrences of the match in the string.

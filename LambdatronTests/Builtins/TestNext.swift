@@ -19,6 +19,7 @@ class TestNextBuiltin : InterpreterTest {
   func testWithEmptyCollections() {
     expectThat("(.next \"\")", shouldEvalTo: .Nil)
     expectThat("(.next ())", shouldEvalTo: .Nil)
+    expectThat("(.next (.lazy-seq (fn [])))", shouldEvalTo: .Nil)
     expectThat("(.next [])", shouldEvalTo: .Nil)
     expectThat("(.next {})", shouldEvalTo: .Nil)
   }
@@ -27,6 +28,7 @@ class TestNextBuiltin : InterpreterTest {
   func testWithOneElement() {
     expectThat("(.next \"a\")", shouldEvalTo: .Nil)
     expectThat("(.next '(:a))", shouldEvalTo: .Nil)
+    expectThat("(.next (.lazy-seq (fn [] '(10))))", shouldEvalTo: .Nil)
     expectThat("(.next [\\a])", shouldEvalTo: .Nil)
     expectThat("(.next {'a 10})", shouldEvalTo: .Nil)
   }
@@ -48,6 +50,19 @@ class TestNextBuiltin : InterpreterTest {
       shouldEvalTo: listWithItems(false, .Nil, 1, 2.1, 3))
     expectThat("(.next '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo:
       listWithItems(listWithItems(3, 4), listWithItems(5, 6), listWithItems(7, 8), listWithItems()))
+  }
+
+  /// .next should return the rest of a lazy seq, forcing evaluation if necessary.
+  func testWithLazySeqs() {
+    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") '(\"foo\" \"bar\" \"baz\"))))")
+    expectEmptyOutputBuffer()
+    // At this point, the thunk should fire
+    expectThat("(.next a)", shouldEvalTo: listWithItems(.StringAtom("bar"), .StringAtom("baz")))
+    expectOutputBuffer(toBe: "executed thunk")
+    clearOutputBuffer()
+    // Don't re-evalaute the thunk
+    expectThat("(.next a)", shouldEvalTo: listWithItems(.StringAtom("bar"), .StringAtom("baz")))
+    expectEmptyOutputBuffer()
   }
 
   /// .next should return a sequence comprised of the rest of the elements in a vector.

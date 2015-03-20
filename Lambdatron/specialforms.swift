@@ -383,13 +383,13 @@ func sf_apply(args: Params, ctx: Context) -> EvalResult {
   let first = args[0].evaluate(ctx)
   let result = next(first) { first in
     // Collect all remaining args
-    var buffer = Params()
+    var paramsToApply = Params()
     
     // Add all leading args (after being evaluated) to the list directly
     for var i=1; i<args.count - 1; i++ {
       let res = args[i].evaluate(ctx)
       switch res {
-      case let .Success(res): buffer.append(res)
+      case let .Success(res): paramsToApply.append(res)
       case let .Recur: return .Failure(EvalError(.RecurMisuseError, fn))
       case .Failure: return res
       }
@@ -403,17 +403,21 @@ func sf_apply(args: Params, ctx: Context) -> EvalResult {
       // If the result is a collection, add all items in the collection to the arguments buffer
       switch last {
       case let .Nil: break
-      case let .List(l):
-        for item in l {
-          buffer.append(item)
+      case let .Seq(seq):
+        for item in SeqIterator(seq) {
+          // Add each item to the params object
+          switch item {
+          case let .Success(item): paramsToApply.append(item)
+          case let .Error(err): return .Failure(err)
+          }
         }
       case let .Vector(v):
         for item in v {
-          buffer.append(item)
+          paramsToApply.append(item)
         }
       case let .Map(m):
         for vector in MapSequence(m) {
-          buffer.append(vector)
+          paramsToApply.append(vector)
         }
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
@@ -424,7 +428,7 @@ func sf_apply(args: Params, ctx: Context) -> EvalResult {
     }
     
     // Apply the function to the arguments in the buffer
-    return apply(first, buffer, ctx, fn)
+    return apply(first, paramsToApply, ctx, fn)
   }
   return result
 }
@@ -482,7 +486,12 @@ private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSym
 private func buildSingleFnFor(item: ConsValue, #ctx: Context) -> SingleFn? {
   let itemAsVector : VectorType? = {
     switch item {
-    case let .List(l): return collectSymbols(l).asArray
+    case let .Seq(seq):
+      switch collectSymbols(seq) {
+      case let .Success(params): return params.asArray
+        // XXX: This should properly propagate the error.
+      case .Failure: return nil
+      }
     case let .Vector(v): return v
     default: return nil
     }

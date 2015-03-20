@@ -64,7 +64,10 @@ func main() {
         let result = sf_do(forms, i.context)
         switch result {
         case let .Success(s):
-          println(s.describe(i.context))
+          switch s.describe(i.context) {
+          case let .Desc(d): println(d)
+          case let .Error(err): println("Evaluation error \(err)")
+          }
         case .Recur:
           let error = EvalError(.RecurMisuseError)
           println("Evaluation error \(error)")

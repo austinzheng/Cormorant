@@ -63,7 +63,7 @@ func pr_int(args: Params, ctx: Context) -> EvalResult {
     //  consists of multiple code points, only the first will be cast to an integer.
     let scalars = String(v).unicodeScalars
     return .Success(.IntAtom(Int(scalars[scalars.startIndex].value)))
-  case .Symbol, .Keyword, .Nil, .BoolAtom, .StringAtom, .Auxiliary, .List, .Vector, .Map, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
+  default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a number or a character"))
   }
@@ -80,7 +80,7 @@ func pr_double(args: Params, ctx: Context) -> EvalResult {
     return .Success(.FloatAtom(Double(v)))
   case let .FloatAtom(v):
     return .Success(args[0])
-  case .Symbol, .Keyword, .Nil, .BoolAtom, .CharAtom, .StringAtom, .Auxiliary, .List, .Vector, .Map, .Special, .BuiltInFunction, .ReaderMacroForm, .FunctionLiteral:
+  default:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

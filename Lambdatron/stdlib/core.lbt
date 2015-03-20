@@ -2,18 +2,18 @@
 ; core.lbt
 ; Parts of this code adapted from Clojure's standard library.
 
-; Define a function in the global context
+; Define a function in the global context.
 (defmacro defn [fnname & fnargs]
   `(def ~fnname (fn ~@fnargs)))
 
 ; Return the argument.
 (defn identity [x] x)
 
-; Return the logical opposite of the argument
+; Return the logical opposite of the argument.
 (defn not [x]
   (if x false true))
 
-; Return the logical AND of zero or more values
+; Return the logical AND of zero or more values.
 (defmacro and
   ([] true)
   ([x] x)
@@ -21,7 +21,7 @@
     `(let [__MACRO_andValue ~x]
         (if __MACRO_andValue (and ~@next) __MACRO_andValue))))
 
-; Return the logical OR of zero or more values
+; Return the logical OR of zero or more values.
 (defmacro or
   ([] nil)
   ([x] x)
@@ -45,7 +45,7 @@
   ([] (.rand))
   ([n] (* n (.rand))))
 
-; Return the sum of zero or more numeric values
+; Return the sum of zero or more numeric values.
 (defn +
   ([] 0)
   ([x] x)
@@ -53,14 +53,14 @@
   ([x y & more] (.reduce .+ (.+ x y) more))
 )
 
-; Return the difference of one or more numeric values
+; Return the difference of one or more numeric values.
 (defn -
   ([x] (- 0 x))
   ([x y] (.- x y))
   ([x y & more] (.reduce .- (.- x y) more))
 )
 
-; Return the product of zero or more numeric values
+; Return the product of zero or more numeric values.
 (defn *
   ([] 1)
   ([x] x)
@@ -68,14 +68,14 @@
   ([x y & more] (.reduce .* (.* x y) more))
 )
 
-; Return the quotient of one or more numeric values
+; Return the quotient of one or more numeric values.
 (defn /
   ([x] (/ 1 x))
   ([x y] (./ x y))
   ([x y & more] (.reduce ./ (./ x y) more))
 )
 
-; Return whether one or more numerical values are strictly increasing in value
+; Return whether one or more numerical values are strictly increasing in value.
 (defn <
   ([x] true)
   ([x y] (.< x y))
@@ -87,7 +87,7 @@
       )
       false)))
 
-; Return whether one or more numerical values are monotonically increasing in value
+; Return whether one or more numerical values are monotonically increasing in value.
 (defn <=
   ([x] true)
   ([x y] (.<= x y))
@@ -99,7 +99,7 @@
       )
       false)))
 
-; Return whether one or more numerical values are strictly decreasing in value
+; Return whether one or more numerical values are strictly decreasing in value.
 (defn >
   ([x] true)
   ([x y] (.> x y))
@@ -111,7 +111,7 @@
       )
       false)))
 
-; Return whether one or more numerical values are monotonically decreasing in value
+; Return whether one or more numerical values are monotonically decreasing in value.
 (defn >=
   ([x] true)
   ([x y] (.>= x y))
@@ -123,7 +123,7 @@
       )
       false)))
 
-; Return whether one or more numeric values are equivalent
+; Return whether one or more numeric values are equivalent.
 (defn ==
   ([x] true)
   ([x y] (.== x y))
@@ -135,7 +135,7 @@
       )
       false)))
 
-; Return whether one or more values are equal
+; Return whether one or more values are equal.
 (defn =
   ([x] true)
   ([x y] (.= x y))
@@ -147,44 +147,25 @@
       )
       false)))
 
-; Given a collection, return true iff (pred x) is logical true for every x in the collection.
-(defn every? [pred coll]
+; Return a value one greater than num.
+(defn inc [num] (+ num 1))
+
+; Return a value one less than num.
+(defn dec [num] (- num 1))
+
+; Equivalent to (not (= obj1 obj2))
+(defn not=
+  ([x] false)
+  ([x y] (not (= x y)))
+  ([x y & more]
+    (not (apply = x y more))))
+
+(defn spread
+  [arglist]
   (cond
-    (nil? (seq coll)) true
-    (pred (first coll)) (recur pred (next coll))
-    :else false))
-
-; Given a function and a collection(s), create new collections by mapping all elements of the input collections.
-; TODO: Replace the (fn [a]... with an inline function
-(defn map
-  ([f coll]
-    (when-let [s (seq coll)]
-      (cons (f (first s)) (map f (rest s)))))
-  ([f c1 c2]
-    (let [s1 (seq c1) s2 (seq c2)]
-      (when (and s1 s2)
-        (cons (f (first s1) (first s2))
-          (map f (rest s1) (rest s2))))))
-  ([f c1 c2 c3]
-    (let [s1 (seq c1) s2 (seq c2) s3 (seq c3)]
-      (when (and  s1 s2 s3)
-        (cons (f (first s1) (first s2) (first s3))
-          (map f (rest s1) (rest s2) (rest s3))))))
-  ([f c1 c2 c3 & colls]
-    (let [step (fn step [cs]
-                 (let [ss (map seq cs)]
-                   (when (every? identity ss)
-                     (cons (map first ss) (step (map rest ss))))))]
-            (map (fn [a] (apply f a)) (step (conj colls c3 c2 c1))))))
-
-; Given a filter function and a collection, return a sequence consisting of all elements that pass the filter.
-(defn filter [pred coll]
-  (when-let [s (seq coll)]
-   (let [f (first s) r (rest s)]
-     (if (pred f)
-       (cons f (filter pred r))
-       (filter pred r)))
-  ))
+    (nil? arglist) nil
+    (nil? (next arglist)) (seq (first arglist))
+    :else (cons (first arglist) (spread (next arglist)))))
 
 ; Returns name string for character, or nil if none.
 (def char-name-string

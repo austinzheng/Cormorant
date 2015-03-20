@@ -13,16 +13,14 @@ class TestTestHelpers : InterpreterTest {
 
   /// listForItems should return the empty list when invoked with no arguments.
   func testListForItemsNoArgs() {
-    let ref : ConsValue = .List(Empty())
+    let ref : ConsValue = .Seq(EmptyNode)
     let list : ConsValue = listWithItems()
     XCTAssert(ref == list, "listWithItems failed to build the empty list properly")
   }
 
   /// listForItems should return a list containing items when invoked with arguments.
   func testListForItems() {
-    let ref : ConsValue = .List(Cons(1,
-      next: Cons(.StringAtom("foo"),
-        next: Cons(.BoolAtom(true)))))
+    let ref : ConsValue = .Seq(sequence([1, .StringAtom("foo"), true]))
     let list = listWithItems(1, .StringAtom("foo"), true)
     XCTAssert(ref == list, "listWithItems failed to build a non-empty list properly")
   }
