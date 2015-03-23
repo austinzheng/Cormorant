@@ -30,6 +30,16 @@
             (recur ((first fs) ret) (next fs))
             ret))))))
 
+; Takes a fn f and returns a fn that takes the same arguments as f, has the same effects, if any, and returns the
+; opposite truth value.
+(defn complement
+  [f] 
+  (fn 
+    ([] (not (f)))
+    ([x] (not (f x)))
+    ([x y] (not (f x y)))
+    ([x y & zs] (not (apply f x y zs)))))
+
 ; Given a collection, return true iff (pred x) is logical true for every x in the collection.
 (defn every? [pred coll]
   (cond
@@ -80,6 +90,15 @@
 ; Given a function and a collection(s), create new collections by mapping all elements of the input collections.
 ; TODO: Replace the (fn [a]... with an inline function
 (defn map
+  ([f] 
+    (fn [rf]
+      (fn
+        ([] (rf))
+        ([result] (rf result))
+        ([result input]
+           (rf result (f input)))
+        ([result input & inputs]
+           (rf result (apply f input inputs))))))
   ([f coll]
     (lazy-seq
       (when-let [s (seq coll)]

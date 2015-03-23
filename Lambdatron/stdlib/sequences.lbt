@@ -75,10 +75,23 @@
   ([a b c d & more]
   (cons a (cons b (cons c (cons d (spread more)))))))
 
+; Returns a lazy sequence of the items in coll for which (pred item) returns false. pred must be free of side-effects.
+; Returns a transducer when no collection is provided.
+(defn remove
+  ([pred] (filter (complement pred)))
+  ([pred coll]
+     (filter (complement pred) coll)))
+
 ; Returns a lazy (infinite!, or length n if supplied) sequence of xs.
 (defn repeat
   ([x] (lazy-seq (cons x (repeat x))))
   ([n x] (take n (repeat x))))
+
+; Takes a function of no args, presumably with side effects, and returns an infinite (or length n if supplied) lazy 
+; sequence of calls to it.
+(defn repeatedly
+  ([f] (lazy-seq (cons (f) (repeatedly f))))
+  ([n f] (take n (repeatedly f))))
 
 ; Returns a lazy sequence of the first n items in coll, or all items if there are fewer than n.
 (defn take
