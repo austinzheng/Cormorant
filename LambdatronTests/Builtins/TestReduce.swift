@@ -97,14 +97,14 @@ class TestReduceBuiltin : InterpreterTest {
 
   /// .reduce called on a list with no initial values should properly reduce.
   func testNoValMultiItemMap() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
-    let c = interpreter.context.keywordForName("c")
-    let d = interpreter.context.keywordForName("d")
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = keyword("c")
+    let d = keyword("d")
     runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.concat a b)))")
     expectThat("(.reduce tf {:a 1 :b 2 :c 3 :d 4})", shouldEvalTo: listWithItems(
-      .Keyword(b), 2, .Keyword(c), 3, .Keyword(a), 1, .Keyword(d), 4))
-    expectOutputBuffer(toBe: "a: [:b 2] b: [:c 3]a: (:b 2 :c 3) b: [:a 1]a: (:b 2 :c 3 :a 1) b: [:d 4]")
+      .Keyword(c), 3, .Keyword(b), 2, .Keyword(a), 1, .Keyword(d), 4))
+    expectOutputBuffer(toBe: "a: [:c 3] b: [:b 2]a: (:c 3 :b 2) b: [:a 1]a: (:c 3 :b 2 :a 1) b: [:d 4]")
   }
 
   /// .reduce called on nil with an initial value should return the value without calling the fn.
@@ -165,8 +165,8 @@ class TestReduceBuiltin : InterpreterTest {
 
   /// .reduce called on a nonempty list with an initial value should properly reduce.
   func testWithValOnMap() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
+    let a = keyword("a")
+    let b = keyword("b")
     runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.concat a b)))")
     expectThat("(.reduce tf [6 7 8 9] {:a 1 :b 2})", shouldEvalTo:
       listWithItems(6, 7, 8, 9, .Keyword(b), 2, .Keyword(a), 1))
@@ -222,13 +222,13 @@ class TestReduceBuiltin : InterpreterTest {
 
   /// .reduce must take a collection as its last argument.
   func testCollectionArg() {
-    expectThat("(.reduce .+ 1 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 3.2985)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 \\c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 'c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 :c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.reduce .+ 1 .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 true)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 false)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 152)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 3.2985)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 \\c)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 'c)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 :c)")
+    expectInvalidArgumentErrorFrom("(.reduce .+ 1 .+)")
   }
 }

@@ -27,18 +27,18 @@ class TestIntBuiltin : InterpreterTest {
 
   /// .int should fail with any non-numeric argument.
   func testWithInvalidArguments() {
-    expectThat("(.int nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int \"\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int {})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int (fn [] 0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.int .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.int nil)")
+    expectInvalidArgumentErrorFrom("(.int true)")
+    expectInvalidArgumentErrorFrom("(.int false)")
+    expectInvalidArgumentErrorFrom("(.int \"\")")
+    expectInvalidArgumentErrorFrom("(.int #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.int 'a)")
+    expectInvalidArgumentErrorFrom("(.int :a)")
+    expectInvalidArgumentErrorFrom("(.int [])")
+    expectInvalidArgumentErrorFrom("(.int ())")
+    expectInvalidArgumentErrorFrom("(.int {})")
+    expectInvalidArgumentErrorFrom("(.int (fn [] 0))")
+    expectInvalidArgumentErrorFrom("(.int .+)")
   }
 
   /// .int should not take more or fewer than one argument.

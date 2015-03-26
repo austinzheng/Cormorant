@@ -29,7 +29,9 @@ public struct ReadError : Printable {
     case InvalidCharacterError = "InvalidCharacterError"
     case InvalidUnicodeError = "InvalidUnicodeError"
     case InvalidOctalError = "InvalidOctalError"
-    case InvalidKeywordError = "InvalidKeywordError"
+    case SymbolParseFailureError = "SymbolParseFailureError"
+    case KeywordParseFailureError = "KeywordParseFailureError"
+    case InvalidNamespaceError = "InvalidNamespaceError"
     case InvalidDispatchMacroError = "InvalidDispatchMacroError"
     case NonTerminatedStringError = "NonTerminatedStringError"
     case EmptyInputError = "EmptyInputError"
@@ -56,7 +58,9 @@ public struct ReadError : Printable {
     case .InvalidCharacterError: return "(\(name)): invalid or unfinished character literal"
     case .InvalidUnicodeError: return "(\(name)): invalid Unicode character literal; must be in the form \\uNNNN"
     case .InvalidOctalError: return "(\(name)): invalid octal character literal; must be in the form \\oNNN"
-    case .InvalidKeywordError: return "(\(name)): invalid keyword"
+    case .SymbolParseFailureError: return "(\(name)): could not parse symbol"
+    case .KeywordParseFailureError: return "(\(name)): could not parse keyword"
+    case .InvalidNamespaceError: return "(\(name)): invalid or reserved namespace"
     case .InvalidDispatchMacroError: return "(\(name)): invalid dispatch macro"
     case .NonTerminatedStringError: return "(\(name)): strings weren't all terminated by end of input"
     case .EmptyInputError: return "(\(name)): empty input"
@@ -74,7 +78,7 @@ public struct ReadError : Printable {
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
 public struct EvalError : Printable {
-  enum ErrorType : String {
+  public enum ErrorType : String {
     case ArityError = "ArityError"
     case InvalidArgumentError = "InvalidArgumentError"
     case OutOfBoundsError = "OutOfBoundsError"
@@ -84,6 +88,7 @@ public struct EvalError : Printable {
     case BindingMismatchError = "BindingMismatchError"
     case InvalidSymbolError = "InvalidSymbolError"
     case UnboundSymbolError = "UnboundSymbolError"
+    case QualifiedSymbolMisuseError = "QualifiedSymbolMisuseError"
     case RecurMisuseError = "RecurMisuseError"
     case EvaluatingMacroError = "EvaluatingMacroError"
     case EvaluatingSpecialFormError = "EvaluatingSpecialFormError"
@@ -92,10 +97,14 @@ public struct EvalError : Printable {
     case MultipleDefinitionsPerArityError = "MultipleDefinitionsPerArityError"
     case FixedArityExceedsVariableArityError = "FixedArityExceedsVariableArityError"
     case ReadError = "ReadError"
+    case VarRebindingError = "VarRebindingError"
+    case AliasRebindingError = "AliasRebindingError"
+    case InvalidNamespaceError = "InvalidNamespaceError"
+    case ReservedNamespaceError = "ReservedNamespaceError"
     case RuntimeError = "RuntimeError"
   }
-  let error : ErrorType
-  let metadata : MetaDict
+  public let error : ErrorType
+  public let metadata : MetaDict
 
   init(_ error: ErrorType, _ fn: String, message: String? = nil, metadata: MetaDict? = nil) {
     var meta = metadata ?? [:]
@@ -157,6 +166,7 @@ public struct EvalError : Printable {
     case .BindingMismatchError: desc = "binding vector must have an even number of elements"
     case .InvalidSymbolError: desc = "could not resolve symbol"
     case .UnboundSymbolError: desc = "symbol is unbound, and cannot be resolved"
+    case .QualifiedSymbolMisuseError: desc = "can't use a qualified symbol in this way"
     case .RecurMisuseError: desc = "didn't use recur as the final form within loop or fn"
     case .EvaluatingMacroError: desc = "can't take the value of a macro or reader macro"
     case .EvaluatingSpecialFormError: desc = "can't take the value of a special form"
@@ -165,6 +175,10 @@ public struct EvalError : Printable {
     case .MultipleDefinitionsPerArityError: desc = "only one function/macro body can be defined per arity"
     case .FixedArityExceedsVariableArityError: desc = "fixed arities cannot have more params than a variadic arity"
     case .ReadError: desc = "failed to lex, parse, or expand raw input"
+    case .VarRebindingError: desc = "var already refers to another var"
+    case .AliasRebindingError: desc = "alias already refers to another namespace"
+    case .InvalidNamespaceError: desc = "namespace does not exist"
+    case .ReservedNamespaceError: desc = "namespace is a system or reserved namespace, and cannot be used"
     case .RuntimeError: desc = "runtime error"
     }
 

@@ -60,33 +60,33 @@ class TestAssocBuiltin : InterpreterTest {
 
   /// .assoc should reject non-integer keys when called with a vector.
   func testVectorsWithInvalidKeys() {
-    expectThat("(.assoc [1 2 3] true true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] false true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] 1.000 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] true true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] \"1\" true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] :foo true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] 'foo true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] #\"[0-9]+\" true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] .assoc true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] '(1) true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] [1] true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc [1 2 3] {1 1} true)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] true true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] false true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] 1.000 true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] true true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] \"1\" true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] :foo true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] 'foo true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] #\"[0-9]+\" true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] .assoc true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] '(1) true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] [1] true)")
+    expectInvalidArgumentErrorFrom("(.assoc [1 2 3] {1 1} true)")
   }
 
   /// .assoc should reject first arguments that aren't nil, maps, or vectors.
   func testWithInvalidCollections() {
-    expectThat("(.assoc true :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc false :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc -5992 :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc 0.0001 :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc \"hello\" :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc \\z :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc :foobar :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc 'foobar :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc '(1 2 3) 0 :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc #\"[0-9]+\" :a 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.assoc .assoc :a 1)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.assoc true :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc false :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc -5992 :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc 0.0001 :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc \"hello\" :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc \\z :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc :foobar :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc 'foobar :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc '(1 2 3) 0 :a)")
+    expectInvalidArgumentErrorFrom("(.assoc #\"[0-9]+\" :a 1)")
+    expectInvalidArgumentErrorFrom("(.assoc .assoc :a 1)")
   }
 
   /// .assoc should take a collection and at least one key-value pair, but reject keys without values.

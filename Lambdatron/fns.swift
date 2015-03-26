@@ -55,9 +55,9 @@ private func prebuildFn(arities: [SingleFn], asMacro: Bool) -> PrebuildResult {
 /// A struct representing a single-arity definition for a function or macro. A given function or macro is comprised of
 /// one or more SingleFn structs, each corresponding to a definition for a different arity.
 struct SingleFn {
-  let parameters : [InternedSymbol]
+  let parameters : [UnqualifiedSymbol]
   let forms : [ConsValue]
-  let variadicParameter : InternedSymbol?
+  let variadicParameter : UnqualifiedSymbol?
   var paramCount : Int {
     return parameters.count
   }
@@ -67,7 +67,7 @@ struct SingleFn {
 
   /// Given a child context and a new set of arguments, rebind the arguments in-place. This method is only intended to
   /// be used when a function is run again because of the 'recur' special form.
-  private func rebindArguments(arguments: Params, toContext ctx: ChildContext) -> Bool {
+  private func rebindArguments(arguments: Params, toContext ctx: LexicalScopeContext) -> Bool {
     // Precondition: arguments has an appropriate number of arguments for the function
     // Create the bindings. One binding per parameter
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
@@ -75,7 +75,7 @@ struct SingleFn {
     }
     for (idx, parameter) in enumerate(parameters) {
       let argument : Binding = .Param(arguments[idx])
-      ctx[parameter] = argument
+      ctx.updateBinding(argument, forSymbol: parameter)
     }
     if let variadicParameter = variadicParameter {
       // If we're rebinding parameters, we MUST have a vararg if the function signature specifies a vararg.
@@ -84,18 +84,18 @@ struct SingleFn {
         return false
       }
       // Bind the last argument directly to the vararg param; because of the above check 'last' will always be valid
-      ctx[variadicParameter] = .Literal(arguments.last!)
+      ctx.updateBinding(.Literal(arguments.last!), forSymbol: variadicParameter)
     }
     return true
   }
 
-  private func bindToNewContext(arguments: Params, ctx: Context) -> ChildContext? {
+  private func bindToNewContext(arguments: Params, ctx: Context) -> LexicalScopeContext? {
     // Precondition: arguments has an appropriate number of arguments for the function
     // Create the bindings. One binding per parameter
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
       return nil
     }
-    let newContext = ChildContext(parent: ctx)
+    let newContext = LexicalScopeContext(parent: ctx)
     var i=0
     for ; i<parameters.count; i++ {
       newContext.pushBinding(.Param(arguments[i]), forSymbol: parameters[i])
@@ -144,7 +144,7 @@ public class Function {
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
   
-  class func buildFunction(arities: [SingleFn], name: InternedSymbol?, ctx: Context) -> EvalResult {
+  class func buildFunction(arities: [SingleFn], name: UnqualifiedSymbol?, ctx: Context) -> EvalResult {
     let result = prebuildFn(arities, false)
     switch result {
     case let .Success((aritiesMap, variadic)):
@@ -155,12 +155,12 @@ public class Function {
     }
   }
   
-  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: InternedSymbol?, ctx: Context) {
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: UnqualifiedSymbol?, ctx: Context) {
     self.specificFns = specificFns
     self.variadic = variadic
     // Bind the context, based on whether or not we provided an actual name
     if let actualName = name {
-      let newContext = ChildContext(parent: ctx)
+      let newContext = LexicalScopeContext(parent: ctx)
       newContext.pushBinding(.Literal(.FunctionLiteral(self)), forSymbol: actualName)
       context = newContext
     }
@@ -197,9 +197,9 @@ final internal class Macro : Function {
   // It's not clear to me whether Macro should be a subclass of Function or not. If they are, this implies that Macros
   // can be used where Functions are (e.g. in ConsValue.FunctionLiteral), which is absolutely not true. If they aren't,
   // there are now two unrelated classes repeating almost all of their code.
-  let name : InternedSymbol
+  let name : UnqualifiedSymbol
 
-  class func buildMacro(arities: [SingleFn], name: InternedSymbol, ctx: Context) -> MacroCreationResult {
+  class func buildMacro(arities: [SingleFn], name: UnqualifiedSymbol, ctx: Context) -> MacroCreationResult {
     let result = prebuildFn(arities, true)
     switch result {
     case let .Success((aritiesMap, variadic)):
@@ -214,7 +214,7 @@ final internal class Macro : Function {
     return super.evaluate(arguments)
   }
 
-  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: InternedSymbol, ctx: Context) {
+  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: UnqualifiedSymbol, ctx: Context) {
     self.name = name
     // Note that macros can't be bound to anything but Vars, so passing in a name is meaningless.
     super.init(specificFns: specificFns, variadic: variadic, name: nil, ctx: ctx)

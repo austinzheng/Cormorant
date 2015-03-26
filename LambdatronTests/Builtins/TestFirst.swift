@@ -46,10 +46,10 @@ class TestFirstBuiltin : InterpreterTest {
 
   /// .first should return the first element of a map.
   func testWithMaps() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
+    let a = keyword("a")
+    let b = keyword("b")
     expectThat("(.first {:a 1})", shouldEvalTo: vectorWithItems(.Keyword(a), 1))
-    expectThat("(.first {:a 1 :b 2 \\c 3})", shouldEvalTo: vectorWithItems(.Keyword(b), 2))
+    expectThat("(.first {:b 2 :a 1 \\c 3})", shouldEvalTo: vectorWithItems(.Keyword(b), 2))
   }
 
   /// .first should return the first element of a lazy seq, forcing evaluation if necessary.
@@ -72,14 +72,14 @@ class TestFirstBuiltin : InterpreterTest {
 
   /// .first should reject non-collection arguments.
   func testWithInvalidTypes() {
-    expectThat("(.first true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first 3.141592)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first :foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first 'foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first \\f)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.first .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.first true)")
+    expectInvalidArgumentErrorFrom("(.first false)")
+    expectInvalidArgumentErrorFrom("(.first 152)")
+    expectInvalidArgumentErrorFrom("(.first 3.141592)")
+    expectInvalidArgumentErrorFrom("(.first :foo)")
+    expectInvalidArgumentErrorFrom("(.first 'foo)")
+    expectInvalidArgumentErrorFrom("(.first \\f)")
+    expectInvalidArgumentErrorFrom("(.first .+)")
   }
 
   /// .first should only take one argument.

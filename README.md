@@ -50,7 +50,7 @@ Need ideas? Try:
 Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
 
 - The REPL can only take one form at a time.
-- There currently isn't any namespacing or symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
+- There currently isn't any symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
 
 These will disappear as the feature set is filled out.
 
@@ -91,6 +91,8 @@ Lambdatron has a number of possibly useful features. Lambdatron's data structure
 * character literals (`\a`, `\tab`, `\space`, `\newline`, `\return`), which can be used in function position. Character literals can also be specified using the hexadecimal `\uNNNN` or octal `\oNNN` forms.
 * keywords (`:else`), which can be used in function position
 
+**Namespaces** make organizing your code easier. Currently, all stdlib code is contained within the `core` namespace, and the user begins in the `user` namespace. Namespaces are reified and can be manipulated as normal objects using some of the built-in functions.
+
 **Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` (unquote) can be used to force evaluation of the unquote form, while `~@` (unquote-splice) can be used to force evaluation of a form to a collection whose elements are then spliced in.
 
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
@@ -99,6 +101,7 @@ The following special forms, reader macros, and functions are built into the int
 
 - Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
 - Reader macros: `'`, `` ` ``, `~`, `~@`
+- Namespace manipulation: `ns-create`, `ns-set`, `ns-get`, `ns-name`, `ns-all`, `ns-find`, `ns-unmap`, `ns-alias`, `ns-aliases`, `ns-unalias`, `ns-refer`, `ns-map`, `ns-interns`, `ns-refers`, `ns-resolve`, `ns-remove`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `lazy-seq`, `get`, `assoc`, `dissoc`, `count`, `reduce`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
 - String manipulation: `str`, `subs`, `lower-case`, `upper-case`, `replace`, `replace-first`
@@ -162,7 +165,6 @@ These are objectives I am working on right now, or plan on doing in the near fut
 
 - Expanding standard library
 - Support for sets
-- Basic namespacing
 - Ability to type in multiple forms at the top level
 - Metacontext - allow consumer to define custom functions visible to the user
 - Performance optimization (once development stabilizes)
@@ -190,6 +192,7 @@ Differences From Clojure
 
 Aside from the (long) list of features not yet implemented (see the *Working On* and *(Very) Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
+* Like in ClojureScript, reified vars don't exist.
 * Hashmap iteration is not guaranteed to traverse the elements in the same order as in Clojure. No guarantees are made on hashmap iteration except that each key-value pair is visited exactly once. This has implications for any function that converts a map into an ordered sequence.
 * `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
@@ -199,6 +202,7 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * `read` does not take an optional argument representing a reader object.
 * `char-escape-string` returns `nil` for the `\formfeed` and `\backspace` arguments, since Swift does not recognize the `\f` and `\b` escape sequences.
 * Regex support follows Cocoa conventions, since `NSRegularExpression` is very different from `java.util.pattern.Regex` and `java.util.pattern.Match`. `re-iterate` provides an idiomatic wrapper for `enumerateMatchesInString:options:range:usingBlock:`.
+* Once a namespace has been marked for deletion using '.ns-remove', all its aliases are automatically unregistered, and new aliases or refers can no longer be set for it.
 
 
 License

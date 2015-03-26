@@ -15,13 +15,13 @@ enum Binding : Printable {
   case Literal(ConsValue)
   case Param(ConsValue)     // Currently treated no differently than Literal, but here for future optimization
   case BoundMacro(Macro)
-  
+
   var description : String {
     switch self {
     case Invalid: return "invalid"
     case Unbound: return "unbound"
-    case let Literal(l): return "literal: \(l.description)"
-    case let Param(mp): return "function/macro parameter: \(mp.description)"
+    case let Literal(l): return l.description
+    case let Param(mp): return mp.description
     case let BoundMacro(m): return "macro:'\(m.name)'"
     }
   }
@@ -31,309 +31,339 @@ enum Binding : Printable {
 /// function, loop, or let-scoped block, unifying both local bindings and Vars. They also mediate access to other
 /// mutable interpreter state, such as I/O and gensym. Contexts chain together to form a 'spaghetti stack'.
 protocol Context : class {
+  /// Get a reference to the interpreter.
+  var interpreter : Interpreter { get }
 
-  /// Given an interned symbol representing a Var and a value, create or set the Var to the value.
-  func setVar(name: InternedSymbol, value: Binding)
+  /// Get a reference to the interned value store.
+  var ivs : InternedValueStore { get }
 
-  /// Given an interned symbol, retrieve the topmost valid binding or Var for it.
-  subscript(x: InternedSymbol) -> Binding { get set }
+  /// Get a reference to the namespace context that serves as the root parent for this context.
+  var root : NamespaceContext { get }
 
-  /// Return whether or not a Var is valid.
-  func varIsValid(symbol: InternedSymbol) -> Bool
+  /// Given the interned string describing a symbol, retrieve the topmost valid binding or Var for it.
+  subscript(x: UnqualifiedSymbol) -> Binding { get }
 
-  /// Return whether or not a Var is bound.
-  func varIsBound(symbol: InternedSymbol) -> Bool
-
-  /// Return a unique gensym.
-  func produceGensym(prefix: String, suffix: String?) -> InternedSymbol
-
-  /// Given an interned symbol, return its name.
-  func nameForSymbol(symbol: InternedSymbol) -> String
-
-  /// Given a symbol name, create and/or return an interned symbol.
-  func symbolForName(name: String) -> InternedSymbol
-
-  /// Given an interned keyword, return its name.
-  func nameForKeyword(keyword: InternedKeyword) -> String
-
-  /// Given a keyword name, create and/or return an interned keyword.
-  func keywordForName(name: String) -> InternedKeyword
-
-  /// Write a message to the interpreter logging facility.
-  func log(domain: LogDomain, message: () -> String)
-
-  /// Get a reference to the interpreter's input function, if any.
-  var readInput : InputFunction? { get }
-
-  /// Get a reference to the interpreter's output function, if any.
-  var writeOutput : OutputFunction? { get }
-
-  /// Get a reference to the interpreter's root context.
-  var root : Context { get }
+  /// Given a symbol that might be qualified, resolve the binding or Var to which the symbol refers. If the symbol is
+  /// unqualified, the binding is resolved locally; in particular, refers are considered. If the symbol is qualified,
+  /// the lookup happens through the interpreter.
+  func resolveBindingForSymbol(symbol: InternedSymbol) -> Binding
 }
 
-/// An abstract class representing a base context - either the RootContext for an interpreter, or the GlobalContext used
-/// by all interpreter instances.
-private class BaseContext {
-  var bindings : [InternedSymbol : Binding] = [:]
 
-  var namesToIds : [String : InternedSymbol] = [:]
-  var idsToNames : [InternedSymbol : String] = [:]
+// MARK: Namespace context
 
-  var keywordsToIds : [String : InternedKeyword] = [:]
-  var idsToKeywords : [InternedKeyword : String] = [:]
-
-  var identifierCounter : UInt = 0
-  var gensymCounter : UInt = 0
-
-  func varIsValid(symbol: InternedSymbol) -> Bool {
-    let binding = bindings[symbol] ?? .Invalid
-    switch binding {
-    case .Invalid: return false
-    default: return true
-    }
-  }
-
-  func varIsBound(symbol: InternedSymbol) -> Bool {
-    let binding = bindings[symbol] ?? .Invalid
-    switch binding {
-    case .Unbound: return true
-    default: return false
-    }
-  }
-
-  func produceGensym(prefix: String, suffix: String?) -> InternedSymbol {
-    let name = "\(prefix)\(gensymCounter)" + (suffix ?? "")
-    gensymCounter += 1
-    return internSymbol(name)
-  }
-
-  /// Given a symbol, return the name for the symbol (if one exists).
-  func existingNameForSymbol(symbol: InternedSymbol) -> String? {
-    return idsToNames[symbol]
-  }
-
-  /// Given a symbol name, return the interned symbol object (if one exists).
-  func existingSymbolForName(name: String) -> InternedSymbol? {
-    return namesToIds[name]
-  }
-
-  /// Create a new interned symbol for the given symbol name.
-  func internSymbol(name: String) -> InternedSymbol {
-    // Precondition: name is not currently used by any symbol.
-    let newSymbol = InternedSymbol(identifierCounter)
-    identifierCounter += 1
-    namesToIds[name] = newSymbol
-    idsToNames[newSymbol] = name
-    return newSymbol
-  }
-
-  /// Given a keyword, return the name for the keyword (if one exists).
-  func existingNameForKeyword(keyword: InternedKeyword) -> String? {
-    return idsToKeywords[keyword]
-  }
-
-  /// Given a keyword name, return the interned keyword object (if one exists).
-  func existingKeywordForName(name: String) -> InternedKeyword? {
-    return keywordsToIds[name]
-  }
-
-  /// Create a new interned keyword for the given keyword name.
-  func internKeyword(name: String) -> InternedKeyword {
-    // Precondition: name is not currently used by any keyword.
-    let newKeyword = InternedKeyword(identifierCounter)
-    identifierCounter += 1
-    keywordsToIds[name] = newKeyword
-    idsToKeywords[newKeyword] = name
-    return newKeyword
-  }
+public func ==(lhs: NamespaceContext, rhs: NamespaceContext) -> Bool {
+  return lhs === rhs
 }
 
-/// A class representing the root context for a given interpreter instance. This context is responsible for interning
-/// keywords and symbols, producing gensyms, and certain other responsibilities.
-private final class RootContext : BaseContext, Context {
+/// A context which represents a namespace.
+final public class NamespaceContext : Context, Hashable {
   unowned let interpreter : Interpreter
-  let globalContext = GlobalContext.sharedInstance
 
-  var root : Context { return self }
+  /// Whether or not this namespace is deleted. Deleted namespaces cannot alias or refer other namespaces, and have
+  /// other limitations on what they can do.
+  private(set) var isDeleted : Bool = false
 
-  init(interpreter: Interpreter) {
+  /// Denotes whether this context represents a system namespace. System namespaces cannot be switched to or deleted.
+  public let isSystemNamespace : Bool
+  let internedName : NamespaceName
+  public let name : String
+
+  /// A map from symbols interned within this namespace to Vars.
+  private(set) var vars : [UnqualifiedSymbol : VarType] = [:]
+
+  /// A map from refer'ed symbols (that reside within other namespaces) to Vars.
+  private(set) var refers : [UnqualifiedSymbol : VarType] = [:]
+
+  /// Namespace aliases. Keys are alias names; values are references to the namespaces.
+  private(set) var aliases : [NamespaceName : NamespaceContext] = [:]
+  /// A set containing any aliases which are set to resolve to this namespace. This prevents reference cycles.
+  private(set) var selfAliases = Set<NamespaceName>()
+
+  var ivs : InternedValueStore { return interpreter.internStore }
+  var root : NamespaceContext { return self }
+
+  public var hashValue : Int { return ObjectIdentifier(self).hashValue }
+
+
+  // MARK: Namespace API
+
+  /// Clean up a namespace in preparation for its removal.
+  func prepareForRemoval() {
+    isDeleted = true
+    // Remove all aliases to prevent retain cycles
+    aliases.removeAll(keepCapacity: false)
+  }
+
+  /// Register an alias for another namespace.
+  func alias(namespace: NamespaceContext, usingAlias a: NamespaceName) -> EvalError? {
+    precondition(interpreter.namespaces[namespace.internedName] != nil,
+      "Namespace being aliased must exist in interpreter")
+    if isDeleted {
+      return nil
+    }
+    // Note that 'a' can only exist in one of aliases or selfAliases
+    if let existingNamespace = aliases[a] where !(namespace === existingNamespace) {
+      // Redefining an alias that currently points to a non-self namespace to point to another namespace (not allowed)
+      return EvalError(.AliasRebindingError)
+    }
+    else if selfAliases.contains(a) && !(namespace === self) {
+      // Redefining an alias that currently points to 'self' to point to another namespace (not allowed)
+      return EvalError(.AliasRebindingError)
+    }
+    if namespace === self {
+      selfAliases.insert(a)
+      aliases.removeValueForKey(a)
+    }
+    else {
+      aliases[a] = namespace
+      selfAliases.remove(a)
+    }
+    return nil
+  }
+
+  /// Unregister an alias for another namespace. Returns whether or not the alias is valid.
+  func unalias(a: NamespaceName) -> Bool {
+    return aliases.removeValueForKey(a) != nil || selfAliases.remove(a) != nil
+  }
+
+  /// Return a map of all aliases, each key-value pair matching a symbol to a Namespace object.
+  func aliasesAsMap() -> EvalResult {
+    var buffer : MapType = [:]
+    // Add all aliases to other namespaces
+    for (alias, namespace) in aliases {
+      switch alias.asSymbol(interpreter.internStore) {
+      case let .Symbol(sym):
+        buffer[.Symbol(sym)] = .Namespace(namespace)
+      case let .Error(err):
+        // Not expected to ever get here
+        return .Failure(err)
+      }
+    }
+    // Add all aliases to this namespace
+    for alias in selfAliases {
+      switch alias.asSymbol(interpreter.internStore) {
+      case let .Symbol(sym):
+        buffer[.Symbol(sym)] = .Namespace(self)
+      case let .Error(err):
+        // Not expected to ever get here
+        return .Failure(err)
+      }
+    }
+    return .Success(.Map(buffer))
+  }
+
+  /// Given a symbol, return the Var to which that symbol would resolve within this namespace, if any.
+  func resolveSymbolFor(symbol: InternedSymbol) -> VarType? {
+    if let ns = symbol.ns where ns != internedName {
+      // Symbol is qualified with a namespace not the same as this one
+      if let aliasedNamespace = aliases[ns] {
+        // Namespace of this symbol is an alias for another namespace
+        return aliasedNamespace.resolveSymbolFor(symbol)
+      }
+      else if selfAliases.contains(ns) {
+        // Namespace of this symbol is an alias to this namespace
+        return vars[symbol.unqualified]
+      }
+      else if let otherNamespace = interpreter.namespaces[ns] {
+        // Namespace of this symbol is another real namespace
+        return otherNamespace.resolveSymbolFor(symbol)
+      }
+      // Symbol can't be resolved
+      return nil
+    }
+    else {
+      // Symbol is unqualified, or qualified to this namespace
+      if vars[symbol.unqualified] != nil {
+        // Var can be found in this namespace
+        return vars[symbol.unqualified]
+      }
+      else if let next = refers[symbol.unqualified] {
+        // Symbol resolves to a refer binding
+        return next
+      }
+      // Symbol can't be resolved
+      return nil
+    }
+  }
+
+  /// Given another namespace, refer it by mapping all its Vars.
+  func refer(namespace: NamespaceContext) -> EvalError? {
+    if namespace === self || isDeleted {
+      return nil
+    }
+    for (symbol, aVar) in namespace.vars {
+      let unqualified = symbol.unqualified
+      if vars[unqualified] != nil {
+        // Do nothing
+      }
+      if let otherRefer = refers[unqualified] where otherRefer.name.ns != namespace.internedName {
+        // Trying to refer a symbol that was previously referred from another namespace; this is an error
+        return EvalError(.VarRebindingError)
+      }
+      // Unbind the existing Var, if one exists
+      vars.removeValueForKey(unqualified)
+      refers[unqualified] = aVar
+    }
+    return nil
+  }
+
+  /// Given another namespace name, map all the namespace's bindings into this namespace.
+  func refer(ns: NamespaceName) -> EvalError? {
+    if let namespace = interpreter.namespaces[ns] {
+      return refer(namespace)
+    }
+    return EvalError(.InvalidNamespaceError)
+  }
+
+  /// Return a map of all refers, each key-value pair matching a symbol to a Var.
+  func refersAsMap() -> MapType {
+    var buffer : MapType = [:]
+    for (symbol, aVar) in refers {
+      buffer[.Symbol(symbol)] = .Var(aVar)
+    }
+    return buffer
+  }
+
+  /// Return a map of all locally stored values, each key-value pair matching a symbol to a Var.
+  func internsAsMap() -> MapType {
+    var buffer : MapType = [:]
+    for (symbol, aVar) in vars {
+      let symbolName = symbol.nameComponent(self)
+      buffer[.Symbol(symbol)] = .Var(aVar)
+    }
+    return buffer
+  }
+
+
+  // MARK: Context API
+
+  /// Return whether the given symbol corresponds to a bound, valid Var.
+  func varIsValid(symbol: UnqualifiedSymbol) -> Bool {
+    return vars[symbol]?.isBound == true
+  }
+
+//  var debugDescription : String {
+//    let descs : [String] = map(vars) { symbol, binding in
+//      let symbolDesc = "\"\(symbol.fullName(self))\"(\(symbol.identifier))"
+//      return "\(symbolDesc) : \(binding.description)"
+//    }
+//    return "NamespaceContext"
+//      + (isSystemNamespace ? "(system)" : "")
+//      + ":\nVars: [\n"
+//      + join("\n", descs)
+//      + "\n]\nAliases: \(aliases)\nSelf aliases: \(selfAliases)"
+//  }
+
+  func setVar(name: UnqualifiedSymbol, newValue: ConsValue) -> VarResult {
+    return setVar(name, newValue: .Literal(newValue))
+  }
+
+  func setVar(name: UnqualifiedSymbol, newValue: Macro) -> VarResult {
+    return setVar(name, newValue: .BoundMacro(newValue))
+  }
+
+  func setUnboundVar(name: UnqualifiedSymbol, shouldUnbind: Bool) -> VarResult {
+    if let thisVar = vars[name] where thisVar.isBound && shouldUnbind == false {
+      // Don't unbind the var, just return it
+      return .Var(thisVar)
+    }
+    return setVar(name, newValue: .Unbound)
+  }
+
+  /// Create or update a binding between a symbol and a Var.
+  private func setVar(varName: UnqualifiedSymbol, newValue: VarBinding) -> VarResult {
+    if let alreadyReferred = refers[varName] {
+      // If we've referred this var before, we should error out if the referred var isn't in a system namespace
+      if let ns = alreadyReferred.name.ns where interpreter.namespaces[ns]?.isSystemNamespace == true {
+        alreadyReferred.bindValue(newValue)
+        return .Var(alreadyReferred)
+      }
+      return .Error(EvalError(.VarRebindingError))
+    }
+    else if let alreadyInterned = vars[varName] {
+      // The Var was previously interned locally; update it
+      alreadyInterned.bindValue(newValue)
+      return .Var(alreadyInterned)
+    }
+    else {
+      // Create a new Var and intern it
+      let qualifiedName = InternedSymbol(varName.nameComponent(self), namespace: name, ivs: ivs)
+      let newVar = VarType(newValue, name: qualifiedName)
+      vars[qualifiedName.unqualified] = newVar
+      return .Var(newVar)
+    }
+  }
+
+  /// Remove a Var from the mapping dictionary.
+  func unmapVar(name: UnqualifiedSymbol) {
+    vars.removeValueForKey(name)
+  }
+
+  /// Retrieve the interned Var corresponding to the given unqualified symbol. This method does not look up any symbols
+  /// that have been locally aliased by a call to 'refer'. This method should only be called by the interpreter when
+  /// resolving a qualified symbol.
+  func resolveVar(symbol: UnqualifiedSymbol) -> Binding {
+    return vars[symbol]?.value ?? .Invalid
+  }
+
+  func resolveBindingForSymbol(symbol: InternedSymbol) -> Binding {
+    if let ns = symbol.ns {
+      // Check to see if ns is mapped in the aliases dictionary to a namespace already
+      if let aliasedNamespace = aliases[ns] {
+        return aliasedNamespace.resolveVar(symbol.unqualified)
+      }
+      else if selfAliases.contains(ns) {
+        // Alias is for this namespace; resolve the Var (note that refers aren't examined in this case)
+        return resolveVar(symbol.unqualified)
+      }
+      return interpreter.resolveBinding(symbol.unqualified, inNamespace: ns)
+    }
+    else {
+      // Unqualified symbol; resolve locally
+      return self[symbol.unqualified]
+    }
+  }
+
+  // Note: subscript should only be used for the case where symbols are being resolved when this namespace is the
+  // current namespace. It looks up both interned Vars as well as refer'ed Vars.
+  subscript(symbol: UnqualifiedSymbol) -> Binding {
+    get {
+      precondition(symbol.ns == nil,
+        "Symbol \(symbol.fullName(self)) passed into NamespaceContext's subscript was not unqualified")
+      if let local = vars[symbol] {
+        return local.value
+      }
+      else if let reference = refers[symbol] {
+        return reference.value
+      }
+      return .Invalid
+    }
+  }
+
+  init(interpreter: Interpreter, ns: NamespaceName, asSystemNamespace isSystem: Bool = false) {
     self.interpreter = interpreter
-    // Start ID counters after those for the base context
-    super.init()
-    identifierCounter = globalContext.identifierCounter + 1
-    gensymCounter = globalContext.gensymCounter + 1
+    internedName = ns
+    name = interpreter.internStore.nameForInternedString(ns.name)
+    isSystemNamespace = isSystem
   }
-
-  override func varIsValid(symbol: InternedSymbol) -> Bool {
-    return super.varIsValid(symbol) || globalContext.varIsValid(symbol)
-  }
-
-  override func varIsBound(symbol: InternedSymbol) -> Bool {
-    return super.varIsBound(symbol) || globalContext.varIsBound(symbol)
-  }
-
-  func nameForSymbol(symbol: InternedSymbol) -> String {
-    if let name = existingNameForSymbol(symbol) {
-      return name
-    }
-    else if let name = globalContext.existingNameForSymbol(symbol) {
-      return name
-    }
-    // If there is no name for an interned symbol, something is seriously wrong.
-    internalError("Previously interned symbol doesn't have a name")
-  }
-
-  func symbolForName(name: String) -> InternedSymbol {
-    // The symbol comes from either the root context, the global context, or by interning a new symbol.
-    return existingSymbolForName(name) ?? (globalContext.existingSymbolForName(name) ?? internSymbol(name))
-  }
-
-  func nameForKeyword(keyword: InternedKeyword) -> String {
-    if let name = idsToKeywords[keyword] {
-      return name
-    }
-    internalError("Previously interned keyword doesn't have a name")
-  }
-
-  func keywordForName(name: String) -> InternedKeyword {
-    // The keyword comes from either the root context, the global context, or by interning a new keyword.
-    return existingKeywordForName(name) ?? (globalContext.existingKeywordForName(name) ?? internKeyword(name))
-  }
-
-  private func retrieveBaseParent() -> BaseContext {
-    return self
-  }
-
-  func setVar(name: InternedSymbol, value: Binding) {
-    self[name] = value
-  }
-
-  subscript(x: InternedSymbol) -> Binding {
-    get { return bindings[x] ?? (globalContext[x] ?? .Invalid) }
-    set { bindings[x] = newValue }
-  }
-
-  func log(domain: LogDomain, message: () -> String) {
-    interpreter.log(domain, message: message)
-  }
-
-  var readInput : InputFunction? { return interpreter.readInput }
-
-  var writeOutput : OutputFunction? { return interpreter.writeOutput }
 }
 
-/// Singleton instance for the global context. Created on demand.
-private var globalContextInstance : GlobalContext? = nil
 
-/// A class representing the shared base context. This is a global read-only context that every interpreter uses. It
-/// contains only the standard library and predefined symbols/keywords.
-private final class GlobalContext : BaseContext, Context {
+// MARK: Lexical scope context
 
-  var root : Context { return self }
-
-  /// Return the singleton instance of the global context.
-  class var sharedInstance : GlobalContext {
-    if let globalContext = globalContextInstance {
-      return globalContext
-    }
-    // No interpreters have been previously initialized, so create a global context instance.
-    let gcInstance = GlobalContext()
-    globalContextInstance = gcInstance
-    return gcInstance
-  }
-
-  override init() {
-    super.init()
-    // Load standard library into the context
-    loadStdlibInto(self, stdlib_files)
-  }
-
-  func nameForSymbol(symbol: InternedSymbol) -> String {
-    if let name = existingNameForSymbol(symbol) {
-      return name
-    }
-    // If there is no name for an interned symbol, something is seriously wrong.
-    internalError("Previously interned symbol doesn't have a name")
-  }
-
-  func symbolForName(name: String) -> InternedSymbol {
-    return existingSymbolForName(name) ?? internSymbol(name)
-  }
-
-  func nameForKeyword(keyword: InternedKeyword) -> String {
-    if let name = existingNameForKeyword(keyword) {
-      return name
-    }
-    internalError("Previously interned keyword doesn't have a name")
-  }
-
-  func keywordForName(name: String) -> InternedKeyword {
-    return existingKeywordForName(name) ?? internKeyword(name)
-  }
-
-  func setVar(name: InternedSymbol, value: Binding) {
-    self[name] = value
-  }
-
-  subscript(x: InternedSymbol) -> Binding {
-    get { return bindings[x] ?? .Invalid }
-    set { bindings[x] = newValue }
-  }
-
-  func log(domain: LogDomain, message: () -> String) {
-    // Don't do anything; global context never logs
-  }
-
-  var readInput : InputFunction? { return nil }
-
-  var writeOutput : OutputFunction? { return nil }
-}
-
-/// A class representing a context representing any lexical scope beneath the global scope.
-final class ChildContext : Context {
-  private var otherBindings : [InternedSymbol : Binding]? = nil
+/// A class representing a context representing any lexical scope created by a fn, let, or loop.
+final class LexicalScopeContext : Context {
+  private var otherBindings : [UnqualifiedSymbol : Binding]? = nil
   private let parent : Context
-  let root : Context
+  let root : NamespaceContext
 
   // A ChildContext houses up to 16 symbols locally. This allows it to avoid using the dictionary if possible.
-  var b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15 : (symbol: InternedSymbol, binding: Binding)?
+  var b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15 : (symbol: UnqualifiedSymbol, binding: Binding)?
   private var count = 0
 
-  func varIsValid(symbol: InternedSymbol) -> Bool {
-    return root.varIsValid(symbol)
-  }
-
-  func varIsBound(symbol: InternedSymbol) -> Bool {
-    return root.varIsBound(symbol)
-  }
-
-  func produceGensym(prefix: String, suffix: String?) -> InternedSymbol {
-    return root.produceGensym(prefix, suffix: suffix)
-  }
-
-  func nameForSymbol(symbol: InternedSymbol) -> String {
-    return root.nameForSymbol(symbol)
-  }
-
-  func symbolForName(name: String) -> InternedSymbol {
-    return root.symbolForName(name)
-  }
-
-  func nameForKeyword(keyword: InternedKeyword) -> String {
-    return root.nameForKeyword(keyword)
-  }
-
-  func keywordForName(name: String) -> InternedKeyword {
-    return root.keywordForName(name)
-  }
-
-  func setVar(name: InternedSymbol, value: Binding) {
-    root.setVar(name, value: value)
-  }
-
   /// Push a binding into the context.
-  func pushBinding(binding: Binding, forSymbol symbol: InternedSymbol) {
+  func pushBinding(binding: Binding, forSymbol symbol: UnqualifiedSymbol) {
     if findBindingForSymbol(symbol) != nil {
       updateBinding(binding, forSymbol: symbol)
       return
@@ -367,7 +397,7 @@ final class ChildContext : Context {
   }
 
   /// Given a symbol, try to look up the corresponding binding.
-  private func findBindingForSymbol(symbol: InternedSymbol) -> Binding? {
+  private func findBindingForSymbol(symbol: UnqualifiedSymbol) -> Binding? {
     if let b0 = b0 where b0.symbol == symbol {
       return b0.binding
     }
@@ -421,7 +451,7 @@ final class ChildContext : Context {
 
   /// Given a symbol which should already exist in the context, update its value. The precondition is that the symbol
   /// already exists in the context (otherwise, the pushBinding function should be used to add it).
-  private func updateBinding(binding: Binding, forSymbol symbol: InternedSymbol) {
+  func updateBinding(binding: Binding, forSymbol symbol: UnqualifiedSymbol) {
     if let b0 = b0 where b0.symbol == symbol {
       self.b0 = (symbol, binding)
       return
@@ -490,29 +520,22 @@ final class ChildContext : Context {
       self.otherBindings?[symbol] = value
       return
     }
-    internalError("Previously-existing binding was not found. This is an interpreter logic error.")
+    preconditionFailure("Binding passed into this function was not previously declared; this is a logic error")
   }
 
-  subscript(x: InternedSymbol) -> Binding {
+  var interpreter : Interpreter { return root.interpreter }
+  var ivs : InternedValueStore { return root.ivs }
+
+  func resolveBindingForSymbol(symbol: InternedSymbol) -> Binding {
+    return findBindingForSymbol(symbol) ?? parent.resolveBindingForSymbol(symbol)
+  }
+
+  subscript(x: UnqualifiedSymbol) -> Binding {
     get { return findBindingForSymbol(x) ?? parent[x] }
-    set { updateBinding(newValue, forSymbol: x) }
   }
 
   init(parent: Context) {
     self.parent = parent
     root = parent.root
   }
-
-  func log(domain: LogDomain, message: () -> String) {
-    root.log(domain, message: message)
-  }
-
-  var readInput : InputFunction? { return root.readInput }
-
-  var writeOutput : OutputFunction? { return root.writeOutput }
-}
-
-/// Return a new root Context.
-func buildRootContext(# interpreter: Interpreter) -> Context {
-  return RootContext(interpreter: interpreter)
 }

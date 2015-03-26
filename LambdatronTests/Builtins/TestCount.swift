@@ -46,14 +46,14 @@ class TestCountBuiltin : InterpreterTest {
 
   // .count should reject arguments that aren't nil, strings, or collections.
   func testInvalidArgument() {
-    expectThat("(.count true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count -0.02954)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count \\c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count :c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count 'c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.count #\"hello\")", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.count true)")
+    expectInvalidArgumentErrorFrom("(.count false)")
+    expectInvalidArgumentErrorFrom("(.count 152)")
+    expectInvalidArgumentErrorFrom("(.count -0.02954)")
+    expectInvalidArgumentErrorFrom("(.count \\c)")
+    expectInvalidArgumentErrorFrom("(.count :c)")
+    expectInvalidArgumentErrorFrom("(.count 'c)")
+    expectInvalidArgumentErrorFrom("(.count #\"hello\")")
   }
 
   // .count should take exactly one argument.

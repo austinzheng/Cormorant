@@ -39,8 +39,11 @@ class TestApply : InterpreterTest {
 
   /// apply should work when invoked upon a function with a map as the final sequence.
   func testApplyWithArgMap() {
-    expectThat("(apply .concat {:a 1 :b 2})", shouldEvalTo: "'(:b 2 :a 1)")
-    expectThat("(apply .concat {:a 1 :b 2 :c 3})", shouldEvalTo: "'(:b 2 :c 3 :a 1)")
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = keyword("c")
+    expectThat("(apply .concat {:a 1 :b 2})", shouldEvalToContain: .Keyword(a), 1, .Keyword(b), 2)
+    expectThat("(apply .concat {:a 1 :b 2 :c 3})", shouldEvalToContain: .Keyword(a), 1, .Keyword(b), 2, .Keyword(c), 3)
   }
 
   /// apply should work properly when invoked with a symbol that maps to a function.
@@ -75,8 +78,12 @@ class TestApply : InterpreterTest {
 
   /// apply should work when invoked with leading arguments before a non-nil final map.
   func testLeadingArgsThenMap() {
-    expectThat("(apply .concat [1 2] [3 4] {:a 15 :b 16})", shouldEvalTo: "'(1 2 3 4 :b 16 :a 15)")
-    expectThat("(apply .concat [1 2] [3 4] [:a 15 :b 16] {})", shouldEvalTo: "'(1 2 3 4 :a 15 :b 16)")
+    let a = keyword("a")
+    let b = keyword("b")
+    expectThat("(apply .concat [1 2] [3 4] {:a 15 :b 16})",
+      shouldEvalToContain: 1, 2, 3, 4, .Keyword(a), 15, .Keyword(b), 16)
+    expectThat("(apply .concat [1 2] [3 4] [:a 15 :b 16] {})",
+      shouldEvalToContain: 1, 2, 3, 4, .Keyword(a), 15, .Keyword(b), 16)
   }
 
   /// apply should work properly when a vector is used as the function.
@@ -149,28 +156,28 @@ class TestApply : InterpreterTest {
 
   /// apply should reject an only argument that isn't nil or a valid sequence.
   func testNonSeqOnlyArg() {
-    expectThat("(apply .print true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print -299.123)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"hello\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \\c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print 'c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print :c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print .print)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(apply .print true)")
+    expectInvalidArgumentErrorFrom("(apply .print false)")
+    expectInvalidArgumentErrorFrom("(apply .print 152)")
+    expectInvalidArgumentErrorFrom("(apply .print -299.123)")
+    expectInvalidArgumentErrorFrom("(apply .print \"hello\")")
+    expectInvalidArgumentErrorFrom("(apply .print \\c)")
+    expectInvalidArgumentErrorFrom("(apply .print 'c)")
+    expectInvalidArgumentErrorFrom("(apply .print :c)")
+    expectInvalidArgumentErrorFrom("(apply .print .print)")
   }
 
   /// apply should reject a last argument that isn't nil or a valid sequence.
   func testNonSeqLastArg() {
-    expectThat("(apply .print \"foo\" \"bar\" true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" -299.123)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" \"hello\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" \\c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" 'c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" :c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(apply .print \"foo\" \"bar\" .print)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" true)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" false)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" 152)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" -299.123)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" \"hello\")")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" \\c)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" 'c)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" :c)")
+    expectInvalidArgumentErrorFrom("(apply .print \"foo\" \"bar\" .print)")
   }
 
   /// apply should fully evaluate all of its parameters when invoked, but not multiple times.

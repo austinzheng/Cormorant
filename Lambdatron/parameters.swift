@@ -8,8 +8,9 @@
 
 import Foundation
 
-/// A struct holding an arbitrary number of parameters without using heap storage if there are eight or fewer params.
-struct Params : Printable, CollectionType, GeneratorType {
+/// A struct holding an arbitrary number of parameters without using refcounted storage if there are eight or fewer
+/// params.
+struct Params : Printable, CollectionType {
   private var a0, a1, a2, a3, a4, a5, a6, a7 : ConsValue?
 
   /// An array containing all parameters from 8 and onwards.
@@ -17,9 +18,6 @@ struct Params : Printable, CollectionType, GeneratorType {
 
   /// How many parameters are stored within the struct.
   private(set) var count = 0
-
-  /// When Params is being used as a generator, indicates the current parameter number.
-  private var index = 0
 
   var description : String { return describe(nil).asString }
 
@@ -121,16 +119,25 @@ struct Params : Printable, CollectionType, GeneratorType {
     }
   }
 
-  func generate() -> Params {
-    return self
+  func generate() -> ParamsGenerator {
+    return ParamsGenerator(self)
   }
+}
+
+struct ParamsGenerator : GeneratorType {
+  private let params : Params
+  private var index = 0
 
   mutating func next() -> ConsValue? {
-    if !(index < count) {
-      return nil
+    if index < params.count {
+      let value = params[index]
+      index += 1
+      return value
     }
-    let value = self[index]
-    index++
-    return value
+    return nil
+  }
+
+  init(_ params: Params) {
+    self.params = params
   }
 }

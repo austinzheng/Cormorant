@@ -34,7 +34,7 @@ public protocol AuxiliaryType : class {
 /// An opaque class representing a string builder.
 public final class StringBuilderType : AuxiliaryType {
   var buffer : [Character]
-  public var hashValue : Int { return buffer.isEmpty ? 0 : buffer[0].hashValue }
+  public var hashValue : Int { return ObjectIdentifier(self).hashValue }
 
   public func describe() -> String { return "#<StringBuilder \(string())>" }
   public func debugDescribe() -> String { return "Object.StringBuilder(\(buffer))" }

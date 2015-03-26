@@ -69,46 +69,53 @@ class TestFn : InterpreterTest {
 
   /// fn should reject being invoked with an argument vector that doesn't contain symbols.
   func testArgVectorInvalidTypes() {
-    expectThat("(fn [a nil c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a true c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a false c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a 1523 c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a 2.0091 c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a \"b\" c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a :b c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a 'b c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a \\b c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a (a b) c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a [a b] c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a {a b} c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn [a .+ c])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(fn [a nil c])")
+    expectInvalidArgumentErrorFrom("(fn [a true c])")
+    expectInvalidArgumentErrorFrom("(fn [a false c])")
+    expectInvalidArgumentErrorFrom("(fn [a 1523 c])")
+    expectInvalidArgumentErrorFrom("(fn [a 2.0091 c])")
+    expectInvalidArgumentErrorFrom("(fn [a \"b\" c])")
+    expectInvalidArgumentErrorFrom("(fn [a :b c])")
+    expectInvalidArgumentErrorFrom("(fn [a 'b c])")
+    expectInvalidArgumentErrorFrom("(fn [a \\b c])")
+    expectInvalidArgumentErrorFrom("(fn [a (a b) c])")
+    expectInvalidArgumentErrorFrom("(fn [a [a b] c])")
+    expectInvalidArgumentErrorFrom("(fn [a {a b} c])")
+    expectInvalidArgumentErrorFrom("(fn [a .+ c])")
+  }
+
+  // fn should reject qualified symbols in the argument vector.
+  func testWithQualifiedSymbols() {
+    expectInvalidArgumentErrorFrom("(fn [foo/a])")
+    expectInvalidArgumentErrorFrom("(fn [a foo/b c])")
+    expectInvalidArgumentErrorFrom("(fn [ns1/a ns2/a ns3/a])")
   }
 
   /// fn should only take a list, vector, or symbol (for a name) for its first argument.
   func testInvalidFirstArguments() {
-    expectThat("(fn \"myFunc\" [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn :myFunc [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn 'myFunc [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn nil [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn true [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn false [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn 152 [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn 928.1 [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn '(a b) [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn {'a 'b} [] nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(fn \"myFunc\" [] nil)")
+    expectInvalidArgumentErrorFrom("(fn :myFunc [] nil)")
+    expectInvalidArgumentErrorFrom("(fn 'myFunc [] nil)")
+    expectInvalidArgumentErrorFrom("(fn nil [] nil)")
+    expectInvalidArgumentErrorFrom("(fn true [] nil)")
+    expectInvalidArgumentErrorFrom("(fn false [] nil)")
+    expectInvalidArgumentErrorFrom("(fn 152 [] nil)")
+    expectInvalidArgumentErrorFrom("(fn 928.1 [] nil)")
+    expectInvalidArgumentErrorFrom("(fn '(a b) [] nil)")
+    expectInvalidArgumentErrorFrom("(fn {'a 'b} [] nil)")
   }
 
   /// fn should either take a vector as the next argument after the name, or function bodies.
   func testInvalidRestArguments() {
-    expectThat("(fn myFunc nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn myFunc (.+ 1 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn myFunc ([a b] (.+ a b)) [c d] (.+ c d))", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(fn myFunc nil)")
+    expectInvalidArgumentErrorFrom("(fn myFunc (.+ 1 2))")
+    expectInvalidArgumentErrorFrom("(fn myFunc ([a b] (.+ a b)) [c d] (.+ c d))")
   }
 
   /// fn should reject definitions with lists that don't start with an argument vector.
   func testInvalidArgVectorsInBodies() {
-    expectThat("(fn ([a] 1) ([\"b\"] 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn ([a] 1) ([:b] 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(fn ([a] 1) (['b] 2))", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(fn ([a] 1) ([\"b\"] 2))")
+    expectInvalidArgumentErrorFrom("(fn ([a] 1) ([:b] 2))")
+    expectInvalidArgumentErrorFrom("(fn ([a] 1) (['b] 2))")
   }
 }

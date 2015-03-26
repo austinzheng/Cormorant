@@ -127,15 +127,17 @@ extension ConsValue {
     case let .StringAtom(str):
       return .Desc("\"" + stringByEscaping(str) + "\"")
     case let .Symbol(symbol):
-      if let ctx = ctx {
-        return .Desc(ctx.nameForSymbol(symbol))
-      }
-      return .Desc("symbol:\(symbol.identifier)")
+      if let ctx = ctx { return .Desc(symbol.fullName(ctx)) }
+      return .Desc("symbol:\(symbol.rawDescription)")
     case let .Keyword(keyword):
-      if let ctx = ctx {
-        return .Desc(":" + ctx.nameForKeyword(keyword))
-      }
-      return .Desc("keyword:\(keyword.identifier)")
+      if let ctx = ctx { return .Desc(keyword.fullName(ctx)) }
+      return .Desc("keyword:\(keyword.rawDescription)")
+    case let .Namespace(namespace):
+      return .Desc("#<Namespace \(namespace.name)>")
+    case let .Var(v):
+      if let ctx = ctx { return .Desc("#'\(v.name.fullName(ctx))") }
+      if let ns = v.name.ns { return .Desc("#<Var ns:\(ns.name)/id:\(v.name.identifier)>") }
+      return .Desc("#<Var (error)>")
     case let .Auxiliary(aux):
       return .Desc(aux.describe())
     case let .Seq(list):
@@ -172,15 +174,17 @@ extension ConsValue {
     case let .StringAtom(str):
       return .Desc("Object.StringAtom(\"\(str)\")")
     case let .Symbol(symbol):
-      if let ctx = ctx {
-        return .Desc("Object.Symbol(\(ctx.nameForSymbol(symbol)))")
-      }
-      return .Desc("Object.Symbol(id:\(symbol.identifier))")
+      if let ctx = ctx { return .Desc("Object.Symbol(\(symbol.fullName(ctx)))") }
+      return .Desc("Object.Symbol(\(symbol.rawDescription))")
     case let .Keyword(keyword):
-      if let ctx = ctx {
-        return .Desc("Object.Keyword(:\(ctx.nameForKeyword(keyword)))")
-      }
-      return .Desc("Object.Keyword(id:\(keyword.identifier))")
+      if let ctx = ctx { return .Desc("Object.Keyword(\(keyword.fullName(ctx)))") }
+      return .Desc("Object.Keyword(\(keyword.rawDescription))")
+    case let .Namespace(namespace):
+      return .Desc("Object.Namespace(\"\(namespace.name)\")")
+    case let .Var(v):
+      if let ctx = ctx { return .Desc("Object.Var(\(v.name.fullName(ctx)))") }
+      if let ns = v.name.ns { return .Desc("Object.Var(ns:\(ns.name)/id:\(v.name.identifier))") }
+      return .Desc("Object.Var(error)")
     case let .Auxiliary(aux):
       return .Desc(aux.debugDescribe())
     case let .Seq(seq):

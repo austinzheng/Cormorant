@@ -206,7 +206,7 @@ private struct Lexer {
         }
         else if unknown == ":" {
           // This is an invalid keyword (no body).
-          return .Failure(ReadError(.InvalidKeywordError))
+          return .Failure(ReadError(.KeywordParseFailureError))
         }
         else if unknown[unknown.startIndex] == ":" {
           // This is a keyword (starts with ":" and has at least one other character)

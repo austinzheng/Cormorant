@@ -89,19 +89,19 @@ class TestSbAppendBuiltin : InterpreterTest {
 
   /// .sb-append should only take a string builder as its first argument.
   func testInvalidArgument() {
-    expectThat("(.sb-append nil \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append true \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append false \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append 1521321 \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append -492.01203 \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append \"foobar\" \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append #\"[0-9]+\" \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append :foobar \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append 'foobar \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append '(1 2 3 4) \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append [1 2 3 4] \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append {:foo :bar} \"foo\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-append .sb-append \"foo\")", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.sb-append nil \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append true \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append false \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append 1521321 \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append -492.01203 \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append \"foobar\" \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append #\"[0-9]+\" \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append :foobar \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append 'foobar \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append '(1 2 3 4) \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append [1 2 3 4] \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append {:foo :bar} \"foo\")")
+    expectInvalidArgumentErrorFrom("(.sb-append .sb-append \"foo\")")
   }
 
   /// .sb-append should take exactly two arguments.
@@ -143,19 +143,19 @@ class TestSbReverseBuiltin : InterpreterTest {
 
   /// .sb-reverse should only take a string builder as its argument.
   func testInvalidArgument() {
-    expectThat("(.sb-reverse nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse 1521321)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse -492.01203)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse \"foobar\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse :foobar)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse 'foobar)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse '(1 2 3 4))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse [1 2 3 4])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse {:foo :bar})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.sb-reverse .sb-reverse)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.sb-reverse nil)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse true)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse false)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse 1521321)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse -492.01203)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse \"foobar\")")
+    expectInvalidArgumentErrorFrom("(.sb-reverse #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.sb-reverse :foobar)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse 'foobar)")
+    expectInvalidArgumentErrorFrom("(.sb-reverse '(1 2 3 4))")
+    expectInvalidArgumentErrorFrom("(.sb-reverse [1 2 3 4])")
+    expectInvalidArgumentErrorFrom("(.sb-reverse {:foo :bar})")
+    expectInvalidArgumentErrorFrom("(.sb-reverse .sb-reverse)")
   }
 
   /// .sb-reverse should take exactly one argument.

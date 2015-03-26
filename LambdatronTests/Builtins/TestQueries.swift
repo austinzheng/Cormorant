@@ -638,19 +638,19 @@ class TestIsZero : InterpreterTest {
 
   /// .zero? should fail for any non-number type.
   func testIsZeroWithOthers() {
-    expectThat("(.zero? nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? \"\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? {})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.zero? .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.zero? nil)")
+    expectInvalidArgumentErrorFrom("(.zero? true)")
+    expectInvalidArgumentErrorFrom("(.zero? false)")
+    expectInvalidArgumentErrorFrom("(.zero? \"\")")
+    expectInvalidArgumentErrorFrom("(.zero? #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.zero? \\a)")
+    expectInvalidArgumentErrorFrom("(.zero? 'a)")
+    expectInvalidArgumentErrorFrom("(.zero? :a)")
+    expectInvalidArgumentErrorFrom("(.zero? [])")
+    expectInvalidArgumentErrorFrom("(.zero? ())")
+    expectInvalidArgumentErrorFrom("(.zero? {})")
+    expectInvalidArgumentErrorFrom("(.zero? (fn [] 0))")
+    expectInvalidArgumentErrorFrom("(.zero? .+)")
   }
 
   /// .zero? should take exactly one argument.
@@ -679,19 +679,19 @@ class TestIsSubnormal : InterpreterTest {
 
   /// .subnormal? should cause an invalid argument error if called on non-numeric types.
   func testWithNonNumericTypes() {
-    expectThat("(.subnormal? nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? \"\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? {})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.subnormal? .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.subnormal? nil)")
+    expectInvalidArgumentErrorFrom("(.subnormal? true)")
+    expectInvalidArgumentErrorFrom("(.subnormal? false)")
+    expectInvalidArgumentErrorFrom("(.subnormal? \"\")")
+    expectInvalidArgumentErrorFrom("(.subnormal? #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.subnormal? \\a)")
+    expectInvalidArgumentErrorFrom("(.subnormal? 'a)")
+    expectInvalidArgumentErrorFrom("(.subnormal? :a)")
+    expectInvalidArgumentErrorFrom("(.subnormal? [])")
+    expectInvalidArgumentErrorFrom("(.subnormal? ())")
+    expectInvalidArgumentErrorFrom("(.subnormal? {})")
+    expectInvalidArgumentErrorFrom("(.subnormal? (fn [] 0))")
+    expectInvalidArgumentErrorFrom("(.subnormal? .+)")
   }
 
   /// .subnormal? should take exactly one argument.
@@ -725,19 +725,19 @@ class TestIsInfinite : InterpreterTest {
 
   /// .infinite? should cause an invalid argument error if called on non-numeric types.
   func testWithNonNumericTypes() {
-    expectThat("(.infinite? nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? \"\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? {})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.infinite? .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.infinite? nil)")
+    expectInvalidArgumentErrorFrom("(.infinite? true)")
+    expectInvalidArgumentErrorFrom("(.infinite? false)")
+    expectInvalidArgumentErrorFrom("(.infinite? \"\")")
+    expectInvalidArgumentErrorFrom("(.infinite? #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.infinite? \\a)")
+    expectInvalidArgumentErrorFrom("(.infinite? 'a)")
+    expectInvalidArgumentErrorFrom("(.infinite? :a)")
+    expectInvalidArgumentErrorFrom("(.infinite? [])")
+    expectInvalidArgumentErrorFrom("(.infinite? ())")
+    expectInvalidArgumentErrorFrom("(.infinite? {})")
+    expectInvalidArgumentErrorFrom("(.infinite? (fn [] 0))")
+    expectInvalidArgumentErrorFrom("(.infinite? .+)")
   }
 
   /// .infinite? should take exactly one argument.
@@ -771,19 +771,19 @@ class TestIsNaN : InterpreterTest {
 
   /// .nan? should cause an invalid argument error if called on non-numeric types.
   func testWithNonNumericTypes() {
-    expectThat("(.nan? nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? \"\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? {})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? (fn [] 0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.nan? .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nan? nil)")
+    expectInvalidArgumentErrorFrom("(.nan? true)")
+    expectInvalidArgumentErrorFrom("(.nan? false)")
+    expectInvalidArgumentErrorFrom("(.nan? \"\")")
+    expectInvalidArgumentErrorFrom("(.nan? #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.nan? \\a)")
+    expectInvalidArgumentErrorFrom("(.nan? 'a)")
+    expectInvalidArgumentErrorFrom("(.nan? :a)")
+    expectInvalidArgumentErrorFrom("(.nan? [])")
+    expectInvalidArgumentErrorFrom("(.nan? ())")
+    expectInvalidArgumentErrorFrom("(.nan? {})")
+    expectInvalidArgumentErrorFrom("(.nan? (fn [] 0))")
+    expectInvalidArgumentErrorFrom("(.nan? .+)")
   }
 
   /// .nan? should take exactly one argument.

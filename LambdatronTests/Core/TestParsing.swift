@@ -190,23 +190,54 @@ class TestCharacterParsing : InterpreterTest {
 class TestSymbolParsing : InterpreterTest {
   /// The lexer and parser should properly parse symbols in the context of a collection.
   func testInCollection() {
-    let test123 = interpreter.context.symbolForName("test123")
-    let superSymbol = interpreter.context.symbolForName("SUPER-SYMBOL")
-    let strange = interpreter.context.symbolForName("___*something!!")
+    let test123 = symbol("test123")
+    let superSymbol = symbol("SUPER-SYMBOL")
+    let strange = symbol("___*something!!")
     expectThat("'(test123 SUPER-SYMBOL ___*something!!)",
       shouldEvalTo: listWithItems(.Symbol(test123), .Symbol(superSymbol), .Symbol(strange)))
   }
+
+  /// The parser should correctly parse explicitly-qualified symbols.
+  func testQualified() {
+    let expected = symbol("jyaku", namespace: "bar")
+    expectThat("'bar/jyaku", shouldEvalTo: .Symbol(expected))
+  }
+
+  /// The parser should correctly parse symbols with more than one forward slash.
+  func testLongQualified() {
+    let expected = symbol("bar/baz", namespace: "foo")
+    expectThat("'foo/bar/baz", shouldEvalTo: .Symbol(expected))
+  }
 }
 
-/// Test how keywords are lexed and parsed
+/// Test how keywords are lexed and parsed.
 class TestKeywordParsing : InterpreterTest {
   /// The lexer and parser should properly parse keywords in the context of a collection.
   func testInCollection() {
-    let foo = interpreter.context.keywordForName("foo")
-    let elseKw = interpreter.context.keywordForName("else")
-    let veryLong = interpreter.context.keywordForName("veryLongKeyword123")
+    let foo = keyword("foo")
+    let elseKw = keyword("else")
+    let veryLong = keyword("veryLongKeyword123")
     expectThat("'(:foo :else :veryLongKeyword123)",
       shouldEvalTo: listWithItems(.Keyword(foo), .Keyword(elseKw), .Keyword(veryLong)))
+  }
+
+  /// The lexer and parser should correctly parse locally-qualified keywords (those that begin with a "::").
+  func testLocallyQualified() {
+    runCode("(.ns-set 'foo)")
+    let expected = keyword("meela", namespace: "foo")
+    expectThat("::meela", shouldEvalTo: .Keyword(expected))
+  }
+
+  /// The parser should correctly parse explicitly-qualified keywords.
+  func testQualified() {
+    let expected = keyword("meela", namespace: "foo")
+    expectThat(":foo/meela", shouldEvalTo: .Keyword(expected))
+  }
+
+  /// The parser should correctly parse keywords with more than one forward slash.
+  func testLongQualified() {
+    let expected = keyword("bar/baz", namespace: "foo")
+    expectThat(":foo/bar/baz", shouldEvalTo: .Keyword(expected))
   }
 }
 
@@ -269,17 +300,17 @@ class TestMapParsing : InterpreterTest {
   }
 
   func testParsingMultiElementMap() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
-    let c = interpreter.context.symbolForName("c")
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = symbol("c")
     expectThat("{:a \"a\" :b \\b 'c 3}",
       shouldEvalTo: .Map([.Keyword(a): .StringAtom("a"), .Keyword(b): .CharAtom("b"), .Symbol(c): 3]))
   }
 
   func testParsingNestedMap() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
-    let c = interpreter.context.keywordForName("c")
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = keyword("c")
     expectThat("{:a {:b :c 1 2} 3 4}", shouldEvalTo:
       mapWithItems((.Keyword(a), mapWithItems((.Keyword(b), .Keyword(c)), (1, 2))), (3, 4)))
   }

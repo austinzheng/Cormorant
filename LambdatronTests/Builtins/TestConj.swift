@@ -30,8 +30,8 @@ class TestConjBuiltin : InterpreterTest {
 
   /// .conj should work with maps.
   func testMaps() {
-    let aKeyword = interpreter.context.keywordForName("a")
-    let bKeyword = interpreter.context.keywordForName("b")
+    let aKeyword = keyword("a")
+    let bKeyword = keyword("b")
     expectThat("(.conj {} [:a 100])",
       shouldEvalTo: mapWithItems((ConsValue.Keyword(aKeyword), 100)))
     expectThat("(.conj {:b \"foo\"} [:a 100])",
@@ -40,33 +40,33 @@ class TestConjBuiltin : InterpreterTest {
 
   /// .conj should require the first argument to be a collection.
   func testCollectionParam() {
-    expectThat("(.conj true 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj false 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj -1 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj 0.0003 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj \\w 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj :w 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj 'w 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj \"foobar\" 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj .conj 1)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.conj true 1)")
+    expectInvalidArgumentErrorFrom("(.conj false 1)")
+    expectInvalidArgumentErrorFrom("(.conj -1 1)")
+    expectInvalidArgumentErrorFrom("(.conj 0.0003 1)")
+    expectInvalidArgumentErrorFrom("(.conj \\w 1)")
+    expectInvalidArgumentErrorFrom("(.conj :w 1)")
+    expectInvalidArgumentErrorFrom("(.conj 'w 1)")
+    expectInvalidArgumentErrorFrom("(.conj \"foobar\" 1)")
+    expectInvalidArgumentErrorFrom("(.conj .conj 1)")
   }
 
   /// .conj should require the second argument to be a two-item vector, if the first is a map.
   func testKeyValueVector() {
-    expectThat("(.conj {} nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} 918)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} 1.11121)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} \\y)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} :y)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} 'y)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} \"foobar\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} {:a 1})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} '(:a 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} [1])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.conj {} [:a 1 2])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.conj {} nil)")
+    expectInvalidArgumentErrorFrom("(.conj {} true)")
+    expectInvalidArgumentErrorFrom("(.conj {} false)")
+    expectInvalidArgumentErrorFrom("(.conj {} 918)")
+    expectInvalidArgumentErrorFrom("(.conj {} 1.11121)")
+    expectInvalidArgumentErrorFrom("(.conj {} \\y)")
+    expectInvalidArgumentErrorFrom("(.conj {} :y)")
+    expectInvalidArgumentErrorFrom("(.conj {} 'y)")
+    expectInvalidArgumentErrorFrom("(.conj {} \"foobar\")")
+    expectInvalidArgumentErrorFrom("(.conj {} {:a 1})")
+    expectInvalidArgumentErrorFrom("(.conj {} '(:a 2))")
+    expectInvalidArgumentErrorFrom("(.conj {} [])")
+    expectInvalidArgumentErrorFrom("(.conj {} [1])")
+    expectInvalidArgumentErrorFrom("(.conj {} [:a 1 2])")
   }
 
   /// .conj should take exactly two arguments.

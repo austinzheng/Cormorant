@@ -8,6 +8,17 @@
 
 import Foundation
 import XCTest
+// Importing this to more easily see the public interface.
+import Lambdatron
+
+extension ObjectResult {
+  func force() -> ConsValue {
+    switch self {
+    case let .Success(v): return v
+    case .Error: fatalError("ObjectResult's 'force' method used improperly")
+    }
+  }
+}
 
 let EmptyNode = Empty()
 
@@ -36,6 +47,14 @@ func mapWithItems(items: (ConsValue, ConsValue)...) -> ConsValue {
 /// An abstract superclass intended for various interpreter tests.
 class InterpreterTest : XCTestCase {
   var interpreter = Interpreter()
+
+  func keyword(name: String, namespace: String? = nil) -> InternedKeyword {
+    return InternedKeyword(name, namespace: namespace, ivs: interpreter.internStore)
+  }
+
+  func symbol(name: String, namespace: String? = nil) -> InternedSymbol {
+    return InternedSymbol(name, namespace: namespace, ivs: interpreter.internStore)
+  }
 
   override func setUp() {
     super.setUp()
@@ -78,6 +97,32 @@ class InterpreterTest : XCTestCase {
     }
   }
 
+  /// Given an input string, evaluate it and expect a seq. Then compare the items in the seq to a given set of items.
+  /// This test does not check the order of items, only that they all appear exactly once.
+  func expectThat(input: String, shouldEvalToContain item: ConsValue, _ expected: ConsValue...) {
+    // Put the items in a set
+    let expectedItems : Set<ConsValue> = Set(expected + [item])
+
+    let result = interpreter.evaluate(input)
+    switch result {
+    case let .Success(actual):
+      if let actual = actual.asSeq {
+        var actualItems = Set<ConsValue>()
+        for item in SeqIterator(actual) {
+          actualItems.insert(item.force())
+        }
+        XCTAssert(expectedItems == actualItems, "actual and expected items didn't match:\nexpected \(expectedItems)\ngot \(actualItems)")
+      }
+      else {
+        XCTFail("expected a sequence from expectThat:shouldEvalToContain:, got \(actual)")
+      }
+    case let .ReadFailure(f):
+      XCTFail("read error: \(f.description)")
+    case let .EvalFailure(f):
+      XCTFail("evaluation error: \(f.description)")
+    }
+  }
+
   /// Given an input string and a string describing an expected form, evaluate both and compare for equality.
   func expectThat(input: String, shouldEvalTo form: String) {
     // Evaluate the test form first
@@ -109,8 +154,8 @@ class InterpreterTest : XCTestCase {
       let expectedName = expected.rawValue
       let actualName = actual.error.rawValue
       XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
-    case .EvalFailure:
-      XCTFail("evaluation error; shouldn't even get here")
+    case let .EvalFailure(err):
+      XCTFail("unexpected evaluation error: \(err.description)")
     }
   }
 
@@ -120,13 +165,18 @@ class InterpreterTest : XCTestCase {
     switch result {
     case let .Success(s):
       XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
-    case .ReadFailure:
-      XCTFail("read error")
+    case let .ReadFailure(err):
+      XCTFail("unexpected read error: \(err.description)")
     case let .EvalFailure(actual):
       let expectedName = expected.rawValue
       let actualName = actual.error.rawValue
       XCTAssert(expected == actual.error, "expected: \(expectedName), got: \(actualName)")
     }
+  }
+
+  /// Given an input string, evaluate it and expect an invalid argument error.
+  func expectInvalidArgumentErrorFrom(input: String) {
+    expectThat(input, shouldFailAs: .InvalidArgumentError)
   }
 
   /// Given an input string, evaluate it and expect an arity error.

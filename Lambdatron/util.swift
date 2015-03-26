@@ -137,20 +137,3 @@ func characterAtIndex(s: String, idx: Int) -> Character? {
   }
   return nil
 }
-
-/// Retrieve the first character in a Swift string.
-func firstCharacter(s: String) -> Character {
-  // Precondition: string is not empty
-  precondition(!s.isEmpty, "string is not empty")
-  return s[s.startIndex]
-}
-
-/// Return true iff the input string has two or more characters.
-func stringHasAtLeastTwoCharacters(s: String) -> Bool {
-  var ctr = 0
-  for _ in s {
-    ctr++
-    if ctr == 2 { return true }
-  }
-  return false
-}

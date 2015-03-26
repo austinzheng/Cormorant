@@ -8,7 +8,7 @@
 
 import Foundation
 
-let stdlib_files = ["core", "builtin", "higherorder", "sequences", "flow", "math"]
+let stdlib_files : [String] = ["builtin", "core", "higherorder", "sequences", "flow", "math"]
 
 // TODO: rewrite this.
 func loadStdlibInto(context: Context, files: [String]) {
@@ -20,7 +20,7 @@ func loadStdlibInto(context: Context, files: [String]) {
           switch parse(s, context) {
           case let .Success(parsedData):
             // Data parsed successfully
-            let re = parsedData.expand()
+            let re = parsedData.expand(context)
             switch re {
             case let .Success(re):
               switch evaluateForm(re, context) {

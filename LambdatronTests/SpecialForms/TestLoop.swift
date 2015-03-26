@@ -39,8 +39,8 @@ class TestLoop : InterpreterTest {
   /// loop should fail if not given a binding vector.
   func testLoopWithoutBinding() {
     expectThat("(loop)", shouldFailAs: .ArityError)
-    expectThat("(loop 150)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(loop '(a 10 b 11))", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(loop 150)")
+    expectInvalidArgumentErrorFrom("(loop '(a 10 b 11))")
   }
 
   /// loop should fail if there are an odd number of forms in the binding vector.
@@ -52,9 +52,16 @@ class TestLoop : InterpreterTest {
 
   /// loop should fail if an even-indexed form in the binding vector is not a symbol.
   func testLoopWithNonSymbolBinding() {
-    expectThat("(loop [1 2])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(loop [a 2 \\b 2 c 3])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(loop [a 2 :b 2 c 3])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(loop [a 2 \"b\" 2 c 3])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(loop [1 2])")
+    expectInvalidArgumentErrorFrom("(loop [a 2 \\b 2 c 3])")
+    expectInvalidArgumentErrorFrom("(loop [a 2 :b 2 c 3])")
+    expectInvalidArgumentErrorFrom("(loop [a 2 \"b\" 2 c 3])")
+  }
+
+  /// loop should reject qualified symbols in the binding vector.
+  func testWithQualifiedSymbols() {
+    expectThat("(loop [foo/a 10] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    expectThat("(loop [a 10 foo/b 20] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    expectThat("(loop [ns1/a 10 ns2/b 20] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
   }
 }

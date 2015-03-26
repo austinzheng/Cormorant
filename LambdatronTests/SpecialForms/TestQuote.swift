@@ -18,7 +18,7 @@ class TestQuote : InterpreterTest {
 
   /// quote should return the second argument unchanged, even if it's a list.
   func testQuoteReturnsList() {
-    let code = interpreter.context.symbolForName("+")
+    let code = symbol("+")
     expectThat("(quote (+ 1 2))", shouldEvalTo: listWithItems(.Symbol(code), 1, 2))
   }
 

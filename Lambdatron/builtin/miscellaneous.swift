@@ -27,7 +27,7 @@ func pr_read(args: Params, ctx: Context) -> EvalResult {
   if args.count != 0 {
     return .Failure(EvalError.runtimeError(fn, message: "Custom readers are not supported"))
   }
-  let readFn = ctx.readInput
+  let readFn = ctx.interpreter.readInput
   if let readFn = readFn {
     let str = readFn()
     return readString(str, ctx, fn)
@@ -98,7 +98,7 @@ private func readString(string: String, ctx: Context, fn: String) -> EvalResult 
     let parsed = parse(lexed, ctx)
     switch parsed {
     case let .Success(parsed):
-      let expanded = parsed.expand()
+      let expanded = parsed.expand(ctx)
       switch expanded {
       case let .Success(expanded):
         return .Success(expanded)
@@ -127,6 +127,6 @@ private func printOrPrintln(args: Params, ctx: Context, isPrintln: Bool) -> Eval
     }
   }
   let outStr = descs.count > 0 ? join(" ", descs) : ""
-  ctx.writeOutput?(isPrintln ? outStr + "\n" : outStr)
+  ctx.interpreter.writeOutput?(isPrintln ? outStr + "\n" : outStr)
   return .Success(.Nil)
 }

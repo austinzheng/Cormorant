@@ -9,13 +9,8 @@
 import Foundation
 
 class ReadEvaluatePrintLoop {
-  let descriptor : NSFileHandle
   let interpreter = Interpreter()
   let logger = LoggingManager()
-
-  init(descriptor: NSFileHandle) {
-    self.descriptor = descriptor
-  }
 
   func run() -> Bool {
     println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
@@ -31,6 +26,11 @@ class ReadEvaluatePrintLoop {
     interpreter.readInput = getString
 
     while true {
+      // Each iteration of this loop represents one REPL loop
+      // Update the prompt
+      let nsName = interpreter.currentNsNameString
+      prompt.setPrompt("\(nsName)-> ")
+
       let data = prompt.gets()
       if let string = String(CString: data, encoding: NSUTF8StringEncoding) {
         if string.isEmpty || string[string.endIndex.predecessor()] != "\n" {

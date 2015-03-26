@@ -14,7 +14,7 @@ class TestSymbolBuiltin : InterpreterTest {
   /// .symbol should properly return a novel symbol when given a symbol argument.
   func testWithNewSymbol() {
     let value = runCode("(.symbol 'foobar)")
-    let expected = interpreter.context.symbolForName("foobar")
+    let expected = symbol("foobar")
     if let value = value {
       XCTAssert(value.asSymbol == expected, ".symbol should properly return a not-before-defined symbol")
     }
@@ -24,9 +24,17 @@ class TestSymbolBuiltin : InterpreterTest {
   func testWithExistingSymbol() {
     runCode("(def foobar)")
     let value = runCode("(.symbol 'foobar)")
-    let expected = interpreter.context.symbolForName("foobar")
+    let expected = symbol("foobar")
     if let value = value {
       XCTAssert(value.asSymbol == expected, ".symbol should properly return a previously defined symbol")
+    }
+  }
+
+  /// .symbol should return a qualified symbol if given one as an argument.
+  func testWithQualifiedSymbol() {
+    if let value = runCode("(.symbol 'foo/bar)") {
+      let expected = symbol("bar", namespace: "foo")
+      XCTAssert(value.asSymbol == expected, ".symbol should properly return a qualified symbol")
     }
   }
 
@@ -38,7 +46,7 @@ class TestSymbolBuiltin : InterpreterTest {
   /// .symbol should properly return a novel symbol when given a string argument.
   func testWithNewSymbolString() {
     let value = runCode("(.symbol \"foobar\")")
-    let expected = interpreter.context.symbolForName("foobar")
+    let expected = symbol("foobar")
     if let value = value {
       XCTAssert(value.asSymbol == expected, ".symbol should properly return a novel symbol from a string")
     }
@@ -48,28 +56,50 @@ class TestSymbolBuiltin : InterpreterTest {
   func testWithExistingSymbolString() {
     runCode("(def foobar)")
     let value = runCode("(.symbol \"foobar\")")
-    let expected = interpreter.context.symbolForName("foobar")
+    let expected = symbol("foobar")
     if let value = value {
       XCTAssert(value.asSymbol == expected, ".symbol should properly return a previously defined symbol")
     }
   }
 
-  /// .symbol should throw an error if tested with an improper argument type.
-  func testArgumentType() {
-    expectThat("(.symbol nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol 123)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol 1.23)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.symbol {})", shouldFailAs: .InvalidArgumentError)
+  /// .symbol should properly return a qualified symbol when given two string arguments.
+  func testWithQualifiedString() {
+    if let value = runCode("(.symbol \"foo\" \"bar\")") {
+      let expected = symbol("bar", namespace: "foo")
+      XCTAssert(value.asSymbol == expected, ".symbol should properly return a qualified symbol")
+    }
   }
 
-  /// .symbol should (currently) take exactly one argument.
+  /// .symbol should return an error if given two string arguments, but the first is an empty string.
+  func testWithEmptyNamespaceString() {
+    expectInvalidArgumentErrorFrom("(.symbol \"\" \"bar\")")
+    expectInvalidArgumentErrorFrom("(.symbol \"\" \"\")")
+  }
+
+  /// .symbol should return nil if given two string arguments, but the second is an empty string.
+  func testWithEmptyNameString() {
+    expectThat("(.symbol \"foo\" \"\")", shouldEvalTo: .Nil)
+  }
+
+  /// .symbol should throw an error if tested with an improper argument type.
+  func testArgumentType() {
+    expectInvalidArgumentErrorFrom("(.symbol nil)")
+    expectInvalidArgumentErrorFrom("(.symbol true)")
+    expectInvalidArgumentErrorFrom("(.symbol false)")
+    expectInvalidArgumentErrorFrom("(.symbol 123)")
+    expectInvalidArgumentErrorFrom("(.symbol 1.23)")
+    expectInvalidArgumentErrorFrom("(.symbol #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.symbol :a)")
+    expectInvalidArgumentErrorFrom("(.symbol \\a)")
+    expectInvalidArgumentErrorFrom("(.symbol ())")
+    expectInvalidArgumentErrorFrom("(.symbol [])")
+    expectInvalidArgumentErrorFrom("(.symbol {})")
+    expectInvalidArgumentErrorFrom("(.symbol nil \"\")")
+    expectInvalidArgumentErrorFrom("(.symbol 'foo 'bar)")
+    expectInvalidArgumentErrorFrom("(.symbol \"foo\" :bar)")
+  }
+
+  /// .symbol should take exactly one or two arguments.
   func testArity() {
     expectArityErrorFrom("(.symbol)")
     expectArityErrorFrom("(.symbol 'a 'b 'c)")

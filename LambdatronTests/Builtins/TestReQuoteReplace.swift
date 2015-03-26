@@ -20,19 +20,19 @@ class TestReQuoteReplacementBuiltin : InterpreterTest {
 
   /// .re-quote-replacement should reject non-string arguments.
   func testInvalidArguments() {
-    expectThat("(.re-quote-replacement nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement 1.000)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement \\c)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement :foobar)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement 'foobar)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement '(1 2 3))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement [1 2 3])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement {:foo :bar})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.re-quote-replacement .re-quote-replacement)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement nil)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement true)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement false)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement 0)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement 1.000)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement \\c)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement :foobar)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement 'foobar)")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement '(1 2 3))")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement [1 2 3])")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement {:foo :bar})")
+    expectInvalidArgumentErrorFrom("(.re-quote-replacement .re-quote-replacement)")
   }
 
   /// .re-quote-replacement should take exactly one argument.

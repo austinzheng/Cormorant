@@ -247,22 +247,17 @@ final class ContiguousList : SeqType {
 /// A sequence type representing a lazy seq, which lazily evaluates a thunk to produce its sequence.
 final class LazySeq : SeqType {
   private enum State {
-    case Thunk(ConsValue, Context, Int)
+    case Thunk(ConsValue, Context)
     case Cached(SeqType)
   }
   private var state : State
 
-  var hashValue : Int {
-    switch state {
-    case let .Thunk(_, _, hash): return hash
-    case let .Cached(seq): return seq.hashValue
-    }
-  }
+  var hashValue : Int { return ObjectIdentifier(self).hashValue }
 
   /// Compute or retrieve the value of the sequence as a realized list.
   private func force() -> SeqResult {
     switch state {
-    case let .Thunk(thunk, context, _):
+    case let .Thunk(thunk, context):
       let result = apply(thunk, Params(), context, "LazySeq-thunk")
       switch result {
       case let .Success(item):
@@ -334,8 +329,7 @@ final class LazySeq : SeqType {
   }
 
   init(_ form: ConsValue, ctx: Context) {
-    let rand = Int(arc4random())
-    state = .Thunk(form, ctx, rand)
+    state = .Thunk(form, ctx)
   }
 }
 

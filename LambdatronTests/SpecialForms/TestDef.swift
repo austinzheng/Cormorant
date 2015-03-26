@@ -19,18 +19,18 @@ class TestDef : InterpreterTest {
 
   /// def should only take a symbol as its first argument.
   func testDefWithInvalidFirstArgs() {
-    expectThat("(def nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def 1)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def 1.01)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def \"qwerty\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def ['a])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def {\"a\" 1234})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def (fn [] 'a))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def (do 1 2 'a))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(def .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(def nil)")
+    expectInvalidArgumentErrorFrom("(def 1)")
+    expectInvalidArgumentErrorFrom("(def 1.01)")
+    expectInvalidArgumentErrorFrom("(def \\a)")
+    expectInvalidArgumentErrorFrom("(def :a)")
+    expectInvalidArgumentErrorFrom("(def 'a)")
+    expectInvalidArgumentErrorFrom("(def \"qwerty\")")
+    expectInvalidArgumentErrorFrom("(def ['a])")
+    expectInvalidArgumentErrorFrom("(def {\"a\" 1234})")
+    expectInvalidArgumentErrorFrom("(def (fn [] 'a))")
+    expectInvalidArgumentErrorFrom("(def (do 1 2 'a))")
+    expectInvalidArgumentErrorFrom("(def .+)")
   }
 
   /// def with an initializer should work properly.
@@ -45,6 +45,21 @@ class TestDef : InterpreterTest {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
     runCode("(def a (.+ 12 2))")
     expectThat("a", shouldEvalTo: 14)
+  }
+
+  /// def should allow qualified symbols only if they are in the current namespace.
+  func testQualifiedSymbols() {
+    runCode("(.ns-set 'foo)")
+    expectThat("(def bar/a 10)", shouldFailAs: .QualifiedSymbolMisuseError)
+    runCode("(def foo/a 10)")
+    runCode("(def foo/b 15)")
+    expectThat("(def bar/z)", shouldFailAs: .QualifiedSymbolMisuseError)
+    // Move namespaces
+    runCode("(.ns-set 'bar)")
+    expectThat("(def foo/a 10)", shouldFailAs: .QualifiedSymbolMisuseError)
+    runCode("(def bar/a 10)")
+    runCode("(def bar/b 15)")
+    expectThat("(def foo/z)", shouldFailAs: .QualifiedSymbolMisuseError)
   }
 
   /// def should overwrite a previous unbound def with a new value.
@@ -68,7 +83,7 @@ class TestDef : InterpreterTest {
   /// def without a value should not overwrite a previous bound def with a value.
   func testOverwritingBoundDefWithUnbound() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    let code = interpreter.context.keywordForName("foobar")
+    let code = keyword("foobar")
     runCode("(def a :foobar)")
     expectThat("a", shouldEvalTo: .Keyword(code))
     runCode("(def a)")

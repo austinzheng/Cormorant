@@ -114,7 +114,8 @@ func sf_do(args: [ConsValue], ctx: Context) -> EvalResult {
   return do_exprs(args, ctx)
 }
 
-/// Bind or re-bind a global identifier, optionally assigning it a value.
+/// Bind or re-bind a global identifier, interning it in the current namespace and optionally assigning it a value. The
+/// Var corresponding to the bound identifier is returned.
 func sf_def(args: Params, ctx: Context) -> EvalResult {
   let fn = "def"
   if args.count == 0 || args.count > 2 {
@@ -122,16 +123,24 @@ func sf_def(args: Params, ctx: Context) -> EvalResult {
   }
   let symbol = args[0]
   let initializer : ConsValue? = args.count > 1 ? args[1] : nil
-  
+
   switch symbol {
-  case let .Symbol(s):
-    // Do stuff
+  case let .Symbol(sym):
+    if let ns = sym.ns where ns != ctx.interpreter.currentNsName {
+      // Qualified symbols must be qualified with the current namespace
+      return .Failure(EvalError(.QualifiedSymbolMisuseError))
+    }
+    let name = sym.unqualified
     if let initializer = initializer {
       // If a value is provided, always use that value
       let result = initializer.evaluate(ctx)
       switch result {
       case let .Success(result):
-        ctx.setVar(s, value: .Literal(result))
+        let result = ctx.root.setVar(name, newValue: result)
+        switch result {
+        case let .Var(aVar): return .Success(.Var(aVar))
+        case let .Error(err): return .Failure(err)
+        }
       case .Recur:
         return .Failure(EvalError(.RecurMisuseError, fn,
           message: "recur was used as the initializer when defining a var"))
@@ -142,11 +151,12 @@ func sf_def(args: Params, ctx: Context) -> EvalResult {
     else {
       // No value is provided
       // If invalid, create the var as unbound
-      if !ctx.varIsValid(s) {
-        ctx.setVar(s, value: .Unbound)
+      let result = ctx.root.setUnboundVar(sym.unqualified, shouldUnbind: false)
+      switch result {
+      case let .Var(aVar): return .Success(.Var(aVar))
+      case let .Error(err): return .Failure(err)
       }
     }
-    return .Success(symbol)
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a symbol"))
   }
@@ -168,16 +178,20 @@ func sf_let(args: Params, ctx: Context) -> EvalResult {
     }
     // Create a new context whose parent is the current context. This new context will be updated in-place for each
     //  expression in the binding vector that is evaluated.
-    let newContext = ChildContext(parent: ctx)
+    let newContext = LexicalScopeContext(parent: ctx)
 
     for (bindingSymbol, expression) in PairSequence(bindingsVector) {
       switch bindingSymbol {
-      case let .Symbol(s):
+      case let .Symbol(sym):
+        if !sym.isUnqualified {
+          return .Failure(EvalError(.QualifiedSymbolMisuseError))
+        }
+
         // Evaluate expression
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let result = expression.evaluate(newContext)
         switch result {
-        case let .Success(result): newContext.pushBinding(.Literal(result), forSymbol: s)
+        case let .Success(result): newContext.pushBinding(.Literal(result), forSymbol: sym.unqualified)
         default: return result
         }
       default:
@@ -209,7 +223,18 @@ func sf_fn(args: Params, ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
-  let name : InternedSymbol? = args[0].asSymbol
+  let name : UnqualifiedSymbol?
+  if let nameSymbol = args[0].asSymbol {
+    // If the optional symbol used as an internal reference to the anonymous function exists, it must be unqualified
+    if !nameSymbol.isUnqualified {
+      return .Failure(EvalError(.QualifiedSymbolMisuseError))
+    }
+    name = nameSymbol.unqualified
+  }
+  else {
+    name = nil
+  }
+
   let rest = (name == nil) ? args : args.rest()
   if rest.count == 0 {
     return .Failure(EvalError.arityError("at least 2 (if first arg is a name)", actual: args.count, fn))
@@ -239,13 +264,18 @@ func sf_fn(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Define a macro. A macro is defined in a similar manner to a function, except that macros must be bound to a global
-/// binding and cannot be treated as values.
+/// binding and cannot be treated as values. The Var corresponding to the bound macro is returned.
 func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
   let fn = "defmacro"
   if args.count < 2 {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
   }
-  if let name = args[0].asSymbol {
+  if let sym = args[0].asSymbol {
+    if let ns = sym.ns where ns != ctx.interpreter.currentNsName {
+      // Qualified symbols must be qualified with the current namespace
+      return .Failure(EvalError(.QualifiedSymbolMisuseError))
+    }
+    let name = sym.unqualified
     let rest = args.rest()
     if rest[0].asVector != nil {
       // Single arity
@@ -254,8 +284,11 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
         let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
         switch macroResult {
         case let .Success(macro):
-          ctx.setVar(name, value: .BoundMacro(macro))
-          return .Success(args[0])
+          let result = ctx.root.setVar(name, newValue: macro)
+          switch result {
+          case let .Var(aVar): return .Success(.Var(aVar))
+          case let .Error(err): return .Failure(err)
+          }
         case let .Failure(f):
           return .Failure(f)
         }
@@ -275,8 +308,11 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
       let macroResult = Macro.buildMacro(arityBuffer, name: name, ctx: ctx)
       switch macroResult {
       case let .Success(macro):
-        ctx.setVar(name, value: .BoundMacro(macro))
-        return .Success(args[0])
+        let result = ctx.root.setVar(name, newValue: macro)
+        switch result {
+        case let .Var(aVar): return .Success(.Var(aVar))
+        case let .Error(err): return .Failure(err)
+        }
       case let .Failure(f):
         return .Failure(f)
       }
@@ -303,23 +339,26 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
     }
     // thisContext is the new context within which the loop executes. If there are any bindings they are added into this
     //  context.
-    let thisContext = ChildContext(parent: ctx)
-    var symbols : [InternedSymbol] = []
+    let thisContext = LexicalScopeContext(parent: ctx)
+    var symbols : [UnqualifiedSymbol] = []
 
     for (name, expression) in PairSequence(bindingsVector) {
       switch name {
-      case let .Symbol(s):
+      case let .Symbol(sym):
+        if !sym.isUnqualified {
+          return .Failure(EvalError(.QualifiedSymbolMisuseError))
+        }
         let result = expression.evaluate(thisContext)
         switch result {
         case let .Success(result):
-          thisContext.pushBinding(.Literal(result), forSymbol: s)
+          thisContext.pushBinding(.Literal(result), forSymbol: sym.unqualified)
         case .Recur:
           return .Failure(EvalError(.RecurMisuseError, fn,
             message: "recur came before the final expression in a loop"))
         case .Failure:
           return result
         }
-        symbols.append(s)
+        symbols.append(sym)
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "even-indexed arguments in a binding vector must be symbols"))
@@ -337,7 +376,7 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
           return .Failure(EvalError.arityError("\(symbols.count)", actual: newBindingValues.count, fn))
         }
         for (idx, newValue) in enumerate(newBindingValues) {
-          thisContext[symbols[idx]] = .Literal(newValue)
+          thisContext.updateBinding(.Literal(newValue), forSymbol: symbols[idx])
         }
         continue
       case .Success, .Failure:
@@ -451,28 +490,34 @@ func sf_attempt(args: Params, ctx: Context) -> EvalResult {
 
 /// Given a list of args (all of which should be symbols), extract the strings corresponding with their argument names,
 /// as well as any variadic parameter that exists.
-private func extractParameters(args: [ConsValue], ctx: Context) -> ([InternedSymbol], InternedSymbol?)? {
+private func extractParameters(args: [ConsValue], ctx: Context) -> ([UnqualifiedSymbol], UnqualifiedSymbol?)? {
   // Returns a list of symbol names representing the parameter names, as well as the variadic parameter name (if any)
-  var names : [InternedSymbol] = []
+  // TODO: This function should return errors on failure, instead of nil
+  var names : [UnqualifiedSymbol] = []
   for arg in args {
     switch arg {
-    case let .Symbol(s): names.append(s)
+    case let .Symbol(sym):
+      if !sym.isUnqualified {
+        return nil  // really should return a QualifiedSymbolMisuseError instead
+      }
+      names.append(sym.unqualified)
     default: return nil // Non-symbol objects in argument list are invalid
     }
   }
   // No '&' allowed anywhere except for second-last position
   for (idx, symbol) in enumerate(names) {
-    if symbol == ctx.symbolForName("&") && idx != names.count - 2 {
+    if symbol.qualified == ctx.ivs.internedStringFor(._And) && idx != names.count - 2 {
       return nil
     }
   }
-  // Check to see if there's a variadic argument
-  if names.count >= 2 && ctx.nameForSymbol(names[names.count - 2]) == "&" {
-    return (Array(names[0..<names.count-2]), names[names.count-1])
+  // Check to see if there's a variadic argument (e.g. & followed by a vararg symbol)
+  if names.count >= 2 {
+    let secondLast = names[names.count - 2]
+    if secondLast.qualified == ctx.ivs.internedStringFor(._And) {
+      return (Array(names[0..<names.count-2]), names[names.count-1])
+    }
   }
-  else {
-    return (names, nil)
-  }
+  return (names, nil)
 }
 
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new

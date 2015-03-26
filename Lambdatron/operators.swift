@@ -120,6 +120,16 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> BoolOrEvalError {
     case let .StringAtom(s2): return .Boolean(s1 == s2)
     default: return false
     }
+  case let .Namespace(ns1):
+    switch rhs {
+    case let .Namespace(ns2): return .Boolean(ns1 == ns2)
+    default: return false
+    }
+  case let .Var(v1):
+    switch rhs {
+    case let .Var(v2): return .Boolean(v1 == v2)
+    default: return false
+    }
   case let .Auxiliary(a1):
     switch rhs {
     case let .Auxiliary(a2): return .Boolean(a1.equals(a2))

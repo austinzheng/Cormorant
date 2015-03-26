@@ -73,26 +73,27 @@ class TestRestBuiltin : InterpreterTest {
 
   /// .rest should return a sequence comprised of the rest of the key-value pairs in a map.
   func testWithMaps() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
-    let c = interpreter.context.keywordForName("c")
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = keyword("c")
     expectThat("(.rest {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo:
-      listWithItems(vectorWithItems(.Keyword(c), 3), vectorWithItems(.Keyword(a), 1),
+      listWithItems(vectorWithItems(.Keyword(b), 2), vectorWithItems(.Keyword(a), 1),
         vectorWithItems(.CharAtom("d"), 4)))
     expectThat("(.rest {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo:
-      listWithItems(vectorWithItems(true, .StringAtom("bar")), vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
+      listWithItems(vectorWithItems(true, .StringAtom("bar")),
+        vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
   }
 
   /// .rest should reject non-collection arguments.
   func testWithInvalidTypes() {
-    expectThat("(.rest true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest 3.141592)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest :foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest 'foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest \\f)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.rest .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.rest true)")
+    expectInvalidArgumentErrorFrom("(.rest false)")
+    expectInvalidArgumentErrorFrom("(.rest 152)")
+    expectInvalidArgumentErrorFrom("(.rest 3.141592)")
+    expectInvalidArgumentErrorFrom("(.rest :foo)")
+    expectInvalidArgumentErrorFrom("(.rest 'foo)")
+    expectInvalidArgumentErrorFrom("(.rest \\f)")
+    expectInvalidArgumentErrorFrom("(.rest .+)")
   }
 
   /// .rest should only take one argument.

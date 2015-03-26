@@ -14,7 +14,7 @@ class TestKeywordBuiltin : InterpreterTest {
   /// .keyword should properly return a keyword when given a new keyword.
   func testWithNovelKeyword() {
     let value = runCode("(.keyword :foobar)")
-    let expected = interpreter.context.keywordForName("foobar")
+    let expected = keyword("foobar")
     if let value = value {
       XCTAssert(value.asKeyword == expected, ".keyword should properly return a novel keyword from a keyword")
     }
@@ -24,7 +24,7 @@ class TestKeywordBuiltin : InterpreterTest {
   func testWithExistingKeyword() {
     runCode("(.keyword :foobar)")
     let value = runCode("(.keyword :foobar)")
-    let expected = interpreter.context.keywordForName("foobar")
+    let expected = keyword("foobar")
     if let value = value {
       XCTAssert(value.asKeyword == expected, ".keyword should properly return an existing keyword from a keyword")
     }
@@ -38,7 +38,7 @@ class TestKeywordBuiltin : InterpreterTest {
   /// .keyword should return a keyword if given the name of a new keyword.
   func testWithNovelString() {
     let value = runCode("(.keyword \"foobar\")")
-    let expected = interpreter.context.keywordForName("foobar")
+    let expected = keyword("foobar")
     if let value = value {
       XCTAssert(value.asKeyword == expected, ".keyword should properly return a novel keyword from a string")
     }
@@ -48,7 +48,7 @@ class TestKeywordBuiltin : InterpreterTest {
   func testWithExistingKeywordString() {
     runCode("(.keyword :foobar)")
     let value = runCode("(.keyword \"foobar\")")
-    let expected = interpreter.context.keywordForName("foobar")
+    let expected = keyword("foobar")
     if let value = value {
       XCTAssert(value.asKeyword == expected, ".keyword should properly return an existing keyword from a string")
     }
@@ -57,9 +57,17 @@ class TestKeywordBuiltin : InterpreterTest {
   /// .keyword should work if given a symbol whose name is not an existing keyword.
   func testWithNovelSymbol() {
     let value = runCode("(.keyword 'foobar)")
-    let expected = interpreter.context.keywordForName("foobar")
+    let expected = keyword("foobar")
     if let value = value {
       XCTAssert(value.asKeyword == expected, ".keyword should properly return a novel keyword from a symbol")
+    }
+  }
+
+  /// .keyword should work if given a qualified symbol.
+  func testWithQualifiedSymbol() {
+    if let value = runCode("(.keyword 'foo/bar)") {
+      let expected = keyword("bar", namespace: "foo")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return a qualified keyword")
     }
   }
 
@@ -67,10 +75,29 @@ class TestKeywordBuiltin : InterpreterTest {
   func testWithExistingKeywordSymbol() {
     runCode("(.keyword :foobar)")
     let value = runCode("(.keyword 'foobar)")
-    let expected = interpreter.context.keywordForName("foobar")
+    let expected = keyword("foobar")
     if let value = value {
       XCTAssert(value.asKeyword == expected, ".keyword should properly return an existing keyword from a symbol")
     }
+  }
+
+  /// .keyword should properly return a qualified symbol when given two string arguments.
+  func testWithQualifiedString() {
+    if let value = runCode("(.keyword \"foo\" \"bar\")") {
+      let expected = keyword("bar", namespace: "foo")
+      XCTAssert(value.asKeyword == expected, ".keyword should properly return a qualified keyword")
+    }
+  }
+
+  /// .keyword should return an error if given two string arguments, but the first is an empty string.
+  func testWithEmptyNamespaceString() {
+    expectInvalidArgumentErrorFrom("(.keyword \"\" \"bar\")")
+    expectInvalidArgumentErrorFrom("(.keyword \"\" \"\")")
+  }
+
+  /// .keyword should return nil if given two string arguments, but the second is an empty string.
+  func testWithEmptyNameString() {
+    expectThat("(.keyword \"foo\" \"\")", shouldEvalTo: .Nil)
   }
 
   /// .keyword should return nil if called with any non-compliant argument type.
@@ -85,9 +112,11 @@ class TestKeywordBuiltin : InterpreterTest {
     expectThat("(.keyword ())", shouldEvalTo: .Nil)
     expectThat("(.keyword [])", shouldEvalTo: .Nil)
     expectThat("(.keyword {})", shouldEvalTo: .Nil)
+    expectInvalidArgumentErrorFrom("(.keyword 'foo 'bar)")
+    expectInvalidArgumentErrorFrom("(.keyword \"foo\" :bar)")
   }
 
-  /// .keyword should (currently) take exactly one argument.
+  /// .keyword should take exactly one or two arguments.
   func testArity() {
     expectArityErrorFrom("(.keyword)")
     expectArityErrorFrom("(.keyword :a :b :c)")

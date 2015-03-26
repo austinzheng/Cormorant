@@ -11,16 +11,33 @@ import Foundation
 /// Given a symbol or string, return a corresponding symbol.
 func pr_symbol(args: Params, ctx: Context) -> EvalResult {
   let fn = ".symbol"
-  if args.count != 1 {
-    return .Failure(args.count == 2
-      ? EvalError.runtimeError(fn, message: "namespaces are not (yet) supported")
-      : EvalError.arityError("1 or 2", actual: args.count, fn))
+  if args.count != 1 && args.count != 2 {
+    return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
   }
   switch args[0] {
   case .Symbol:
+    if args.count != 1 {
+      return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is symbol, can only have one argument"))
+    }
     return .Success(args[0])
-  case let .StringAtom(s):
-    return .Success(s.isEmpty ? .Nil : .Symbol(ctx.symbolForName(s)))
+  case let .StringAtom(str):
+    if args.count == 2 {
+      // Qualified symbol
+      let nsName = str
+      if let name = args[1].asString where !nsName.isEmpty {
+        if name.isEmpty {
+          return .Success(.Nil)
+        }
+        return .Success(.Symbol(InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)))
+      }
+      else {
+        return .Failure(EvalError.invalidArgumentError(fn, message: "arguments must be strings"))
+      }
+    }
+    else {
+      // Unqualified symbol
+      return .Success(str.isEmpty ? .Nil : .Symbol(InternedSymbol(str, namespace: nil, ivs: ctx.ivs)))
+    }
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol or string"))
   }
@@ -29,21 +46,64 @@ func pr_symbol(args: Params, ctx: Context) -> EvalResult {
 /// Given a symbol, string, or keyword, return a corresponding keyword; otherwise, return nil.
 func pr_keyword(args: Params, ctx: Context) -> EvalResult {
   let fn = ".keyword"
-  if args.count != 1 {
-    return .Failure(args.count == 2
-      ? EvalError.runtimeError(fn, message: "namespaces are not (yet) supported")
-      : EvalError.arityError("1 or 2", actual: args.count, fn))
+  if args.count != 1 && args.count != 2 {
+    return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
   }
   switch args[0] {
-  case let .Symbol(s):
-    let name = ctx.nameForSymbol(s)
-    return .Success(.Keyword(ctx.keywordForName(name)))
+  case let .Symbol(sym):
+    if args.count != 1 {
+      return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is symbol, can only have one argument"))
+    }
+    // The keyword is created directly from the symbol. It shares the symbol's name, and if the symbol is qualified,
+    // also its namespace.
+    return .Success(.Keyword(InternedKeyword(symbol: sym)))
   case .Keyword:
+    if args.count != 1 {
+      return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is keyword, can only have one argument"))
+    }
     return .Success(args[0])
-  case let .StringAtom(s):
-    return .Success(s.isEmpty ? .Nil : .Keyword(ctx.keywordForName(s)))
+  case let .StringAtom(str):
+    if args.count == 2 {
+      // Qualified keyword
+      let nsName = str
+      if let name = args[1].asString where !nsName.isEmpty {
+        if name.isEmpty {
+          return .Success(.Nil)
+        }
+        return .Success(.Keyword(InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)))
+      }
+      else {
+        return .Failure(EvalError.invalidArgumentError(fn, message: "arguments must be strings"))
+      }
+    }
+    else {
+      // Unqualified keyword
+      return .Success(str.isEmpty ? .Nil : .Keyword(InternedKeyword(str, namespace: nil, ivs: ctx.ivs)))
+    }
   default:
     return .Success(.Nil)
+  }
+}
+
+/// Return the namespace string of a symbol or keyword, or nil if not present.
+func pr_namespace(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".namespace"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  switch args[0] {
+  case let .Symbol(sym):
+    if let ns = sym.ns {
+      return .Success(.StringAtom(ns.asString(ctx.ivs)))
+    }
+    return .Success(.Nil)
+  case let .Keyword(keyword):
+    if let ns = keyword.ns {
+      return .Success(.StringAtom(ns.asString(ctx.ivs)))
+    }
+    return .Success(.Nil)
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol or a keyword"))
   }
 }
 

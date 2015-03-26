@@ -28,7 +28,7 @@ private func doFormForFileData(d: String, ctx: Context) -> DoFormFileDataResult 
     for segment in segments {
       switch parse(segment, ctx) {
       case let .Success(parsedData):
-        let expanded = parsedData.expand()
+        let expanded = parsedData.expand(ctx)
         switch expanded {
         case let .Success(expanded): buffer.append(expanded)
         case let .Failure(f): return .ReadFailure(f)
@@ -49,22 +49,23 @@ func main() {
   
   if args.count == 1 {
     // Run the REPL
-    let handle = NSFileHandle.fileHandleWithStandardInput()
-    let repl = ReadEvaluatePrintLoop(descriptor: handle)
+    let repl = ReadEvaluatePrintLoop()
     let result = repl.run()
     exit(result ? EXIT_SUCCESS : EXIT_FAILURE)
   }
   else if args.count == 3 && args[1] == "-f" {
     // Execute a file
     let fileName = args[2]
+    // TODO: This sucks, redo it
     if let fileInput = fileDataForRawPath(fileName) {
       let i = Interpreter()
-      switch doFormForFileData(fileInput, i.context) {
+      let ctx = i.currentNamespace
+      switch doFormForFileData(fileInput, ctx) {
       case let .Success(forms):
-        let result = sf_do(forms, i.context)
+        let result = sf_do(forms, ctx)
         switch result {
         case let .Success(s):
-          switch s.describe(i.context) {
+          switch s.describe(ctx) {
           case let .Desc(d): println(d)
           case let .Error(err): println("Evaluation error \(err)")
           }

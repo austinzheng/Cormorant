@@ -65,21 +65,23 @@ private func constructForm(result: ListExpandResult, f: SeqType -> SeqType) -> E
 }
 
 /// Given a list (a b c) which forms the list part of the syntax-quoted form `(a b c ...), return the expansion.
-private func expandSyntaxQuotedList(list: SeqType) -> ListExpandResult {
+private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandResult {
   var b : [ConsValue] = []    // each element corresponds to a list element after transformation
 
   for element in collectSymbols(list).force() {
     switch element {
-    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword:
+    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword, .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Atomic items are wrapped in 'list': ATOM --> (list ATOM)
-      b.append(.Seq(sequence(LIST, element)))
-    case .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Symbols, etc are wrapped in 'list' and 'quote': sym --> (list (quote sym))
-      b.append(.Seq(sequence(LIST, .Seq(sequence(QUOTE, element)))))
+      let result = element.expandSyntaxQuote(ctx)
+      switch result {
+      case let .Success(expanded): b.append(.Seq(sequence(LIST, expanded)))
+      case let .Failure(err): return .Failure(err)
+      }
     case let .ReaderMacroForm(rm):
       switch rm.type {
       case .Quote, .SyntaxQuote:
-        let e = rm.form.expandSyntaxQuote()
+        let e = rm.form.expandSyntaxQuote(ctx)
         switch e {
         case let .Success(expanded):
           b.append(.Seq(sequence(LIST, expanded)))
@@ -92,14 +94,14 @@ private func expandSyntaxQuotedList(list: SeqType) -> ListExpandResult {
         b.append(rm.form)
       }
     case let .Seq, .Vector, .Map:
-      let e = element.expandSyntaxQuote()
+      let e = element.expandSyntaxQuote(ctx)
       switch e {
       case let .Success(expanded):
         b.append(.Seq(sequence(LIST, expanded)))
       case let .Failure(err):
         return .Failure(err)
       }
-    case .FunctionLiteral:
+    case .FunctionLiteral, .Namespace, .Var:
       // function literals should never show up at this stage in the pipeline
       return .Failure(ReadError(.IllegalExpansionFormError))
     }
@@ -109,7 +111,7 @@ private func expandSyntaxQuotedList(list: SeqType) -> ListExpandResult {
 }
 
 /// Given a list (e.g. (a b c)), return an expanded version of the list where each element has been expanded itself.
-private func expandList(seq: ContiguousList) -> ExpandResult {
+private func expandList(seq: ContiguousList, ctx: Context) -> ExpandResult {
   if seq.backingArray.isEmpty {
     // The list is empty, return the empty list
     return .Success(.Seq(Empty()))
@@ -118,7 +120,7 @@ private func expandList(seq: ContiguousList) -> ExpandResult {
   var copy = seq.backingArray
   for (idx, value) in enumerate(copy) {
     // Go through the list and expand each item in turn
-    let expanded = value.readerExpand()
+    let expanded = value.readerExpand(ctx)
     switch expanded {
     case let .Success(expanded):
       copy[idx] = expanded
@@ -129,13 +131,13 @@ private func expandList(seq: ContiguousList) -> ExpandResult {
 }
 
 /// Given a vector (e.g. [a b c]), return an expanded version of the vector where each element has been expanded itself.
-private func expandVector(vector: VectorType) -> ExpandResult {
+private func expandVector(vector: VectorType, ctx: Context) -> ExpandResult {
   if vector.count == 0 {
     return .Success(.Vector([]))
   }
   var copy : VectorType = vector
   for (idx, item) in enumerate(vector) {
-    let result = item.readerExpand()
+    let result = item.readerExpand(ctx)
     switch result {
     case let .Success(expanded):
       copy[idx] = expanded
@@ -147,13 +149,13 @@ private func expandVector(vector: VectorType) -> ExpandResult {
 }
 
 /// Given a map (e.g. {k1 v1}), return an expanded version of the map where all keys and values have been expanded.
-private func expandMap(hashmap: MapType) -> ExpandResult {
+private func expandMap(hashmap: MapType, ctx: Context) -> ExpandResult {
   var copy : MapType = [:]
   for (key, value) in hashmap {
-    let expandedKey = key.readerExpand()
+    let expandedKey = key.readerExpand(ctx)
     switch expandedKey {
     case let .Success(expandedKey):
-      let expandedValue = value.readerExpand()
+      let expandedValue = value.readerExpand(ctx)
       switch expandedValue {
       case let .Success(expandedValue): copy[expandedKey] = expandedValue
       case .Failure: return expandedValue
@@ -164,9 +166,9 @@ private func expandMap(hashmap: MapType) -> ExpandResult {
   return .Success(.Map(copy))
 }
 
-private func expandReaderMacro(rm: ReaderMacro) -> ExpandResult {
+private func expandReaderMacro(rm: ReaderMacro, ctx: Context) -> ExpandResult {
   // First, expand the form contained within the reader macro
-  let result = rm.form.readerExpand()
+  let result = rm.form.readerExpand(ctx)
   switch result {
   case let .Success(s):
     // Next, expand the form according to the reader macro, or wrap and pass back up the stack (if unquote,
@@ -175,7 +177,7 @@ private func expandReaderMacro(rm: ReaderMacro) -> ExpandResult {
     case .Quote:
       return s.expandQuote()
     case .SyntaxQuote:
-      return s.expandSyntaxQuote()
+      return s.expandSyntaxQuote(ctx)
     case .Unquote:
       return .Success(.ReaderMacroForm(ReaderMacro(type: .Unquote, form: s)))
     case .UnquoteSplice:
@@ -189,24 +191,24 @@ private func expandReaderMacro(rm: ReaderMacro) -> ExpandResult {
 
 extension ConsValue {
 
-  func expand() -> ExpandResult {
-    return readerExpand()
+  func expand(ctx: Context) -> ExpandResult {
+    return readerExpand(ctx)
   }
 
   // NOTE: This will be the top-level syntax quote reader expansion method. It operates on an entire expression, NOT on
   // just e.g. the wrapped expression within a reader-quote form.
-  private func readerExpand() -> ExpandResult {
+  private func readerExpand(ctx: Context) -> ExpandResult {
 //    println("DBG: calling 'readerExpand' with item \(describe(nil))")
     switch self {
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Symbol, .Keyword, .Auxiliary, .Special, .BuiltInFunction:
       return .Success(self)
     case let .ReaderMacroForm(rm):
       // 'form' represents a reader macro (e.g. `X or ~X)
-      return expandReaderMacro(rm)
+      return expandReaderMacro(rm, ctx)
     case let .Seq(seq):
       // Note that seqs that come out of the parser must all be ContiguousLists.
       if let seq = seq as? ContiguousList {
-        return expandList(seq)
+        return expandList(seq, ctx)
       }
       if seq.isEmpty.force() {
         return .Success(.Seq(seq))
@@ -215,14 +217,20 @@ extension ConsValue {
       let rseq = ContiguousList.fromSequence(seq)
       switch rseq {
         // TODO: Make sure that this is handled properly.
-      case let .Seq(seq): return expandList(seq as! ContiguousList)
+      case let .Seq(seq):
+        if let seq = seq as? ContiguousList {
+          return expandList(seq, ctx)
+        }
+        else {
+          internalError("All sequences created by the parser should be contiguous lists")
+        }
       case .Error: internalError("There should be no lazy sequences at the reader macro expansion phase")
       }
     case let .Vector(vector):
-      return expandVector(vector)
-    case let .Map(m):
-      return expandMap(m)
-    case .FunctionLiteral:
+      return expandVector(vector, ctx)
+    case let .Map(map):
+      return expandMap(map, ctx)
+    case .FunctionLiteral, .Namespace, .Var:
       return .Failure(ReadError(.IllegalExpansionFormError))
     }
   }
@@ -234,13 +242,20 @@ extension ConsValue {
   }
 
   /// When expanding an expression in the form `a, this method is called on 'a'; it returns (seq (concat a)).
-  private func expandSyntaxQuote() -> ExpandResult {
+  private func expandSyntaxQuote(ctx: Context) -> ExpandResult {
 //    println("DBG: calling 'expandWhenWithinSyntaxQuote' with item \(describe(nil))")
     // ` differs in behavior depending on exactly what a is; it is most complex when a is a sequence
     switch self {
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword:
       // Expanding `LIT always results in LIT
       return .Success(self)
+    case let .Symbol(sym) where sym.isUnqualified:
+      // Expanding `a results in (quote ns/a); we must qualify the symbol if it's unqualified
+      let ns = ctx.interpreter.currentNsName
+      let nsName = ns.asString(ctx.ivs)
+      let symbolName = sym.nameComponent(ctx)
+      let symbol = InternedSymbol(symbolName, namespace: nsName, ivs: ctx.ivs)
+      return .Success(.Seq(sequence(QUOTE, .Symbol(symbol))))
     case .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Expanding `a results in (quote a)
       return .Success(.Seq(sequence(QUOTE, self)))
@@ -262,24 +277,24 @@ extension ConsValue {
       }
       else {
         // `(a b c) = (seq (concat (a1 b1 c1)))
-        let result = expandSyntaxQuotedList(s)
+        let result = expandSyntaxQuotedList(s, ctx)
         return constructForm(result) {
           sequence(SEQ, .Seq(cons(CONCAT, next: $0)))
         }
       }
     case let .Vector(vector):
       // Turn the syntax-quoted vector `[a b] into (apply (vector `(a b)))
-      let result = expandSyntaxQuotedList(sequence(vector))
+      let result = expandSyntaxQuotedList(sequence(vector), ctx)
       return constructForm(result) {
         sequence(APPLY, VECTOR, .Seq(sequence(SEQ, .Seq(cons(CONCAT, next: $0)))))
       }
     case let .Map(m):
       // Turn the syntax-quoted map `{a b} into (apply (map `(a b)))
-      let result = expandSyntaxQuotedList(seqFromMap(m))
+      let result = expandSyntaxQuotedList(seqFromMap(m), ctx)
       return constructForm(result) {
         sequence(APPLY, HASHMAP, .Seq(sequence(SEQ, .Seq(cons(CONCAT, next: $0)))))
       }
-    case .FunctionLiteral:
+    case .FunctionLiteral, .Namespace, .Var:
       return .Failure(ReadError(.IllegalExpansionFormError))
     }
   }

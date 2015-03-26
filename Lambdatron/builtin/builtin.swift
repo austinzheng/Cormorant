@@ -18,7 +18,25 @@ internal let SEQ = ConsValue.BuiltInFunction(.Seq)
 
 /// An enum describing every built-in function included with the interpreter.
 public enum BuiltIn : String, Printable {
-  
+
+  // Namespace-related
+  case NsCreate = ".ns-create"
+  case NsSet = ".ns-set"
+  case NsGet = ".ns-get"
+  case NsName = ".ns-name"
+  case NsAll = ".ns-all"
+  case NsFind = ".ns-find"
+  case NsUnmap = ".ns-unmap"
+  case NsAlias = ".ns-alias"
+  case NsAliases = ".ns-aliases"
+  case NsUnalias = ".ns-unalias"
+  case NsRefer = ".ns-refer"
+  case NsMap = ".ns-map"
+  case NsInterns = ".ns-interns"
+  case NsRefers = ".ns-refers"
+  case NsResolve = ".ns-resolve"
+  case NsRemove = ".ns-remove"
+
   // Collection-related
   case List = ".list"
   case Vector = ".vector"
@@ -41,6 +59,7 @@ public enum BuiltIn : String, Printable {
   // Primitive-related
   case Symbol = ".symbol"
   case Keyword = ".keyword"
+  case Namespace = ".namespace"
   case Int = ".int"
   case Double = ".double"
 
@@ -118,6 +137,22 @@ public enum BuiltIn : String, Printable {
   
   var function : LambdatronBuiltIn {
     switch self {
+    case .NsCreate: return ns_create
+    case .NsSet: return ns_set
+    case .NsGet: return ns_get
+    case .NsName: return ns_name
+    case .NsAll: return ns_all
+    case .NsFind: return ns_find
+    case .NsUnmap: return ns_unmap
+    case .NsAlias: return ns_alias
+    case .NsAliases: return ns_aliases
+    case .NsUnalias: return ns_unalias
+    case .NsRefer: return ns_refer
+    case .NsMap: return ns_map
+    case .NsInterns: return ns_interns
+    case .NsRefers: return ns_refers
+    case .NsResolve: return ns_resolve
+    case .NsRemove: return ns_remove
     case .List: return pr_list
     case .Vector: return pr_vector
     case .Hashmap: return pr_hashmap
@@ -137,6 +172,7 @@ public enum BuiltIn : String, Printable {
     case .Reduce: return pr_reduce
     case .Symbol: return pr_symbol
     case .Keyword: return pr_keyword
+    case .Namespace: return pr_namespace
     case .Int: return pr_int
     case .Double: return pr_double
     case .Str: return str_str

@@ -75,16 +75,16 @@ class TestDissocBuiltin : InterpreterTest {
 
   /// .dissoc should reject non-map arguments if called with at least one key.
   func testWithInvalidArgs() {
-    expectThat("(.dissoc true 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc false 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc \"foobar\" 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc \\c 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc :c 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc 'c 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc #\"[0-9]+\" 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc [1 2 3 4 5] 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc '(1 2 3 4 5) 0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.dissoc .dissoc 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.dissoc true 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc false 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc \"foobar\" 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc \\c 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc :c 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc 'c 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc #\"[0-9]+\" 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc [1 2 3 4 5] 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc '(1 2 3 4 5) 0)")
+    expectInvalidArgumentErrorFrom("(.dissoc .dissoc 0)")
   }
 
   /// .dissoc should take at least one argument.

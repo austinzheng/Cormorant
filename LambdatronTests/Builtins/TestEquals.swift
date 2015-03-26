@@ -73,10 +73,40 @@ class TestEqualsBuiltin : InterpreterTest {
     expectThat("(.= 'bar 'baz)", shouldEvalTo: false)
   }
 
+  /// .= should properly compare namespaced symbols.
+  func testWithNamespacedSymbols() {
+    expectThat("(.= 'user/meela 'user/meela)", shouldEvalTo: true)
+    expectThat("(.= 'user/foo 'blah/foo)", shouldEvalTo: false)
+    expectThat("(.= 'bar/baz 'bar/baz)", shouldEvalTo: true)
+    expectThat("(.= 'foo/bar 'baz/qux)", shouldEvalTo: false)
+  }
+
+  /// .= should compare symbol values literally, and should not equate an unqualified symbol to a qualified symbol.
+  func testWithQualifiedAndUnqualifiedSymbols() {
+    expectThat("(.= 'meela 'user/meela)", shouldEvalTo: false)
+    expectThat("(.= 'user/meela 'meela)", shouldEvalTo: false)
+    expectThat("(.= 'test 'foo/bar)", shouldEvalTo: false)
+  }
+
   /// .= should properly compare keywords.
   func testWithKeywords() {
     expectThat("(.= :and :and)", shouldEvalTo: true)
     expectThat("(.= :then :else)", shouldEvalTo: false)
+  }
+
+  /// .= should properly compare namespaced keywords.
+  func testWithNamespacedKeywords() {
+    expectThat("(.= :user/meela :user/meela)", shouldEvalTo: true)
+    expectThat("(.= :user/foo :blah/foo)", shouldEvalTo: false)
+    expectThat("(.= :bar/baz :bar/baz)", shouldEvalTo: true)
+    expectThat("(.= :foo/bar :baz/qux)", shouldEvalTo: false)
+  }
+
+  /// .= should compare keywords values literally, and should not equate an unqualified keyword to a qualified keyword.
+  func testWithQualifiedAndUnqualifiedKeywords() {
+    expectThat("(.= :meela :user/meela)", shouldEvalTo: false)
+    expectThat("(.= :user/meela :meela)", shouldEvalTo: false)
+    expectThat("(.= :test :foo/bar)", shouldEvalTo: false)
   }
 
   /// .= should properly compare strings.

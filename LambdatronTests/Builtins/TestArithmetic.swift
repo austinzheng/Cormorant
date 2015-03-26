@@ -8,7 +8,7 @@
 
 import Foundation
 
-class TestPlus : InterpreterTest {
+class TestPlusBuiltin : InterpreterTest {
 
   /// Addition with integers should work.
   func testInts() {
@@ -41,7 +41,7 @@ class TestPlus : InterpreterTest {
   }
 }
 
-class TestMinus : InterpreterTest {
+class TestMinusBuiltin : InterpreterTest {
 
   /// Subtraction with integers should work.
   func testInts() {
@@ -74,7 +74,7 @@ class TestMinus : InterpreterTest {
   }
 }
 
-class TestMultiply : InterpreterTest {
+class TestMultiplyBuiltin : InterpreterTest {
 
   /// Multiplication with integers should work.
   func testInts() {
@@ -107,7 +107,7 @@ class TestMultiply : InterpreterTest {
   }
 }
 
-class TestDivide : InterpreterTest {
+class TestDivideBuiltin : InterpreterTest {
 
   /// Division with ints should work.
   func testInts() {
@@ -156,7 +156,7 @@ class TestDivide : InterpreterTest {
   }
 }
 
-class TestRem : InterpreterTest {
+class TestRemBuiltin : InterpreterTest {
   // TODO
 
   /// Remainder should trap overflow.
@@ -171,6 +171,6 @@ class TestRem : InterpreterTest {
   }
 }
 
-class TestQuot : InterpreterTest {
+class TestQuotBuiltin : InterpreterTest {
   // TODO
 }

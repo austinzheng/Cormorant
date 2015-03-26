@@ -58,28 +58,27 @@ class TestSeqBuiltin : InterpreterTest {
 
   /// .seq should return a sequence comprised of the key-value pairs in a map.
   func testWithMaps() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
-    let c = interpreter.context.keywordForName("c")
-    expectThat("(.seq {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo:
-      listWithItems(vectorWithItems(.Keyword(b), 2), vectorWithItems(.Keyword(c), 3), vectorWithItems(.Keyword(a), 1),
-        vectorWithItems(.CharAtom("d"), 4)))
-    expectThat("(.seq {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo: listWithItems(
-      vectorWithItems(.Nil, .StringAtom("baz")),
-      vectorWithItems(true, .StringAtom("bar")),
-      vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = keyword("c")
+    expectThat("(.seq {:a 1 :b 2 :c 3 \\d 4})",
+      shouldEvalToContain: vectorWithItems(.Keyword(a), 1), vectorWithItems(.Keyword(b), 2),
+      vectorWithItems(.Keyword(c), 3), vectorWithItems(.CharAtom("d"), 4))
+    expectThat("(.seq {\"foo\" \\a nil \"baz\" true \"bar\"})",
+      shouldEvalToContain: vectorWithItems(.Nil, .StringAtom("baz")), vectorWithItems(true, .StringAtom("bar")),
+      vectorWithItems(.StringAtom("foo"), .CharAtom("a")))
   }
 
   /// .seq should reject non-collection arguments.
   func testWithInvalidTypes() {
-    expectThat("(.seq true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq 3.141592)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq :foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq 'foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq \\f)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.seq .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.seq true)")
+    expectInvalidArgumentErrorFrom("(.seq false)")
+    expectInvalidArgumentErrorFrom("(.seq 152)")
+    expectInvalidArgumentErrorFrom("(.seq 3.141592)")
+    expectInvalidArgumentErrorFrom("(.seq :foo)")
+    expectInvalidArgumentErrorFrom("(.seq 'foo)")
+    expectInvalidArgumentErrorFrom("(.seq \\f)")
+    expectInvalidArgumentErrorFrom("(.seq .+)")
   }
 
   /// .seq should only take one argument.

@@ -54,6 +54,21 @@ class TestDefmacro : InterpreterTest {
     expectThat("(defmacro myMacro ([a & b] true) ([c d] false))", shouldFailAs: .FixedArityExceedsVariableArityError)
   }
 
+  /// defmacro should allow qualified symbols only if they are in the current namespace.
+  func testQualifiedSymbols() {
+    runCode("(.ns-set 'foo)")
+    expectThat("(defmacro bar/a [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    runCode("(defmacro foo/a [] nil)")
+    runCode("(defmacro foo/b [] nil)")
+    expectThat("(defmacro bar/z [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    // Move namespaces
+    runCode("(.ns-set 'bar)")
+    expectThat("(defmacro foo/a [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    runCode("(defmacro bar/a [] nil)")
+    runCode("(defmacro bar/b [] nil)")
+    expectThat("(defmacro foo/z [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+  }
+
   /// defmacro should reject being invoked with no arguments, or with only a name.
   func testArity() {
     expectArityErrorFrom("(defmacro)")
@@ -70,48 +85,48 @@ class TestDefmacro : InterpreterTest {
 
   /// defmacro should reject being invoked with an argument vector that doesn't contain symbols.
   func testArgVectorInvalidTypes() {
-    expectThat("(defmacro myMacro [a nil c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a true c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a false c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a 1523 c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a 2.0091 c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a \"b\" c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a :b c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a 'b c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a \\b c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a (a b) c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a [a b] c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a {a b} c])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro [a .+ c])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a nil c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a true c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a false c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a 1523 c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a 2.0091 c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a \"b\" c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a :b c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a 'b c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a \\b c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a (a b) c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a [a b] c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a {a b} c])")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro [a .+ c])")
   }
 
   /// defmacro should only take a symbol (for a name) for its first argument.
   func testInvalidFirstArguments() {
-    expectThat("(defmacro \"myFunc\" [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro :myFunc [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro 'myFunc [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro nil [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro true [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro false [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro 152 [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro 928.1 [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro '(a b) [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro {'a 'b} [] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro [a b] nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(defmacro \"myFunc\" [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro :myFunc [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro 'myFunc [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro nil [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro true [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro false [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro 152 [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro 928.1 [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro '(a b) [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro {'a 'b} [] nil)")
+    expectInvalidArgumentErrorFrom("(defmacro [a b] nil)")
     expectArityErrorFrom("(defmacro ([a b] nil))")
   }
 
   /// defmacro should either take a vector as the next argument after the name, or macro bodies.
   func testInvalidRestArguments() {
-    expectThat("(defmacro myMacro nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro (.+ 1 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro ([a b] (.+ a b)) [c d] (.+ c d))", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(defmacro myMacro nil)")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro (.+ 1 2))")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro ([a b] (.+ a b)) [c d] (.+ c d))")
   }
 
   /// defmacro should reject definitions with lists that don't start with an argument vector.
   func testInvalidArgVectorsInBodies() {
-    expectThat("(defmacro myMacro ([a] 1) ([\"b\"] 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro ([a] 1) ([:b] 2))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(defmacro myMacro ([a] 1) (['b] 2))", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(defmacro myMacro ([a] 1) ([\"b\"] 2))")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro ([a] 1) ([:b] 2))")
+    expectInvalidArgumentErrorFrom("(defmacro myMacro ([a] 1) (['b] 2))")
   }
 }

@@ -11,8 +11,19 @@
 #import <histedit.h>
 #import "LineReader.h"
 
-char* lineReader(EditLine *e) {
+static NSString* _customPrompt = nil;
+
+/**
+ Return the C string that the LineReader shold use as the REPL prompt.
+ */
+const char* lineReader(EditLine *e) {
+  if (_customPrompt != nil) {
+    const char* cstr = [_customPrompt cStringUsingEncoding:NSUTF8StringEncoding];
+    return cstr;
+  }
+  else {
     return "> ";
+  }
 }
 
 @implementation LineReader
@@ -20,6 +31,10 @@ char* lineReader(EditLine *e) {
 EditLine* _el;
 History* _hist;
 HistEvent _ev;
+
+- (void)setPrompt:(NSString *)string {
+  _customPrompt = string;
+}
 
 - (instancetype) initWithArgv0:(const char*)argv0 {
     if (self = [super init]) {

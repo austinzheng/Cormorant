@@ -29,29 +29,36 @@ class TestLet : InterpreterTest {
 
   /// let should not accept a binding vector with a non-symbol in an even-indexed slot.
   func testNonSymbolBinding() {
-    expectThat("(let [1234 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [\\c 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [:foobar 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [\"hello\" 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [true 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [false 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [nil 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let [[a] 10] nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let ['(a) 10] nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(let [1234 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [\\c 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [:foobar 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [\"hello\" 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [true 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [false 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [nil 10] nil)")
+    expectInvalidArgumentErrorFrom("(let [[a] 10] nil)")
+    expectInvalidArgumentErrorFrom("(let ['(a) 10] nil)")
+  }
+
+  /// let should not accept qualified symbols in the binding vector.
+  func testWithQualifiedSymbols() {
+    expectThat("(let [foo/a 10] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    expectThat("(let [a 10 foo/b 20] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
+    expectThat("(let [ns1/a 10 ns2/b 20] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
   }
 
   /// let should require the second argument to be a binding vector.
   func testSecondArgument() {
-    expectThat("(let '(a 10) 15)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let 15)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let \"a\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let {a 10} 15)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(let nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(let '(a 10) 15)")
+    expectInvalidArgumentErrorFrom("(let 15)")
+    expectInvalidArgumentErrorFrom("(let a)")
+    expectInvalidArgumentErrorFrom("(let :a)")
+    expectInvalidArgumentErrorFrom("(let \\a)")
+    expectInvalidArgumentErrorFrom("(let \"a\")")
+    expectInvalidArgumentErrorFrom("(let {a 10} 15)")
+    expectInvalidArgumentErrorFrom("(let true)")
+    expectInvalidArgumentErrorFrom("(let false)")
+    expectInvalidArgumentErrorFrom("(let nil)")
   }
 
   /// let should return the evaluated result of its last form.

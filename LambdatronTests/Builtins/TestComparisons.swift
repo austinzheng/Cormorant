@@ -40,15 +40,15 @@ class TestNumericEqualsBuiltin : InterpreterTest {
 
   /// .== should reject non-numeric arguments.
   func testNonNumeric() {
-    expectThat("(.== 0 \\0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 \"0\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 :0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 #\"[0]\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 '(0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.== 0 [0])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.== 0 \\0)")
+    expectInvalidArgumentErrorFrom("(.== 0 \"0\")")
+    expectInvalidArgumentErrorFrom("(.== 0 :0)")
+    expectInvalidArgumentErrorFrom("(.== 0 nil)")
+    expectInvalidArgumentErrorFrom("(.== 0 true)")
+    expectInvalidArgumentErrorFrom("(.== 0 false)")
+    expectInvalidArgumentErrorFrom("(.== 0 #\"[0]\")")
+    expectInvalidArgumentErrorFrom("(.== 0 '(0))")
+    expectInvalidArgumentErrorFrom("(.== 0 [0])")
   }
 
   /// .== should take exactly two arguments.
@@ -91,15 +91,15 @@ class TestLtBuiltin : InterpreterTest {
 
   /// .< should reject non-numeric arguments.
   func testNonNumeric() {
-    expectThat("(.< 0 \\0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 \"0\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 :0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 #\"[0]\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 '(0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.< 0 [0])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.< 0 \\0)")
+    expectInvalidArgumentErrorFrom("(.< 0 \"0\")")
+    expectInvalidArgumentErrorFrom("(.< 0 :0)")
+    expectInvalidArgumentErrorFrom("(.< 0 nil)")
+    expectInvalidArgumentErrorFrom("(.< 0 true)")
+    expectInvalidArgumentErrorFrom("(.< 0 false)")
+    expectInvalidArgumentErrorFrom("(.< 0 #\"[0]\")")
+    expectInvalidArgumentErrorFrom("(.< 0 '(0))")
+    expectInvalidArgumentErrorFrom("(.< 0 [0])")
   }
 
   /// .< should take exactly two arguments.
@@ -142,15 +142,15 @@ class TestLteqBuiltin : InterpreterTest {
 
   /// .<= should reject non-numeric arguments.
   func testNonNumeric() {
-    expectThat("(.<= 0 \\0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 \"0\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 :0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 #\"[0]\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 '(0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.<= 0 [0])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.<= 0 \\0)")
+    expectInvalidArgumentErrorFrom("(.<= 0 \"0\")")
+    expectInvalidArgumentErrorFrom("(.<= 0 :0)")
+    expectInvalidArgumentErrorFrom("(.<= 0 nil)")
+    expectInvalidArgumentErrorFrom("(.<= 0 true)")
+    expectInvalidArgumentErrorFrom("(.<= 0 false)")
+    expectInvalidArgumentErrorFrom("(.<= 0 #\"[0]\")")
+    expectInvalidArgumentErrorFrom("(.<= 0 '(0))")
+    expectInvalidArgumentErrorFrom("(.<= 0 [0])")
   }
 
   /// .<= should take exactly two arguments.
@@ -193,15 +193,15 @@ class TestGtBuiltin : InterpreterTest {
 
   /// .> should reject non-numeric arguments.
   func testNonNumeric() {
-    expectThat("(.> 0 \\0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 \"0\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 :0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 #\"[0]\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 '(0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.> 0 [0])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.> 0 \\0)")
+    expectInvalidArgumentErrorFrom("(.> 0 \"0\")")
+    expectInvalidArgumentErrorFrom("(.> 0 :0)")
+    expectInvalidArgumentErrorFrom("(.> 0 nil)")
+    expectInvalidArgumentErrorFrom("(.> 0 true)")
+    expectInvalidArgumentErrorFrom("(.> 0 false)")
+    expectInvalidArgumentErrorFrom("(.> 0 #\"[0]\")")
+    expectInvalidArgumentErrorFrom("(.> 0 '(0))")
+    expectInvalidArgumentErrorFrom("(.> 0 [0])")
   }
 
   /// .> should take exactly two arguments.
@@ -244,15 +244,15 @@ class TestGteqBuiltin : InterpreterTest {
 
   /// .>= should reject non-numeric arguments.
   func testNonNumeric() {
-    expectThat("(.>= 0 \\0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 \"0\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 :0)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 #\"[0]\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 '(0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.>= 0 [0])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.>= 0 \\0)")
+    expectInvalidArgumentErrorFrom("(.>= 0 \"0\")")
+    expectInvalidArgumentErrorFrom("(.>= 0 :0)")
+    expectInvalidArgumentErrorFrom("(.>= 0 nil)")
+    expectInvalidArgumentErrorFrom("(.>= 0 true)")
+    expectInvalidArgumentErrorFrom("(.>= 0 false)")
+    expectInvalidArgumentErrorFrom("(.>= 0 #\"[0]\")")
+    expectInvalidArgumentErrorFrom("(.>= 0 '(0))")
+    expectInvalidArgumentErrorFrom("(.>= 0 [0])")
   }
 
   /// .>= should take exactly two arguments.

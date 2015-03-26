@@ -22,19 +22,19 @@ class TestDoubleBuiltin : InterpreterTest {
 
   /// .double should fail with any non-numeric argument.
   func testWithInvalidArguments() {
-    expectThat("(.double nil)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double \"\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double #\"[0-9]+\")", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double \\a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double 'a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double :a)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double [])", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double ())", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double {})", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double (fn [] 0))", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.double .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.double nil)")
+    expectInvalidArgumentErrorFrom("(.double true)")
+    expectInvalidArgumentErrorFrom("(.double false)")
+    expectInvalidArgumentErrorFrom("(.double \"\")")
+    expectInvalidArgumentErrorFrom("(.double #\"[0-9]+\")")
+    expectInvalidArgumentErrorFrom("(.double \\a)")
+    expectInvalidArgumentErrorFrom("(.double 'a)")
+    expectInvalidArgumentErrorFrom("(.double :a)")
+    expectInvalidArgumentErrorFrom("(.double [])")
+    expectInvalidArgumentErrorFrom("(.double ())")
+    expectInvalidArgumentErrorFrom("(.double {})")
+    expectInvalidArgumentErrorFrom("(.double (fn [] 0))")
+    expectInvalidArgumentErrorFrom("(.double .+)")
   }
 
   /// .double should not take more or fewer than one argument.

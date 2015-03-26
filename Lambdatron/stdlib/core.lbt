@@ -160,6 +160,8 @@
   ([x y & more]
     (not (apply = x y more))))
 
+(defn resolve [sym] (.ns-resolve *ns* sym))
+
 (defn spread
   [arglist]
   (cond

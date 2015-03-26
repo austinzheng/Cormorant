@@ -90,17 +90,15 @@ class TestConcatBuiltin : InterpreterTest {
 
   /// .concat should concatenate mixed items.
   func testWithMixedItems() {
-    let aKeyword = interpreter.context.keywordForName("a")
-    let bKeyword = interpreter.context.keywordForName("b")
-    let aSymbol = interpreter.context.symbolForName("a")
-    let bSymbol = interpreter.context.symbolForName("b")
-    expectThat("(.concat '(1 2) [3 4 5] \"foo\" {:a 'a :b 'b})", shouldEvalTo:
-      listWithItems(1, 2, 3, 4, 5, .CharAtom("f"), .CharAtom("o"), .CharAtom("o"),
-        vectorWithItems(.Keyword(bKeyword), .Symbol(bSymbol)),
-        vectorWithItems(.Keyword(aKeyword), .Symbol(aSymbol))))
-    expectThat("(.concat {1 2 true nil} '(3) [4 5 6 7] \"bar\")", shouldEvalTo:
-      listWithItems(vectorWithItems(1, 2), vectorWithItems(true, .Nil), 3, 4, 5, 6, 7, .CharAtom("b"), .CharAtom("a"),
-        .CharAtom("r")))
+    let aKeyword = keyword("a")
+    let bKeyword = keyword("b")
+    let aSymbol = symbol("a")
+    let bSymbol = symbol("b")
+    expectThat("(.concat '(1 2) [3 4 5] \"foo\" {:a 'a :b 'b})", shouldEvalToContain: 1, 2, 3, 4, 5, .CharAtom("f"),
+      .CharAtom("o"), .CharAtom("o"), vectorWithItems(.Keyword(aKeyword), .Symbol(aSymbol)),
+      vectorWithItems(.Keyword(bKeyword), .Symbol(bSymbol)))
+    expectThat("(.concat {1 2 true nil} '(3) [4 5 6 7] \"bar\")", shouldEvalToContain: vectorWithItems(1, 2),
+      vectorWithItems(true, .Nil), 3, 4, 5, 6, 7, .CharAtom("b"), .CharAtom("a"), .CharAtom("r"))
   }
 
   /// .concat should properly concatenate mixed items involving strings.
@@ -155,13 +153,13 @@ class TestConcatBuiltin : InterpreterTest {
 
   /// .concat should reject non-collection arguments.
   func testWithInvalidTypes() {
-    expectThat("(.concat true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat 3.141592)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat :foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat 'foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat \\f)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.concat .concat)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.concat true)")
+    expectInvalidArgumentErrorFrom("(.concat false)")
+    expectInvalidArgumentErrorFrom("(.concat 152)")
+    expectInvalidArgumentErrorFrom("(.concat 3.141592)")
+    expectInvalidArgumentErrorFrom("(.concat :foo)")
+    expectInvalidArgumentErrorFrom("(.concat 'foo)")
+    expectInvalidArgumentErrorFrom("(.concat \\f)")
+    expectInvalidArgumentErrorFrom("(.concat .concat)")
   }
 }

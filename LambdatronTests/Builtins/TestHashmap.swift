@@ -18,10 +18,10 @@ class TestHashmapBuiltin : InterpreterTest {
 
   /// .hashmap should return a hash map when invoked with its arguments.
   func testHashmap1() {
-    let internedKeywordA = interpreter.context.keywordForName("a")
-    let internedKeywordB = interpreter.context.keywordForName("b")
-    let internedSymbolA = interpreter.context.symbolForName("a")
-    let internedSymbolB = interpreter.context.symbolForName("b")
+    let internedKeywordA = keyword("a")
+    let internedKeywordB = keyword("b")
+    let internedSymbolA = symbol("a")
+    let internedSymbolB = symbol("b")
     expectThat("(.hashmap :a 15)", shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), 15)))
     expectThat("(.hashmap :a 'a :b 'b)",
       shouldEvalTo: mapWithItems((.Keyword(internedKeywordA), .Symbol(internedSymbolA)),

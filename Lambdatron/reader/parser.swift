@@ -195,11 +195,21 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
     case let .Boolean(b):
       buffer.append(wrappedConsItem(.BoolAtom(b), &wrapStack))
     case let .Keyword(k):
-      let internedKeyword = ctx.keywordForName(k)
-      buffer.append(wrappedConsItem(.Keyword(internedKeyword), &wrapStack))
-    case let .Identifier(r):
-      let internedSymbol = ctx.symbolForName(r)
-      buffer.append(wrappedConsItem(.Symbol(internedSymbol), &wrapStack))
+      switch splitKeyword(k, ctx.root) {
+      case let .Success(name, nsName):
+        let internedKeyword = InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)
+        buffer.append(wrappedConsItem(.Keyword(internedKeyword), &wrapStack))
+      case let .Error(err):
+        return .Failure(err)
+      }
+    case let .Identifier(sym):
+      switch splitSymbol(sym) {
+      case let .Success(name, nsName):
+        let internedSymbol = InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)
+        buffer.append(wrappedConsItem(.Symbol(internedSymbol), &wrapStack))
+      case let .Error(err):
+        return .Failure(err)
+      }
     case let .Special(s):
       buffer.append(wrappedConsItem(.Special(s), &wrapStack))
     case let .BuiltInFunction(bf):
@@ -372,12 +382,88 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   case let .FlPtNumber(n): return .Success(.FloatAtom(n))
   case let .Boolean(b): return .Success(.BoolAtom(b))
   case let .Keyword(k):
-    let internedKeyword = ctx.keywordForName(k)
-    return .Success(.Keyword(internedKeyword))
-  case let .Identifier(r):
-    let internedSymbol = ctx.symbolForName(r)
-    return .Success(.Symbol(internedSymbol))
+    switch splitKeyword(k, ctx.root) {
+    case let .Success(name, nsName):
+      let internedKeyword = InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)
+      return .Success(.Keyword(internedKeyword))
+    case let .Error(err):
+      return .Failure(err)
+    }
+  case let .Identifier(sym):
+    switch splitSymbol(sym) {
+    case let .Success(name, nsName):
+       let internedSymbol = InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)
+      return .Success(.Symbol(internedSymbol))
+    case let .Error(err):
+      return .Failure(err)
+    }
   case let .Special(s): return .Success(.Special(s))
   case let .BuiltInFunction(b): return .Success(.BuiltInFunction(b))
   }
+}
+
+
+// MARK: Private helper functions
+
+enum SplitResult {
+  case Success(name: String, namespace: String?)
+  case Error(ReadError)
+}
+
+/// Given a symbol which may or may not be qualified by a forward slash, return either the components or an error.
+func splitSymbol(symbol: String) -> SplitResult {
+  if count(symbol) < 2 {
+    // Automatically accept one-character symbols
+    return .Success(name: symbol, namespace: nil)
+  }
+  let parts = split(symbol , maxSplit: 1, allowEmptySlices: true) { $0 == "/" }
+  precondition(parts.count <= 2, "Symbol string can only be split into a maximum of two components")
+  if parts.count == 2 {
+    if parts[0].isEmpty {
+      return .Error(ReadError(.InvalidNamespaceError))
+    }
+    else if parts[1].isEmpty {
+      return .Error(ReadError(.SymbolParseFailureError))
+    }
+    else {
+      return .Success(name: parts[1], namespace: parts[0])
+    }
+  }
+  // Only one part
+  return parts[0].isEmpty ? .Error(ReadError(.SymbolParseFailureError)) : .Success(name: parts[0], namespace: nil)
+}
+
+/// Given a keyword which may or may not be qualified by a forward slash, return either the components or an error.
+func splitKeyword(keyword: String, currentNamespace: NamespaceContext) -> SplitResult {
+  precondition(keyword.isEmpty == false, "Raw keyword string to split cannot be empty")
+  if count(keyword) == 1 {
+    // Keyword is one character long
+    return .Success(name: keyword, namespace: nil)
+  }
+  if keyword[keyword.startIndex] == ":" {
+    // Keyword is qualified by "::"
+    if count(keyword) < 2 {
+      // Can't have a keyword consisting of just "::"
+      return .Error(ReadError(.KeywordParseFailureError))
+    }
+    let name = keyword.substringFromIndex(keyword.startIndex.successor())
+    return .Success(name: name, namespace: currentNamespace.name)
+  }
+  // TODO: Additional checking? Maybe when NSCharacterSet isn't as painful to use
+
+  let parts = split(keyword , maxSplit: 1, allowEmptySlices: true) { $0 == "/" }
+  precondition(parts.count <= 2, "Keyword string can only be split into a maximum of two components")
+  if parts.count == 2 {
+    if parts[0].isEmpty {
+      return .Error(ReadError(.InvalidNamespaceError))
+    }
+    else if parts[1].isEmpty {
+      return .Error(ReadError(.KeywordParseFailureError))
+    }
+    else {
+      return .Success(name: parts[1], namespace: parts[0])
+    }
+  }
+  // Only one part
+  return parts[0].isEmpty ? .Error(ReadError(.KeywordParseFailureError)) : .Success(name: parts[0], namespace: nil)
 }

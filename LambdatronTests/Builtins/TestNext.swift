@@ -75,28 +75,27 @@ class TestNextBuiltin : InterpreterTest {
 
   /// .next should return a sequence comprised of the rest of the key-value pairs in a map.
   func testWithMaps() {
-    let a = interpreter.context.keywordForName("a")
-    let b = interpreter.context.keywordForName("b")
-    let c = interpreter.context.keywordForName("c")
-    expectThat("(.next {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo: listWithItems(
-      vectorWithItems(.Keyword(c), 3),
-      vectorWithItems(.Keyword(a), 1),
-      vectorWithItems(.CharAtom("d"), 4)))
-    expectThat("(.next {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo: listWithItems(
-      vectorWithItems(true, .StringAtom("bar")),
-      vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
+    let a = keyword("a")
+    let b = keyword("b")
+    let c = keyword("c")
+    expectThat("(.next {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo:
+      listWithItems(vectorWithItems(.Keyword(b), 2), vectorWithItems(.Keyword(a), 1),
+        vectorWithItems(.CharAtom("d"), 4)))
+    expectThat("(.next {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo:
+      listWithItems(vectorWithItems(true, .StringAtom("bar")),
+        vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
   }
 
   /// .next should reject non-collection arguments.
   func testWithInvalidTypes() {
-    expectThat("(.next true)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next false)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next 152)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next 3.141592)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next :foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next 'foo)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next \\f)", shouldFailAs: .InvalidArgumentError)
-    expectThat("(.next .+)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.next true)")
+    expectInvalidArgumentErrorFrom("(.next false)")
+    expectInvalidArgumentErrorFrom("(.next 152)")
+    expectInvalidArgumentErrorFrom("(.next 3.141592)")
+    expectInvalidArgumentErrorFrom("(.next :foo)")
+    expectInvalidArgumentErrorFrom("(.next 'foo)")
+    expectInvalidArgumentErrorFrom("(.next \\f)")
+    expectInvalidArgumentErrorFrom("(.next .+)")
   }
 
   /// .next should only take one argument.

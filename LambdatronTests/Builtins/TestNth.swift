@@ -31,7 +31,7 @@ class TestVectorNth : InterpreterTest {
 
   /// nth should fail when called on a vector with an non-integer index.
   func testInvalidTypedIndex() {
-    expectThat("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] [1 2 3])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] [1 2 3])")
   }
 
   /// nth should return the proper item when called on a vector with an in-bounds index, even if there is a fallback.
@@ -51,7 +51,7 @@ class TestVectorNth : InterpreterTest {
 
   /// nth should fail when called on a vector with a non-integer index, even if there is a fallback.
   func testInvalidTypeOfIndexWithFallback() {
-    expectThat("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] [1 2 3] nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth [\"foo\" \"bar\" \"baz\" \"qux\"] [1 2 3] nil)")
   }
 }
 
@@ -78,7 +78,7 @@ class TestListNth : InterpreterTest {
 
   /// nth should fail when called on a list with an non-integer index.
   func testInvalidTypedIndex() {
-    expectThat("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") [1 2 3])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") [1 2 3])")
   }
 
   /// nth should return the proper item when called on a list with an in-bounds index, even if there is a fallback.
@@ -98,7 +98,7 @@ class TestListNth : InterpreterTest {
 
   /// nth should fail when called on a list with a non-integer index, even if there is a fallback.
   func testInvalidTypeOfIndexWithFallback() {
-    expectThat("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") [1 2 3] nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth '(\"foo\" \"bar\" \"baz\" \"qux\") [1 2 3] nil)")
   }
 }
 
@@ -125,7 +125,7 @@ class TestStringNth : InterpreterTest {
 
   /// nth should fail when called on a string with an non-integer index.
   func testInvalidTypedIndex() {
-    expectThat("(.nth \"the quick brown fox\" [1 2 3])", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth \"the quick brown fox\" [1 2 3])")
   }
 
   /// nth should return the proper item when called on a string with an in-bounds index, even if there is a fallback.
@@ -145,39 +145,39 @@ class TestStringNth : InterpreterTest {
 
   /// nth should fail when called on a string with a non-integer index, even if there is a fallback.
   func testInvalidTypeOfIndexWithFallback() {
-    expectThat("(.nth \"the quick brown fox\" [1 2 3] nil)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth \"the quick brown fox\" [1 2 3] nil)")
   }
 }
 
 class TestInvalidTypesNth : InterpreterTest {
   /// nth should fail if called with a hash map instead of a valid collection.
   func testMapArg() {
-    expectThat("(.nth {\"one\" 1, \"two\" 2} 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth {\"one\" 1, \"two\" 2} 0)")
   }
 
   /// nth should fail if called with a character instead of a collection.
   func testCharArg() {
-    expectThat("(.nth \\a 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth \\a 0)")
   }
 
   /// nth should fail if called with a symbol instead of a collection.
   func testSymbolArg() {
-    expectThat("(.nth 'badarg 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth 'badarg 0)")
   }
 
   /// nth should fail if called with a keyword instead of a collection.
   func testKeywordArg() {
-    expectThat("(.nth :badarg 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth :badarg 0)")
   }
 
   /// nth should fail if called with an integer value instead of a collection.
   func testIntegerArg() {
-    expectThat("(.nth 12345 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth 12345 0)")
   }
 
   /// nth should fail if called with a floating-point value instead of a collection.
   func testFloatingPointArg() {
-    expectThat("(.nth 3.141592 0)", shouldFailAs: .InvalidArgumentError)
+    expectInvalidArgumentErrorFrom("(.nth 3.141592 0)")
   }
 }
 

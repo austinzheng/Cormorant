@@ -146,7 +146,7 @@ private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) ->
       let expanded = macro.macroexpand(symbols)
       switch expanded {
       case let .Success(v):
-        ctx.log(.Eval) { "macroexpansion complete; new form: \(v.describe(ctx))" }
+        ctx.interpreter.log(.Eval) { "macroexpansion complete; new form: \(v.describe(ctx))" }
         let result = v.evaluate(ctx)
         return result
       case .Recur, .Failure: return expanded
@@ -230,25 +230,25 @@ private func evaluateKeyType(key: ConsValue, arguments: SeqResult, ctx: Context)
 /// Apply the values in the Params object 'args' to the function 'first'.
 func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResult {
   if let builtIn = first.asBuiltIn {
-    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))" }
+    ctx.interpreter.log(.Eval) { "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))" }
     return builtIn.function(args, ctx)
   }
   else if let function = first.asFunction {
-    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to function \(first.describe(ctx))" }
+    ctx.interpreter.log(.Eval) { "applying arguments: \(args.describe(ctx)) to function \(first.describe(ctx))" }
     return function.evaluate(args)
   }
   else if first.asVector != nil {
-    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to vector \(first.describe(ctx))" }
+    ctx.interpreter.log(.Eval) { "applying arguments: \(args.describe(ctx)) to vector \(first.describe(ctx))" }
     return args.count == 1
       ? pr_nth(args.prefixedBy(first), ctx)
       : .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   else if first.asMap != nil {
-    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to map \(first.describe(ctx))" }
+    ctx.interpreter.log(.Eval) { "applying arguments: \(args.describe(ctx)) to map \(first.describe(ctx))" }
     return pr_get(args.prefixedBy(first), ctx)
   }
   else if first.asSymbol != nil || first.asKeyword != nil {
-    ctx.log(.Eval) { "applying arguments: \(args.describe(ctx)) to symbol or keyword \(first.describe(ctx))" }
+    ctx.interpreter.log(.Eval) { "applying arguments: \(args.describe(ctx)) to symbol or keyword \(first.describe(ctx))" }
     if !(args.count == 1 || args.count == 2) {
       return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
     }
@@ -256,7 +256,7 @@ func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResu
     return pr_get(allArgs, ctx)
   }
   else {
-    ctx.log(.Eval) { "unable to apply arguments: \(args.describe(ctx)) to non-evalable \(first.describe(ctx))" }
+    ctx.interpreter.log(.Eval) { "unable to apply arguments: \(args.describe(ctx)) to non-evalable \(first.describe(ctx))" }
     return .Failure(EvalError(.NotEvalableError, fn))
   }
 }
@@ -338,19 +338,22 @@ extension ConsValue {
   func evaluate(ctx: Context) -> EvalResult {
     switch self {
     case .FunctionLiteral, .BuiltInFunction: return .Success(self)
-    case let .Symbol(v):
-      // Look up the value of v
-      switch ctx[v] {
+    case let .Symbol(sym):
+      let result = ctx.resolveBindingForSymbol(sym)
+      switch result {
       case .Invalid:
-        return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : ctx.nameForSymbol(v)]))
+        return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : sym.fullName(ctx)]))
       case .Unbound:
-        return .Failure(EvalError(.UnboundSymbolError, metadata: [.Symbol : ctx.nameForSymbol(v)]))
+        return .Failure(EvalError(.UnboundSymbolError, metadata: [.Symbol : sym.fullName(ctx)]))
       case let .Literal(literal): return .Success(literal)
       case let .Param(param): return .Success(param)
       case .BoundMacro:
         return .Failure(EvalError(.EvaluatingMacroError))
       }
-    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword, .Auxiliary:
+    case let .Keyword(k):
+      // Keywords always evaluate to themselves, no matter whether or not they are namespaced
+      return .Success(self)
+    case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Namespace, .Var, .Auxiliary:
       return .Success(self)
     case let .Seq(seq):
       // Evaluate the value of the sequence
