@@ -4,7 +4,7 @@ Lambdatron
 [![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
 *CI disabled pending final release of Xcode 6.3*
 
-An interpreter for a non-trivial subset of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
+An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
 
 Application
@@ -81,7 +81,7 @@ Lambdatron has a number of possibly useful features. Lambdatron's data structure
 
 **Let-binding**, using `let`, allows you to create a lexical context with new bindings available only within the scope of that context.
 
-**Vars** are global bindings to a value that can be rebound as desired. Create them using `def` (e.g. `def myVar 100`).
+**Vars** are mutable memory cells that are interned within a namespace, and can be referred to by a qualified or unqualified symbol. Create them using `def` (e.g. `def myVar 100`). Vars are reified.
 
 **Basic types** include:
 * Booleans (`true` and `false`)
@@ -192,7 +192,6 @@ Differences From Clojure
 
 Aside from the (long) list of features not yet implemented (see the *Working On* and *(Very) Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
-* Like in ClojureScript, reified vars don't exist.
 * Hashmap iteration is not guaranteed to traverse the elements in the same order as in Clojure. No guarantees are made on hashmap iteration except that each key-value pair is visited exactly once. This has implications for any function that converts a map into an ordered sequence.
 * `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
@@ -202,7 +201,7 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * `read` does not take an optional argument representing a reader object.
 * `char-escape-string` returns `nil` for the `\formfeed` and `\backspace` arguments, since Swift does not recognize the `\f` and `\b` escape sequences.
 * Regex support follows Cocoa conventions, since `NSRegularExpression` is very different from `java.util.pattern.Regex` and `java.util.pattern.Match`. `re-iterate` provides an idiomatic wrapper for `enumerateMatchesInString:options:range:usingBlock:`.
-* Once a namespace has been marked for deletion using '.ns-remove', all its aliases are automatically unregistered, and new aliases or refers can no longer be set for it.
+* Once a namespace has been marked for deletion using 'ns-remove', all its aliases are automatically unregistered, and new aliases or refers can no longer be set for it.
 
 
 License
