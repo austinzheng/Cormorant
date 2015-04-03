@@ -25,6 +25,7 @@ enum SyntaxToken {
   case Backquote                  // isolate grave accent '`'
   case Tilde                      // tilde '~'
   case TildeAt                    // tilde followed by at '~@'
+  case At                         // at sign '@'
   case HashLeftBrace              // hash-left brace '#{'
   case HashQuote                  // hash-quote '#''
   case HashLeftParentheses        // hash-left parentheses '#('
@@ -153,6 +154,8 @@ private struct Lexer {
         appendSyntaxToken(.Quote)
       case "`":
         appendSyntaxToken(.Backquote)
+      case "@":
+        appendSyntaxToken(.At)                        // @ without a leading tilde or other qualifier
       case "~":
         flushTokenToBuffer()                          // Tilde can either signify ~ or ~@
         let token = consumeTilde(string, index: &index)

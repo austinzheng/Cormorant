@@ -11,7 +11,6 @@ import Foundation
 /// An opaque struct describing a reader macro and the form upon which it operates.
 public struct ReaderMacro : Hashable {
   internal enum ReaderMacroType {
-    case Quote
     case SyntaxQuote
     case Unquote
     case UnquoteSplice
@@ -26,9 +25,9 @@ public struct ReaderMacro : Hashable {
 
   public var hashValue : Int { return type.hashValue }
 
-  func describe(ctx: Context?) -> String {
+  // Note that this 'describe' function is only for use while debugging.
+  func debugDescribe(ctx: Context?) -> String {
     switch type {
-    case .Quote: return "'" + form.describe(ctx).force()
     case .SyntaxQuote: return "`" + form.describe(ctx).force()
     case .Unquote: return "~" + form.describe(ctx).force()
     case .UnquoteSplice: return "~@" + form.describe(ctx).force()
@@ -80,7 +79,7 @@ private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandRe
       }
     case let .ReaderMacroForm(rm):
       switch rm.type {
-      case .Quote, .SyntaxQuote:
+      case .SyntaxQuote:
         let e = rm.form.expandSyntaxQuote(ctx)
         switch e {
         case let .Success(expanded):
@@ -101,7 +100,7 @@ private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandRe
       case let .Failure(err):
         return .Failure(err)
       }
-    case .FunctionLiteral, .Namespace, .Var:
+    case .MacroLiteral, .FunctionLiteral, .Namespace, .Var:
       // function literals should never show up at this stage in the pipeline
       return .Failure(ReadError(.IllegalExpansionFormError))
     }
@@ -174,8 +173,6 @@ private func expandReaderMacro(rm: ReaderMacro, ctx: Context) -> ExpandResult {
     // Next, expand the form according to the reader macro, or wrap and pass back up the stack (if unquote,
     //  unquote-splice, etc)
     switch rm.type {
-    case .Quote:
-      return s.expandQuote()
     case .SyntaxQuote:
       return s.expandSyntaxQuote(ctx)
     case .Unquote:
@@ -230,15 +227,9 @@ extension ConsValue {
       return expandVector(vector, ctx)
     case let .Map(map):
       return expandMap(map, ctx)
-    case .FunctionLiteral, .Namespace, .Var:
+    case .MacroLiteral, .FunctionLiteral, .Namespace, .Var:
       return .Failure(ReadError(.IllegalExpansionFormError))
     }
-  }
-
-  // If we are expanding an expression 'a, we call this method on a; it'll give us back (quote a)
-  private func expandQuote() -> ExpandResult {
-    // Expanding 'a always results in (quote a)
-    return .Success(.Seq(sequence(QUOTE, self)))
   }
 
   /// When expanding an expression in the form `a, this method is called on 'a'; it returns (seq (concat a)).
@@ -261,7 +252,7 @@ extension ConsValue {
       return .Success(.Seq(sequence(QUOTE, self)))
     case let .ReaderMacroForm(rm):
       switch rm.type {
-      case .Quote, .SyntaxQuote:
+      case .SyntaxQuote:
         return .Success(.Seq(sequence(QUOTE, self)))
       case .Unquote:
         return .Success(rm.form)
@@ -294,7 +285,7 @@ extension ConsValue {
       return constructForm(result) {
         sequence(APPLY, HASHMAP, .Seq(sequence(SEQ, .Seq(cons(CONCAT, next: $0)))))
       }
-    case .FunctionLiteral, .Namespace, .Var:
+    case .MacroLiteral, .FunctionLiteral, .Namespace, .Var:
       return .Failure(ReadError(.IllegalExpansionFormError))
     }
   }

@@ -15,6 +15,7 @@ internal let VECTOR = ConsValue.BuiltInFunction(.Vector)
 internal let HASHMAP = ConsValue.BuiltInFunction(.Hashmap)
 internal let CONCAT = ConsValue.BuiltInFunction(.Concat)
 internal let SEQ = ConsValue.BuiltInFunction(.Seq)
+internal let DEREF = ConsValue.BuiltInFunction(.Deref)
 
 /// An enum describing every built-in function included with the interpreter.
 public enum BuiltIn : String, Printable {
@@ -102,6 +103,7 @@ public enum BuiltIn : String, Printable {
   case IsEvalable = ".eval?"
   case IsTrue = ".true?"
   case IsFalse = ".false?"
+  case IsVar = ".var?"
   case IsSeq = ".seq?"
   case IsVector = ".vector?"
   case IsMap = ".map?"
@@ -131,6 +133,7 @@ public enum BuiltIn : String, Printable {
   case Quotient = ".quot"
   
   // Miscellaneous
+  case Deref = ".deref"
   case Rand = ".rand"
   case Eval = ".eval"
   case Fail = ".fail"
@@ -205,6 +208,7 @@ public enum BuiltIn : String, Printable {
     case .IsEvalable: return pr_isEvalable
     case .IsTrue: return pr_isTrue
     case .IsFalse: return pr_isFalse
+    case .IsVar: return pr_isVar
     case .IsSeq: return pr_isSeq
     case .IsVector: return pr_isVector
     case .IsMap: return pr_isMap
@@ -226,6 +230,7 @@ public enum BuiltIn : String, Printable {
     case .Divide: return pr_divide
     case .Remainder: return pr_rem
     case .Quotient: return pr_quot
+    case .Deref: return pr_deref
     case .Rand: return pr_rand
     case .Eval: return pr_eval
     case .Fail: return pr_fail

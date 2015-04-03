@@ -16,11 +16,10 @@ private enum PrebuildResult {
 
 /// Given an array of SingleFn objects representing different arities, return a PrebuildResult that is either an error
 /// or a map of arities to SingleFn objects.
-private func prebuildFn(arities: [SingleFn], asMacro: Bool) -> PrebuildResult {
-  let fn = asMacro ? "defmacro" : "fn"
+private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
   if arities.count == 0 {
     // Must have at least one arity
-    return .Failure(EvalError(.NoFnAritiesError, fn))
+    return .Failure(EvalError(.NoFnAritiesError, "(none)"))
   }
   // Do validation
   var variadic : SingleFn? = nil
@@ -29,14 +28,14 @@ private func prebuildFn(arities: [SingleFn], asMacro: Bool) -> PrebuildResult {
     // 1. Only one variable arity definition
     if arity.isVariadic {
       if variadic != nil {
-        return .Failure(EvalError(.MultipleVariadicAritiesError, fn))
+        return .Failure(EvalError(.MultipleVariadicAritiesError, "(none)"))
       }
       variadic = arity
     }
     // 2. Only one definition per fixed arity
     if !arity.isVariadic {
       if aritiesMap[arity.paramCount] != nil {
-        return .Failure(EvalError(.MultipleDefinitionsPerArityError, fn))
+        return .Failure(EvalError(.MultipleDefinitionsPerArityError, "(none)"))
       }
       aritiesMap[arity.paramCount] = arity
     }
@@ -45,7 +44,7 @@ private func prebuildFn(arities: [SingleFn], asMacro: Bool) -> PrebuildResult {
     for arity in arities {
       // 3. If variable arity definition, no fixed-arity definitions can have more params than the variable arity def
       if !arity.isVariadic && arity.paramCount > actualVariadic.paramCount {
-        return .Failure(EvalError(.FixedArityExceedsVariableArityError, fn))
+        return .Failure(EvalError(.FixedArityExceedsVariableArityError, "(none)"))
       }
     }
   }
@@ -74,7 +73,7 @@ struct SingleFn {
       return false
     }
     for (idx, parameter) in enumerate(parameters) {
-      let argument : Binding = .Param(arguments[idx])
+      let argument : ConsValue = arguments[idx]
       ctx.updateBinding(argument, forSymbol: parameter)
     }
     if let variadicParameter = variadicParameter {
@@ -84,7 +83,7 @@ struct SingleFn {
         return false
       }
       // Bind the last argument directly to the vararg param; because of the above check 'last' will always be valid
-      ctx.updateBinding(.Literal(arguments.last!), forSymbol: variadicParameter)
+      ctx.updateBinding(arguments.last!, forSymbol: variadicParameter)
     }
     return true
   }
@@ -98,7 +97,7 @@ struct SingleFn {
     let newContext = LexicalScopeContext(parent: ctx)
     var i=0
     for ; i<parameters.count; i++ {
-      newContext.pushBinding(.Param(arguments[i]), forSymbol: parameters[i])
+      newContext.pushBinding(arguments[i], forSymbol: parameters[i])
     }
     if let variadicParameter = variadicParameter {
       // Add the rest of the arguments (if any) to the vararg vector
@@ -107,10 +106,10 @@ struct SingleFn {
         for var j=i; j<arguments.count; j++ {
           varargBuffer.append(arguments[j])
         }
-        newContext.pushBinding(.Literal(.Seq(sequence(varargBuffer))), forSymbol: variadicParameter)
+        newContext.pushBinding(.Seq(sequence(varargBuffer)), forSymbol: variadicParameter)
       }
       else {
-        newContext.pushBinding(.Literal(.Nil), forSymbol: variadicParameter)
+        newContext.pushBinding(.Nil, forSymbol: variadicParameter)
       }
     }
     return newContext
@@ -138,18 +137,23 @@ struct SingleFn {
   }
 }
 
-/// An opaque class describing a user-defined Lambdatron function.
-public class Function {
+public typealias Macro = Function
+
+/// An opaque class describing a user-defined Lambdatron function or macro.
+public final class Function {
   private(set) var context : Context!
   let variadic : SingleFn?
   let specificFns : [Int : SingleFn]
+  let name : UnqualifiedSymbol?
+
+  var hashValue : Int { return ObjectIdentifier(self).hashValue }
   
-  class func buildFunction(arities: [SingleFn], name: UnqualifiedSymbol?, ctx: Context) -> EvalResult {
-    let result = prebuildFn(arities, false)
+  class func buildFunction(arities: [SingleFn], name: UnqualifiedSymbol?, ctx: Context, asMacro: Bool) -> EvalResult {
+    let result = prebuildFn(arities)
     switch result {
     case let .Success((aritiesMap, variadic)):
       let function = Function(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
-      return .Success(.FunctionLiteral(function))
+      return .Success(asMacro ? .MacroLiteral(function) : .FunctionLiteral(function))
     case let .Failure(f):
       return .Failure(f)
     }
@@ -160,11 +164,13 @@ public class Function {
     self.variadic = variadic
     // Bind the context, based on whether or not we provided an actual name
     if let actualName = name {
+      self.name = name
       let newContext = LexicalScopeContext(parent: ctx)
-      newContext.pushBinding(.Literal(.FunctionLiteral(self)), forSymbol: actualName)
+      newContext.pushBinding(.FunctionLiteral(self), forSymbol: actualName)
       context = newContext
     }
     else {
+      self.name = nil
       context = ctx
     }
   }
@@ -183,40 +189,5 @@ public class Function {
       return varargFunction.evaluate(arguments, context)
     }
     return .Failure(EvalError(.ArityError, "(user-defined function)"))
-  }
-}
-
-/// An enum representing the result of trying to build a macro.
-enum MacroCreationResult {
-  case Success(Macro)
-  case Failure(EvalError)
-}
-
-/// A class representing a macro.
-final internal class Macro : Function {
-  // It's not clear to me whether Macro should be a subclass of Function or not. If they are, this implies that Macros
-  // can be used where Functions are (e.g. in ConsValue.FunctionLiteral), which is absolutely not true. If they aren't,
-  // there are now two unrelated classes repeating almost all of their code.
-  let name : UnqualifiedSymbol
-
-  class func buildMacro(arities: [SingleFn], name: UnqualifiedSymbol, ctx: Context) -> MacroCreationResult {
-    let result = prebuildFn(arities, true)
-    switch result {
-    case let .Success((aritiesMap, variadic)):
-      let macro = Macro(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
-      return .Success(macro)
-    case let .Failure(f):
-      return .Failure(f)
-    }
-  }
-
-  func macroexpand(arguments: Params) -> EvalResult {
-    return super.evaluate(arguments)
-  }
-
-  init(specificFns: [Int : SingleFn], variadic: SingleFn?, name: UnqualifiedSymbol, ctx: Context) {
-    self.name = name
-    // Note that macros can't be bound to anything but Vars, so passing in a name is meaningless.
-    super.init(specificFns: specificFns, variadic: variadic, name: nil, ctx: ctx)
   }
 }

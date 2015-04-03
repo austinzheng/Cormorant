@@ -16,6 +16,8 @@ private enum NextFormTreatment {
   // This enum describes several special reader forms that affect the parsing of the form that follows immediately
   // afterwards. For example, something like '(1 2 3) should expand to (quote (1 2 3)).
   case None           // No special treatment
+  case Var
+  case Deref
   case Quote          // Wrap next form with (quote)
   case SyntaxQuote
   case Unquote
@@ -97,8 +99,12 @@ private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatmen
   switch wrapType {
   case .None:
     wrappedItem = item
+  case .Var:
+    wrappedItem = .Seq(sequence(VAR, item))
+  case .Deref:
+    wrappedItem = .Seq(sequence(DEREF, item))
   case .Quote:
-    wrappedItem = .ReaderMacroForm(ReaderMacro(type: .Quote, form: item))
+    wrappedItem = .Seq(sequence(QUOTE, item))
   case .SyntaxQuote:
     wrappedItem = .ReaderMacroForm(ReaderMacro(type: .SyntaxQuote, form: item))
   case .Unquote:
@@ -173,7 +179,11 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         wrapStack.append(.Unquote)
       case .TildeAt:
         wrapStack.append(.UnquoteSplice)
-      case .HashLeftBrace, .HashQuote, .HashLeftParentheses, .HashUnderscore:
+      case .At:
+        wrapStack.append(.Deref)
+      case .HashQuote:
+        wrapStack.append(.Var)
+      case .HashLeftBrace, .HashLeftParentheses, .HashUnderscore:
         // TODO: Implement support for all of these
         return .Failure(ReadError(.UnimplementedFeatureError))
       }
@@ -366,7 +376,11 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
       return createTopLevelReaderMacro(.Unquote)
     case .TildeAt:
       return createTopLevelReaderMacro(.UnquoteSplice)
-    case .HashLeftBrace, .HashQuote, .HashLeftParentheses, .HashUnderscore:
+    case .At:
+      return createTopLevelReaderMacro(.Deref)
+    case .HashQuote:
+      return createTopLevelReaderMacro(.Var)
+    case .HashLeftBrace, .HashLeftParentheses, .HashUnderscore:
       // TODO: Implement support for all of these
       return .Failure(ReadError(.UnimplementedFeatureError))
     }

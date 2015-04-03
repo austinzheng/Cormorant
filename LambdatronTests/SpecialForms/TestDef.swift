@@ -64,9 +64,10 @@ class TestDef : InterpreterTest {
 
   /// def should overwrite a previous unbound def with a new value.
   func testOverwritingUnboundDef() {
+    let a = symbol("a", namespace: "user")
     expectThat("a", shouldFailAs: .InvalidSymbolError)
     runCode("(def a)")
-    expectThat("a", shouldFailAs: .UnboundSymbolError)
+    expectThat("a", shouldEvalTo: .Auxiliary(UnboundVarObject(a, ctx: interpreter.currentNamespace)))
     runCode("(def a \"foobar\")")
     expectThat("a", shouldEvalTo: .StringAtom("foobar"))
   }

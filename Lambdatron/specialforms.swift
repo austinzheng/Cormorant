@@ -16,6 +16,7 @@ internal let IF = ConsValue.Special(.If)
 internal let DO = ConsValue.Special(.Do)
 internal let DEF = ConsValue.Special(.Def)
 internal let LET = ConsValue.Special(.Let)
+internal let VAR = ConsValue.Special(.Var)
 internal let FN = ConsValue.Special(.Fn)
 internal let DEFMACRO = ConsValue.Special(.Defmacro)
 internal let LOOP = ConsValue.Special(.Loop)
@@ -30,6 +31,7 @@ public enum SpecialForm : String, Printable {
   case Do = "do"
   case Def = "def"
   case Let = "let"
+  case Var = "var"
   case Fn = "fn"
   case Defmacro = "defmacro"
   case Loop = "loop"
@@ -44,6 +46,7 @@ public enum SpecialForm : String, Printable {
     case Do: return sf_do
     case Def: return sf_def
     case Let: return sf_let
+    case Var: return sf_var
     case Fn: return sf_fn
     case Defmacro: return sf_defmacro
     case Loop: return sf_loop
@@ -191,7 +194,7 @@ func sf_let(args: Params, ctx: Context) -> EvalResult {
         // Note that each binding pair benefits from the result of the binding from the previous pair
         let result = expression.evaluate(newContext)
         switch result {
-        case let .Success(result): newContext.pushBinding(.Literal(result), forSymbol: sym.unqualified)
+        case let .Success(result): newContext.pushBinding(result, forSymbol: sym.unqualified)
         default: return result
         }
       default:
@@ -211,6 +214,23 @@ func sf_let(args: Params, ctx: Context) -> EvalResult {
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be an binding vector"))
   }
+}
+
+/// Given a symbol that resolves to a Var, return the reified Var itself (not its value).
+func sf_var(args: Params, ctx: Context) -> EvalResult {
+  let fn = "var"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  // Special form takes one argument: a literal symbol
+  if let varSymbol = args[0].asSymbol {
+    if let varResult = ctx.root.resolveSymbolFor(varSymbol) {
+      return .Success(.Var(varResult))
+    }
+    // Symbol did not resolve to a Var
+    return .Failure(EvalError(.InvalidSymbolError))
+  }
+  return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol"))
 }
 
 /// Define a user-defined function, consisting of an parameter vector followed by zero or more forms comprising the
@@ -243,7 +263,7 @@ func sf_fn(args: Params, ctx: Context) -> EvalResult {
     // Single arity
     let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
     if let actualSingleArity = singleArity {
-      return Function.buildFunction([actualSingleArity], name: name, ctx: ctx)
+      return Function.buildFunction([actualSingleArity], name: name, ctx: ctx, asMacro: false)
     }
   }
   else {
@@ -257,7 +277,7 @@ func sf_fn(args: Params, ctx: Context) -> EvalResult {
           message: "arguments must be lists describing a single arity for a function"))
       }
     }
-    return Function.buildFunction(arityBuffer, name: name, ctx: ctx)
+    return Function.buildFunction(arityBuffer, name: name, ctx: ctx, asMacro: false)
   }
   return .Failure(EvalError.invalidArgumentError(fn,
     message: "first argument must be a name, a binding vector, or a single arity function definition"))
@@ -281,7 +301,7 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
       // Single arity
       let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
       if let actualSingleArity = singleArity {
-        let macroResult = Macro.buildMacro([actualSingleArity], name: name, ctx: ctx)
+        let macroResult = Macro.buildFunction([actualSingleArity], name: name, ctx: ctx, asMacro: true)
         switch macroResult {
         case let .Success(macro):
           let result = ctx.root.setVar(name, newValue: macro)
@@ -289,8 +309,7 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
           case let .Var(aVar): return .Success(.Var(aVar))
           case let .Error(err): return .Failure(err)
           }
-        case let .Failure(f):
-          return .Failure(f)
+        case .Recur, .Failure: return macroResult
         }
       }
     }
@@ -305,7 +324,7 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
             message: "arguments must be lists describing a single arity for a macro"))
         }
       }
-      let macroResult = Macro.buildMacro(arityBuffer, name: name, ctx: ctx)
+      let macroResult = Macro.buildFunction(arityBuffer, name: name, ctx: ctx, asMacro: true)
       switch macroResult {
       case let .Success(macro):
         let result = ctx.root.setVar(name, newValue: macro)
@@ -313,8 +332,7 @@ func sf_defmacro(args: Params, ctx: Context) -> EvalResult {
         case let .Var(aVar): return .Success(.Var(aVar))
         case let .Error(err): return .Failure(err)
         }
-      case let .Failure(f):
-        return .Failure(f)
+      case .Recur, .Failure: return macroResult
       }
     }
   }
@@ -351,7 +369,7 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
         let result = expression.evaluate(thisContext)
         switch result {
         case let .Success(result):
-          thisContext.pushBinding(.Literal(result), forSymbol: sym.unqualified)
+          thisContext.pushBinding(result, forSymbol: sym.unqualified)
         case .Recur:
           return .Failure(EvalError(.RecurMisuseError, fn,
             message: "recur came before the final expression in a loop"))
@@ -376,7 +394,7 @@ func sf_loop(args: Params, ctx: Context) -> EvalResult {
           return .Failure(EvalError.arityError("\(symbols.count)", actual: newBindingValues.count, fn))
         }
         for (idx, newValue) in enumerate(newBindingValues) {
-          thisContext.updateBinding(.Literal(newValue), forSymbol: symbols[idx])
+          thisContext.updateBinding(newValue, forSymbol: symbols[idx])
         }
         continue
       case .Success, .Failure:

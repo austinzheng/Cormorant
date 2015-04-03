@@ -87,7 +87,6 @@ public struct EvalError : Printable {
     case IntegerOverflowError = "IntegerOverflowError"
     case BindingMismatchError = "BindingMismatchError"
     case InvalidSymbolError = "InvalidSymbolError"
-    case UnboundSymbolError = "UnboundSymbolError"
     case QualifiedSymbolMisuseError = "QualifiedSymbolMisuseError"
     case RecurMisuseError = "RecurMisuseError"
     case EvaluatingMacroError = "EvaluatingMacroError"
@@ -165,7 +164,6 @@ public struct EvalError : Printable {
     case .IntegerOverflowError: desc = "arithmetic operation resulted in overflow"
     case .BindingMismatchError: desc = "binding vector must have an even number of elements"
     case .InvalidSymbolError: desc = "could not resolve symbol"
-    case .UnboundSymbolError: desc = "symbol is unbound, and cannot be resolved"
     case .QualifiedSymbolMisuseError: desc = "can't use a qualified symbol in this way"
     case .RecurMisuseError: desc = "didn't use recur as the final form within loop or fn"
     case .EvaluatingMacroError: desc = "can't take the value of a macro or reader macro"
@@ -199,7 +197,7 @@ public struct EvalError : Printable {
       if let idx = metadata[.Index] {
         str += "\n * index: \(idx)"
       }
-    case .InvalidSymbolError, .UnboundSymbolError:
+    case .InvalidSymbolError:
       if let symbol = metadata[.Symbol] {
         str += "\n * symbol: \"\(symbol)\""
       }

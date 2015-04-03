@@ -76,6 +76,7 @@
 (def eval? .eval?)
 (def true? .true?)
 (def false? .false?)
+(def var? .var?)
 (def seq? .seq?)
 (def vector? .vector?)
 (def map? .map?)
@@ -86,5 +87,6 @@
 (def infinite? .infinite?)
 (def nan? .nan?)
 
+(def deref .deref)
 (def eval .eval)
 (def fail .fail)

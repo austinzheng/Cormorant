@@ -81,7 +81,7 @@ Lambdatron has a number of possibly useful features. Lambdatron's data structure
 
 **Let-binding**, using `let`, allows you to create a lexical context with new bindings available only within the scope of that context.
 
-**Vars** are mutable memory cells that are interned within a namespace, and can be referred to by a qualified or unqualified symbol. Create them using `def` (e.g. `def myVar 100`). Vars are reified.
+**Vars** are mutable memory cells that are interned within a namespace, and can be referred to by a qualified or unqualified symbol. Create them using `def` (e.g. `def myVar 100`). Vars are reified. Use the `var` special form to get the Var that a symbol corresponds to, and `deref` to extract the value contained within a Var.
 
 **Basic types** include:
 * Booleans (`true` and `false`)
@@ -99,8 +99,8 @@ Lambdatron has a number of possibly useful features. Lambdatron's data structure
 
 The following special forms, reader macros, and functions are built into the interpreter:
 
-- Special forms: `quote`, `if`, `do`, `def`, `let`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
-- Reader macros: `'`, `` ` ``, `~`, `~@`
+- Special forms: `quote`, `if`, `do`, `def`, `let`, `var`, `fn`, `defmacro`, `loop`, `recur`, `apply`, `attempt`
+- Reader macros: `'`, `` ` ``, `~`, `~@`, `#'`, `@`
 - Namespace manipulation: `ns-create`, `ns-set`, `ns-get`, `ns-name`, `ns-all`, `ns-find`, `ns-unmap`, `ns-alias`, `ns-aliases`, `ns-unalias`, `ns-refer`, `ns-map`, `ns-interns`, `ns-refers`, `ns-resolve`, `ns-remove`
 - Collection manipulation: `list`, `vector`, `hash-map`, `cons`, `first`, `rest`, `next`, `conj`, `concat`, `nth`, `seq`, `lazy-seq`, `get`, `assoc`, `dissoc`, `count`, `reduce`
 - Primitive manipulation: `symbol`, `keyword`, `int`, `double`
@@ -108,10 +108,10 @@ The following special forms, reader macros, and functions are built into the int
 - String building: `sb`, `sb-append`, `sb-reverse`
 - Regular expressions: `re-pattern`, `re-first`, `re-seq`, `re-iterate`, `re-quote-replacement`
 - I/O: `read`, `print`, `println`
-- Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `seq?`, `vector?`, `map?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
+- Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `var?`, `seq?`, `vector?`, `map?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `<=` `>`, `>=`
-- Miscellaneous: `read-string`, `rand`, `eval`, `fail`
+- Miscellaneous: `deref`, `read-string`, `rand`, `eval`, `fail`
 
 Additional functions and macros are available as part of the standard library.
 

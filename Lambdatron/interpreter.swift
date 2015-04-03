@@ -183,12 +183,12 @@ public class Interpreter {
   }
 
   /// Look up the Var bound to a symbol in a particular namespace.
-  func resolveBinding(symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> Binding {
+  func resolveBinding(symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> ConsValue? {
     if let namespace = namespaces[ns] {
       return namespace.resolveVar(symbol)
     }
     // Namespace in question doesn't exist; very sad
-    return .Invalid
+    return nil
   }
 
 

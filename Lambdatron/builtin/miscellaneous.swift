@@ -21,6 +21,20 @@ func pr_equals(args: Params, ctx: Context) -> EvalResult {
   }
 }
 
+/// Given a Var (and in the future, an Atom), return the value actually stored inside.
+func pr_deref(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".deref"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  switch args[0] {
+  case let .Var(aVar):
+    return .Success(aVar.value(usingContext: ctx))
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a Var"))
+  }
+}
+
 /// Read in a string from the host interpreter's readInput function, and then expand it into a Lambdatron form.
 func pr_read(args: Params, ctx: Context) -> EvalResult {
   let fn = ".read"

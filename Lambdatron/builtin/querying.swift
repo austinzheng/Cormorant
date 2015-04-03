@@ -156,6 +156,18 @@ func pr_isFalse(args: Params, ctx: Context) -> EvalResult {
   }
 }
 
+/// Return whether or not the argument is a Var.
+func pr_isVar(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".var?"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  switch args[0] {
+  case .Var: return .Success(true)
+  default: return .Success(false)
+  }
+}
+
 /// Return whether or not the argument is a sequence.
 func pr_isSeq(args: Params, ctx: Context) -> EvalResult {
   let fn = ".seq?"

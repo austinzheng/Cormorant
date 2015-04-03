@@ -72,10 +72,10 @@ class TestNsRefersBuiltin : InterpreterTest {
     runCode("(.ns-refer 'refer2)")
     runCode("(.ns-set 'user)")
     expectThat("(.ns-refers 'foo)", shouldEvalTo: .Map([
-      .Symbol(symbol("a")) : .Var(VarType(.Literal(10), name: symbol("a", namespace: "refer1"))),
-      .Symbol(symbol("b")) : .Var(VarType(.Literal(20), name: symbol("b", namespace: "refer1"))),
-      .Symbol(symbol("c")) : .Var(VarType(.Literal(30), name: symbol("c", namespace: "refer2"))),
-      .Symbol(symbol("d")) : .Var(VarType(.Literal(40), name: symbol("d", namespace: "refer2")))]))
+      .Symbol(symbol("a")) : .Var(VarType(symbol("a", namespace: "refer1"), value: 10)),
+      .Symbol(symbol("b")) : .Var(VarType(symbol("b", namespace: "refer1"), value: 20)),
+      .Symbol(symbol("c")) : .Var(VarType(symbol("c", namespace: "refer2"), value: 30)),
+      .Symbol(symbol("d")) : .Var(VarType(symbol("d", namespace: "refer2"), value: 40)),]))
   }
 
   /// .ns-refers should list all refers when given a namespace object.
@@ -99,10 +99,10 @@ class TestNsRefersBuiltin : InterpreterTest {
     // Go back to 'user' and call .ns-refers on 'foo'
     runCode("(.ns-set 'user)")
     expectThat("(.ns-refers 'foo)", shouldEvalTo: .Map([
-      .Symbol(symbol("a")) : .Var(VarType(.Literal(true), name: symbol("a", namespace: "refer1"))),
-      .Symbol(symbol("b")) : .Var(VarType(.Literal(.Nil), name: symbol("b", namespace: "refer1"))),
-      .Symbol(symbol("c")) : .Var(VarType(.Literal(false), name: symbol("c", namespace: "refer2"))),
-      .Symbol(symbol("d")) : .Var(VarType(.Literal(.CharAtom("c")), name: symbol("d", namespace: "refer2")))]))
+      .Symbol(symbol("a")) : .Var(VarType(symbol("a", namespace: "refer1"), value: true)),
+      .Symbol(symbol("b")) : .Var(VarType(symbol("b", namespace: "refer1"), value: .Nil)),
+      .Symbol(symbol("c")) : .Var(VarType(symbol("c", namespace: "refer2"), value: false)),
+      .Symbol(symbol("d")) : .Var(VarType(symbol("d", namespace: "refer2"), value: .CharAtom("c")))]))
   }
 
   /// .ns-refers should reject a symbol not naming a namespace.

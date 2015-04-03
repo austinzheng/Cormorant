@@ -146,14 +146,14 @@ extension ConsValue {
       return describeVector(vector, ctx, debug: false)
     case let .Map(map):
       return describeMap(map, ctx, debug: false)
-    case let .FunctionLiteral(v):
-      return "{{function}}"
+    case .MacroLiteral: return "{{macro}}"
+    case .FunctionLiteral: return "{{function}}"
     case let .BuiltInFunction(v):
       return .Desc(v.rawValue)
     case let .Special(v):
       return .Desc(v.rawValue)
     case let .ReaderMacroForm(v):
-      return .Desc(v.describe(ctx))
+      return .Desc("{{reader_macro}}")
     }
   }
 
@@ -205,14 +205,14 @@ extension ConsValue {
       case let .Desc(desc): return .Desc("Object.Map( \(desc) )")
       case .Error: return result
       }
-    case let .FunctionLiteral(v):
-      return "Object.FunctionLiteral"
+    case .MacroLiteral: return "Object.Macro"
+    case .FunctionLiteral: return "Object.Function"
     case let .BuiltInFunction(v):
       return .Desc("Object.BuiltInFunction(\(v.rawValue))")
     case let .Special(v):
       return .Desc("Object.Special(\(v.rawValue))")
     case let .ReaderMacroForm(v):
-      return "Object.ReaderMacroForm"
+      return .Desc(v.debugDescribe(ctx))
     }
   }
 }

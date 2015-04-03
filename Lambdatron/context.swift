@@ -8,25 +8,6 @@
 
 import Foundation
 
-/// An enum representing the binding state and value for a particular symbol.
-enum Binding : Printable {
-  case Invalid
-  case Unbound
-  case Literal(ConsValue)
-  case Param(ConsValue)     // Currently treated no differently than Literal, but here for future optimization
-  case BoundMacro(Macro)
-
-  var description : String {
-    switch self {
-    case Invalid: return "invalid"
-    case Unbound: return "unbound"
-    case let Literal(l): return l.description
-    case let Param(mp): return mp.description
-    case let BoundMacro(m): return "macro:'\(m.name)'"
-    }
-  }
-}
-
 /// A protocol representing the execution context of a given form. Contexts represent the lexical environment of a
 /// function, loop, or let-scoped block, unifying both local bindings and Vars. They also mediate access to other
 /// mutable interpreter state, such as I/O and gensym. Contexts chain together to form a 'spaghetti stack'.
@@ -41,12 +22,12 @@ protocol Context : class {
   var root : NamespaceContext { get }
 
   /// Given the interned string describing a symbol, retrieve the topmost valid binding or Var for it.
-  subscript(x: UnqualifiedSymbol) -> Binding { get }
+  subscript(x: UnqualifiedSymbol) -> ConsValue? { get }
 
   /// Given a symbol that might be qualified, resolve the binding or Var to which the symbol refers. If the symbol is
   /// unqualified, the binding is resolved locally; in particular, refers are considered. If the symbol is qualified,
   /// the lookup happens through the interpreter.
-  func resolveBindingForSymbol(symbol: InternedSymbol) -> Binding
+  func resolveBindingForSymbol(symbol: InternedSymbol) -> ConsValue?
 }
 
 
@@ -255,24 +236,30 @@ final public class NamespaceContext : Context, Hashable {
 //      + "\n]\nAliases: \(aliases)\nSelf aliases: \(selfAliases)"
 //  }
 
-  func setVar(name: UnqualifiedSymbol, newValue: ConsValue) -> VarResult {
-    return setVar(name, newValue: .Literal(newValue))
-  }
-
-  func setVar(name: UnqualifiedSymbol, newValue: Macro) -> VarResult {
-    return setVar(name, newValue: .BoundMacro(newValue))
-  }
-
-  func setUnboundVar(name: UnqualifiedSymbol, shouldUnbind: Bool) -> VarResult {
-    if let thisVar = vars[name] where thisVar.isBound && shouldUnbind == false {
-      // Don't unbind the var, just return it
+  /// Create a new unbound Var, or unbind a locally interned Var.
+  func setUnboundVar(varName: UnqualifiedSymbol, shouldUnbind: Bool) -> VarResult {
+    if let thisVar = vars[varName] {
+      if thisVar.isBound && shouldUnbind == false {
+        // Don't unbind the var, just return it
+        return .Var(thisVar)
+      }
+      // Don't do anything for now
       return .Var(thisVar)
     }
-    return setVar(name, newValue: .Unbound)
+    if let alreadyReferred = refers[varName] {
+      return .Error(EvalError(.VarRebindingError))
+    }
+    else {
+      // Create a new Var and intern it
+      let qualifiedName = InternedSymbol(varName.nameComponent(self), namespace: name, ivs: ivs)
+      let newVar = VarType(qualifiedName, value: nil)
+      vars[qualifiedName.unqualified] = newVar
+      return .Var(newVar)
+    }
   }
 
   /// Create or update a binding between a symbol and a Var.
-  private func setVar(varName: UnqualifiedSymbol, newValue: VarBinding) -> VarResult {
+  func setVar(varName: UnqualifiedSymbol, newValue: ConsValue) -> VarResult {
     if let alreadyReferred = refers[varName] {
       // If we've referred this var before, we should error out if the referred var isn't in a system namespace
       if let ns = alreadyReferred.name.ns where interpreter.namespaces[ns]?.isSystemNamespace == true {
@@ -289,7 +276,7 @@ final public class NamespaceContext : Context, Hashable {
     else {
       // Create a new Var and intern it
       let qualifiedName = InternedSymbol(varName.nameComponent(self), namespace: name, ivs: ivs)
-      let newVar = VarType(newValue, name: qualifiedName)
+      let newVar = VarType(qualifiedName, value: newValue)
       vars[qualifiedName.unqualified] = newVar
       return .Var(newVar)
     }
@@ -303,11 +290,11 @@ final public class NamespaceContext : Context, Hashable {
   /// Retrieve the interned Var corresponding to the given unqualified symbol. This method does not look up any symbols
   /// that have been locally aliased by a call to 'refer'. This method should only be called by the interpreter when
   /// resolving a qualified symbol.
-  func resolveVar(symbol: UnqualifiedSymbol) -> Binding {
-    return vars[symbol]?.value ?? .Invalid
+  func resolveVar(symbol: UnqualifiedSymbol) -> ConsValue? {
+    return vars[symbol]?.value(usingContext: self)
   }
 
-  func resolveBindingForSymbol(symbol: InternedSymbol) -> Binding {
+  func resolveBindingForSymbol(symbol: InternedSymbol) -> ConsValue? {
     if let ns = symbol.ns {
       // Check to see if ns is mapped in the aliases dictionary to a namespace already
       if let aliasedNamespace = aliases[ns] {
@@ -327,17 +314,17 @@ final public class NamespaceContext : Context, Hashable {
 
   // Note: subscript should only be used for the case where symbols are being resolved when this namespace is the
   // current namespace. It looks up both interned Vars as well as refer'ed Vars.
-  subscript(symbol: UnqualifiedSymbol) -> Binding {
+  subscript(symbol: UnqualifiedSymbol) -> ConsValue? {
     get {
       precondition(symbol.ns == nil,
         "Symbol \(symbol.fullName(self)) passed into NamespaceContext's subscript was not unqualified")
       if let local = vars[symbol] {
-        return local.value
+        return local.value(usingContext: self)
       }
       else if let reference = refers[symbol] {
-        return reference.value
+        return reference.value(usingContext: self)
       }
-      return .Invalid
+      return nil
     }
   }
 
@@ -354,16 +341,16 @@ final public class NamespaceContext : Context, Hashable {
 
 /// A class representing a context representing any lexical scope created by a fn, let, or loop.
 final class LexicalScopeContext : Context {
-  private var otherBindings : [UnqualifiedSymbol : Binding]? = nil
+  private var otherBindings : [UnqualifiedSymbol : ConsValue]? = nil
   private let parent : Context
   let root : NamespaceContext
 
   // A ChildContext houses up to 16 symbols locally. This allows it to avoid using the dictionary if possible.
-  var b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15 : (symbol: UnqualifiedSymbol, binding: Binding)?
+  var b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15 : (symbol: UnqualifiedSymbol, binding: ConsValue)?
   private var count = 0
 
   /// Push a binding into the context.
-  func pushBinding(binding: Binding, forSymbol symbol: UnqualifiedSymbol) {
+  func pushBinding(binding: ConsValue, forSymbol symbol: UnqualifiedSymbol) {
     if findBindingForSymbol(symbol) != nil {
       updateBinding(binding, forSymbol: symbol)
       return
@@ -397,7 +384,7 @@ final class LexicalScopeContext : Context {
   }
 
   /// Given a symbol, try to look up the corresponding binding.
-  private func findBindingForSymbol(symbol: UnqualifiedSymbol) -> Binding? {
+  private func findBindingForSymbol(symbol: UnqualifiedSymbol) -> ConsValue? {
     if let b0 = b0 where b0.symbol == symbol {
       return b0.binding
     }
@@ -451,7 +438,7 @@ final class LexicalScopeContext : Context {
 
   /// Given a symbol which should already exist in the context, update its value. The precondition is that the symbol
   /// already exists in the context (otherwise, the pushBinding function should be used to add it).
-  func updateBinding(binding: Binding, forSymbol symbol: UnqualifiedSymbol) {
+  func updateBinding(binding: ConsValue, forSymbol symbol: UnqualifiedSymbol) {
     if let b0 = b0 where b0.symbol == symbol {
       self.b0 = (symbol, binding)
       return
@@ -526,11 +513,11 @@ final class LexicalScopeContext : Context {
   var interpreter : Interpreter { return root.interpreter }
   var ivs : InternedValueStore { return root.ivs }
 
-  func resolveBindingForSymbol(symbol: InternedSymbol) -> Binding {
+  func resolveBindingForSymbol(symbol: InternedSymbol) -> ConsValue? {
     return findBindingForSymbol(symbol) ?? parent.resolveBindingForSymbol(symbol)
   }
 
-  subscript(x: UnqualifiedSymbol) -> Binding {
+  subscript(x: UnqualifiedSymbol) -> ConsValue? {
     get { return findBindingForSymbol(x) ?? parent[x] }
   }
 

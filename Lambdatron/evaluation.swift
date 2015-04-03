@@ -143,13 +143,15 @@ private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) ->
     let symbols = collectSymbols(parameters)
     switch symbols {
     case let .Success(symbols):
-      let expanded = macro.macroexpand(symbols)
-      switch expanded {
-      case let .Success(v):
-        ctx.interpreter.log(.Eval) { "macroexpansion complete; new form: \(v.describe(ctx))" }
-        let result = v.evaluate(ctx)
+      // Perform macroexpansion
+      let result = macro.evaluate(symbols)
+      switch result {
+      case let .Success(macroexpansion):
+        ctx.interpreter.log(.Eval) { "macroexpansion complete; new form: \(macroexpansion.describe(ctx))" }
+        // Now evaluate the result of the macroexpansion
+        let result = macroexpansion.evaluate(ctx)
         return result
-      case .Recur, .Failure: return expanded
+      case .Recur, .Failure: return result
       }
     case let .Failure(err): return .Failure(err)
     }
@@ -277,21 +279,24 @@ func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
         return .Success(.Seq(list))
       }
 
-      // 1: Decide whether 'a' is either a special form or a reference to a macro.
+      // 1: Decide whether 'a' is a special form.
       if let specialForm = first.asSpecialForm {
         // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
         return evaluateSpecialForm(specialForm, list.rest, ctx)
       }
-      else if let macro = first.asMacro(ctx) {
-        // Macros can't be returned by functions or other macros, nor can they be evaluated themselves.
-        return evaluateMacro(macro, list.rest, ctx)
-      }
+//      else if let macro = first.asMacro {
+//        // Macros can't be returned by functions or other macros, nor can they be evaluated themselves.
+//        return evaluateMacro(macro, list.rest, ctx)
+//      }
 
       // 2: Evaluate the form 'a'.
-      let fpItemResult = first.evaluate(ctx)
+      let fpItemResult = first.evaluate(ctx, isFirstFormInSeq: true)
       switch fpItemResult {
       case let .Success(fpItem):
         // 3: Decide whether or not the evaluated form of 'a' is something that can be used in function position.
+        if let macro = fpItem.asMacro {
+          return evaluateMacro(macro, list.rest, ctx)
+        }
         if let builtIn = fpItem.asBuiltIn {
           return evaluateBuiltIn(builtIn, list.rest, ctx)
         }
@@ -335,21 +340,20 @@ func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
 
 extension ConsValue {
 
-  func evaluate(ctx: Context) -> EvalResult {
+  func evaluate(ctx: Context, isFirstFormInSeq: Bool = false) -> EvalResult {
     switch self {
     case .FunctionLiteral, .BuiltInFunction: return .Success(self)
+    case .MacroLiteral:
+      return .Failure(EvalError(.EvaluatingMacroError))
     case let .Symbol(sym):
-      let result = ctx.resolveBindingForSymbol(sym)
-      switch result {
-      case .Invalid:
-        return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : sym.fullName(ctx)]))
-      case .Unbound:
-        return .Failure(EvalError(.UnboundSymbolError, metadata: [.Symbol : sym.fullName(ctx)]))
-      case let .Literal(literal): return .Success(literal)
-      case let .Param(param): return .Success(param)
-      case .BoundMacro:
-        return .Failure(EvalError(.EvaluatingMacroError))
+      if let result = ctx.resolveBindingForSymbol(sym) {
+        if !isFirstFormInSeq && result.asMacro != nil {
+          // A symbol is only allowed to resolve to a macro in the context of being the first item in a seq to evaluate
+          return .Failure(EvalError(.EvaluatingMacroError))
+        }
+        return .Success(result)
       }
+      return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : sym.fullName(ctx)]))
     case let .Keyword(k):
       // Keywords always evaluate to themselves, no matter whether or not they are namespaced
       return .Success(self)

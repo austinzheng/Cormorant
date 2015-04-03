@@ -152,6 +152,11 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> BoolOrEvalError {
     case let .Map(m2): return .Boolean(m1 == m2)
     default: return false
     }
+  case let .MacroLiteral(m1):
+    switch rhs {
+    case let .MacroLiteral(m2): return .Boolean(m1 === m2)
+    default: return false
+    }
   case let .FunctionLiteral(f1):
     switch rhs {
     case let .FunctionLiteral(f2): return .Boolean(f1 === f2)
