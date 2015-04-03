@@ -134,6 +134,7 @@ public enum BuiltIn : String, Printable {
   
   // Miscellaneous
   case Deref = ".deref"
+  case Gensym = ".gensym"
   case Rand = ".rand"
   case Eval = ".eval"
   case Fail = ".fail"
@@ -231,6 +232,7 @@ public enum BuiltIn : String, Printable {
     case .Remainder: return pr_rem
     case .Quotient: return pr_quot
     case .Deref: return pr_deref
+    case .Gensym: return pr_gensym
     case .Rand: return pr_rand
     case .Eval: return pr_eval
     case .Fail: return pr_fail

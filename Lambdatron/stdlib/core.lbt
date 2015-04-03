@@ -32,6 +32,11 @@
 ; Return the second item in a collection.
 (defn second [x] (first (next x)))
 
+; Intern and return a completely new symbol.
+(defn gensym
+  ([] (.gensym "G__"))
+  ([x] (.gensym x)))
+
 ; Given an item and a collection, return a new collection with the item added in the most idiomatic way.
 (defn conj
   ([coll x] (.conj coll x))

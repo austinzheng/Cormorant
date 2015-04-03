@@ -111,7 +111,7 @@ The following special forms, reader macros, and functions are built into the int
 - Testing: `nil?`, `number?`, `int?`, `float?`, `string?`, `char?`, `symbol?`, `keyword?`, `fn?`, `eval?`, `true?`, `false?`, `var?`, `seq?`, `vector?`, `map?`, `pos?`, `neg?`, `zero?`, `subnormal?`, `infinite?`, `nan?`
 - Arithmetic: `+`, `-`, `*`, `/`, `rem`, `quot`
 - Comparison: `=`, `==`, `<`, `<=` `>`, `>=`
-- Miscellaneous: `deref`, `read-string`, `rand`, `eval`, `fail`
+- Miscellaneous: `deref`, `gensym`, `read-string`, `rand`, `eval`, `fail`
 
 Additional functions and macros are available as part of the standard library.
 

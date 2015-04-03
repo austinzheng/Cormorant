@@ -74,6 +74,24 @@ func pr_println(args: Params, ctx: Context) -> EvalResult {
   return printOrPrintln(args, ctx, true)
 }
 
+/// Generate a unique symbol, intern it, and return it.
+func pr_gensym(args: Params, ctx: Context) -> EvalResult {
+  let fn = ".gensym"
+  if args.count != 1 {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+  }
+  // Note that calling this function with keywords can generate symbols that look exactly like keywords (prefixed by
+  //  ":").
+  let prefix = args[0].toString(ctx)
+  switch prefix {
+  case let .Desc(prefix):
+    let gensym = ctx.ivs.produceGensym(prefix, suffix: nil)
+    return .Success(.Symbol(gensym))
+  case let .Error(err):
+    return .Failure(err)
+  }
+}
+
 /// Return a random number between 0 (inclusive) and 1 (exclusive).
 func pr_rand(args: Params, ctx: Context) -> EvalResult {
   let fn = ".rand"
