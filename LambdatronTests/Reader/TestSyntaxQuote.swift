@@ -7,36 +7,9 @@
 //
 
 import Foundation
-import XCTest
 
 /// Test suite to exercise the quote, syntax-quote, unquote, and unquote-splice reader macro functionality.
-class TestSyntaxQuote : XCTestCase {
-
-  var interpreter = Interpreter()
-
-  func expect(input: String, shouldExpandTo output: String) {
-    let context = interpreter.currentNamespace
-    let lexed = lex(input)
-    switch lexed {
-    case let .Success(lexed):
-      let parsed = parse(lexed, context)
-      switch parsed {
-      case let .Success(parsed):
-        let expanded = parsed.expand(context)
-        switch expanded {
-        case let .Success(expanded):
-          let actualOutput = expanded.describe(context).asString
-          XCTAssert(actualOutput == output, "expected: \(output), got: \(actualOutput)")
-        case let .Failure(f):
-          XCTFail("reader macro expansion error: \(f.description)")
-        }
-      case .Failure:
-        XCTFail("parser error")
-      }
-    case .Failure:
-      XCTFail("lexer error")
-    }
-  }
+class TestSyntaxQuote : InterpreterTest {
 
   func testQuoteInteger() {
     expect("'100", shouldExpandTo: "(quote 100)")

@@ -84,6 +84,31 @@ class InterpreterTest : XCTestCase {
     return nil
   }
 
+  /// Given an input string, lex, parse, and reader-expand it and compare to an expected String output.
+  func expect(input: String, shouldExpandTo output: String) {
+    let context = interpreter.currentNamespace
+    let lexed = lex(input)
+    switch lexed {
+    case let .Success(lexed):
+      let parsed = parse(lexed, context)
+      switch parsed {
+      case let .Success(parsed):
+        let expanded = parsed.expand(context)
+        switch expanded {
+        case let .Success(expanded):
+          let actualOutput = expanded.describe(context).asString
+          XCTAssert(actualOutput == output, "expected: \(output), got: \(actualOutput)")
+        case let .Failure(f):
+          XCTFail("reader macro expansion error: \(f.description)")
+        }
+      case .Failure:
+        XCTFail("parser error")
+      }
+    case .Failure:
+      XCTFail("lexer error")
+    }
+  }
+
   /// Given an input string, evaluate it and compare the output to an expected ConsValue output.
   func expectThat(input: String, shouldEvalTo expected: ConsValue) {
     let result = interpreter.evaluate(input)

@@ -23,6 +23,11 @@
 		1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */; };
 		1A0B02D61A69E328007EF0F2 /* TestFnPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D51A69E328007EF0F2 /* TestFnPosition.swift */; };
 		1A0B02D81A69E357007EF0F2 /* InterpreterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0B02D71A69E357007EF0F2 /* InterpreterTest.swift */; };
+		1A102AEE1ACE6767007587E4 /* TestVar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A102AED1ACE6767007587E4 /* TestVar.swift */; };
+		1A102AF01ACE6781007587E4 /* TestDeref.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A102AEF1ACE6781007587E4 /* TestDeref.swift */; };
+		1A102AF21ACE6795007587E4 /* TestGensym.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A102AF11ACE6795007587E4 /* TestGensym.swift */; };
+		1A102AF41ACE67B2007587E4 /* TestSimpleReaderMacros.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A102AF31ACE67B2007587E4 /* TestSimpleReaderMacros.swift */; };
+		1A102AF61ACE6969007587E4 /* TestNsResolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A102AF51ACE6969007587E4 /* TestNsResolve.swift */; };
 		1A1269851A9C428100744F10 /* TestStr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1269841A9C428100744F10 /* TestStr.swift */; };
 		1A1269871A9C51BD00744F10 /* TestDescribing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1269861A9C51BD00744F10 /* TestDescribing.swift */; };
 		1A1269891A9C549D00744F10 /* rawstrings.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1A1269881A9C549D00744F10 /* rawstrings.txt */; };
@@ -183,6 +188,11 @@
 		1A0B02D01A69E2FF007EF0F2 /* TestNth.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNth.swift; path = Builtins/TestNth.swift; sourceTree = "<group>"; };
 		1A0B02D51A69E328007EF0F2 /* TestFnPosition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFnPosition.swift; path = Core/TestFnPosition.swift; sourceTree = "<group>"; };
 		1A0B02D71A69E357007EF0F2 /* InterpreterTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InterpreterTest.swift; sourceTree = "<group>"; };
+		1A102AED1ACE6767007587E4 /* TestVar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestVar.swift; path = Builtins/TestVar.swift; sourceTree = "<group>"; };
+		1A102AEF1ACE6781007587E4 /* TestDeref.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDeref.swift; path = Builtins/TestDeref.swift; sourceTree = "<group>"; };
+		1A102AF11ACE6795007587E4 /* TestGensym.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestGensym.swift; path = Builtins/TestGensym.swift; sourceTree = "<group>"; };
+		1A102AF31ACE67B2007587E4 /* TestSimpleReaderMacros.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSimpleReaderMacros.swift; path = Reader/TestSimpleReaderMacros.swift; sourceTree = "<group>"; };
+		1A102AF51ACE6969007587E4 /* TestNsResolve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNsResolve.swift; path = Builtins/TestNsResolve.swift; sourceTree = "<group>"; };
 		1A1269841A9C428100744F10 /* TestStr.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestStr.swift; path = Builtins/TestStr.swift; sourceTree = "<group>"; };
 		1A1269861A9C51BD00744F10 /* TestDescribing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDescribing.swift; path = Core/TestDescribing.swift; sourceTree = "<group>"; };
 		1A1269881A9C549D00744F10 /* rawstrings.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = rawstrings.txt; path = SupportingFiles/rawstrings.txt; sourceTree = "<group>"; };
@@ -308,6 +318,7 @@
 				1A69A59E1ACA859400ED09B2 /* TestNsBasics.swift */,
 				1A69A59C1ACA606100ED09B2 /* TestNsAliasRelated.swift */,
 				1A69A5A01ACA8F9900ED09B2 /* TestNsReferRelated.swift */,
+				1A102AF51ACE6969007587E4 /* TestNsResolve.swift */,
 				1AE3C3321A7F217E00197785 /* TestList.swift */,
 				1A8B44F11A7F4D0700E33480 /* TestVector.swift */,
 				1A8B44F31A7F4D2300E33480 /* TestHashmap.swift */,
@@ -345,7 +356,9 @@
 				1ACEDAAC1A91D39E00C6EB43 /* TestComparisons.swift */,
 				1A7AF6C81A78D811006FC934 /* TestArithmetic.swift */,
 				1ACEDAAE1A91D3DE00C6EB43 /* TestIO.swift */,
+				1A102AEF1ACE6781007587E4 /* TestDeref.swift */,
 				1ACEDAB21A91D40400C6EB43 /* TestReadString.swift */,
+				1A102AF11ACE6795007587E4 /* TestGensym.swift */,
 				1A1579781A6FA45B0013D21B /* TestRand.swift */,
 				1ACEDAB01A91D3ED00C6EB43 /* TestEval.swift */,
 			);
@@ -376,6 +389,7 @@
 				1A16877E1A6F362F00DB26E2 /* TestDo.swift */,
 				1AF4FC521A6F3BDD00AE218E /* TestDef.swift */,
 				1A4618D81A78C91700B63550 /* TestLet.swift */,
+				1A102AED1ACE6767007587E4 /* TestVar.swift */,
 				1A270BFE1A85EE3000B2EAFD /* TestFn.swift */,
 				1AD78B831A86D71000970022 /* TestDefmacro.swift */,
 				1A92A89A1A8C69A9004E0653 /* TestLoop.swift */,
@@ -490,6 +504,7 @@
 			isa = PBXGroup;
 			children = (
 				1AAC2DCA1A68E90F0019A5DD /* TestSyntaxQuote.swift */,
+				1A102AF31ACE67B2007587E4 /* TestSimpleReaderMacros.swift */,
 			);
 			name = Reader;
 			sourceTree = "<group>";
@@ -678,11 +693,13 @@
 				1ACEDAA81A91D36900C6EB43 /* TestAssoc.swift in Sources */,
 				1A03F3741AB4AF3F003233A5 /* TestReplace.swift in Sources */,
 				1AAC2DB01A68E8780019A5DD /* core.swift in Sources */,
+				1A102AEE1ACE6767007587E4 /* TestVar.swift in Sources */,
 				1AAC2DB91A68E8780019A5DD /* context.swift in Sources */,
 				1AC46BB91A832E3E00C83D27 /* TestTestHelpers.swift in Sources */,
 				1A16877A1A6DE49100DB26E2 /* TestQueries.swift in Sources */,
 				1A03F37E1AB4AFB0003233A5 /* TestReIterate.swift in Sources */,
 				1AAC2DBA1A68E8780019A5DD /* interned.swift in Sources */,
+				1A102AF21ACE6795007587E4 /* TestGensym.swift in Sources */,
 				1ACEDAAF1A91D3DE00C6EB43 /* TestIO.swift in Sources */,
 				1A03F37A1AB4AF8D003233A5 /* TestReFirst.swift in Sources */,
 				1AAC2DC21A68E8860019A5DD /* primitives.swift in Sources */,
@@ -717,6 +734,7 @@
 				1A1579791A6FA45B0013D21B /* TestRand.swift in Sources */,
 				1A0B02D11A69E2FF007EF0F2 /* TestNth.swift in Sources */,
 				1A92A89B1A8C69A9004E0653 /* TestLoop.swift in Sources */,
+				1A102AF41ACE67B2007587E4 /* TestSimpleReaderMacros.swift in Sources */,
 				1A2FDF4F1A6B928800E627A2 /* TestParsing.swift in Sources */,
 				1A03F3761AB4AF4B003233A5 /* TestReplaceFirst.swift in Sources */,
 				1A8D0C5A1ABE064F005FB61A /* TestLazySeqs.swift in Sources */,
@@ -751,8 +769,10 @@
 				1AAC2DB11A68E8780019A5DD /* errors.swift in Sources */,
 				1A8B44F61A7F4D4C00E33480 /* TestSymbol.swift in Sources */,
 				1A8B44FC1A7F4DD300E33480 /* TestCons.swift in Sources */,
+				1A102AF61ACE6969007587E4 /* TestNsResolve.swift in Sources */,
 				1A57CCCD1A832708003F1E82 /* TestApply.swift in Sources */,
 				1A03F3801AB4AFC2003233A5 /* TestReQuoteReplace.swift in Sources */,
+				1A102AF01ACE6781007587E4 /* TestDeref.swift in Sources */,
 				1A69A5A11ACA8F9900ED09B2 /* TestNsReferRelated.swift in Sources */,
 				1A5710DA1A813BF3003C5181 /* TestSeq.swift in Sources */,
 				1AAC2DBB1A68E8780019A5DD /* operators.swift in Sources */,
