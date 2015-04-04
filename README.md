@@ -50,7 +50,6 @@ Need ideas? Try:
 Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
 
 - The REPL can only take one form at a time.
-- There currently isn't any symbol mangling, so be careful when defining macros (e.g. don't use `& rest` as a vararg).
 
 These will disappear as the feature set is filled out.
 
@@ -93,7 +92,7 @@ Lambdatron has a number of possibly useful features. Lambdatron's data structure
 
 **Namespaces** make organizing your code easier. Currently, all stdlib code is contained within the `core` namespace, and the user begins in the `user` namespace. Namespaces are reified and can be manipulated as normal objects using some of the built-in functions.
 
-**Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` (unquote) can be used to force evaluation of the unquote form, while `~@` (unquote-splice) can be used to force evaluation of a form to a collection whose elements are then spliced in.
+**Syntax-quote** makes defining macros slightly less tedious. Use `'` to denote a normal quoted form. Use `` ` `` to denote a quote that should be syntax-quoted; within such a form `~` (unquote) can be used to force evaluation of the unquote form, while `~@` (unquote-splice) can be used to force evaluation of a form to a collection whose elements are then spliced in. Within a syntax-quoted expression, unqualified symbols are qualified to the current namespace (e.g. `a` might become `user/a`), while unqualified symbols suffixed by a `#` are converted into gensym'ed symbols.
 
 **Comments** start with a semicolon and continue until the end of the current line: `; this is a comment`
 

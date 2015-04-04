@@ -284,10 +284,6 @@ func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
         // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
         return evaluateSpecialForm(specialForm, list.rest, ctx)
       }
-//      else if let macro = first.asMacro {
-//        // Macros can't be returned by functions or other macros, nor can they be evaluated themselves.
-//        return evaluateMacro(macro, list.rest, ctx)
-//      }
 
       // 2: Evaluate the form 'a'.
       let fpItemResult = first.evaluate(ctx, isFirstFormInSeq: true)

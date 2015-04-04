@@ -18,16 +18,16 @@
   ([] true)
   ([x] x)
   ([x & next]
-    `(let [__MACRO_andValue ~x]
-        (if __MACRO_andValue (and ~@next) __MACRO_andValue))))
+    `(let [and# ~x]
+        (if and# (and ~@next) and#))))
 
 ; Return the logical OR of zero or more values.
 (defmacro or
   ([] nil)
   ([x] x)
   ([x & next]
-    `(let [__MACRO_orValue ~x]
-      (if __MACRO_orValue __MACRO_orValue (or ~@next)))))
+    `(let [or# ~x]
+      (if or# or# (or ~@next)))))
 
 ; Return the second item in a collection.
 (defn second [x] (first (next x)))

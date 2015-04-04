@@ -123,8 +123,10 @@ private struct Lexer {
       index = index.successor()
     }
 
+    var lastCharacterWasPartOfIdentifier : Bool = false
     while index < string.endIndex {
       let char = string[index]
+      var thisCharacterWasPartOfIdentifier = false
 
       switch char {
       case ";":
@@ -166,7 +168,8 @@ private struct Lexer {
         case let .Success(character): rawTokenBuffer.append(.CharLiteral(character))
         case let .Failure(error): return .Failure(error)
         }
-      case "#":
+      case "#" where !lastCharacterWasPartOfIdentifier:
+        // Note that when # is part of a symbol, it should not be treated as a dispatch macro
         flushTokenToBuffer()                          // Hash represents some sort of dispatch macro (#(, #', #"", etc)
         switch consumeHash(string, index: &index) {
         case let .Success(token): rawTokenBuffer.append(token)
@@ -178,7 +181,11 @@ private struct Lexer {
       default:
         currentToken.append(char)                     // Any other valid character
         index = index.successor()
+        thisCharacterWasPartOfIdentifier = true
       }
+
+      // Update the 'identifier in progress' flag
+      lastCharacterWasPartOfIdentifier = thisCharacterWasPartOfIdentifier
     }
 
     // If there's one last token left, flush it

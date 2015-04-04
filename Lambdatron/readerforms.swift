@@ -45,6 +45,48 @@ private enum ListExpandResult {
   case Failure(ReadError)
 }
 
+/// A helper object that tracks state and translates symbols found within a syntax-quoted expression. Qualified symbols
+/// are returned as-is, unqualified symbols suffixed by a '#' are transformed into gensyms (with every symbol with that
+/// name resolving to the same gensym), and normal unqualified symbols are qualified within the current namespace.
+private final class SymbolGensymHelper {
+  let context : Context
+  let namespaceName : String
+  var mappings = [UnqualifiedSymbol : UnqualifiedSymbol]()
+
+  /// Given a symbol, return the qualified symbol or gensym symbol that should replace it instead.
+  func symbolOrGensymFor(symbol: InternedSymbol) -> InternedSymbol {
+    if symbol.isUnqualified {
+      // Get symbol name
+      let name = symbol.nameComponent(context)
+      if count(name) > 1 && name[name.endIndex.predecessor()] == "#" {
+        // Translate the symbol into a gensym
+        if let gensymSymbol = mappings[symbol.unqualified] {
+          return gensymSymbol
+        }
+        else {
+          let gensymSymbol = context.ivs.produceGensym(stringWithoutLastCharacter(name) + "__",
+            suffix: "__auto__")
+          mappings[symbol.unqualified] = gensymSymbol
+          return gensymSymbol
+        }
+      }
+      else {
+        // Return the qualified version of the symbol, namespaced to the current namespace
+        return InternedSymbol(name, namespace: namespaceName, ivs: context.ivs)
+      }
+    }
+    else {
+      // Qualified symbols are returned verbatim
+      return symbol
+    }
+  }
+
+  init(ctx: Context) {
+    context = ctx
+    namespaceName = ctx.interpreter.currentNsName.asString(ctx.ivs)
+  }
+}
+
 /// Given a map, translate it directly into a list.
 private func seqFromMap(m: MapType) -> SeqType {
   var head : SeqType = Empty()
@@ -64,7 +106,7 @@ private func constructForm(result: ListExpandResult, f: SeqType -> SeqType) -> E
 }
 
 /// Given a list (a b c) which forms the list part of the syntax-quoted form `(a b c ...), return the expansion.
-private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandResult {
+private func expandSyntaxQuotedList(list: SeqType, helper: SymbolGensymHelper, ctx: Context) -> ListExpandResult {
   var b : [ConsValue] = []    // each element corresponds to a list element after transformation
 
   for element in collectSymbols(list).force() {
@@ -72,7 +114,7 @@ private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandRe
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword, .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Atomic items are wrapped in 'list': ATOM --> (list ATOM)
       // Symbols, etc are wrapped in 'list' and 'quote': sym --> (list (quote sym))
-      let result = element.expandSyntaxQuote(ctx)
+      let result = element.expandSyntaxQuote(helper, ctx: ctx)
       switch result {
       case let .Success(expanded): b.append(.Seq(sequence(LIST, expanded)))
       case let .Failure(err): return .Failure(err)
@@ -80,7 +122,7 @@ private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandRe
     case let .ReaderMacroForm(rm):
       switch rm.type {
       case .SyntaxQuote:
-        let e = rm.form.expandSyntaxQuote(ctx)
+        let e = rm.form.expandSyntaxQuote(nil, ctx: ctx)
         switch e {
         case let .Success(expanded):
           b.append(.Seq(sequence(LIST, expanded)))
@@ -93,7 +135,7 @@ private func expandSyntaxQuotedList(list: SeqType, ctx: Context) -> ListExpandRe
         b.append(rm.form)
       }
     case let .Seq, .Vector, .Map:
-      let e = element.expandSyntaxQuote(ctx)
+      let e = element.expandSyntaxQuote(helper, ctx: ctx)
       switch e {
       case let .Success(expanded):
         b.append(.Seq(sequence(LIST, expanded)))
@@ -174,7 +216,7 @@ private func expandReaderMacro(rm: ReaderMacro, ctx: Context) -> ExpandResult {
     //  unquote-splice, etc)
     switch rm.type {
     case .SyntaxQuote:
-      return s.expandSyntaxQuote(ctx)
+      return s.expandSyntaxQuote(nil, ctx: ctx)
     case .Unquote:
       return .Success(.ReaderMacroForm(ReaderMacro(type: .Unquote, form: s)))
     case .UnquoteSplice:
@@ -233,21 +275,24 @@ extension ConsValue {
   }
 
   /// When expanding an expression in the form `a, this method is called on 'a'; it returns (seq (concat a)).
-  private func expandSyntaxQuote(ctx: Context) -> ExpandResult {
+  private func expandSyntaxQuote(helper: SymbolGensymHelper?, ctx: Context) -> ExpandResult {
 //    println("DBG: calling 'expandWhenWithinSyntaxQuote' with item \(describe(nil))")
+
+    // NOTE: each syntax-quote requires a new helper. However, re-entrant calls in the context of evaluating the same
+    //  logical syntax-quote should use the same helper. This is why the method takes an optional existing helper as an
+    //  argument.
+    let thisHelper = helper ?? SymbolGensymHelper(ctx: ctx)
+
     // ` differs in behavior depending on exactly what a is; it is most complex when a is a sequence
     switch self {
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword:
       // Expanding `LIT always results in LIT
       return .Success(self)
-    case let .Symbol(sym) where sym.isUnqualified:
+    case let .Symbol(sym):
       // Expanding `a results in (quote ns/a); we must qualify the symbol if it's unqualified
-      let ns = ctx.interpreter.currentNsName
-      let nsName = ns.asString(ctx.ivs)
-      let symbolName = sym.nameComponent(ctx)
-      let symbol = InternedSymbol(symbolName, namespace: nsName, ivs: ctx.ivs)
+      let symbol = thisHelper.symbolOrGensymFor(sym)
       return .Success(.Seq(sequence(QUOTE, .Symbol(symbol))))
-    case .Symbol, .Special, .BuiltInFunction, .Auxiliary:
+    case .Special, .BuiltInFunction, .Auxiliary:
       // Expanding `a results in (quote a)
       return .Success(.Seq(sequence(QUOTE, self)))
     case let .ReaderMacroForm(rm):
@@ -268,20 +313,20 @@ extension ConsValue {
       }
       else {
         // `(a b c) = (seq (concat (a1 b1 c1)))
-        let result = expandSyntaxQuotedList(s, ctx)
+        let result = expandSyntaxQuotedList(s, thisHelper, ctx)
         return constructForm(result) {
           sequence(SEQ, .Seq(cons(CONCAT, next: $0)))
         }
       }
     case let .Vector(vector):
       // Turn the syntax-quoted vector `[a b] into (apply (vector `(a b)))
-      let result = expandSyntaxQuotedList(sequence(vector), ctx)
+      let result = expandSyntaxQuotedList(sequence(vector), thisHelper, ctx)
       return constructForm(result) {
         sequence(APPLY, VECTOR, .Seq(sequence(SEQ, .Seq(cons(CONCAT, next: $0)))))
       }
     case let .Map(m):
       // Turn the syntax-quoted map `{a b} into (apply (map `(a b)))
-      let result = expandSyntaxQuotedList(seqFromMap(m), ctx)
+      let result = expandSyntaxQuotedList(seqFromMap(m), thisHelper, ctx)
       return constructForm(result) {
         sequence(APPLY, HASHMAP, .Seq(sequence(SEQ, .Seq(cons(CONCAT, next: $0)))))
       }

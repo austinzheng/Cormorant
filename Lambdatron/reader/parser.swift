@@ -91,7 +91,7 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
 }
 
 /// Given a reader form and the 'wrapStack' array, pop a wrap command off the array and wrap the reader form within the
-/// appropriate wrapper (for example, wrap a syntax-quited form inside a ReaderMacro object).
+/// appropriate wrapper (for example, wrap a syntax-quoted form inside a ReaderMacro object).
 private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> ConsValue {
   // IMPORTANT: Note that this function will *modify* wrapStack by removing elements.
   let wrapType : NextFormTreatment = wrapStack.last ?? .None

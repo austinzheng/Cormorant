@@ -121,6 +121,15 @@ final class Box<T> {
 
 // MARK: Swift string helpers
 
+/// Given a string, return the string but without the last character. If the string is empty, the empty string will be
+/// returned.
+func stringWithoutLastCharacter(str: String) -> String {
+  if str.isEmpty {
+    return str
+  }
+  return str[str.startIndex..<str.endIndex.predecessor()]
+}
+
 /// Return whether or not a Swift character is a member of an NSCharacterSet.
 func characterIsMemberOfSet(c: Character, set: NSCharacterSet) -> Bool {
   let primitive = String(c).utf16[String.UTF16View.Index(0)] as unichar
