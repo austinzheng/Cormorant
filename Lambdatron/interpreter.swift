@@ -28,7 +28,7 @@ public enum LogDomain : String {
   static var allDomains : [LogDomain] { return [.Eval] }
 }
 
-typealias LoggingFunction = (() -> String) -> ()
+public typealias LoggingFunction = (() -> String) -> ()
 
 /// An opaque type representing a function allowing the interpreter to write output.
 public typealias OutputFunction = (String) -> ()
@@ -55,7 +55,7 @@ public class Interpreter {
   }
 
   var currentNsName : NamespaceName! { return currentNamespace.internedName }
-  var currentNsNameString : String! { return currentNamespace.name }
+  public var currentNamespaceName : String! { return currentNamespace.name }
 
   /// All namespaces registered to this interpreter.
   private(set) var namespaces : [NamespaceName : NamespaceContext] = [:]
@@ -71,6 +71,14 @@ public class Interpreter {
 
   /// A function that the interpreter calls in order to read in data.
   public var readInput : InputFunction? = nil
+
+  /// Given a domain and a function, set the function as a designated handler for logging messages in the domain.
+  public func setLoggingFunction(domain: LogDomain, function: LoggingFunction) {
+    switch domain {
+    case .Eval:
+      evalLogging = function
+    }
+  }
 
   /// Given a string, evaluate it as Lambdatron code and return a successful result or error.
   public func evaluate(form: String) -> Result {
@@ -174,14 +182,6 @@ public class Interpreter {
     }
   }
 
-  /// Given a domain and a function, set the function as a designated handler for logging messages in the domain.
-  func setLoggingFunction(domain: LogDomain, function: LoggingFunction) {
-    switch domain {
-    case .Eval:
-      evalLogging = function
-    }
-  }
-
   /// Look up the Var bound to a symbol in a particular namespace.
   func resolveBinding(symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> ConsValue? {
     if let namespace = namespaces[ns] {
@@ -282,7 +282,7 @@ public class Interpreter {
 
   // MARK: Initializer(s)
 
-  init() {
+  public init() {
     // Load the standard library
     // TODO: Fix this when we rewrite the hideous loader
     let stdlib = NamespaceContext(interpreter: self, ns: coreNamespaceName, asSystemNamespace: true)
@@ -301,6 +301,10 @@ public class Interpreter {
 
     // Once the stdlib has been completely prepared, have 'user' refer to it
     user.refer(stdlib)
+
+    #if DEBUG
+      println("Lambdatron interpreter: framework was built using DEBUG mode")
+    #endif
   }
 }
 

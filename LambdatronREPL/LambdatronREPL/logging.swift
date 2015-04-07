@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Lambdatron
 
 class LoggingManager {
   private var evalLoggingEnabled = false

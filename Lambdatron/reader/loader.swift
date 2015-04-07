@@ -46,11 +46,14 @@ func loadStdlibInto(context: Context, files: [String]) {
         }
       }
     }
+    else {
+      println("Error! Stdlib file \"\(file).lbt\" could not be loaded.")
+    }
   }
 }
 
 func stringDataForBundledFile(name: String) -> String? {
-  let path = NSBundle.mainBundle().pathForResource(name, ofType:"lbt")
+  let path = NSBundle(forClass: Interpreter.self).pathForResource(name, ofType: "lbt")
   if let path = path {
     let contents = String(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: nil)
     return contents

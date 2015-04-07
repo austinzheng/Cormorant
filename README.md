@@ -120,6 +120,21 @@ Development
 
 Some notes on Lambdatron development tools follow.
 
+### Code Organization
+
+Lambdatron is divided into three components:
+
+* The core framework (`Lambdatron`)
+* The REPL framework (`LambdatronREPL`)
+* A command-line app and associated build settings for running the REPL (`LambdatronREPLRunner`)
+
+**IMPORTANT**: If you change either of the two frameworks, you must rebuild the framework that was changed before building and running the command-line app, otherwise your changes will not be reflected. This is an unfortunate side effect of the hacks necessary to build a command-line app which properly consumes Swift dylibs.
+
+At this time Lambdatron always builds with optimizations, even if the scheme is set to 'Debug'. I'm looking for Xcode documentation that explains how build configurations between dependencies actually works. In the meantime, if you really want, manually enable or disable optimizations for both Debug and Release modes for the two frameworks and the REPL runner app.
+
+If you want to run the REPL, make sure the bundle is in the same directory.
+
+
 ### Debugging
 
 Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Lambdatron, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "Lambdatron" (it should show up under "Likely Targets").
@@ -127,9 +142,7 @@ Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a 
 
 ### Profiling
 
-Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "Lambdatron" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
-
-The current Xcode scheme is set to build an optimized version of Lambdatron when profiling (and a debug version when running normally). There is a significant performance difference between the two versions, be aware.
+Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "LambdatronREPLRunner" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
 
 
 ### Logging
