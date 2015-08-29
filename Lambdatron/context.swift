@@ -210,7 +210,8 @@ final public class NamespaceContext : Context, Hashable {
   func internsAsMap() -> MapType {
     var buffer : MapType = [:]
     for (symbol, aVar) in vars {
-      let symbolName = symbol.nameComponent(self)
+      // TODO: (az) what is this?
+//      let symbolName = symbol.nameComponent(self)
       buffer[.Symbol(symbol)] = .Var(aVar)
     }
     return buffer
@@ -246,7 +247,7 @@ final public class NamespaceContext : Context, Hashable {
       // Don't do anything for now
       return .Var(thisVar)
     }
-    if let alreadyReferred = refers[varName] {
+    if refers[varName] != nil {
       return .Error(EvalError(.VarRebindingError))
     }
     else {

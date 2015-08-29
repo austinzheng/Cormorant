@@ -75,7 +75,7 @@ class TestRestBuiltin : InterpreterTest {
   func testWithMaps() {
     let a = keyword("a")
     let b = keyword("b")
-    let c = keyword("c")
+//    let c = keyword("c")
     expectThat("(.rest {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo:
       listWithItems(vectorWithItems(.Keyword(b), 2), vectorWithItems(.Keyword(a), 1),
         vectorWithItems(.CharAtom("d"), 4)))

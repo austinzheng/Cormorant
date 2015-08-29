@@ -37,7 +37,7 @@ func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
 }
 
 /// Evaluate a form and return either a success or failure
-func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
+func evaluateForm(form: ConsValue, _ ctx: Context) -> EvalResult {
   let result = form.evaluate(ctx)
   switch result {
   case .Success: return result
@@ -51,7 +51,7 @@ func evaluateForm(form: ConsValue, ctx: Context) -> EvalResult {
 
 /// Collect the evaluated values of all cells within a list, starting from a given first item. This method is intended
 /// to perform argument evaluation as part of the process of calling a function.
-func collectFunctionParams(list : SeqType, ctx: Context) -> CollectResult {
+func collectFunctionParams(list : SeqType, _ ctx: Context) -> CollectResult {
   var buffer = Params()
   for param in SeqIterator(list) {
     switch param {
@@ -94,7 +94,7 @@ func collectSymbols(list: SeqType) -> CollectResult {
 // MARK: List evaluation
 
 /// Given a SeqResult that might contain a ListType, process the ListType if it exists, or just pass any error through.
-private func unwrapAndProcessSeqResult(result: SeqResult, f: SeqType -> EvalResult) -> EvalResult {
+private func unwrapAndProcessSeqResult(result: SeqResult, _ f: SeqType -> EvalResult) -> EvalResult {
   switch result {
   case let .Seq(sequence):
     return f(sequence)
@@ -104,7 +104,7 @@ private func unwrapAndProcessSeqResult(result: SeqResult, f: SeqType -> EvalResu
 }
 
 /// Evaluate a list with a special form in function position.
-private func evaluateSpecialForm(specialForm: SpecialForm, parameters: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateSpecialForm(specialForm: SpecialForm, parameters: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval) { "evaluating as special form: \(describeList(list, ctx))" }
   // How it works:
   // 1. Arguments are passed in as-is
@@ -122,7 +122,7 @@ private func evaluateSpecialForm(specialForm: SpecialForm, parameters: SeqResult
 }
 
 /// Evaluate a list with a built-in function in function position.
-private func evaluateBuiltIn(builtIn: BuiltIn, arguments: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateBuiltIn(builtIn: BuiltIn, arguments: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval) { "evaluating as built-in function: \(describeList(list, ctx))" }
   return unwrapAndProcessSeqResult(arguments) { arguments in
     switch collectFunctionParams(arguments, ctx) {
@@ -133,7 +133,7 @@ private func evaluateBuiltIn(builtIn: BuiltIn, arguments: SeqResult, ctx: Contex
 }
 
 /// Expand and evaluate a list with a macro in function position.
-private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateMacro(macro: Macro, parameters: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval) { "evaluating as macro expansion: \(describeList(list,ctx))" }
   // How it works:
   // 1. Arguments are passed in as-is
@@ -159,7 +159,7 @@ private func evaluateMacro(macro: Macro, parameters: SeqResult, ctx: Context) ->
 }
 
 /// Evaluate a list with a user-defined function in function position.
-private func evaluateFunction(function: Function, arguments: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateFunction(function: Function, arguments: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval, message: "evaluating as function: \(describeList(list, ctx))")
   // How it works:
   // 1. Arguments are evaluated before the function is ever invoked
@@ -174,7 +174,7 @@ private func evaluateFunction(function: Function, arguments: SeqResult, ctx: Con
 }
 
 /// Evaluate a list with a vector in function position.
-private func evaluateVector(vector: VectorType, arguments: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateVector(vector: VectorType, arguments: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval) { "evaluating with vector in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*vector* *pos*) is translated into (nth *vector* *pos*)
@@ -195,7 +195,7 @@ private func evaluateVector(vector: VectorType, arguments: SeqResult, ctx: Conte
 }
 
 /// Evaluate a list with a map in function position.
-private func evaluateMap(map: MapType, arguments: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateMap(map: MapType, arguments: SeqResult, _ ctx: Context) -> EvalResult {
 //  { "evaluating with map in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*map* *args*...) is translated into (get *map* *args*...).
@@ -211,7 +211,7 @@ private func evaluateMap(map: MapType, arguments: SeqResult, ctx: Context) -> Ev
 }
 
 /// Evaluate a list with a symbol or keyword in function position.
-private func evaluateKeyType(key: ConsValue, arguments: SeqResult, ctx: Context) -> EvalResult {
+private func evaluateKeyType(key: ConsValue, arguments: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval) { "evaluating symbol or keyword in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*key* *map* *fallback*) is translated into (get *map* *key* *fallback*).
@@ -264,7 +264,7 @@ func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResu
 }
 
 /// Evaluate this list, treating the first item in the list as something that can be eval'ed.
-func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
+func evaluateList(list: SeqType, _ ctx: Context) -> EvalResult {
   // This method is run in order to evaluate a list form (a b c d).
   // 'a' must resolve to something that can be used in function position. 'b', 'c', and 'd' are arguments to the
   // function.
@@ -282,7 +282,7 @@ func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
       // 1: Decide whether 'a' is a special form.
       if let specialForm = first.asSpecialForm {
         // Special forms can't be returned by functions or macros, nor can they be evaluated themselves.
-        return evaluateSpecialForm(specialForm, list.rest, ctx)
+        return evaluateSpecialForm(specialForm, parameters: list.rest, ctx)
       }
 
       // 2: Evaluate the form 'a'.
@@ -291,25 +291,25 @@ func evaluateList(list: SeqType, ctx: Context) -> EvalResult {
       case let .Success(fpItem):
         // 3: Decide whether or not the evaluated form of 'a' is something that can be used in function position.
         if let macro = fpItem.asMacro {
-          return evaluateMacro(macro, list.rest, ctx)
+          return evaluateMacro(macro, parameters: list.rest, ctx)
         }
         if let builtIn = fpItem.asBuiltIn {
-          return evaluateBuiltIn(builtIn, list.rest, ctx)
+          return evaluateBuiltIn(builtIn, arguments: list.rest, ctx)
         }
         else if let function = fpItem.asFunction {
-          return evaluateFunction(function, list.rest, ctx)
+          return evaluateFunction(function, arguments: list.rest, ctx)
         }
         else if let vector = fpItem.asVector {
-          return evaluateVector(vector, list.rest, ctx)
+          return evaluateVector(vector, arguments: list.rest, ctx)
         }
         else if let map = fpItem.asMap {
-          return evaluateMap(map, list.rest, ctx)
+          return evaluateMap(map, arguments: list.rest, ctx)
         }
         else if let symbol = fpItem.asSymbol {
-          return evaluateKeyType(.Symbol(symbol), list.rest, ctx)
+          return evaluateKeyType(.Symbol(symbol), arguments: list.rest, ctx)
         }
         else if let keyword = fpItem.asKeyword {
-          return evaluateKeyType(.Keyword(keyword), list.rest, ctx)
+          return evaluateKeyType(.Keyword(keyword), arguments: list.rest, ctx)
         }
         else {
           // 3a: 'a' is not something that can be used in function position (e.g. nil)
@@ -350,7 +350,7 @@ extension ConsValue {
         return .Success(result)
       }
       return .Failure(EvalError(.InvalidSymbolError, metadata: [.Symbol : sym.fullName(ctx)]))
-    case let .Keyword(k):
+    case .Keyword:
       // Keywords always evaluate to themselves, no matter whether or not they are namespaced
       return .Success(self)
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Namespace, .Var, .Auxiliary:

@@ -58,7 +58,7 @@ private final class SymbolGensymHelper {
     if symbol.isUnqualified {
       // Get symbol name
       let name = symbol.nameComponent(context)
-      if count(name) > 1 && name[name.endIndex.predecessor()] == "#" {
+      if name.characters.count > 1 && name[name.endIndex.predecessor()] == "#" {
         // Translate the symbol into a gensym
         if let gensymSymbol = mappings[symbol.unqualified] {
           return gensymSymbol
@@ -106,7 +106,7 @@ private func constructForm(result: ListExpandResult, f: SeqType -> SeqType) -> E
 }
 
 /// Given a list (a b c) which forms the list part of the syntax-quoted form `(a b c ...), return the expansion.
-private func expandSyntaxQuotedList(list: SeqType, helper: SymbolGensymHelper, ctx: Context) -> ListExpandResult {
+private func expandSyntaxQuotedList(list: SeqType, _ helper: SymbolGensymHelper, _ ctx: Context) -> ListExpandResult {
   var b : [ConsValue] = []    // each element corresponds to a list element after transformation
 
   for element in collectSymbols(list).force() {
@@ -134,7 +134,7 @@ private func expandSyntaxQuotedList(list: SeqType, helper: SymbolGensymHelper, c
       case .UnquoteSplice:
         b.append(rm.form)
       }
-    case let .Seq, .Vector, .Map:
+    case .Seq, .Vector, .Map:
       let e = element.expandSyntaxQuote(helper, ctx: ctx)
       switch e {
       case let .Success(expanded):
@@ -152,14 +152,14 @@ private func expandSyntaxQuotedList(list: SeqType, helper: SymbolGensymHelper, c
 }
 
 /// Given a list (e.g. (a b c)), return an expanded version of the list where each element has been expanded itself.
-private func expandList(seq: ContiguousList, ctx: Context) -> ExpandResult {
+private func expandList(seq: ContiguousList, _ ctx: Context) -> ExpandResult {
   if seq.backingArray.isEmpty {
     // The list is empty, return the empty list
     return .Success(.Seq(Empty()))
   }
   // The list isn't empty. Make a copy of the list, then expand each element in the copy.
   var copy = seq.backingArray
-  for (idx, value) in enumerate(copy) {
+  for (idx, value) in copy.enumerate() {
     // Go through the list and expand each item in turn
     let expanded = value.readerExpand(ctx)
     switch expanded {
@@ -172,12 +172,12 @@ private func expandList(seq: ContiguousList, ctx: Context) -> ExpandResult {
 }
 
 /// Given a vector (e.g. [a b c]), return an expanded version of the vector where each element has been expanded itself.
-private func expandVector(vector: VectorType, ctx: Context) -> ExpandResult {
+private func expandVector(vector: VectorType, _ ctx: Context) -> ExpandResult {
   if vector.count == 0 {
     return .Success(.Vector([]))
   }
   var copy : VectorType = vector
-  for (idx, item) in enumerate(vector) {
+  for (idx, item) in vector.enumerate() {
     let result = item.readerExpand(ctx)
     switch result {
     case let .Success(expanded):
@@ -190,7 +190,7 @@ private func expandVector(vector: VectorType, ctx: Context) -> ExpandResult {
 }
 
 /// Given a map (e.g. {k1 v1}), return an expanded version of the map where all keys and values have been expanded.
-private func expandMap(hashmap: MapType, ctx: Context) -> ExpandResult {
+private func expandMap(hashmap: MapType, _ ctx: Context) -> ExpandResult {
   var copy : MapType = [:]
   for (key, value) in hashmap {
     let expandedKey = key.readerExpand(ctx)
@@ -207,7 +207,7 @@ private func expandMap(hashmap: MapType, ctx: Context) -> ExpandResult {
   return .Success(.Map(copy))
 }
 
-private func expandReaderMacro(rm: ReaderMacro, ctx: Context) -> ExpandResult {
+private func expandReaderMacro(rm: ReaderMacro, _ ctx: Context) -> ExpandResult {
   // First, expand the form contained within the reader macro
   let result = rm.form.readerExpand(ctx)
   switch result {

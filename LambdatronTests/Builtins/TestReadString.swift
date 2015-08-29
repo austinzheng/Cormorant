@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the '.read-string' built-in function.
 class TestReadStringBuiltin : InterpreterTest {

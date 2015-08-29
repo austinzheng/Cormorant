@@ -92,7 +92,7 @@ private struct Lexer {
 
   /// Return whether or not the character is considered whitespace (and can be discarded) by the lexer.
   static func isWhitespace(char: Character) -> Bool {
-    return characterIsMemberOfSet(char, whitespace) || characterIsMemberOfSet(char, likeWhitespace)
+    return characterIsMemberOfSet(char, set: whitespace) || characterIsMemberOfSet(char, set: likeWhitespace)
   }
 
   /// Perform the first phase of lexing. This takes in a string representing source code, and returns an array of
@@ -255,7 +255,7 @@ private struct Lexer {
     while current < str.endIndex {
       let character = str[current]
       current = current.successor()
-      if characterIsMemberOfSet(character, NSCharacterSet.newlineCharacterSet()) {
+      if characterIsMemberOfSet(character, set: NSCharacterSet.newlineCharacterSet()) {
         // Character is a newline
         break
       }
@@ -273,7 +273,6 @@ private struct Lexer {
     var current = index
     // Advance position to the first character in the string proper.
     current = current.successor()
-    let start = current
     var buffer = ""
 
     while current < str.endIndex {
@@ -379,7 +378,7 @@ private struct Lexer {
 
     let start = index.successor()
     // The first character in the character literal
-    var firstCharacter = str[start]
+    let firstCharacter = str[start]
     // The index of the character following the first character in the character literal expression
     let followingIndex = start.successor()
 
@@ -454,7 +453,7 @@ private struct Lexer {
     // * The start of a string (e.g. \a"hello")
     // * The macro symbols `, @, or ~
     // A character cannot touch a keyword (:), literal quote ('), hash (#), number, true, false, or nil.
-    return characterIsMemberOfSet(c, whitespace) || characterIsMemberOfSet(c, canFollowCharacter)
+    return characterIsMemberOfSet(c, set: whitespace) || characterIsMemberOfSet(c, set: canFollowCharacter)
   }
 
   /// Return a LexToken representing a number type if the input string can be converted into a number, or nil otherwise.
@@ -463,7 +462,7 @@ private struct Lexer {
     var mode : NumberMode = .Integer
 
     // Scan string for "."
-    for item in str {
+    for item in str.characters {
       if item == "." {
         switch mode {
         case .Integer:
@@ -517,7 +516,7 @@ private enum NumberType { case Decimal, Octal, Hexadecimal }
 /// Given a string, an index within the string, and a type of number, return the numeric value of the character at the
 /// index, or nil if the index is invalid or the character is not a valid digit for the number type. This function
 /// will advance the index as long as the index isn't past the end of the string.
-private func digitAsNumber(string: String, inout idx: String.Index, type: NumberType) -> Int? {
+private func digitAsNumber(string: String, inout _ idx: String.Index, _ type: NumberType) -> Int? {
   if idx >= string.endIndex { return nil }
   var value : Int? = nil
   switch string[idx] {

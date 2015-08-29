@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the 'quote' special form.
 class TestQuote : InterpreterTest {

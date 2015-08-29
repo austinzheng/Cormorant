@@ -10,7 +10,7 @@ import Foundation
 
 /// A struct holding an arbitrary number of parameters without using refcounted storage if there are eight or fewer
 /// params.
-struct Params : Printable, CollectionType {
+struct Params : CustomStringConvertible, CollectionType {
   private var a0, a1, a2, a3, a4, a5, a6, a7 : ConsValue?
 
   /// An array containing all parameters from 8 and onwards.
@@ -47,7 +47,7 @@ struct Params : Printable, CollectionType {
       return self
     }
     var newParams = Params()
-    for (idx, item) in enumerate(self) {
+    for (idx, item) in enumerate() {
       if idx > 0 {
         newParams.append(item)
       }

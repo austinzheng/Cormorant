@@ -36,47 +36,47 @@ HistEvent _ev;
   _customPrompt = string;
 }
 
-- (instancetype) initWithArgv0:(const char*)argv0 {
-    if (self = [super init]) {
-        // Setup the editor
-        _el = el_init(argv0, stdin, stdout, stderr);
-        el_set(_el, EL_PROMPT, &lineReader);
-        el_set(_el, EL_EDITOR, "emacs");
-        
-        // enable support for history
-        _hist = history_init();
-        history(_hist, &_ev, H_SETSIZE, 800);
-        el_set(_el, EL_HIST, history, _hist);
-    }
-    
-    return self;
+- (instancetype)initWithArgv0:(const char*)argv0 {
+  if (self = [super init]) {
+    // Setup the editor
+    _el = el_init(argv0, stdin, stdout, stderr);
+    el_set(_el, EL_PROMPT, &lineReader);
+    el_set(_el, EL_EDITOR, "emacs");
+
+    // enable support for history
+    _hist = history_init();
+    history(_hist, &_ev, H_SETSIZE, 800);
+    el_set(_el, EL_HIST, history, _hist);
+  }
+
+  return self;
 }
 
-- (void) dealloc {
-    if (_hist != NULL) {
-        history_end(_hist);
-        _hist = NULL;
-    }
-    
-    if (_el != NULL) {
-        el_end(_el);
-        _el = NULL;
-    }
+- (void)dealloc {
+  if (_hist != NULL) {
+    history_end(_hist);
+    _hist = NULL;
+  }
+
+  if (_el != NULL) {
+    el_end(_el);
+    _el = NULL;
+  }
 }
 
-- (NSString*) gets {
-    
-    // line includes the trailing newline
-    int count;
-    const char* line = el_gets(_el, &count);
-    
-    if (count > 0) {
-        history(_hist, &_ev, H_ENTER, line);
-        
-        return [NSString stringWithUTF8String:line];
-    }
-    
-    return nil;
+- (NSString *)gets {
+
+  // line includes the trailing newline
+  int count;
+  const char* line = el_gets(_el, &count);
+
+  if (count > 0) {
+    history(_hist, &_ev, H_ENTER, line);
+
+    return [NSString stringWithUTF8String:line];
+  }
+
+  return nil;
 }
 
 @end

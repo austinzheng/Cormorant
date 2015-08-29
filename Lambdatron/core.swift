@@ -18,7 +18,7 @@ public typealias MapType = [ConsValue:ConsValue]
 // MARK: ConsValue
 
 /// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
-public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, Printable, DebugPrintable, Hashable {
+public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, CustomStringConvertible, Hashable {
   case Nil
   case BoolAtom(Bool)
   case IntAtom(Int)
@@ -77,7 +77,7 @@ public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, Bool
   // MARK: Extractors
 
   var isNil : Bool {
-    switch self { case let .Nil: return true; default: return false }
+    switch self { case .Nil: return true; default: return false }
   }
 
   var asBool : Bool? {

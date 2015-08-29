@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 /// Test the '.sb' built-in function.
 class TestSbBuiltin : InterpreterTest {

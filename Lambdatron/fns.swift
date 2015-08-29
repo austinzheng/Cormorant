@@ -72,7 +72,7 @@ struct SingleFn {
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
       return false
     }
-    for (idx, parameter) in enumerate(parameters) {
+    for (idx, parameter) in parameters.enumerate() {
       let argument : ConsValue = arguments[idx]
       ctx.updateBinding(argument, forSymbol: parameter)
     }

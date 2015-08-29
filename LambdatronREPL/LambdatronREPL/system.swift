@@ -10,9 +10,12 @@ import Foundation
 import Lambdatron
 
 private func fileDataForRawPath(p: String) -> String? {
-  let fileURL = NSURL(fileURLWithPath: p.stringByExpandingTildeInPath)
-  if let fileURL = fileURL {
-    return String(contentsOfURL: fileURL, encoding: NSUTF8StringEncoding, error: nil)
+  if let fileURL = NSURL(string: (p as NSString).stringByExpandingTildeInPath) {
+    do {
+      return try String(contentsOfURL: fileURL, encoding: NSUTF8StringEncoding)
+    } catch {
+      // TODO
+    }
   }
   return nil
 }
@@ -44,8 +47,7 @@ private func fileDataForRawPath(p: String) -> String? {
 
 // MARK: Entry point
 
-@objc
-public class REPLWrapper {
+public class REPLWrapper : NSObject {
   public class func runWithArguments(args: [String]) {
     interpreterMain(args)
   }
@@ -61,7 +63,7 @@ func interpreterMain(args: [String]) {
 
   if args.count == 3 && args[1] == "-f" {
     // Execute a file
-    println("Not yet implemented")
+    print("Not yet implemented")
 //    let fileName = args[2]
 //    // TODO: This sucks, redo it
 //    if let fileInput = fileDataForRawPath(fileName) {
@@ -96,12 +98,13 @@ func interpreterMain(args: [String]) {
   }
   else if args.count > 1 && args[1] == "-h" {
     // Print help
-    println("Lambdatron - the amazingly slow pseudo-Clojure interpreter")
-    println("Invoke without arguments to start the REPL, or with '-f FILENAME' to run a file.")
+    print("Lambdatron - the amazingly slow pseudo-Clojure interpreter")
+    print("Invoke without arguments to start the REPL, or with '-f FILENAME' to run a file.")
     // Have the user type something in to quit
     let handle = NSFileHandle.fileHandleWithStandardInput()
-    println("Press enter to quit...")
-    let rawData = handle.availableData
+    print("Press enter to quit...")
+    // TODO: (az) wtf
+    let _ = handle.availableData
   }
   else if args.count > 0 {
     // Run the REPL
@@ -110,6 +113,6 @@ func interpreterMain(args: [String]) {
     exit(result ? EXIT_SUCCESS : EXIT_FAILURE)
   }
   else {
-    println("Warning! Something is wrong. No args passed.")
+    print("Warning! Something is wrong. No args passed.")
   }
 }

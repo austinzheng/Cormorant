@@ -11,7 +11,7 @@ import Foundation
 /// Force the program to exit if something is wrong. This function is intended only to represent bugs in the Lambdatron
 /// interpreter and should never be invoked at runtime; if it is invoked there is a bug in the interpreter code.
 @noreturn func internalError(@autoclosure message: () -> String) {
-  println("Internal error: \(message())")
+  print("Internal error: \(message())")
   exit(EXIT_FAILURE)
 }
 
@@ -96,12 +96,9 @@ func rangeIsValid(r: NSRange) -> Bool {
 
 /// Given a pattern, try to build a regex pattern object.
 func constructRegex(pattern: String) -> RegexResult {
-  var error : NSError? = nil
-  let regex = NSRegularExpression(pattern: pattern, options: nil, error: &error)
-  if let regex = regex {
-    return .Success(regex)
-  }
-  else {
+  do {
+    return .Success(try NSRegularExpression(pattern: pattern, options: []))
+  } catch {
     return .Error(ReadError(.InvalidRegexError))
   }
 }
@@ -130,16 +127,18 @@ func stringWithoutLastCharacter(str: String) -> String {
   return str[str.startIndex..<str.endIndex.predecessor()]
 }
 
+// TODO: (az) Make this an extension method
 /// Return whether or not a Swift character is a member of an NSCharacterSet.
 func characterIsMemberOfSet(c: Character, set: NSCharacterSet) -> Bool {
-  let primitive = String(c).utf16[String.UTF16View.Index(0)] as unichar
+  let primitive = String(c).utf16[String.UTF16View.Index(_offset: 0)] as unichar
   return set.characterIsMember(primitive)
 }
 
+// TODO: (az) Make this an extension method
 /// Retrieve a character within a Swift string, or nil if the provided index is out of bounds. This is an O(n)
 /// operation with respect to the length of the string.
 func characterAtIndex(s: String, idx: Int) -> Character? {
-  for (stringIdx, character) in enumerate(s) {
+  for (stringIdx, character) in s.characters.enumerate() {
     if stringIdx == idx {
       return character
     }

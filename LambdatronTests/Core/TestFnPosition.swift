@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the use of functions and special forms in function position.
 class TestFnPositionFnsSpecialForms : InterpreterTest {

@@ -40,7 +40,7 @@ public final class StringBuilderType : AuxiliaryType {
   public func debugDescribe() -> String { return "Object.StringBuilder(\(buffer))" }
   public func toString() -> String { return string() }
 
-  func append(str: String) { buffer += map(str) { $0 } }
+  func append(str: String) { buffer += Array(str.characters) }
   func reverse() { buffer = buffer.reverse() }
   func string() -> String { return String(buffer) }
 
@@ -52,7 +52,7 @@ public final class StringBuilderType : AuxiliaryType {
   }
 
   init() { buffer = [] }
-  init(_ str: String) { buffer = map(str) { $0 } }
+  init(_ str: String) { buffer = Array(str.characters) }
 }
 
 

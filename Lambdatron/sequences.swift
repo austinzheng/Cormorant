@@ -62,7 +62,7 @@ func sequence(seq: SeqType) -> SeqResult? {
     case let .Error(err):
       return .Error(err)
     }
-  case let .Error: return s
+  case .Error: return s
   }
 }
 
@@ -72,12 +72,12 @@ func sequence(item: ConsValue) -> SeqType {
 }
 
 /// Return a new sequence consisting of two items.
-func sequence(first: ConsValue, second: ConsValue) -> SeqType {
+func sequence(first: ConsValue, _ second: ConsValue) -> SeqType {
   return Cons(first, next: Cons(second))
 }
 
 /// Return a new sequence consisting of three items.
-func sequence(first: ConsValue, second: ConsValue, third: ConsValue) -> SeqType {
+func sequence(first: ConsValue, _ second: ConsValue, _ third: ConsValue) -> SeqType {
   return ContiguousList([first, second, third])
 }
 
@@ -122,7 +122,7 @@ struct StringSequenceView : SeqType {
   }
 
   var rest : SeqResult {
-    if count(underlying) > 1 && this < underlying.endIndex.predecessor() {
+    if underlying.characters.count > 1 && this < underlying.endIndex.predecessor() {
       return .Seq(StringSequenceView(underlying, next: next, position: this.successor()))
     }
     return .Seq(next)
@@ -258,7 +258,7 @@ final class LazySeq : SeqType {
   private func force() -> SeqResult {
     switch state {
     case let .Thunk(thunk, context):
-      let result = apply(thunk, Params(), context, "LazySeq-thunk")
+      let result = apply(thunk, args: Params(), ctx: context, fn: "LazySeq-thunk")
       switch result {
       case let .Success(item):
         if item.isNil {
@@ -414,7 +414,7 @@ struct SeqIterator : SequenceType, GeneratorType {
   init?(_ value: ConsValue, prefix: ConsValue? = nil) {
     self.prefix = prefix
     switch value {
-    case let .Nil: seq = Empty()
+    case .Nil: seq = Empty()
     case let .Seq(s): seq = s
     case let .StringAtom(string): seq = StringSequenceView(string)
     case let .Vector(vector): seq = VectorSequenceView(vector)

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Exercise the '.list' built-in function.
 class TestListBuiltin : InterpreterTest {

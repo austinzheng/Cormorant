@@ -18,7 +18,7 @@ internal let SEQ = ConsValue.BuiltInFunction(.Seq)
 internal let DEREF = ConsValue.BuiltInFunction(.Deref)
 
 /// An enum describing every built-in function included with the interpreter.
-public enum BuiltIn : String, Printable {
+public enum BuiltIn : String, CustomStringConvertible {
 
   // Namespace-related
   case NsCreate = ".ns-create"

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 class TestConjBuiltin : InterpreterTest {
 

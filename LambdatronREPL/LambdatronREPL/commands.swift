@@ -15,12 +15,12 @@ extension ReadEvaluatePrintLoop {
   /// out for the user to see.
   func benchmark(form: String, iterations: Int) {
     if iterations < 1 {
-      println("Error: benchmark must run at least once.")
+      print("Error: benchmark must run at least once.")
       return
     }
     if let form = interpreter.readIntoForm(form) {
       var buffer : [NSTimeInterval] = []
-      println("Benchmarking...")
+      print("Benchmarking...")
       for _ in 0..<iterations {
         let start = NSDate.timeIntervalSinceReferenceDate()
 
@@ -28,7 +28,7 @@ extension ReadEvaluatePrintLoop {
         switch result {
         case .Success: break
         default:
-          println("Error: benchmark form failed to execute correctly. Ending benchmark.")
+          print("Error: benchmark form failed to execute correctly. Ending benchmark.")
           return
         }
 
@@ -37,16 +37,16 @@ extension ReadEvaluatePrintLoop {
         buffer.append(delta)
       }
       // Calculate the statistics
-      let min = minElement(buffer)*1000
-      let max = maxElement(buffer)*1000
-      let average = 1000*reduce(buffer, 0, +) / Double(iterations)
-      println("Benchmark complete (\(iterations) iterations).")
-      println("Average time: \(average) ms")
-      println("Maximum time: \(max) ms")
-      println("Minimum time: \(min) ms")
+      let min = buffer.minElement() ?? 0 * 1000
+      let max = buffer.maxElement() ?? 0 * 1000
+      let average = 1000 * buffer.reduce(0, combine: +) / Double(iterations)
+      print("Benchmark complete (\(iterations) iterations).")
+      print("Average time: \(average) ms")
+      print("Maximum time: \(max) ms")
+      print("Minimum time: \(min) ms")
     }
     else {
-      println("Error: unable to parse benchmark input form \"\(form)\".")
+      print("Error: unable to parse benchmark input form \"\(form)\".")
     }
   }
 }
@@ -75,48 +75,60 @@ internal enum SpecialCommand : String {
   func execute(args: [String], logger: LoggingManager, repl: ReadEvaluatePrintLoop) -> Bool {
     switch self {
     case .Quit:
-      println("Goodbye")
+      print("Goodbye")
       return true
     case .Reset:
-      println("Environment reset")
+      print("Environment reset")
       repl.interpreter.reset()
     case .Help:
-      println("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
-      println("Special commands are:")
+      print("LAMBDATRON REPL HELP:\nEnter Lisp expressions at the prompt and press 'Enter' to evaluate them.")
+      print("Special commands are:")
       for command in allCommands {
-        println("  \(command.rawValue): \(command.helpText)")
+        print("  \(command.rawValue): \(command.helpText)")
       }
     case .Logging:
       if args.count == 1 {
         // Global turning logging on or off
         processOnOff(args[0],
-          { println("Turning all logging on")
-            logger.setAllLogging(true) },
-          { println("Turning all logging off")
-            logger.setAllLogging(false) },
-          { println("Error: specify either 'on' or 'off', or a domain and 'on' or 'off'.") })
+          on: {
+            print("Turning all logging on")
+            logger.setAllLogging(true)
+          },
+          off: {
+            print("Turning all logging off")
+            logger.setAllLogging(false)
+          },
+          error: {
+            print("Error: specify either 'on' or 'off', or a domain and 'on' or 'off'.")
+        })
       }
       else if args.count > 1 {
         // Turning logging on or off for a specific domain
         if let domain = LogDomain(rawValue: args[0]) {
           processOnOff(args[1],
-            { println("Turning logging for domain '\(args[0])' on");
-              logger.setLoggingForDomain(domain, enabled: true) },
-            { println("Turning logging for domain '\(args[0])' off")
-              logger.setLoggingForDomain(domain, enabled: false) },
-            { println("Error: specify either 'on' or 'off'.") })
+            on: {
+              print("Turning logging for domain '\(args[0])' on")
+              logger.setLoggingForDomain(domain, enabled: true)
+            },
+            off: {
+              print("Turning logging for domain '\(args[0])' off")
+              logger.setLoggingForDomain(domain, enabled: false)
+            },
+            error: {
+              print("Error: specify either 'on' or 'off'.")
+          })
           return false
         }
         else {
-          println("Error: unrecognized logging domain '\(args[0])'.")
+          print("Error: unrecognized logging domain '\(args[0])'.")
         }
       }
       else {
-        println("Error: cannot call '\(self.rawValue)' without at least one argument.")
+        print("Error: cannot call '\(self.rawValue)' without at least one argument.")
       }
     case .Benchmark:
       if args.count < 2 {
-        println("Error: benchmark must be called with a valid form and a number of iterations.")
+        print("Error: benchmark must be called with a valid form and a number of iterations.")
         break
       }
       // Extract the count (last element)
@@ -125,11 +137,11 @@ internal enum SpecialCommand : String {
       nf.numberStyle = NSNumberFormatterStyle.NoStyle
       if let number = nf.numberFromString(count) {
         // The last argument is a count.
-        let form = join(" ", args[0..<args.count - 1])
+        let form = args[0..<args.count - 1].joinWithSeparator(" ")
         repl.benchmark(form, iterations: number.integerValue)
       }
       else {
-        println("Error: benchmark must be called with a valid form and a number of iterations.")
+        print("Error: benchmark must be called with a valid form and a number of iterations.")
         break
       }
     }

@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 /// Test overall and miscellaneous behavior of the 'refer' functionality for namespaces.
 class TestNamespaceRefer : InterpreterTest {

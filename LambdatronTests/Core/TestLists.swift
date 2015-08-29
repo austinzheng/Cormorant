@@ -8,15 +8,16 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 /// Test Cons's built-in functionality.
 class TestListBasics : XCTestCase {
 
   /// An empty Cons should work properly in the context of a for-in loop.
   func testEmptyConsIteration() {
-    var emptyCons : SeqType = EmptyNode
+    let emptyCons : SeqType = EmptyNode
     var untouched = true
-    for item in SeqIterator(emptyCons) {
+    for _ in SeqIterator(emptyCons) {
       untouched = false
     }
     XCTAssert(untouched, "An empty Cons list should not iterate even a single time through a for-in loop.")
@@ -26,7 +27,7 @@ class TestListBasics : XCTestCase {
   func testConsIteration() {
     let sublist = listWithItems(true, false)
     let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
-    var testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
+    let testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
     for item in SeqIterator(testCons)! {
@@ -78,10 +79,10 @@ class TestListBasics : XCTestCase {
   func testConsEnumerateIteration() {
     let sublist = listWithItems(true, false)
     let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
-    var testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
+    let testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
-    for (idx, item) in enumerate(SeqIterator(testCons)!) {
+    for (idx, item) in SeqIterator(testCons)!.enumerate() {
       XCTAssert(idx == counter, "The idx reported by enumerate() should always be in sync with 'counter'.")
       if counter == 0 {
         switch item {

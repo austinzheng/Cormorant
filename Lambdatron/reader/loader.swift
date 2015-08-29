@@ -27,38 +27,40 @@ func loadStdlibInto(context: Context, files: [String]) {
               case .Success: break
               case .Recur:
                 // Stdlib file failed to evaluate successfully
-                println("Unable to load stdlib: recur failure")
+                print("Unable to load stdlib: recur failure")
                 exit(EXIT_FAILURE)
               case let .Failure(f):
                 // Stdlib file failed to evaluate successfully
-                println("Unable to load stdlib: \(f)")
+                print("Unable to load stdlib: \(f)")
                 exit(EXIT_FAILURE)
               }
             case let .Failure(f):
-              println("Unable to load stdlib: \(f)")
+              print("Unable to load stdlib: \(f)")
               exit(EXIT_FAILURE)
             }
           case let .Failure(f):
             // Data failed to parse
-            println("Unable to load stdlib: \(f)")
+            print("Unable to load stdlib: \(f)")
             exit(EXIT_FAILURE)
           }
         }
       }
     }
     else {
-      println("Error! Stdlib file \"\(file).lbt\" could not be loaded.")
+      print("Error! Stdlib file \"\(file).lbt\" could not be loaded.")
     }
   }
 }
 
 func stringDataForBundledFile(name: String) -> String? {
-  let path = NSBundle(forClass: Interpreter.self).pathForResource(name, ofType: "lbt")
-  if let path = path {
-    let contents = String(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: nil)
-    return contents
+  guard let path = NSBundle(forClass: Interpreter.self).pathForResource(name, ofType: "lbt") else {
+    return nil
   }
-  return nil
+  do {
+    return try String(contentsOfFile: path)
+  } catch {
+    return nil
+  }
 }
 
 /// Return a segmented list of token lists for a given file's data

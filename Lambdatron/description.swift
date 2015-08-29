@@ -9,7 +9,7 @@
 import Foundation
 
 /// An enum containing either a description, or an error caused while trying to calculate the description.
-public enum DescribeResult : Printable, StringLiteralConvertible {
+public enum DescribeResult : CustomStringConvertible, StringLiteralConvertible {
   case Desc(String)
   case Error(EvalError)
 
@@ -26,7 +26,7 @@ public enum DescribeResult : Printable, StringLiteralConvertible {
   func force() -> String {
     switch self {
     case let .Desc(s): return s
-    case let .Error(err): internalError("DescribeResult's 'force' method used improperly")
+    case .Error: internalError("DescribeResult's 'force' method used improperly")
     }
   }
 
@@ -39,7 +39,7 @@ public enum DescribeResult : Printable, StringLiteralConvertible {
 // MARK: Describe
 
 /// Given a list, return a description (e.g. "(a b c d e)" for a five-item list).
-func describeSeq(seq: SeqType, ctx: Context?, debug: Bool = false) -> DescribeResult {
+func describeSeq(seq: SeqType, _ ctx: Context?, debug: Bool = false) -> DescribeResult {
   var buffer : [String] = []
   for item in SeqIterator(seq) {
     switch item {
@@ -54,12 +54,12 @@ func describeSeq(seq: SeqType, ctx: Context?, debug: Bool = false) -> DescribeRe
       return .Error(err)
     }
   }
-  let final = join(" ", buffer)
+  let final = buffer.joinWithSeparator(" ")
   return .Desc("(\(final))")
 }
 
 /// Given a vector, return a description.
-func describeVector(vector: VectorType, ctx: Context?, debug: Bool = false) -> DescribeResult {
+func describeVector(vector: VectorType, _ ctx: Context?, debug: Bool = false) -> DescribeResult {
   var buffer : [String] = []
   for item in vector {
     let result = debug ? item.debugDescribe(ctx) : item.describe(ctx)
@@ -68,12 +68,12 @@ func describeVector(vector: VectorType, ctx: Context?, debug: Bool = false) -> D
     case .Error: return result
     }
   }
-  let final = join(" ", buffer)
+  let final = buffer.joinWithSeparator(" ")
   return .Desc("[\(final)]")
 }
 
 /// Given a map, return a description.
-func describeMap(map: MapType, ctx: Context?, debug: Bool = false) -> DescribeResult {
+func describeMap(map: MapType, _ ctx: Context?, debug: Bool = false) -> DescribeResult {
   var buffer : [String] = []
   for (key, value) in map {
     let result = debug ? key.debugDescribe(ctx) : key.describe(ctx)
@@ -88,7 +88,7 @@ func describeMap(map: MapType, ctx: Context?, debug: Bool = false) -> DescribeRe
     case .Error: return result
     }
   }
-  let final = join(", ", buffer)
+  let final = buffer.joinWithSeparator(" ")
   return .Desc("{\(final)}")
 }
 
@@ -97,7 +97,7 @@ extension ConsValue {
   /// Return the stringified version of an object.
   func toString(ctx: Context) -> DescribeResult {
     switch self {
-    case let .Nil:
+    case .Nil:
       return ""
     case let .CharAtom(char):
       return .Desc(String(char))
@@ -152,7 +152,7 @@ extension ConsValue {
       return .Desc(v.rawValue)
     case let .Special(v):
       return .Desc(v.rawValue)
-    case let .ReaderMacroForm(v):
+    case .ReaderMacroForm:
       return .Desc("{{reader_macro}}")
     }
   }
@@ -232,7 +232,7 @@ extension Params {
       case .Error: return result
       }
     }
-    return .Desc("Params: {{" + join(" ", buffer) + "}}")
+    return .Desc("Params: {{" + buffer.joinWithSeparator(" ") + "}}")
   }
 }
 
@@ -261,13 +261,13 @@ private func charLiteralDesc(char: Character) -> String {
 /// Given a Swift string, return the same string with escape sequences escaped out.
 func stringByEscaping(s: String) -> String {
   var buffer : String = ""
-  for character in s {
+  for character in s.characters {
     switch character {
-    case "\\": buffer.extend("\\\\")
-    case "\"": buffer.extend("\\\"")
-    case "\t": buffer.extend("\\t")
-    case "\r": buffer.extend("\\r")
-    case "\n": buffer.extend("\\n")
+    case "\\": buffer += "\\\\"
+    case "\"": buffer += "\\\""
+    case "\t": buffer += "\\t"
+    case "\r": buffer += "\\r"
+    case "\n": buffer += "\\n"
     default: buffer.append(character)
     }
   }

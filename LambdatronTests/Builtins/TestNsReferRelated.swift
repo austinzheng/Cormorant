@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the '.ns-refer' built-in function.
 class TestNsReferBuiltin : InterpreterTest {

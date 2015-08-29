@@ -9,7 +9,7 @@
 import Foundation
 
 /// Given a string or a regular expression pattern, build and return a corresponding regular expression pattern.
-func re_pattern(args: Params, ctx: Context) -> EvalResult {
+func re_pattern(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-pattern"
   if args.count > 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -29,7 +29,7 @@ func re_pattern(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a regex pattern and a string, return the first match and groups (if any), otherwise nil.
-func re_first(args: Params, ctx: Context) -> EvalResult {
+func re_first(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-first"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -38,7 +38,7 @@ func re_first(args: Params, ctx: Context) -> EvalResult {
     if let str = args[1].asString {
       // Do a search
       let utf16Str = str as NSString
-      let result = pattern.firstMatchInString(str, options: nil, range: NSRange(location: 0, length: utf16Str.length))
+      let result = pattern.firstMatchInString(str, options: [], range: NSRange(location: 0, length: utf16Str.length))
       if let result = result {
         if result.numberOfRanges == 0 {
           return .Success(.Nil)
@@ -70,7 +70,7 @@ func re_first(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a regex pattern and a string, return a sequence of all matches and groups (if any), otherwise nil.
-func re_seq(args: Params, ctx: Context) -> EvalResult {
+func re_seq(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-seq"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -80,8 +80,12 @@ func re_seq(args: Params, ctx: Context) -> EvalResult {
       let utf16Str = str as NSString
       var resultBuffer : [ConsValue] = []
 
-      pattern.enumerateMatchesInString(str, options: nil, range: NSRange(location: 0, length: count(str.utf16))) {
-        (result: NSTextCheckingResult!, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+      pattern.enumerateMatchesInString(str, options: [], range: NSRange(location: 0, length: str.utf16.count)) {
+        (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        guard let result = result else {
+          // TODO: (az) need to do more here?
+          return
+        }
         // Create a vector of the results, then pass it in
         var buffer : [ConsValue] = []
         for i in 0..<result.numberOfRanges {
@@ -104,7 +108,7 @@ func re_seq(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a regex pattern, a string, and a function, call the function once for each match in the string.
-func re_iterate(args: Params, ctx: Context) -> EvalResult {
+func re_iterate(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-iterate"
   if args.count != 3 {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
@@ -115,8 +119,12 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
       let function = args[2]
       var error: EvalError? = nil
 
-      pattern.enumerateMatchesInString(str, options: nil, range: NSRange(location: 0, length: count(str.utf16))) {
-        (result: NSTextCheckingResult!, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+      pattern.enumerateMatchesInString(str, options: [], range: NSRange(location: 0, length: str.utf16.count)) {
+        (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        guard let result = result else {
+          // TODO: (az) more to do here?
+          return
+        }
         // Create a vector of the results, then pass it in
         var buffer : [ConsValue] = []
         var ranges : [ConsValue] = []
@@ -130,18 +138,18 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
         // Call the user-defined function with two arguments: a vector of the result strings, and a vector of the
         //  corresponding ranges. However, if there are *no* match groups, the arguments are just the match string, and
         //  just the range vector.
-        let result = apply(function,
-          Params(buffer.count == 1 ? buffer[0] : .Vector(buffer), ranges.count == 1 ? ranges[0] : .Vector(ranges)),
-          ctx,
-          fn)
+        let nextResult = apply(function,
+          args: Params(buffer.count == 1 ? buffer[0] : .Vector(buffer), ranges.count == 1 ? ranges[0] : .Vector(ranges)),
+          ctx: ctx,
+          fn: fn)
         // The result determines whether we continue or stop early. Either a failure or the function returning a Boolean
         //  true will stop the enumeration.
-        switch result {
+        switch nextResult {
         case let .Success(s):
           if s.asBool == true {
             stop.memory = true
           }
-        case let .Recur:
+        case .Recur:
           error = EvalError(.RecurMisuseError, fn)
           stop.memory = true
         case let .Failure(err):
@@ -162,7 +170,7 @@ func re_iterate(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a string, return an escaped version suitable for use as a template.
-func re_quoteReplacement(args: Params, ctx: Context) -> EvalResult {
+func re_quoteReplacement(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-quote-replacement"
   if args.count != 1 {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))

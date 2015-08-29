@@ -54,7 +54,7 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
   // Collect tokens
   for var i=idx+1; i<tokens.count; i++ {
     idx = i
-    var currentToken = tokens[i]
+    let currentToken = tokens[i]
     switch currentToken {
     case let x where x.isA(.LeftParentheses) && type == .List:
       count++
@@ -92,7 +92,7 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
 
 /// Given a reader form and the 'wrapStack' array, pop a wrap command off the array and wrap the reader form within the
 /// appropriate wrapper (for example, wrap a syntax-quoted form inside a ReaderMacro object).
-private func wrappedConsItem(item: ConsValue, inout wrapStack: [NextFormTreatment]) -> ConsValue {
+private func wrappedConsItem(item: ConsValue, inout _ wrapStack: [NextFormTreatment]) -> ConsValue {
   // IMPORTANT: Note that this function will *modify* wrapStack by removing elements.
   let wrapType : NextFormTreatment = wrapStack.last ?? .None
   let wrappedItem : ConsValue
@@ -129,7 +129,7 @@ private enum TokenListResult {
 /// corresponding ConsValue items. These items can be used by the calling function to build the collection in question.
 /// This method recursively finds token sequences representing collections and calls the appropriate function to build
 /// a valid ConsValue for that collection.
-private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResult {
+private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListResult {
   // For example: listWithTokens() is called with the tokens <(>, <1>, <true>, <)>. This function is called with the
   //  constituent tokens [<1>, <true>], and returns [ConsValue.IntAtom(1), ConsValue.BoolAtom(true)].
   var wrapStack : [NextFormTreatment] = []
@@ -146,7 +146,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .LeftParentheses:
         // We've detected the start of a list. Use collectTokens() to turn all the tokens making up the list into an
         //  actual List, and advance the idx as well.
-        let list = listWithTokens(collectTokens(tokens, &idx, .List), ctx)
+        let list = listWithTokens(collectTokens(tokens, idx: &idx, type: .List), ctx)
         switch list {
         case let .Success(list): buffer.append(wrappedConsItem(.Seq(list), &wrapStack))
         case let .Failure(f): return .Failure(f)
@@ -156,7 +156,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
         //  all tokens up to and including the corresponding right parentheses.
         return .Failure(ReadError(.MismatchedDelimiterError))
       case .LeftSquareBracket:
-        let vector = vectorWithTokens(collectTokens(tokens, &idx, .Vector), ctx)
+        let vector = vectorWithTokens(collectTokens(tokens, idx: &idx, type: .Vector), ctx)
         switch vector {
         case let .Success(vector): buffer.append(wrappedConsItem(.Vector(vector), &wrapStack))
         case let .Failure(f): return .Failure(f)
@@ -164,7 +164,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
       case .RightSquareBracket:
         return .Failure(ReadError(.MismatchedDelimiterError))
       case .LeftBrace:
-        let map = mapWithTokens(collectTokens(tokens, &idx, .Map), ctx)
+        let map = mapWithTokens(collectTokens(tokens, idx: &idx, type: .Map), ctx)
         switch map {
         case let .Success(map): buffer.append(wrappedConsItem(.Map(map), &wrapStack))
         case let .Failure(f): return .Failure(f)
@@ -205,7 +205,7 @@ private func processTokenList(tokens: [LexToken], ctx: Context) -> TokenListResu
     case let .Boolean(b):
       buffer.append(wrappedConsItem(.BoolAtom(b), &wrapStack))
     case let .Keyword(k):
-      switch splitKeyword(k, ctx.root) {
+      switch splitKeyword(k, currentNamespace: ctx.root) {
       case let .Success(name, nsName):
         let internedKeyword = InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)
         buffer.append(wrappedConsItem(.Keyword(internedKeyword), &wrapStack))
@@ -244,7 +244,7 @@ private enum ListResult {
 }
 
 /// Given a list of tokens that corresponds to a single list (e.g. <(>, <1>, <2>, <)>), build a List data structure.
-private func listWithTokens(tokens: TokenCollectionResult, ctx: Context) -> ListResult {
+private func listWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> ListResult {
   switch tokens {
   case let .Tokens(tokens):
     if tokens.count == 0 {
@@ -266,7 +266,7 @@ private enum VectorResult {
 }
 
 /// Given a list of tokens that corresponds to a single vector (e.g. <[>, <1>, <2>, <]>), build a Vector data structure.
-private func vectorWithTokens(tokens: TokenCollectionResult, ctx: Context) -> VectorResult {
+private func vectorWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> VectorResult {
   switch tokens {
   case let .Tokens(tokens):
     if tokens.count == 0 {
@@ -288,7 +288,7 @@ private enum MapResult {
 }
 
 /// Given a list of tokens that corresponds to a single map (e.g. <{>, <:a>, <100>, <}>), build a Map data structure.
-private func mapWithTokens(tokens: TokenCollectionResult, ctx: Context) -> MapResult {
+private func mapWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> MapResult {
   switch tokens {
   case let .Tokens(tokens):
     if tokens.count == 0 {
@@ -321,7 +321,7 @@ enum ParseResult {
 
 /// Given an array of lexical tokens, parse them into a ConsValue data structure, or return an error if this is not
 /// possible.
-func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
+func parse(tokens: [LexToken], _ ctx: Context) -> ParseResult {
   var index = 0
   var wrapStack : [NextFormTreatment] = []
   if tokens.count == 0 {
@@ -348,21 +348,21 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   case let .Syntax(s):
     switch s {
     case .LeftParentheses:
-      switch listWithTokens(collectTokens(tokens, &index, .List), ctx) {
+      switch listWithTokens(collectTokens(tokens, idx: &index, type: .List), ctx) {
       case let .Success(result): return .Success(.Seq(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightParentheses:
       return .Failure(ReadError(.BadStartTokenError))
     case .LeftSquareBracket:
-      switch vectorWithTokens(collectTokens(tokens, &index, .Vector), ctx) {
+      switch vectorWithTokens(collectTokens(tokens, idx: &index, type: .Vector), ctx) {
       case let .Success(result): return .Success(.Vector(result))
       case let .Failure(f): return .Failure(f)
       }
     case .RightSquareBracket:
       return .Failure(ReadError(.BadStartTokenError))
     case .LeftBrace:
-      switch mapWithTokens(collectTokens(tokens, &index, .Map), ctx) {
+      switch mapWithTokens(collectTokens(tokens, idx: &index, type: .Map), ctx) {
       case let .Success(result): return .Success(.Map(result))
       case let .Failure(f): return .Failure(f)
       }
@@ -396,7 +396,7 @@ func parse(tokens: [LexToken], ctx: Context) -> ParseResult {
   case let .FlPtNumber(n): return .Success(.FloatAtom(n))
   case let .Boolean(b): return .Success(.BoolAtom(b))
   case let .Keyword(k):
-    switch splitKeyword(k, ctx.root) {
+    switch splitKeyword(k, currentNamespace: ctx.root) {
     case let .Success(name, nsName):
       let internedKeyword = InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)
       return .Success(.Keyword(internedKeyword))
@@ -426,11 +426,11 @@ enum SplitResult {
 
 /// Given a symbol which may or may not be qualified by a forward slash, return either the components or an error.
 func splitSymbol(symbol: String) -> SplitResult {
-  if count(symbol) < 2 {
+  if symbol.characters.count < 2 {
     // Automatically accept one-character symbols
     return .Success(name: symbol, namespace: nil)
   }
-  let parts = split(symbol , maxSplit: 1, allowEmptySlices: true) { $0 == "/" }
+  let parts = symbol.characters.split(1, allowEmptySlices: true) { $0 == "/" }.map { String($0) }
   precondition(parts.count <= 2, "Symbol string can only be split into a maximum of two components")
   if parts.count == 2 {
     if parts[0].isEmpty {
@@ -450,13 +450,13 @@ func splitSymbol(symbol: String) -> SplitResult {
 /// Given a keyword which may or may not be qualified by a forward slash, return either the components or an error.
 func splitKeyword(keyword: String, currentNamespace: NamespaceContext) -> SplitResult {
   precondition(keyword.isEmpty == false, "Raw keyword string to split cannot be empty")
-  if count(keyword) == 1 {
+  if keyword.characters.count == 1 {
     // Keyword is one character long
     return .Success(name: keyword, namespace: nil)
   }
   if keyword[keyword.startIndex] == ":" {
     // Keyword is qualified by "::"
-    if count(keyword) < 2 {
+    if keyword.characters.count < 2 {
       // Can't have a keyword consisting of just "::"
       return .Error(ReadError(.KeywordParseFailureError))
     }
@@ -465,7 +465,8 @@ func splitKeyword(keyword: String, currentNamespace: NamespaceContext) -> SplitR
   }
   // TODO: Additional checking? Maybe when NSCharacterSet isn't as painful to use
 
-  let parts = split(keyword , maxSplit: 1, allowEmptySlices: true) { $0 == "/" }
+  let parts = keyword.characters.split(1, allowEmptySlices: true) { $0 == "/" }.map { String($0) }
+//    split(keyword , maxSplit: 1, allowEmptySlices: true) { $0 == "/" }
   precondition(parts.count <= 2, "Keyword string can only be split into a maximum of two components")
   if parts.count == 2 {
     if parts[0].isEmpty {

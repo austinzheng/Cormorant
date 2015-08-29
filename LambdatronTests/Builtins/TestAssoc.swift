@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the '.assoc' built-in function.
 class TestAssocBuiltin : InterpreterTest {

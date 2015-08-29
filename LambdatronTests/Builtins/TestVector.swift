@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Exercise the '.vector' built-in function.
 class TestVectorBuiltin : InterpreterTest {

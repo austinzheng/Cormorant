@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 /// Test how nil is lexed and parsed.
 class TestNilParsing : InterpreterTest {
@@ -100,20 +101,19 @@ class TestRegexParsing : InterpreterTest {
   /// Valid regular expression literals should be successfully lexed and parsed into regex patterns.
   func testParsingNonemptyRegex() {
     expectThat("#\"[0-9]+\"",
-      shouldEvalTo: .Auxiliary(NSRegularExpression(pattern: "[0-9]+", options: nil, error: nil)!))
+      shouldEvalTo: .Auxiliary(try! NSRegularExpression(pattern: "[0-9]+", options: [])))
     // Fancy regex for matching all numbers
     expectThat("#\"^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$\"",
-      shouldEvalTo: .Auxiliary(NSRegularExpression(pattern: "^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$",
-        options: nil, error: nil)!))
+      shouldEvalTo: .Auxiliary(try! NSRegularExpression(pattern: "^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$", options: [])))
   }
 
   /// The lexer and parser should properly parse regular expressions in the context of a collection.
   func testInCollection() {
     expectThat("[#\"abc\" #\"def\" #\"ghi\"]", shouldEvalTo:
       vectorWithItems(
-        .Auxiliary(NSRegularExpression(pattern: "abc", options: nil, error: nil)!),
-        .Auxiliary(NSRegularExpression(pattern: "def", options: nil, error: nil)!),
-        .Auxiliary(NSRegularExpression(pattern: "ghi", options: nil, error: nil)!)))
+        .Auxiliary(try! NSRegularExpression(pattern: "abc", options: [])),
+        .Auxiliary(try! NSRegularExpression(pattern: "def", options: [])),
+        .Auxiliary(try! NSRegularExpression(pattern: "ghi", options: []))))
   }
 }
 

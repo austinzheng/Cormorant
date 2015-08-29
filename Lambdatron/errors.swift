@@ -23,26 +23,26 @@ public enum MetadataKey {
 public typealias MetaDict = [MetadataKey : String]
 
 /// An object representing an error that occurs during the lexing, parsing, or reader macro expansion stages.
-public struct ReadError : Printable {
+public struct ReadError : CustomStringConvertible {
   public enum ErrorType : String {
-    case InvalidStringEscapeSequenceError = "InvalidStringEscapeSequenceError"
-    case InvalidCharacterError = "InvalidCharacterError"
-    case InvalidUnicodeError = "InvalidUnicodeError"
-    case InvalidOctalError = "InvalidOctalError"
-    case SymbolParseFailureError = "SymbolParseFailureError"
-    case KeywordParseFailureError = "KeywordParseFailureError"
-    case InvalidNamespaceError = "InvalidNamespaceError"
-    case InvalidDispatchMacroError = "InvalidDispatchMacroError"
-    case NonTerminatedStringError = "NonTerminatedStringError"
-    case EmptyInputError = "EmptyInputError"
-    case BadStartTokenError = "BadStartTokenError"
-    case MismatchedDelimiterError = "MismatchedDelimiterError"
-    case MismatchedReaderMacroError = "MismatchedReaderMacroError"
-    case MapKeyValueMismatchError = "MapKeyValueMismatchError"
-    case InvalidRegexError = "InvalidRegexError"
-    case UnimplementedFeatureError = "UnimplementedFeatureError"
-    case IllegalExpansionFormError = "IllegalExpansionFormError"
-    case UnquoteSpliceMisuseError = "UnquoteSpliceMisuseError"
+    case InvalidStringEscapeSequenceError
+    case InvalidCharacterError
+    case InvalidUnicodeError
+    case InvalidOctalError
+    case SymbolParseFailureError
+    case KeywordParseFailureError
+    case InvalidNamespaceError
+    case InvalidDispatchMacroError
+    case NonTerminatedStringError
+    case EmptyInputError
+    case BadStartTokenError
+    case MismatchedDelimiterError
+    case MismatchedReaderMacroError
+    case MapKeyValueMismatchError
+    case InvalidRegexError
+    case UnimplementedFeatureError
+    case IllegalExpansionFormError
+    case UnquoteSpliceMisuseError
   }
   public let error : ErrorType
   public let metadata : MetaDict
@@ -77,30 +77,30 @@ public struct ReadError : Printable {
 }
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
-public struct EvalError : Printable {
+public struct EvalError : CustomStringConvertible {
   public enum ErrorType : String {
-    case ArityError = "ArityError"
-    case InvalidArgumentError = "InvalidArgumentError"
-    case OutOfBoundsError = "OutOfBoundsError"
-    case NotEvalableError = "NotEvalableError"
-    case DivideByZeroError = "DivideByZeroError"
-    case IntegerOverflowError = "IntegerOverflowError"
-    case BindingMismatchError = "BindingMismatchError"
-    case InvalidSymbolError = "InvalidSymbolError"
-    case QualifiedSymbolMisuseError = "QualifiedSymbolMisuseError"
-    case RecurMisuseError = "RecurMisuseError"
-    case EvaluatingMacroError = "EvaluatingMacroError"
-    case EvaluatingSpecialFormError = "EvaluatingSpecialFormError"
-    case NoFnAritiesError = "NoFnAritiesError"
-    case MultipleVariadicAritiesError = "MultipleVariadicAritiesEror"
-    case MultipleDefinitionsPerArityError = "MultipleDefinitionsPerArityError"
-    case FixedArityExceedsVariableArityError = "FixedArityExceedsVariableArityError"
-    case ReadError = "ReadError"
-    case VarRebindingError = "VarRebindingError"
-    case AliasRebindingError = "AliasRebindingError"
-    case InvalidNamespaceError = "InvalidNamespaceError"
-    case ReservedNamespaceError = "ReservedNamespaceError"
-    case RuntimeError = "RuntimeError"
+    case ArityError
+    case InvalidArgumentError
+    case OutOfBoundsError
+    case NotEvalableError
+    case DivideByZeroError
+    case IntegerOverflowError
+    case BindingMismatchError
+    case InvalidSymbolError
+    case QualifiedSymbolMisuseError
+    case RecurMisuseError
+    case EvaluatingMacroError
+    case EvaluatingSpecialFormError
+    case NoFnAritiesError
+    case MultipleVariadicAritiesError
+    case MultipleDefinitionsPerArityError
+    case FixedArityExceedsVariableArityError
+    case ReadError
+    case VarRebindingError
+    case AliasRebindingError
+    case InvalidNamespaceError
+    case ReservedNamespaceError
+    case RuntimeError
   }
   public let error : ErrorType
   public let metadata : MetaDict
@@ -116,9 +116,8 @@ public struct EvalError : Printable {
   }
 
   init(_ error: ErrorType, message: String? = nil, metadata: MetaDict? = nil) {
-    var meta = metadata ?? [:]
     self.error = error
-    self.metadata = meta
+    self.metadata = metadata ?? [:]
   }
 
   static func outOfBoundsError(fn: String, idx: Int, metadata: MetaDict? = nil) -> EvalError {

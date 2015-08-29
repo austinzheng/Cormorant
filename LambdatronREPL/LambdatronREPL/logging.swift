@@ -26,7 +26,7 @@ class LoggingManager {
   func logEval(message: () -> String) {
     let type = LogDomain.Eval.rawValue
     if evalLoggingEnabled {
-      println("LOG (\(type)): \(message())")
+      print("LOG (\(type)): \(message())")
     }
   }
 }

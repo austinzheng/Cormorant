@@ -9,7 +9,7 @@
 import Foundation
 
 /// Given a symbol or string, return a corresponding symbol.
-func pr_symbol(args: Params, ctx: Context) -> EvalResult {
+func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".symbol"
   if args.count != 1 && args.count != 2 {
     return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
@@ -44,7 +44,7 @@ func pr_symbol(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a symbol, string, or keyword, return a corresponding keyword; otherwise, return nil.
-func pr_keyword(args: Params, ctx: Context) -> EvalResult {
+func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".keyword"
   if args.count != 1 && args.count != 2 {
     return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
@@ -86,7 +86,7 @@ func pr_keyword(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Return the namespace string of a symbol or keyword, or nil if not present.
-func pr_namespace(args: Params, ctx: Context) -> EvalResult {
+func pr_namespace(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".namespace"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -108,13 +108,13 @@ func pr_namespace(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Cast an argument to an integer.
-func pr_int(args: Params, ctx: Context) -> EvalResult {
+func pr_int(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".int"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
-  case let .IntAtom(v):
+  case .IntAtom:
     return .Success(args[0])
   case let .FloatAtom(v):
     return .Success(.IntAtom(Int(v)))
@@ -130,7 +130,7 @@ func pr_int(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Cast an argument to a float.
-func pr_double(args: Params, ctx: Context) -> EvalResult {
+func pr_double(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".double"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -138,7 +138,7 @@ func pr_double(args: Params, ctx: Context) -> EvalResult {
   switch args[0] {
   case let .IntAtom(v):
     return .Success(.FloatAtom(Double(v)))
-  case let .FloatAtom(v):
+  case .FloatAtom:
     return .Success(args[0])
   default:
     return .Failure(EvalError.nonNumericArgumentError(fn))

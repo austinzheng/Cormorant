@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 class TestLazySeqs : InterpreterTest {
   let evalFailMessage = "Code execution failed with an evaluation error"

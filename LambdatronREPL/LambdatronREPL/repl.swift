@@ -15,7 +15,7 @@ class ReadEvaluatePrintLoop {
   let processName : String
 
   func run() -> Bool {
-    println("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
+    print("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
     interpreter.setLoggingFunction(.Eval, function: logger.logEval)
 
     // from http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application
@@ -34,8 +34,7 @@ class ReadEvaluatePrintLoop {
       let nsName = interpreter.currentNamespaceName
       prompt.setPrompt("\(nsName)-> ")
 
-      let data = prompt.gets()
-      if let string = String(CString: data, encoding: NSUTF8StringEncoding) {
+      if let data = prompt.gets(), string = String(CString: data, encoding: NSUTF8StringEncoding) {
         if string.isEmpty || string[string.endIndex.predecessor()] != "\n" {
             // Something wrong with the input
             return false
@@ -55,11 +54,11 @@ class ReadEvaluatePrintLoop {
           switch result {
           case let .Success(v):
             switch interpreter.describe(v) {
-            case let .Desc(d): println(d)
-            case let .Error(err): println("Read error \(err)")
+            case let .Desc(d): print(d)
+            case let .Error(err): print("Read error \(err)")
             }
-          case let .ReadFailure(f): println("Read error \(f)")
-          case let .EvalFailure(f): println("Evaluation error \(f)")
+          case let .ReadFailure(f): print("Read error \(f)")
+          case let .EvalFailure(f): print("Evaluation error \(f)")
           }
         }
       }

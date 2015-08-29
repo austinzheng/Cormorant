@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the 'def' special form.
 class TestDef : InterpreterTest {

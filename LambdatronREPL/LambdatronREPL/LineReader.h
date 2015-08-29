@@ -16,9 +16,9 @@
  */
 @interface LineReader : NSObject
 
-- (instancetype) initWithArgv0:(const char*)argv0;
-- (NSString*) gets;
-- (void)setPrompt:(NSString *)string;
+- (_Nonnull instancetype)initWithArgv0:(const char *_Nonnull)argv0;
+- (NSString * _Nullable )gets;
+- (void)setPrompt:(NSString * _Nonnull)string;
 
 @end
 

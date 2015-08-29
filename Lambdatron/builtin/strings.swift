@@ -9,8 +9,8 @@
 import Foundation
 
 /// Given zero or more objects, return the stringified version of the object(s), concatenating as necessary.
-func str_str(args: Params, ctx: Context) -> EvalResult {
-  let fn = ".str"
+func str_str(args: Params, _ ctx: Context) -> EvalResult {
+//  let fn = ".str"
   if args.count == 0 {
     return .Success(.StringAtom(""))
   }
@@ -22,12 +22,12 @@ func str_str(args: Params, ctx: Context) -> EvalResult {
     case let .Error(err): return .Failure(err)
     }
   }
-  let result = join("", buffer)
+  let result = buffer.joinWithSeparator("")
   return .Success(.StringAtom(result))
 }
 
 /// Given a string, a start index, and an optional end index, return a substring.
-func str_subs(args: Params, ctx: Context) -> EvalResult {
+func str_subs(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".subs"
   if !(args.count == 2 || args.count == 3) {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
@@ -64,7 +64,7 @@ func str_subs(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given any type of object, return an equivalent string but with all letters in uppercase.
-func str_uppercase(args: Params, ctx: Context) -> EvalResult {
+func str_uppercase(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".upper-case"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -77,7 +77,7 @@ func str_uppercase(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given any type of object, return an equivalent string but with all letters in lowercase.
-func str_lowercase(args: Params, ctx: Context) -> EvalResult {
+func str_lowercase(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".upper-case"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -90,15 +90,15 @@ func str_lowercase(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a string, a match object, and a replacement object, replace all occurrences of the match in the string.
-func str_replace(args: Params, ctx: Context) -> EvalResult {
+func str_replace(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".replace"
-  return replace(args, ctx, fn, false)
+  return replace(args, ctx: ctx, fn: fn, firstOnly: false)
 }
 
 /// Given a string, a match object, and a replacement object, replace the first occurrence of the match in the string.
-func str_replaceFirst(args: Params, ctx: Context) -> EvalResult {
+func str_replaceFirst(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".replace-first"
-  return replace(args, ctx, fn, true)
+  return replace(args, ctx: ctx, fn: fn, firstOnly: true)
 }
 
 
@@ -116,7 +116,7 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
       switch replacement {
       case let .StringAtom(replacement):
         // Replace all occurrences of the match string with the replacement string
-        return replaceWithString(s, match, replacement, firstOnly, fn)
+        return replaceWithString(s, m: match, replacement: replacement, firstOnly: firstOnly, fn: fn)
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "if the match is a string, the replacement must also be a string"))
@@ -126,11 +126,11 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
         switch replacement {
         case let .StringAtom(replacement):
           // The replacement argument is a template string
-          let newStr = replaceWithTemplate(s, match, replacement, firstOnly, fn)
+          let newStr = replaceWithTemplate(s, m: match, template: replacement, firstOnly: firstOnly, fn: fn)
           return .Success(.StringAtom(newStr))
         default:
           // The replacement argument will be treated as a function that takes in match results and returns a string
-          return replaceWithFunction(s, match, replacement, firstOnly, fn, ctx)
+          return replaceWithFunction(s, match: match, function: replacement, firstOnly: firstOnly, fn: fn, ctx: ctx)
         }
       }
       else {
@@ -142,7 +142,7 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
       // Replace all occurrences of the match character with the replacement character
       switch replacement {
       case let .CharAtom(replacement):
-        return replaceWithString(s, String(match), String(replacement), firstOnly, fn)
+        return replaceWithString(s, m: String(match), replacement: String(replacement), firstOnly: firstOnly, fn: fn)
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "if the match is a character, the replacement must also be a character"))
@@ -160,10 +160,10 @@ private func replaceWithString(s: String, m: String, replacement: String, firstO
   let template = NSRegularExpression.escapedTemplateForString(replacement)
   switch constructRegex(match) {
   case let .Success(regex):
-    let stringRange = NSRange(location: 0, length: count(s.utf16))
-    let searchRange = firstOnly ? regex.rangeOfFirstMatchInString(s, options: nil, range: stringRange) : stringRange
+    let stringRange = NSRange(location: 0, length: s.utf16.count)
+    let searchRange = firstOnly ? regex.rangeOfFirstMatchInString(s, options: [], range: stringRange) : stringRange
     let newStr = (rangeIsValid(searchRange)
-      ? regex.stringByReplacingMatchesInString(s, options: nil, range: searchRange, withTemplate: template)
+      ? regex.stringByReplacingMatchesInString(s, options: [], range: searchRange, withTemplate: template)
       : s)
     return .Success(.StringAtom(newStr))
   case let .Error(err):
@@ -172,10 +172,10 @@ private func replaceWithString(s: String, m: String, replacement: String, firstO
 }
 
 private func replaceWithTemplate(s: String, m: NSRegularExpression, template: String, firstOnly: Bool, fn: String) -> String {
-  let stringRange = NSRange(location: 0, length: count(s.utf16))
-  let searchRange = firstOnly ? m.rangeOfFirstMatchInString(s, options: nil, range: stringRange) : stringRange
+  let stringRange = NSRange(location: 0, length: s.utf16.count)
+  let searchRange = firstOnly ? m.rangeOfFirstMatchInString(s, options: [], range: stringRange) : stringRange
   return (rangeIsValid(searchRange)
-    ? m.stringByReplacingMatchesInString(s, options: nil, range: searchRange, withTemplate: template)
+    ? m.stringByReplacingMatchesInString(s, options: [], range: searchRange, withTemplate: template)
     : s)
 }
 
@@ -186,8 +186,12 @@ private func replaceWithFunction(s: String, match: NSRegularExpression, function
   var error : EvalError?
   var deltaBuffer : [(String, NSRange)] = []
 
-  match.enumerateMatchesInString(s, options: nil, range: NSRange(location: 0, length: utf16Str.length)) {
-    (result: NSTextCheckingResult!, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+  match.enumerateMatchesInString(s, options: [], range: NSRange(location: 0, length: utf16Str.length)) {
+    (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+    guard let result = result else {
+      // TODO: (az) do more here?
+      return
+    }
     // Create a vector of the results
     var shouldStop = firstOnly
     var buffer : [ConsValue] = []
@@ -200,7 +204,7 @@ private func replaceWithFunction(s: String, match: NSRegularExpression, function
     // Pass the match results to the function so that it can produce a replacement string
     // Note that if there aren't any match groups, the function gets the string; if there are match groups, the function
     //  gets a vector of strings (with the first being the match, and the rest being each matched group).
-    let fnResult = apply(function, Params(buffer.count == 1 ? buffer[0] : .Vector(buffer)), ctx, fn)
+    let fnResult = apply(function, args: Params(buffer.count == 1 ? buffer[0] : .Vector(buffer)), ctx: ctx, fn: fn)
     switch fnResult {
     case let .Success(fnResult):
       switch fnResult {
@@ -233,8 +237,8 @@ private func replaceWithFunction(s: String, match: NSRegularExpression, function
     // No matches were made. Return the original string
     return .Success(.StringAtom(s))
   }
-  var newStr : NSMutableString = NSMutableString(string: s)
-  for (replacement, range) in lazy(reverse(deltaBuffer)) {
+  let newStr = NSMutableString(string: s)
+  for (replacement, range) in deltaBuffer.lazy.reverse() {
     // We perform replacement in reverse order so we don't need to keep track of offsets caused by replacement strings
     //  that are shorter or longer than the originals
     newStr.replaceCharactersInRange(range, withString: replacement)

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import Lambdatron
 
 /// Test the '.ns-alias' built-in function.
 class TestNsAliasBuiltin : InterpreterTest {

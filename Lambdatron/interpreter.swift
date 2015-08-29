@@ -67,7 +67,9 @@ public class Interpreter {
   // MARK: Public API
 
   /// A function that the interpreter calls in order to write out data. Defaults to 'print'.
-  public var writeOutput : OutputFunction? = print
+  public var writeOutput : OutputFunction? = {
+    print($0)
+  }
 
   /// A function that the interpreter calls in order to read in data.
   public var readInput : InputFunction? = nil
@@ -276,7 +278,7 @@ public class Interpreter {
 
   /// Return a sequence of all namespaces loaded in the interpreter.
   func allNamespaces() -> VectorType {
-    return map(namespaces.values) { .Namespace($0) }
+    return namespaces.values.map { .Namespace($0) }
   }
 
 
@@ -288,7 +290,7 @@ public class Interpreter {
     let stdlib = NamespaceContext(interpreter: self, ns: coreNamespaceName, asSystemNamespace: true)
     namespaces[coreNamespaceName] = stdlib
     currentNamespace = stdlib
-    loadStdlibInto(stdlib, stdlib_files)
+    loadStdlibInto(stdlib, files: stdlib_files)
     coreNamespace = stdlib
 
     // Create the user namespace.

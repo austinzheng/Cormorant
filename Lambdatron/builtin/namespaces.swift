@@ -9,7 +9,7 @@
 import Foundation
 
 /// Given a symbol naming a namespace, return the namespace, creating it if necessary.
-func ns_create(args: Params, ctx: Context) -> EvalResult {
+func ns_create(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-create"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -21,7 +21,7 @@ func ns_create(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a symbol naming a namespace, set the current namespace, creating it if necessary.
-func ns_set(args: Params, ctx: Context) -> EvalResult {
+func ns_set(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-set"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -33,7 +33,7 @@ func ns_set(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given either a symbol naming a namespace, or a namespace itself, return the corresponding namespace.
-func ns_get(args: Params, ctx: Context) -> EvalResult {
+func ns_get(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-get"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -45,7 +45,7 @@ func ns_get(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given either a symbol naming an actual namespace or a namespace, return a symbol representing the namespace name.
-func ns_name(args: Params, ctx: Context) -> EvalResult {
+func ns_name(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-name"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -65,7 +65,7 @@ func ns_name(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Return a sequence of all namespaces currently defined within the interpreter.
-func ns_all(args: Params, ctx: Context) -> EvalResult {
+func ns_all(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-all"
   if args.count != 0 {
     return .Failure(EvalError.arityError("0", actual: args.count, fn))
@@ -74,7 +74,7 @@ func ns_all(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Return the namespace named by the symbol, or nil if it doesn't exist.
-func ns_find(args: Params, ctx: Context) -> EvalResult {
+func ns_find(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-find"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -90,7 +90,7 @@ func ns_find(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Unmap the given symbol from the namespace.
-func ns_unmap(args: Params, ctx: Context) -> EvalResult {
+func ns_unmap(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-unmap"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -116,7 +116,7 @@ func ns_unmap(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Add an alias in the current namespace to another namespace. The first argument is the alias, the second the ns.
-func ns_alias(args: Params, ctx: Context) -> EvalResult {
+func ns_alias(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-alias"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -139,7 +139,7 @@ func ns_alias(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Remove the given alias from the given namespace.
-func ns_unalias(args: Params, ctx: Context) -> EvalResult {
+func ns_unalias(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-unalias"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -162,7 +162,7 @@ func ns_unalias(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Return a map of namespace aliases defined for the given namespace.
-func ns_aliases(args: Params, ctx: Context) -> EvalResult {
+func ns_aliases(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-aliases"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -177,7 +177,7 @@ func ns_aliases(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a symbol referring to a namespace, create a mapping for each name-var binding in that namespace.
-func ns_refer(args: Params, ctx: Context) -> EvalResult {
+func ns_refer(args: Params, _ ctx: Context) -> EvalResult {
   let fn = "ns-refer"
   if args.count != 1 {
     // TODO: Support the filters :exclude, :only, and :rename?
@@ -194,7 +194,7 @@ func ns_refer(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a namespace, return a map of all mappings for that namespace.
-func ns_map(args: Params, ctx: Context) -> EvalResult {
+func ns_map(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-map"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -214,7 +214,7 @@ func ns_map(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a namespace, return a map of the local mappings for that namespace.
-func ns_interns(args: Params, ctx: Context) -> EvalResult {
+func ns_interns(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-interns"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -229,7 +229,7 @@ func ns_interns(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a namespace, return a map of the refer mappings for that namespace.
-func ns_refers(args: Params, ctx: Context) -> EvalResult {
+func ns_refers(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-refers"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -244,7 +244,7 @@ func ns_refers(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Given a namespace and a symbol, return the Var to which it will resolve in the namespace.
-func ns_resolve(args: Params, ctx: Context) -> EvalResult {
+func ns_resolve(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-resolve"
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
@@ -266,7 +266,7 @@ func ns_resolve(args: Params, ctx: Context) -> EvalResult {
 }
 
 /// Remove a namespace.
-func ns_remove(args: Params, ctx: Context) -> EvalResult {
+func ns_remove(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-remove"
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
@@ -285,11 +285,11 @@ private enum NamespaceResult {
   case Failure(EvalError)
 }
 
+// TODO: (az) Is there a way we can make this less clumsy?
 /// Given one of several possible canonical representations of a namespace (either a namespace object or a symbol naming
 /// a namespace), extract the namespace, or return an error. Note that, if the ConsValue represents a namespace object,
 /// that namespace object will be returned, even if it has been removed from the interpreter.
-private func extractNamespace(value: ConsValue, ctx: Context, shouldValidate: Bool, fn: String) -> NamespaceResult {
-  let namespace : NamespaceContext
+private func extractNamespace(value: ConsValue, _ ctx: Context, _ shouldValidate: Bool, _ fn: String) -> NamespaceResult {
   switch value {
   case let .Symbol(sym):
     if let namespace = ctx.interpreter.namespaces[NamespaceName(sym)] {
@@ -308,14 +308,15 @@ private func extractNamespace(value: ConsValue, ctx: Context, shouldValidate: Bo
   }
 }
 
+// TODO: (az) Is there a way we can make this less clumsy?
 /// Run one of the namespace-management methods on a context's interpreter, returning the result.
-private func actuate(n: InternedSymbol, ctx: Context, f: NamespaceName -> Interpreter.NamespaceResult) -> EvalResult {
+private func actuate(n: InternedSymbol, _ ctx: Context, _ f: NamespaceName -> Interpreter.NamespaceResult) -> EvalResult {
   let name = NamespaceName(n)
   let result = f(name)
   switch result {
   case let .Success(namespace):
     return .Success(.Namespace(namespace))
-  case let .Nil:
+  case .Nil:
     return .Success(.Nil)
   case let .Error(err):
     return .Failure(err)

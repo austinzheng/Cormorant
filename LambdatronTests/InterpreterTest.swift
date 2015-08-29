@@ -8,8 +8,7 @@
 
 import Foundation
 import XCTest
-// Importing this to more easily see the public interface.
-import Lambdatron
+@testable import Lambdatron
 
 extension ObjectResult {
   func force() -> ConsValue {
@@ -67,7 +66,9 @@ class InterpreterTest : XCTestCase {
     super.tearDown()
     // Reset the interpreter
     clearOutputBuffer()
-    interpreter.writeOutput = print
+    interpreter.writeOutput = {
+      print($0)
+    }
   }
 
   // Run some input, expecting no errors.

@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 /// Test the '.ns-create' built-in function.
 class TestNsCreateBuiltin : InterpreterTest {
@@ -113,7 +114,7 @@ class TestNsSetBuiltin : InterpreterTest {
 
   /// .ns-set should change the current namespace.
   func testCurrentNamespaceStatus() {
-    if let initial = runCode("*ns*")?.asNamespace {
+    if runCode("*ns*")?.asNamespace != nil {
       let a = runCode("(.ns-set 'foo)")
       let a1 = runCode("core/*ns*")
       if let a = a?.asNamespace, a1 = a1?.asNamespace {
