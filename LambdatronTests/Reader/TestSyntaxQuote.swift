@@ -274,45 +274,47 @@ class TestSyntaxQuote : InterpreterTest {
 
 /// Test suite to exercise the auto-gensym feature.
 class TestSyntaxQuoteAutoGensym : InterpreterTest {
+  // Note that these tests are a bit fragile. The numbers (e.g. __10__) may need to be adjusted if the stdlib is changed
+  //  (specifically, if gensym definitions are added or removed there).
 
   /// Syntax-quote should properly gensym a bare symbol.
   func testBareSymbol() {
-    expect("`someSymbol#", shouldExpandTo: "(quote someSymbol__0__auto__)")
+    expect("`someSymbol#", shouldExpandTo: "(quote someSymbol__2__auto__)")
   }
 
   /// Syntax-quote should produce only one gensym per unique #-qualified symbol in a list.
   func testOneGensymPerUniqueSymbol() {
     expect("`(a# b# a# c# b#)",
-      shouldExpandTo: "(.seq (.concat (.list (quote a__0__auto__)) (.list (quote b__1__auto__)) (.list (quote a__0__auto__)) (.list (quote c__2__auto__)) (.list (quote b__1__auto__))))")
+      shouldExpandTo: "(.seq (.concat (.list (quote a__2__auto__)) (.list (quote b__3__auto__)) (.list (quote a__2__auto__)) (.list (quote c__4__auto__)) (.list (quote b__3__auto__))))")
   }
 
   /// Syntax-quote should properly produce gensyms within nested collections.
   func testNestedCollections() {
     expect("`(a# (b# c#) [a#] {c# b#} d#)",
-      shouldExpandTo: "(.seq (.concat (.list (quote a__0__auto__)) (.list (.seq (.concat (.list (quote b__1__auto__)) (.list (quote c__2__auto__))))) (.list (apply .vector (.seq (.concat (.list (quote a__0__auto__)))))) (.list (apply .hashmap (.seq (.concat (.list (quote c__2__auto__)) (.list (quote b__1__auto__)))))) (.list (quote d__3__auto__))))")
+      shouldExpandTo: "(.seq (.concat (.list (quote a__2__auto__)) (.list (.seq (.concat (.list (quote b__3__auto__)) (.list (quote c__4__auto__))))) (.list (apply .vector (.seq (.concat (.list (quote a__2__auto__)))))) (.list (apply .hashmap (.seq (.concat (.list (quote c__4__auto__)) (.list (quote b__3__auto__)))))) (.list (quote d__5__auto__))))")
   }
 
   /// Syntax-quote should not gensym qualified or normal unqualified symbols.
   func testNonGensymSymbols() {
     expect("`(a b a# b# foo/a foo/b)",
-      shouldExpandTo: "(.seq (.concat (.list (quote user/a)) (.list (quote user/b)) (.list (quote a__0__auto__)) (.list (quote b__1__auto__)) (.list (quote foo/a)) (.list (quote foo/b))))")
+      shouldExpandTo: "(.seq (.concat (.list (quote user/a)) (.list (quote user/b)) (.list (quote a__2__auto__)) (.list (quote b__3__auto__)) (.list (quote foo/a)) (.list (quote foo/b))))")
   }
 
   /// A nested syntax-quoted expression should have its own gensym context relative to an outer expression.
   func testNestedSyntaxQuotes() {
     expect("`(a# b# `(a# b# `(a# b#) a# b#) a# b#)",
-      shouldExpandTo: "(.seq (.concat (.list (quote a__4__auto__)) (.list (quote b__5__auto__)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/a__2__auto__)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/b__3__auto__)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .seq)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .concat)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .list)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/a__0__auto__)))))))))))))))))))))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .list)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/b__1__auto__)))))))))))))))))))))))))))))))))))))))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/a__2__auto__)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/b__3__auto__)))))))))))))) (.list (quote a__4__auto__)) (.list (quote b__5__auto__))))")
+      shouldExpandTo: "(.seq (.concat (.list (quote a__6__auto__)) (.list (quote b__7__auto__)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/a__4__auto__)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/b__5__auto__)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .seq)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .concat)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .list)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/a__2__auto__)))))))))))))))))))))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote .list)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote .seq)) (.list (.seq (.concat (.list (quote .concat)) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote quote)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/b__3__auto__)))))))))))))))))))))))))))))))))))))))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/a__4__auto__)))))))) (.list (.seq (.concat (.list (quote .list)) (.list (.seq (.concat (.list (quote quote)) (.list (quote user/b__5__auto__)))))))))))))) (.list (quote a__6__auto__)) (.list (quote b__7__auto__))))")
   }
 
   /// Symbols in a syntax-quoted vector should be properly gensym'ed.
   func testVectors() {
     expect("`[a# b# c# b# c# a#]",
-      shouldExpandTo: "(apply .vector (.seq (.concat (.list (quote a__0__auto__)) (.list (quote b__1__auto__)) (.list (quote c__2__auto__)) (.list (quote b__1__auto__)) (.list (quote c__2__auto__)) (.list (quote a__0__auto__)))))")
+      shouldExpandTo: "(apply .vector (.seq (.concat (.list (quote a__2__auto__)) (.list (quote b__3__auto__)) (.list (quote c__4__auto__)) (.list (quote b__3__auto__)) (.list (quote c__4__auto__)) (.list (quote a__2__auto__)))))")
   }
 
   /// Symbols in a syntax-quoted map should be properly gensym'ed.
   func testMaps() {
     expect("`{a# b# c# a# d# b#}",
-      shouldExpandTo: "(apply .hashmap (.seq (.concat (.list (quote a__0__auto__)) (.list (quote b__1__auto__)) (.list (quote d__2__auto__)) (.list (quote b__1__auto__)) (.list (quote c__3__auto__)) (.list (quote a__0__auto__)))))")
+      shouldExpandTo: "(apply .hashmap (.seq (.concat (.list (quote a__2__auto__)) (.list (quote b__3__auto__)) (.list (quote d__4__auto__)) (.list (quote b__3__auto__)) (.list (quote c__5__auto__)) (.list (quote a__2__auto__)))))")
   }
 }

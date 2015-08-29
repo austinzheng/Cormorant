@@ -28,7 +28,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1AAC2DA61A68E86E0019A5DD"
+               BlueprintIdentifier = "1AE62F4B1B9182C30038FA44"
                BuildableName = "LambdatronTests.xctest"
                BlueprintName = "LambdatronTests"
                ReferencedContainer = "container:Lambdatron.xcodeproj">
@@ -46,7 +46,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1AAC2DA61A68E86E0019A5DD"
+               BlueprintIdentifier = "1AE62F4B1B9182C30038FA44"
                BuildableName = "LambdatronTests.xctest"
                BlueprintName = "LambdatronTests"
                ReferencedContainer = "container:Lambdatron.xcodeproj">
