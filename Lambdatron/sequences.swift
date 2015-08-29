@@ -31,7 +31,7 @@ public enum SeqResult {
 }
 
 public enum ObjectResult {
-  case Success(ConsValue)
+  case Success(Value)
   case Error(EvalError)
 }
 
@@ -39,7 +39,7 @@ public enum ObjectResult {
 // MARK: Utility functions
 
 /// Return a new sequence resulting from prepending the given item to an existing sequence.
-func cons(item: ConsValue, next seq: SeqType) -> SeqType {
+func cons(item: Value, next seq: SeqType) -> SeqType {
   return Cons(item, next: seq)
 }
 
@@ -67,22 +67,22 @@ func sequence(seq: SeqType) -> SeqResult? {
 }
 
 /// Return a new single-element sequence.
-func sequence(item: ConsValue) -> SeqType {
+func sequence(item: Value) -> SeqType {
   return Cons(item)
 }
 
 /// Return a new sequence consisting of two items.
-func sequence(first: ConsValue, _ second: ConsValue) -> SeqType {
+func sequence(first: Value, _ second: Value) -> SeqType {
   return Cons(first, next: Cons(second))
 }
 
 /// Return a new sequence consisting of three items.
-func sequence(first: ConsValue, _ second: ConsValue, _ third: ConsValue) -> SeqType {
+func sequence(first: Value, _ second: Value, _ third: Value) -> SeqType {
   return ContiguousList([first, second, third])
 }
 
 /// Return a new sequence containing multiple items.
-func sequence(items: [ConsValue]) -> SeqType {
+func sequence(items: [Value]) -> SeqType {
   return items.isEmpty ? Empty() : ContiguousList(items)
 }
 
@@ -205,7 +205,7 @@ struct HashmapSequenceView : SeqType {
 
 /// A sequence type representing an immutable non-empty persistent list whose items are stored adjacent to each other.
 final class ContiguousList : SeqType {
-  private let items : [ConsValue]
+  private let items : [Value]
   let next : SeqType
   var hashValue : Int { return items[0].hashValue }
 
@@ -220,7 +220,7 @@ final class ContiguousList : SeqType {
     return .Seq(next)
   }
 
-  var backingArray : [ConsValue] {
+  var backingArray : [Value] {
     return items
   }
 
@@ -228,7 +228,7 @@ final class ContiguousList : SeqType {
 
   /// Build a ContiguousList out of another sequence.
   class func fromSequence(seq: SeqType, next: SeqType = Empty()) -> SeqResult {
-    var buffer : [ConsValue] = []
+    var buffer : [Value] = []
     for item in SeqIterator(seq) {
       switch item {
       case let .Success(s): buffer.append(s)
@@ -238,7 +238,7 @@ final class ContiguousList : SeqType {
     return .Seq(ContiguousList(buffer, next: next))
   }
 
-  init(_ items : [ConsValue], next: SeqType = Empty()) {
+  init(_ items : [Value], next: SeqType = Empty()) {
     precondition(!items.isEmpty, "ContiguousList cannot be created with an empty array of items")
     self.items = items; self.next = next
   }
@@ -247,7 +247,7 @@ final class ContiguousList : SeqType {
 /// A sequence type representing a lazy seq, which lazily evaluates a thunk to produce its sequence.
 final class LazySeq : SeqType {
   private enum State {
-    case Thunk(ConsValue, Context)
+    case Thunk(Value, Context)
     case Cached(SeqType)
   }
   private var state : State
@@ -328,14 +328,14 @@ final class LazySeq : SeqType {
     }
   }
 
-  init(_ form: ConsValue, ctx: Context) {
+  init(_ form: Value, ctx: Context) {
     state = .Thunk(form, ctx)
   }
 }
 
 /// A sequence type representing a cons cell prepended onto other sequence types.
 final class Cons : SeqType {
-  private var value : ConsValue
+  private var value : Value
   private var next : SeqType
 
   var hashValue : Int { return value.hashValue }
@@ -345,7 +345,7 @@ final class Cons : SeqType {
   var isEmpty : BoolOrEvalError { return false }
 
   // Initialize a list constructed from an element preceding an existing list.
-  private init(_ value: ConsValue, next: SeqType = Empty()) {
+  private init(_ value: Value, next: SeqType = Empty()) {
     self.value = value; self.next = next
   }
 }
@@ -365,7 +365,7 @@ struct Empty : SeqType {
 /// An iterator that allows Swift iteration through a sequence type.
 struct SeqIterator : SequenceType, GeneratorType {
   private var seq : SeqType
-  private var prefix : ConsValue?
+  private var prefix : Value?
 
   func generate() -> SeqIterator {
     return self
@@ -411,7 +411,7 @@ struct SeqIterator : SequenceType, GeneratorType {
     seq = value
   }
 
-  init?(_ value: ConsValue, prefix: ConsValue? = nil) {
+  init?(_ value: Value, prefix: Value? = nil) {
     self.prefix = prefix
     switch value {
     case .Nil: seq = Empty()

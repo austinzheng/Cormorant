@@ -55,7 +55,7 @@ private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
 /// one or more SingleFn structs, each corresponding to a definition for a different arity.
 struct SingleFn {
   let parameters : [UnqualifiedSymbol]
-  let forms : [ConsValue]
+  let forms : [Value]
   let variadicParameter : UnqualifiedSymbol?
   var paramCount : Int {
     return parameters.count
@@ -73,7 +73,7 @@ struct SingleFn {
       return false
     }
     for (idx, parameter) in parameters.enumerate() {
-      let argument : ConsValue = arguments[idx]
+      let argument = arguments[idx]
       ctx.updateBinding(argument, forSymbol: parameter)
     }
     if let variadicParameter = variadicParameter {
@@ -102,7 +102,7 @@ struct SingleFn {
     if let variadicParameter = variadicParameter {
       // Add the rest of the arguments (if any) to the vararg vector
       if arguments.count > parameters.count {
-        var varargBuffer : [ConsValue] = []
+        var varargBuffer : [Value] = []
         for var j=i; j<arguments.count; j++ {
           varargBuffer.append(arguments[j])
         }

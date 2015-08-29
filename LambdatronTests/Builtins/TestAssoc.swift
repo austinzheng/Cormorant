@@ -38,7 +38,7 @@ class TestAssocBuiltin : InterpreterTest {
 
   /// .assoc should append a value if called with a key equal to the vector length.
   func testVectorsWithAppendedValues() {
-    expectThat("(.assoc [] 0 true)", shouldEvalTo: vectorWithItems(ConsValue.BoolAtom(true)))
+    expectThat("(.assoc [] 0 true)", shouldEvalTo: vectorWithItems(.BoolAtom(true)))
     expectThat("(.assoc [1 2] 2 \"foo\")", shouldEvalTo: vectorWithItems(1, 2, .StringAtom("foo")))
     expectThat("(.assoc [1 2] 2 \"foo\" 2 \"bar\" 3 \"baz\" 4 \"qux\")", shouldEvalTo:
       vectorWithItems(1, 2, .StringAtom("bar"), .StringAtom("baz"), .StringAtom("qux")))

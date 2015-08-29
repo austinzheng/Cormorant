@@ -312,7 +312,7 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
   if let idx = args[1].asInteger {
-    let fallback : ConsValue? = args.count == 3 ? args[2] : nil
+    let fallback : Value? = args.count == 3 ? args[2] : nil
     if idx < 0 {
       // Index can't be negative
       if let fallback = fallback { return .Success(fallback) }
@@ -376,7 +376,7 @@ func pr_get(args: Params, _ ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
   let key = args[1]
-  let fallback : ConsValue = args.count == 3 ? args[2] : .Nil
+  let fallback : Value = args.count == 3 ? args[2] : .Nil
   
   switch args[0] {
   case let .StringAtom(s):
@@ -510,7 +510,7 @@ func pr_reduce(args: Params, _ ctx: Context) -> EvalResult {
 
   let function = args[0]
   let coll = args.count == 3 ? args[2] : args[1]
-  let initial : ConsValue? = args.count == 3 ? args[1] : nil
+  let initial : Value? = args.count == 3 ? args[1] : nil
 
   if let seq = SeqIterator(coll, prefix: initial) {
     // The sequence was one of the supported types.

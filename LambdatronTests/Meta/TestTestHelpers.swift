@@ -14,19 +14,19 @@ class TestTestHelpers : InterpreterTest {
 
   /// listForItems should return the empty list when invoked with no arguments.
   func testListForItemsNoArgs() {
-    let ref : ConsValue = .Seq(EmptyNode)
-    let list : ConsValue = listWithItems()
+    let ref = Value.Seq(EmptyNode)
+    let list = listWithItems()
     XCTAssert(ref == list, "listWithItems failed to build the empty list properly")
   }
 
   /// listForItems should return a list containing items when invoked with arguments.
   func testListForItems() {
-    let ref : ConsValue = .Seq(sequence([1, .StringAtom("foo"), true]))
+    let ref = Value.Seq(sequence([1, .StringAtom("foo"), true]))
     let list = listWithItems(1, .StringAtom("foo"), true)
     XCTAssert(ref == list, "listWithItems failed to build a non-empty list properly")
   }
 
-  /// expectThat with either the string or ConsValue arguments should work correctly.
+  /// expectThat with either the string or Value arguments should work correctly.
   func testExpectThat() {
     // Note: if this unit test fails, something is wrong with expectThat.
     runCode("(def a '(1 2 3 4 5))")

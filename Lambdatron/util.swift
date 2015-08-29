@@ -29,22 +29,22 @@ enum NumericalType {
 // MARK: Sequences
 
 /// A wrapper for a Map that provides a different iterator for use with the interpreter. This iterator returns each
-/// element as a Vector containing the key and value ConsValues.
+/// element as a Vector containing the key and value Values.
 struct MapSequence : SequenceType, GeneratorType {
   let map : MapType
-  var generator : DictionaryGenerator<ConsValue, ConsValue>
+  var generator : DictionaryGenerator<Value, Value>
 
   init(_ map: MapType) { self.map = map; self.generator = map.generate() }
 
   func generate() -> MapSequence { return self }
 
   /// If the wrapped map is not empty, return the first key-value pair in the MapSequence as a Vector.
-  func first() -> ConsValue? {
+  func first() -> Value? {
     var t = self.generate()
     return t.next()
   }
 
-  mutating func next() -> ConsValue? {
+  mutating func next() -> Value? {
     if let (key, value) = generator.next() {
       return .Vector([key, value])
     }

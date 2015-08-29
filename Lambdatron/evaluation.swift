@@ -11,7 +11,7 @@ import Foundation
 /// The result of evaluating a function, macro, or special form. Successfully returned values or error messages are
 /// encapsulated in each case.
 enum EvalResult {
-  case Success(ConsValue)
+  case Success(Value)
   case Recur(Params)
   case Failure(EvalError)
 }
@@ -29,7 +29,7 @@ enum CollectResult {
   }
 }
 
-func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
+func next(input: EvalResult, action: Value -> EvalResult) -> EvalResult {
   switch input {
   case let .Success(s): return action(s)
   case .Recur, .Failure: return input
@@ -37,7 +37,7 @@ func next(input: EvalResult, action: ConsValue -> EvalResult) -> EvalResult {
 }
 
 /// Evaluate a form and return either a success or failure
-func evaluateForm(form: ConsValue, _ ctx: Context) -> EvalResult {
+func evaluateForm(form: Value, _ ctx: Context) -> EvalResult {
   let result = form.evaluate(ctx)
   switch result {
   case .Success: return result
@@ -211,7 +211,7 @@ private func evaluateMap(map: MapType, arguments: SeqResult, _ ctx: Context) -> 
 }
 
 /// Evaluate a list with a symbol or keyword in function position.
-private func evaluateKeyType(key: ConsValue, arguments: SeqResult, _ ctx: Context) -> EvalResult {
+private func evaluateKeyType(key: Value, arguments: SeqResult, _ ctx: Context) -> EvalResult {
 //  ctx.log(.Eval) { "evaluating symbol or keyword in function position: \(describeList(list, ctx))" }
   // How it works:
   // 1. (*key* *map* *fallback*) is translated into (get *map* *key* *fallback*).
@@ -230,7 +230,7 @@ private func evaluateKeyType(key: ConsValue, arguments: SeqResult, _ ctx: Contex
 }
 
 /// Apply the values in the Params object 'args' to the function 'first'.
-func apply(first: ConsValue, args: Params, ctx: Context, fn: String) -> EvalResult {
+func apply(first: Value, args: Params, ctx: Context, fn: String) -> EvalResult {
   if let builtIn = first.asBuiltIn {
     ctx.interpreter.log(.Eval) { "applying arguments: \(args.describe(ctx)) to builtin \(first.describe(ctx))" }
     return builtIn.function(args, ctx)
@@ -332,9 +332,9 @@ func evaluateList(list: SeqType, _ ctx: Context) -> EvalResult {
 }
 
 
-// MARK: ConsValue evaluation
+// MARK: Value evaluation
 
-extension ConsValue {
+extension Value {
 
   func evaluate(ctx: Context, isFirstFormInSeq: Bool = false) -> EvalResult {
     switch self {
@@ -360,7 +360,7 @@ extension ConsValue {
       return evaluateList(seq, ctx)
     case let .Vector(vector):
       // Evaluate the value of the vector literal 'v'
-      var buffer : [ConsValue] = []
+      var buffer : [Value] = []
       for form in vector {
         let result = form.evaluate(ctx)
         switch result {

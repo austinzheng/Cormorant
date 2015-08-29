@@ -68,7 +68,7 @@ func ==(lhs: SeqType, rhs: VectorType) -> BoolOrEvalError {
   return .Boolean(idx == (rhs.count - 1))
 }
 
-func ==(lhs: ConsValue, rhs: ConsValue) -> BoolOrEvalError {
+func ==(lhs: Value, rhs: Value) -> BoolOrEvalError {
   switch lhs {
   case let .Symbol(v1):
     switch rhs {
@@ -166,7 +166,7 @@ func ==(lhs: ConsValue, rhs: ConsValue) -> BoolOrEvalError {
   }
 }
 
-public func ==(lhs: ConsValue, rhs: ConsValue) -> Bool {
+public func ==(lhs: Value, rhs: Value) -> Bool {
   let result : BoolOrEvalError = lhs == rhs
   switch result {
   case let .Boolean(b): return b

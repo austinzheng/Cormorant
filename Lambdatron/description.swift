@@ -92,7 +92,7 @@ func describeMap(map: MapType, _ ctx: Context?, debug: Bool = false) -> Describe
   return .Desc("{\(final)}")
 }
 
-extension ConsValue {
+extension Value {
 
   /// Return the stringified version of an object.
   func toString(ctx: Context) -> DescribeResult {

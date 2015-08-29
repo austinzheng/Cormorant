@@ -179,7 +179,7 @@ private func replaceWithTemplate(s: String, m: NSRegularExpression, template: St
     : s)
 }
 
-private func replaceWithFunction(s: String, match: NSRegularExpression, function: ConsValue, firstOnly: Bool, fn: String, ctx: Context) -> EvalResult {
+private func replaceWithFunction(s: String, match: NSRegularExpression, function: Value, firstOnly: Bool, fn: String, ctx: Context) -> EvalResult {
   // Handle the case where the match is a regex and the replacement is defined by a function
   let utf16Str = s as NSString
 
@@ -194,7 +194,7 @@ private func replaceWithFunction(s: String, match: NSRegularExpression, function
     }
     // Create a vector of the results
     var shouldStop = firstOnly
-    var buffer : [ConsValue] = []
+    var buffer : [Value] = []
     for i in 0..<result.numberOfRanges {
       let thisRange = result.rangeAtIndex(i)
       if rangeIsValid(thisRange) {

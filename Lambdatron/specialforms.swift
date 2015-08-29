@@ -10,18 +10,19 @@ import Foundation
 
 typealias LambdatronSpecialForm = (Params, Context) -> EvalResult
 
-// Constants for ConsValue-wrapped special forms.
-internal let QUOTE = ConsValue.Special(.Quote)
-internal let IF = ConsValue.Special(.If)
-internal let DO = ConsValue.Special(.Do)
-internal let DEF = ConsValue.Special(.Def)
-internal let LET = ConsValue.Special(.Let)
-internal let VAR = ConsValue.Special(.Var)
-internal let FN = ConsValue.Special(.Fn)
-internal let DEFMACRO = ConsValue.Special(.Defmacro)
-internal let LOOP = ConsValue.Special(.Loop)
-internal let RECUR = ConsValue.Special(.Recur)
-internal let APPLY = ConsValue.Special(.Apply)
+// TODO: Replace these with static vars on the type.
+// Constants for Value-wrapped special forms.
+internal let QUOTE = Value.Special(.Quote)
+internal let IF = Value.Special(.If)
+internal let DO = Value.Special(.Do)
+internal let DEF = Value.Special(.Def)
+internal let LET = Value.Special(.Let)
+internal let VAR = Value.Special(.Var)
+internal let FN = Value.Special(.Fn)
+internal let DEFMACRO = Value.Special(.Defmacro)
+internal let LOOP = Value.Special(.Loop)
+internal let RECUR = Value.Special(.Recur)
+internal let APPLY = Value.Special(.Apply)
 
 /// An enum describing all the special forms recognized by the interpreter.
 public enum SpecialForm : String, CustomStringConvertible {
@@ -83,7 +84,7 @@ func sf_if(args: Params, _ ctx: Context) -> EvalResult {
 
   let result = next(testResult) { testForm in
     let then = args[1]
-    let otherwise : ConsValue? = args.count == 3 ? args[2] : nil
+    let otherwise : Value? = args.count == 3 ? args[2] : nil
 
     // Decide what to do with test
     let predicateIsTrue : Bool
@@ -113,7 +114,7 @@ func sf_do(args: Params, _ ctx: Context) -> EvalResult {
 
 /// Evaluate all expressions, returning the value of the final expression. (This version takes an array instead of a
 /// Params object as its first argument.)
-func sf_do(args: [ConsValue], _ ctx: Context) -> EvalResult {
+func sf_do(args: [Value], _ ctx: Context) -> EvalResult {
   return do_exprs(args, ctx)
 }
 
@@ -125,7 +126,7 @@ func sf_def(args: Params, _ ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("0 or 2", actual: args.count, fn))
   }
   let symbol = args[0]
-  let initializer : ConsValue? = args.count > 1 ? args[1] : nil
+  let initializer : Value? = args.count > 1 ? args[1] : nil
 
   switch symbol {
   case let .Symbol(sym):
@@ -508,7 +509,7 @@ func sf_attempt(args: Params, _ ctx: Context) -> EvalResult {
 
 /// Given a list of args (all of which should be symbols), extract the strings corresponding with their argument names,
 /// as well as any variadic parameter that exists.
-private func extractParameters(args: [ConsValue], _ ctx: Context) -> ([UnqualifiedSymbol], UnqualifiedSymbol?)? {
+private func extractParameters(args: [Value], _ ctx: Context) -> ([UnqualifiedSymbol], UnqualifiedSymbol?)? {
   // Returns a list of symbol names representing the parameter names, as well as the variadic parameter name (if any)
   // TODO: This function should return errors on failure, instead of nil
   var names : [UnqualifiedSymbol] = []
@@ -540,7 +541,7 @@ private func extractParameters(args: [ConsValue], _ ctx: Context) -> ([Unqualifi
 
 /// Given an item (expected to be a vector or a list), with the first item a vector of argument bindings, return a new
 /// SingleFn instance.
-private func buildSingleFnFor(item: ConsValue, ctx: Context) -> SingleFn? {
+private func buildSingleFnFor(item: Value, ctx: Context) -> SingleFn? {
   let itemAsVector : VectorType?
   switch item {
   case let .Seq(seq):
@@ -569,9 +570,9 @@ private func buildSingleFnFor(item: ConsValue, ctx: Context) -> SingleFn? {
 }
 
 /// Given an appropriate generic collection of arguments, run the do special form.
-private func do_exprs<T : CollectionType where T.Generator.Element == ConsValue, T.Index == Int>(args: T, _ ctx: Context) -> EvalResult {
+private func do_exprs<T : CollectionType where T.Generator.Element == Value, T.Index == Int>(args: T, _ ctx: Context) -> EvalResult {
   let fn = "do"
-  var finalValue : ConsValue = .Nil
+  var finalValue : Value = .Nil
   for (idx, expr) in args.enumerate() {
     let result = expr.evaluate(ctx)
     switch result {

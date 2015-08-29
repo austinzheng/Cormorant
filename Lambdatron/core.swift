@@ -9,16 +9,16 @@
 import Foundation
 
 /// An opaque type representing a Vector data structure.
-public typealias VectorType = [ConsValue]
+public typealias VectorType = [Value]
 
 /// An opaque type representing a Map data structure.
-public typealias MapType = [ConsValue:ConsValue]
+public typealias MapType = [Value : Value]
 
 
-// MARK: ConsValue
+// MARK: Value
 
-/// Represents the value of an item in a single cons cell. ConsValues are comprised of atoms and collections.
-public enum ConsValue : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, CustomStringConvertible, Hashable {
+/// Represents an atom, collection, or other fundamental data type.
+public enum Value : IntegerLiteralConvertible, FloatLiteralConvertible, BooleanLiteralConvertible, CustomStringConvertible, Hashable {
   case Nil
   case BoolAtom(Bool)
   case IntAtom(Int)
@@ -197,7 +197,7 @@ public func ==(lhs: VarType, rhs: VarType) -> Bool {
 }
 
 public final class VarType : Hashable {
-  private(set) var store : ConsValue? = nil
+  private(set) var store : Value? = nil
 
   /// A symbol used to determine how the Var is canonically named.
   let name : InternedSymbol
@@ -207,12 +207,12 @@ public final class VarType : Hashable {
   /// Whether or not this Var is bound to a value.
   var isBound : Bool { return store != nil }
 
-  func value(usingContext ctx: Context) -> ConsValue {
-    return store ?? ConsValue.Auxiliary(UnboundVarObject(name, ctx: ctx))
+  func value(usingContext ctx: Context) -> Value {
+    return store ?? .Auxiliary(UnboundVarObject(name, ctx: ctx))
   }
 
   /// Bind a new value to this Var
-  func bindValue(value: ConsValue) { store = value }
+  func bindValue(value: Value) { store = value }
 
-  init(_ name: InternedSymbol, value: ConsValue? = nil) { self.name = name; store = value }
+  init(_ name: InternedSymbol, value: Value? = nil) { self.name = name; store = value }
 }

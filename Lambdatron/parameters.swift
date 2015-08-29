@@ -11,10 +11,10 @@ import Foundation
 /// A struct holding an arbitrary number of parameters without using refcounted storage if there are eight or fewer
 /// params.
 struct Params : CustomStringConvertible, CollectionType {
-  private var a0, a1, a2, a3, a4, a5, a6, a7 : ConsValue?
+  private var a0, a1, a2, a3, a4, a5, a6, a7 : Value?
 
   /// An array containing all parameters from 8 and onwards.
-  private var others : [ConsValue]?
+  private var others : [Value]?
 
   /// How many parameters are stored within the struct.
   private(set) var count = 0
@@ -26,17 +26,17 @@ struct Params : CustomStringConvertible, CollectionType {
 
   init() { }
 
-  init(_ a0: ConsValue) {
+  init(_ a0: Value) {
     self.a0 = a0
     count = 1
   }
 
-  init(_ a0: ConsValue, _ a1: ConsValue) {
+  init(_ a0: Value, _ a1: Value) {
     self.a0 = a0; self.a1 = a1
     count = 2
   }
 
-  init(_ a0: ConsValue, _ a1: ConsValue, _ a2: ConsValue) {
+  init(_ a0: Value, _ a1: Value, _ a2: Value) {
     self.a0 = a0; self.a1 = a1; self.a2 = a2
     count = 3
   }
@@ -56,7 +56,7 @@ struct Params : CustomStringConvertible, CollectionType {
   }
 
   /// Return a Params consisting of a prefix argument followed by all arguments in the current Params.
-  func prefixedBy(prefix: ConsValue) -> Params {
+  func prefixedBy(prefix: Value) -> Params {
     var newParams = Params(prefix)
     for item in self {
       newParams.append(item)
@@ -65,19 +65,19 @@ struct Params : CustomStringConvertible, CollectionType {
   }
 
   /// Return the first item in the Params, or nil if none exists.
-  var first : ConsValue? {
+  var first : Value? {
     return a0
   }
 
   /// Return the last item in the Params. Precondition: the Params is not empty.
-  var last : ConsValue? {
+  var last : Value? {
     return count == 0 ? nil : self[count - 1]
   }
 
   /// An array containing all values within the Params. Note that this should be used sparingly, since it is relatively
   /// expensive (requiring the creation of a mutable array).
-  var asArray : [ConsValue] {
-    var buffer : [ConsValue] = []
+  var asArray : [Value] {
+    var buffer : [Value] = []
     for item in self {
       buffer.append(item)
     }
@@ -86,7 +86,7 @@ struct Params : CustomStringConvertible, CollectionType {
 
   /// Push another value onto the Params struct. This is ONLY meant for the use case where the Params struct is
   /// initially being populated.
-  mutating func append(newValue: ConsValue) {
+  mutating func append(newValue: Value) {
     switch count {
     case 0: a0 = newValue
     case 1: a1 = newValue
@@ -105,7 +105,7 @@ struct Params : CustomStringConvertible, CollectionType {
     count++
   }
 
-   subscript(idx: Int) -> ConsValue {
+   subscript(idx: Int) -> Value {
     switch idx {
     case 0: return a0!
     case 1: return a1!
@@ -128,7 +128,7 @@ struct ParamsGenerator : GeneratorType {
   private let params : Params
   private var index = 0
 
-  mutating func next() -> ConsValue? {
+  mutating func next() -> Value? {
     if index < params.count {
       let value = params[index]
       index += 1

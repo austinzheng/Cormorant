@@ -26,7 +26,7 @@ class TestListBasics : XCTestCase {
   /// A non-empty Cons should work properly in the context of a for-in loop.
   func testConsIteration() {
     let sublist = listWithItems(true, false)
-    let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
+    let vector = Value.Vector([.Nil, 1.23456, .CharAtom("\n")])
     let testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 
@@ -78,7 +78,7 @@ class TestListBasics : XCTestCase {
   /// A non-empty cons should work properly with enumerate.
   func testConsEnumerateIteration() {
     let sublist = listWithItems(true, false)
-    let vector : ConsValue = .Vector([.Nil, 1.23456, .CharAtom("\n")])
+    let vector = Value.Vector([.Nil, 1.23456, .CharAtom("\n")])
     let testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
     var counter = 0
 

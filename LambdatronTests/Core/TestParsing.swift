@@ -253,7 +253,7 @@ class TestListParsing : InterpreterTest {
 
   /// Single element lists should be properly parsed.
   func testParsingSingleElementList() {
-    expectThat("'(\"hello world\")", shouldEvalTo: listWithItems(ConsValue.StringAtom("hello world")))
+    expectThat("'(\"hello world\")", shouldEvalTo: listWithItems(.StringAtom("hello world")))
   }
 
   func testParsingMultiElementList() {

@@ -11,7 +11,7 @@ import XCTest
 @testable import Lambdatron
 
 extension ObjectResult {
-  func force() -> ConsValue {
+  func force() -> Value {
     switch self {
     case let .Success(v): return v
     case .Error: fatalError("ObjectResult's 'force' method used improperly")
@@ -21,18 +21,18 @@ extension ObjectResult {
 
 let EmptyNode = Empty()
 
-/// Convenience function: given a bunch of ConsValues, return a list.
-func listWithItems(items: ConsValue...) -> ConsValue {
+/// Convenience function: given a bunch of Values, return a list.
+func listWithItems(items: Value...) -> Value {
   return .Seq(items.count == 0 ? Empty() : ContiguousList(items))
 }
 
-/// Convenience functions: given a bunch of ConsValues, return a vector.
-func vectorWithItems(items: ConsValue...) -> ConsValue {
+/// Convenience functions: given a bunch of Values, return a vector.
+func vectorWithItems(items: Value...) -> Value {
   return .Vector(items)
 }
 
-/// Convenience function: given a bunch of ConsValue key-value pairs, return a map.
-func mapWithItems(items: (ConsValue, ConsValue)...) -> ConsValue {
+/// Convenience function: given a bunch of Value key-value pairs, return a map.
+func mapWithItems(items: (Value, Value)...) -> Value {
   if items.count == 0 {
     return .Map([:])
   }
@@ -72,7 +72,7 @@ class InterpreterTest : XCTestCase {
   }
 
   // Run some input, expecting no errors.
-  func runCode(input: String) -> ConsValue? {
+  func runCode(input: String) -> Value? {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(s):
@@ -110,8 +110,8 @@ class InterpreterTest : XCTestCase {
     }
   }
 
-  /// Given an input string, evaluate it and compare the output to an expected ConsValue output.
-  func expectThat(input: String, shouldEvalTo expected: ConsValue) {
+  /// Given an input string, evaluate it and compare the output to an expected Value output.
+  func expectThat(input: String, shouldEvalTo expected: Value) {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(actual):
@@ -125,15 +125,15 @@ class InterpreterTest : XCTestCase {
 
   /// Given an input string, evaluate it and expect a seq. Then compare the items in the seq to a given set of items.
   /// This test does not check the order of items, only that they all appear exactly once.
-  func expectThat(input: String, shouldEvalToContain item: ConsValue, _ expected: ConsValue...) {
+  func expectThat(input: String, shouldEvalToContain item: Value, _ expected: Value...) {
     // Put the items in a set
-    let expectedItems : Set<ConsValue> = Set(expected + [item])
+    let expectedItems : Set<Value> = Set(expected + [item])
 
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(actual):
       if let actual = actual.asSeq {
-        var actualItems = Set<ConsValue>()
+        var actualItems = Set<Value>()
         for item in SeqIterator(actual) {
           actualItems.insert(item.force())
         }
@@ -235,7 +235,7 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Test whether or not a ListType matches the items in a collection.
-  func expectList<T : SequenceType where T.Generator.Element == ConsValue>(list: SeqType, toMatch match: T) {
+  func expectList<T : SequenceType where T.Generator.Element == Value>(list: SeqType, toMatch match: T) {
     var listGenerator = SeqIterator(list).generate()
     var matchGenerator = match.generate()
 

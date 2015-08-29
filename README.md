@@ -176,6 +176,7 @@ Development objectives can be divided into two categories.
 
 These are objectives I am working on right now, or plan on doing in the near future.
 
+- Optimizing and refactoring code to take advantage of Swift 2's new features
 - Expanding standard library
 - Support for sets
 - Ability to type in multiple forms at the top level

@@ -113,7 +113,7 @@ class TestFnPositionMaps : InterpreterTest {
   func testInvalidKeyWithFallback() {
     expectThat("({:a 1 :b 2 :c 3} 'a \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
     expectThat("({:a 1 :b 2 :c 3} 'b nil)", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} 'c [99])", shouldEvalTo: vectorWithItems(ConsValue.IntAtom(99)))
+    expectThat("({:a 1 :b 2 :c 3} 'c [99])", shouldEvalTo: vectorWithItems(.IntAtom(99)))
   }
 
   /// When a map is in function position, all expressions in the list should be evaluated.
@@ -165,7 +165,7 @@ class TestFnPositionSymbols : InterpreterTest {
   func testInvalidKeyWithFallback() {
     expectThat("('d {'a 1 'b 2 'c 3} \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
     expectThat("('c {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .Nil)
-    expectThat("('foo {\"foo\" 1 'b 2 'c 3} [99])", shouldEvalTo: vectorWithItems(ConsValue.IntAtom(99)))
+    expectThat("('foo {\"foo\" 1 'b 2 'c 3} [99])", shouldEvalTo: vectorWithItems(.IntAtom(99)))
   }
 
   /// When a symbol is in function position, all expressions in the list should be evaluated.
@@ -242,7 +242,7 @@ class TestFnPositionKeywords : InterpreterTest {
   func testInvalidKeyWithFallback() {
     expectThat("(:d {:a 1 :b 2 :c 3} \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
     expectThat("(:c {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .Nil)
-    expectThat("(:foo {\"foo\" 1 :b 2 :c 3} [99])", shouldEvalTo: vectorWithItems(ConsValue.IntAtom(99)))
+    expectThat("(:foo {\"foo\" 1 :b 2 :c 3} [99])", shouldEvalTo: vectorWithItems(.IntAtom(99)))
   }
 
   /// When a keyword is in function position, all expressions in the list should be evaluated.

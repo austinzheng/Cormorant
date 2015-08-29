@@ -92,10 +92,10 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
 
 /// Given a reader form and the 'wrapStack' array, pop a wrap command off the array and wrap the reader form within the
 /// appropriate wrapper (for example, wrap a syntax-quoted form inside a ReaderMacro object).
-private func wrappedConsItem(item: ConsValue, inout _ wrapStack: [NextFormTreatment]) -> ConsValue {
+private func wrappedConsItem(item: Value, inout _ wrapStack: [NextFormTreatment]) -> Value {
   // IMPORTANT: Note that this function will *modify* wrapStack by removing elements.
   let wrapType : NextFormTreatment = wrapStack.last ?? .None
-  let wrappedItem : ConsValue
+  let wrappedItem : Value
   switch wrapType {
   case .None:
     wrappedItem = item
@@ -121,21 +121,21 @@ private func wrappedConsItem(item: ConsValue, inout _ wrapStack: [NextFormTreatm
 }
 
 private enum TokenListResult {
-  case Success([ConsValue])
+  case Success([Value])
   case Failure(ReadError)
 }
 
 /// Given a list of LexTokens comprising the tokens *inside* a collection form (such as a list), return a list of
-/// corresponding ConsValue items. These items can be used by the calling function to build the collection in question.
-/// This method recursively finds token sequences representing collections and calls the appropriate function to build
-/// a valid ConsValue for that collection.
+/// corresponding Value items. These items can be used by the calling function to build the collection in question. This
+/// method recursively finds token sequences representing collections and calls the appropriate function to build a
+/// valid Value for that collection.
 private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListResult {
   // For example: listWithTokens() is called with the tokens <(>, <1>, <true>, <)>. This function is called with the
-  //  constituent tokens [<1>, <true>], and returns [ConsValue.IntAtom(1), ConsValue.BoolAtom(true)].
+  //  constituent tokens [<1>, <true>], and returns [Value.IntAtom(1), Value.BoolAtom(true)].
   var wrapStack : [NextFormTreatment] = []
   
-  // Create a new ConsValue array with all sub-structures properly processed
-  var buffer : [ConsValue] = []
+  // Create a new Value array with all sub-structures properly processed
+  var buffer : [Value] = []
   // The current LexToken we're processing
   var idx = 0
   while idx < tokens.count {
@@ -261,7 +261,7 @@ private func listWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> Li
 }
 
 private enum VectorResult {
-  case Success([ConsValue])
+  case Success([Value])
   case Failure(ReadError)
 }
 
@@ -315,11 +315,11 @@ private func mapWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> Map
 }
 
 enum ParseResult {
-  case Success(ConsValue)
+  case Success(Value)
   case Failure(ReadError)
 }
 
-/// Given an array of lexical tokens, parse them into a ConsValue data structure, or return an error if this is not
+/// Given an array of lexical tokens, parse them into a Value data structure, or return an error if this is not
 /// possible.
 func parse(tokens: [LexToken], _ ctx: Context) -> ParseResult {
   var index = 0

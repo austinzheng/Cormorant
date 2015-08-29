@@ -16,10 +16,10 @@ public struct ReaderMacro : Hashable {
     case UnquoteSplice
   }
   let type : ReaderMacroType
-  private let internalForm : Box<ConsValue>
-  var form : ConsValue { return internalForm[] }
+  private let internalForm : Box<Value>
+  var form : Value { return internalForm[] }
 
-  internal init(type: ReaderMacroType, form: ConsValue) {
+  internal init(type: ReaderMacroType, form: Value) {
     self.type = type; self.internalForm = Box(form)
   }
 
@@ -36,7 +36,7 @@ public struct ReaderMacro : Hashable {
 }
 
 enum ExpandResult {
-  case Success(ConsValue)
+  case Success(Value)
   case Failure(ReadError)
 }
 
@@ -107,7 +107,7 @@ private func constructForm(result: ListExpandResult, f: SeqType -> SeqType) -> E
 
 /// Given a list (a b c) which forms the list part of the syntax-quoted form `(a b c ...), return the expansion.
 private func expandSyntaxQuotedList(list: SeqType, _ helper: SymbolGensymHelper, _ ctx: Context) -> ListExpandResult {
-  var b : [ConsValue] = []    // each element corresponds to a list element after transformation
+  var b : [Value] = []    // each element corresponds to a list element after transformation
 
   for element in collectSymbols(list).force() {
     switch element {
@@ -228,7 +228,7 @@ private func expandReaderMacro(rm: ReaderMacro, _ ctx: Context) -> ExpandResult 
 }
 
 
-extension ConsValue {
+extension Value {
 
   func expand(ctx: Context) -> ExpandResult {
     return readerExpand(ctx)

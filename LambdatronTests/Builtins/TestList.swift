@@ -19,13 +19,13 @@ class TestListBuiltin : InterpreterTest {
 
   /// .list invoked with one argument should return a single-argument list.
   func testSingleArg() {
-    expectThat("(.list nil)", shouldEvalTo: listWithItems(ConsValue.Nil))
-    expectThat("(.list true)", shouldEvalTo: listWithItems(ConsValue.BoolAtom(true)))
-    expectThat("(.list false)", shouldEvalTo: listWithItems(ConsValue.BoolAtom(false)))
-    expectThat("(.list 1523)", shouldEvalTo: listWithItems(ConsValue.IntAtom(1523)))
-    expectThat("(.list \\c)", shouldEvalTo: listWithItems(ConsValue.CharAtom("c")))
-    expectThat("(.list \"foobar\")", shouldEvalTo: listWithItems(ConsValue.StringAtom("foobar")))
-    expectThat("(.list .+)", shouldEvalTo: listWithItems(ConsValue.BuiltInFunction(.Plus)))
+    expectThat("(.list nil)", shouldEvalTo: listWithItems(.Nil))
+    expectThat("(.list true)", shouldEvalTo: listWithItems(.BoolAtom(true)))
+    expectThat("(.list false)", shouldEvalTo: listWithItems(.BoolAtom(false)))
+    expectThat("(.list 1523)", shouldEvalTo: listWithItems(.IntAtom(1523)))
+    expectThat("(.list \\c)", shouldEvalTo: listWithItems(.CharAtom("c")))
+    expectThat("(.list \"foobar\")", shouldEvalTo: listWithItems(.StringAtom("foobar")))
+    expectThat("(.list .+)", shouldEvalTo: listWithItems(.BuiltInFunction(.Plus)))
   }
 
   /// .list invoked with multiple arguments should return a multiple-argument list.

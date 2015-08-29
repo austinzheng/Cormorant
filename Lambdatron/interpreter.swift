@@ -8,15 +8,15 @@
 
 import Foundation
 
-/// An opaque struct representing a ConsValue.
+/// An opaque struct representing a Value.
 public struct Form {
-  internal let value : ConsValue
-  internal init(_ value: ConsValue) { self.value = value }
+  internal let value : Value
+  internal init(_ value: Value) { self.value = value }
 }
 
 /// An enum describing possible results from evaluating an input to the interpreter.
 public enum Result {
-  case Success(ConsValue)
+  case Success(Value)
   case ReadFailure(ReadError)
   case EvalFailure(EvalError)
 }
@@ -143,7 +143,7 @@ public class Interpreter {
   }
 
   /// Given a Lambdatron form, return a prettified description.
-  public func describe(form: ConsValue) -> DescribeResult {
+  public func describe(form: Value) -> DescribeResult {
     return form.describe(currentNamespace)
   }
 
@@ -185,7 +185,7 @@ public class Interpreter {
   }
 
   /// Look up the Var bound to a symbol in a particular namespace.
-  func resolveBinding(symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> ConsValue? {
+  func resolveBinding(symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> Value? {
     if let namespace = namespaces[ns] {
       return namespace.resolveVar(symbol)
     }

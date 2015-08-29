@@ -49,7 +49,7 @@ func re_first(args: Params, _ ctx: Context) -> EvalResult {
         }
         else {
           // Multiple matches, build a vector
-          var buffer : [ConsValue] = []
+          var buffer : [Value] = []
           for i in 0..<result.numberOfRanges {
             let thisRange = result.rangeAtIndex(i)
             if rangeIsValid(thisRange) {
@@ -78,7 +78,7 @@ func re_seq(args: Params, _ ctx: Context) -> EvalResult {
   if let pattern = args[0].asRegexPattern {
     if let str = args[1].asString {
       let utf16Str = str as NSString
-      var resultBuffer : [ConsValue] = []
+      var resultBuffer : [Value] = []
 
       pattern.enumerateMatchesInString(str, options: [], range: NSRange(location: 0, length: str.utf16.count)) {
         (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
@@ -87,7 +87,7 @@ func re_seq(args: Params, _ ctx: Context) -> EvalResult {
           return
         }
         // Create a vector of the results, then pass it in
-        var buffer : [ConsValue] = []
+        var buffer : [Value] = []
         for i in 0..<result.numberOfRanges {
           let thisRange = result.rangeAtIndex(i)
           if rangeIsValid(thisRange) {
@@ -126,8 +126,8 @@ func re_iterate(args: Params, _ ctx: Context) -> EvalResult {
           return
         }
         // Create a vector of the results, then pass it in
-        var buffer : [ConsValue] = []
-        var ranges : [ConsValue] = []
+        var buffer : [Value] = []
+        var ranges : [Value] = []
         for i in 0..<result.numberOfRanges {
           let thisRange = result.rangeAtIndex(i)
           if rangeIsValid(thisRange) {

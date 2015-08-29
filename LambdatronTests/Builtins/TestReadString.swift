@@ -12,7 +12,7 @@ import Foundation
 /// Test the '.read-string' built-in function.
 class TestReadStringBuiltin : InterpreterTest {
 
-  private func expectInputToReadString(input: String, toEvalTo result: ConsValue) {
+  private func expectInputToReadString(input: String, toEvalTo result: Value) {
     return expectThat("(.read-string \"\(input)\")", shouldEvalTo: result)
   }
 
@@ -80,8 +80,8 @@ class TestReadStringBuiltin : InterpreterTest {
           vectorWithItems(1, 2),
           3),
         vectorWithItems(4,
-          vectorWithItems(ConsValue.IntAtom(5)),
-          vectorWithItems(ConsValue.IntAtom(6))),
+          vectorWithItems(.IntAtom(5)),
+          vectorWithItems(.IntAtom(6))),
         7))
   }
 
@@ -89,8 +89,8 @@ class TestReadStringBuiltin : InterpreterTest {
   func testWithMaps() {
     expectInputToReadString("{}", toEvalTo: mapWithItems())
     expectInputToReadString("{1 2, 3 4}", toEvalTo: mapWithItems((1, 2), (3, 4)))
-    let foo : ConsValue = .Symbol(symbol("foo"))
-    let bar : ConsValue = .Keyword(keyword("bar"))
+    let foo = Value.Symbol(symbol("foo"))
+    let bar = Value.Keyword(keyword("bar"))
     expectInputToReadString("{(10 20 foo) {:bar true nil false}}", toEvalTo:
       mapWithItems((listWithItems(10, 20, foo), mapWithItems((bar, true), (.Nil, false)))))
   }

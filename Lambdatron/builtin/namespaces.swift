@@ -287,9 +287,9 @@ private enum NamespaceResult {
 
 // TODO: (az) Is there a way we can make this less clumsy?
 /// Given one of several possible canonical representations of a namespace (either a namespace object or a symbol naming
-/// a namespace), extract the namespace, or return an error. Note that, if the ConsValue represents a namespace object,
-/// that namespace object will be returned, even if it has been removed from the interpreter.
-private func extractNamespace(value: ConsValue, _ ctx: Context, _ shouldValidate: Bool, _ fn: String) -> NamespaceResult {
+/// a namespace), extract the namespace, or return an error. Note that, if the Value represents a namespace object, that
+/// namespace object will be returned, even if it has been removed from the interpreter.
+private func extractNamespace(value: Value, _ ctx: Context, _ shouldValidate: Bool, _ fn: String) -> NamespaceResult {
   switch value {
   case let .Symbol(sym):
     if let namespace = ctx.interpreter.namespaces[NamespaceName(sym)] {
