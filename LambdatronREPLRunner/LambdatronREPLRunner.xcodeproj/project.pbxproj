@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A14525D1B915EB8001F3F28 /* LambdatronREPLRunner in Copy Files */ = {isa = PBXBuildFile; fileRef = 1ADD0C7B1AD3C8A300419F94 /* LambdatronREPLRunner */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		1A14525F1B915ECC001F3F28 /* LambdatronREPL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A179F911B9141670038907C /* LambdatronREPL.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1A1452601B915ECC001F3F28 /* Lambdatron.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A179F8D1B9141550038907C /* Lambdatron.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1A179F8E1B9141550038907C /* Lambdatron.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A179F8D1B9141550038907C /* Lambdatron.framework */; };
+		1A179F921B9141670038907C /* LambdatronREPL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A179F911B9141670038907C /* LambdatronREPL.framework */; };
 		1ADD0C7F1AD3C8A300419F94 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADD0C7E1AD3C8A300419F94 /* main.m */; };
-		1ADD0C931AD3C92900419F94 /* LambdatronREPLRunner in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1ADD0C7B1AD3C8A300419F94 /* LambdatronREPLRunner */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		1ADD0C991AD3C96500419F94 /* Lambdatron.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1ADD0C951AD3C95F00419F94 /* Lambdatron.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		1ADD0C9A1AD3C96500419F94 /* LambdatronREPL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1ADD0C961AD3C95F00419F94 /* LambdatronREPL.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		1ADD0CAB1AD44D2900419F94 /* Lambdatron.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADD0C951AD3C95F00419F94 /* Lambdatron.framework */; };
-		1ADD0CAC1AD44D2900419F94 /* LambdatronREPL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADD0C961AD3C95F00419F94 /* LambdatronREPL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,45 +26,37 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		1ADD0C791AD3C8A300419F94 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		1ADD0C921AD3C92300419F94 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 6;
-			files = (
-				1ADD0C931AD3C92900419F94 /* LambdatronREPLRunner in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1ADD0C941AD3C92C00419F94 /* CopyFiles */ = {
+		1A14525E1B915EC6001F3F28 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				1ADD0C991AD3C96500419F94 /* Lambdatron.framework in CopyFiles */,
-				1ADD0C9A1AD3C96500419F94 /* LambdatronREPL.framework in CopyFiles */,
+				1A14525F1B915ECC001F3F28 /* LambdatronREPL.framework in CopyFiles */,
+				1A1452601B915ECC001F3F28 /* Lambdatron.framework in CopyFiles */,
 			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1ADD0C921AD3C92300419F94 /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				1A14525D1B915EB8001F3F28 /* LambdatronREPLRunner in Copy Files */,
+			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A179F8D1B9141550038907C /* Lambdatron.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lambdatron.framework; path = ../Build/Products/Debug/Lambdatron.framework; sourceTree = "<group>"; };
+		1A179F911B9141670038907C /* LambdatronREPL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LambdatronREPL.framework; path = ../Build/Products/Debug/LambdatronREPL.framework; sourceTree = "<group>"; };
 		1ADD0C7B1AD3C8A300419F94 /* LambdatronREPLRunner */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LambdatronREPLRunner; sourceTree = BUILT_PRODUCTS_DIR; };
 		1ADD0C7E1AD3C8A300419F94 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		1ADD0C891AD3C8F100419F94 /* LambdatronREPLRunner.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LambdatronREPLRunner.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		1ADD0C8C1AD3C8F100419F94 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1ADD0C951AD3C95F00419F94 /* Lambdatron.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lambdatron.framework; path = "../../../Library/Developer/Xcode/DerivedData/Lambdatron-gojlskuvpvgbqfajinjmufhqglis/Build/Products/Debug/Lambdatron.framework"; sourceTree = "<group>"; };
-		1ADD0C961AD3C95F00419F94 /* LambdatronREPL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LambdatronREPL.framework; path = "../../../Library/Developer/Xcode/DerivedData/Lambdatron-gojlskuvpvgbqfajinjmufhqglis/Build/Products/Debug/LambdatronREPL.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,8 +64,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1ADD0CAB1AD44D2900419F94 /* Lambdatron.framework in Frameworks */,
-				1ADD0CAC1AD44D2900419F94 /* LambdatronREPL.framework in Frameworks */,
+				1A179F921B9141670038907C /* LambdatronREPL.framework in Frameworks */,
+				1A179F8E1B9141550038907C /* Lambdatron.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,8 +82,8 @@
 		1ADD0C721AD3C8A300419F94 = {
 			isa = PBXGroup;
 			children = (
-				1ADD0C951AD3C95F00419F94 /* Lambdatron.framework */,
-				1ADD0C961AD3C95F00419F94 /* LambdatronREPL.framework */,
+				1A179F911B9141670038907C /* LambdatronREPL.framework */,
+				1A179F8D1B9141550038907C /* Lambdatron.framework */,
 				1ADD0C7D1AD3C8A300419F94 /* LambdatronREPLRunner */,
 				1ADD0C8A1AD3C8F100419F94 /* LambdatronREPLRunnerBundle */,
 				1ADD0C7C1AD3C8A300419F94 /* Products */,
@@ -140,7 +132,6 @@
 			buildPhases = (
 				1ADD0C771AD3C8A300419F94 /* Sources */,
 				1ADD0C781AD3C8A300419F94 /* Frameworks */,
-				1ADD0C791AD3C8A300419F94 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -158,8 +149,8 @@
 				1ADD0C851AD3C8F100419F94 /* Sources */,
 				1ADD0C861AD3C8F100419F94 /* Frameworks */,
 				1ADD0C871AD3C8F100419F94 /* Resources */,
-				1ADD0C921AD3C92300419F94 /* CopyFiles */,
-				1ADD0C941AD3C92C00419F94 /* CopyFiles */,
+				1ADD0C921AD3C92300419F94 /* Copy Files */,
+				1A14525E1B915EC6001F3F28 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -278,6 +269,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -314,6 +306,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
@@ -323,10 +316,7 @@
 		1ADD0C831AD3C8A300419F94 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lambdatron-gojlskuvpvgbqfajinjmufhqglis/Build/Products/Debug",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/$(PRODUCT_NAME).bundle/Contents/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -336,10 +326,7 @@
 		1ADD0C841AD3C8A300419F94 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Lambdatron-gojlskuvpvgbqfajinjmufhqglis/Build/Products/Debug",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/$(PRODUCT_NAME).bundle/Contents/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -395,6 +382,7 @@
 				1ADD0C841AD3C8A300419F94 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		1ADD0C8D1AD3C8F100419F94 /* Build configuration list for PBXNativeTarget "LambdatronREPLRunnerBundle" */ = {
 			isa = XCConfigurationList;
@@ -403,6 +391,7 @@
 				1ADD0C8F1AD3C8F100419F94 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
