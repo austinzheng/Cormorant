@@ -20,7 +20,7 @@ class TestApply : InterpreterTest {
   /// apply should work when invoked upon zero-arity functions using an empty sequence.
   func testApplyWithNoArgs() {
     expectThat("(apply (fn [] true) nil)", shouldEvalTo: true)
-    expectThat("(apply (fn [] 152) ())", shouldEvalTo: 152)
+    expectThat("(apply (fn [] 152) ())", shouldEvalTo: .IntAtom(152))
     expectThat("(apply (fn [] \"foobar\") [])", shouldEvalTo: .StringAtom("foobar"))
     expectThat("(apply (fn [] \\a) {})", shouldEvalTo: .CharAtom("a"))
   }

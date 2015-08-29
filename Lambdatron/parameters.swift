@@ -19,7 +19,7 @@ struct Params : CustomStringConvertible, CollectionType {
   /// How many parameters are stored within the struct.
   private(set) var count = 0
 
-  var description : String { return describe(nil).asString }
+  var description : String { return describe(nil).rawStringValue }
 
   var startIndex : Int { return 0 }
   var endIndex : Int { return count }

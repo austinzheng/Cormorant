@@ -33,7 +33,7 @@ class TestListBasics : XCTestCase {
     for item in SeqIterator(testCons)! {
       if counter == 0 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == 15,
             "The first item in the list should have been the integer 15.")
         case .Error:
@@ -42,7 +42,7 @@ class TestListBasics : XCTestCase {
       }
       else if counter == 1 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == sublist,
             "The second item in the list should have been the sublist.")
         case .Error:
@@ -51,7 +51,7 @@ class TestListBasics : XCTestCase {
       }
       else if counter == 2 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == vector,
             "The third item in the list should have been the vector.")
         case .Error:
@@ -60,7 +60,7 @@ class TestListBasics : XCTestCase {
       }
       else if counter == 3 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == .StringAtom("foobar"),
             "The fourth item in the list should have been the string \"foobar\".")
         case .Error:
@@ -86,7 +86,7 @@ class TestListBasics : XCTestCase {
       XCTAssert(idx == counter, "The idx reported by enumerate() should always be in sync with 'counter'.")
       if counter == 0 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == 15,
             "The first item in the list should have been the integer 15.")
         case .Error:
@@ -95,7 +95,7 @@ class TestListBasics : XCTestCase {
       }
       else if counter == 1 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == sublist,
             "The second item in the list should have been the sublist.")
         case .Error:
@@ -104,7 +104,7 @@ class TestListBasics : XCTestCase {
       }
       else if counter == 2 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == vector,
             "The third item in the list should have been the vector.")
         case .Error:
@@ -113,7 +113,7 @@ class TestListBasics : XCTestCase {
       }
       else if counter == 3 {
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           XCTAssert(item == .StringAtom("foobar"),
             "The fourth item in the list should have been the string \"foobar\".")
         case .Error:

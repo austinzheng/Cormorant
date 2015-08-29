@@ -114,7 +114,7 @@ final public class NamespaceContext : Context, Hashable {
     // Add all aliases to other namespaces
     for (alias, namespace) in aliases {
       switch alias.asSymbol(interpreter.internStore) {
-      case let .Symbol(sym):
+      case let .Just(sym):
         buffer[.Symbol(sym)] = .Namespace(namespace)
       case let .Error(err):
         // Not expected to ever get here
@@ -124,7 +124,7 @@ final public class NamespaceContext : Context, Hashable {
     // Add all aliases to this namespace
     for alias in selfAliases {
       switch alias.asSymbol(interpreter.internStore) {
-      case let .Symbol(sym):
+      case let .Just(sym):
         buffer[.Symbol(sym)] = .Namespace(self)
       case let .Error(err):
         // Not expected to ever get here
@@ -238,14 +238,14 @@ final public class NamespaceContext : Context, Hashable {
 //  }
 
   /// Create a new unbound Var, or unbind a locally interned Var.
-  func setUnboundVar(varName: UnqualifiedSymbol, shouldUnbind: Bool) -> VarResult {
+  func setUnboundVar(varName: UnqualifiedSymbol, shouldUnbind: Bool) -> EvalOptional<VarType> {
     if let thisVar = vars[varName] {
       if thisVar.isBound && shouldUnbind == false {
         // Don't unbind the var, just return it
-        return .Var(thisVar)
+        return .Just(thisVar)
       }
       // Don't do anything for now
-      return .Var(thisVar)
+      return .Just(thisVar)
     }
     if refers[varName] != nil {
       return .Error(EvalError(.VarRebindingError))
@@ -255,31 +255,31 @@ final public class NamespaceContext : Context, Hashable {
       let qualifiedName = InternedSymbol(varName.nameComponent(self), namespace: name, ivs: ivs)
       let newVar = VarType(qualifiedName, value: nil)
       vars[qualifiedName.unqualified] = newVar
-      return .Var(newVar)
+      return .Just(newVar)
     }
   }
 
   /// Create or update a binding between a symbol and a Var.
-  func setVar(varName: UnqualifiedSymbol, newValue: Value) -> VarResult {
+  func setVar(varName: UnqualifiedSymbol, newValue: Value) -> EvalOptional<VarType> {
     if let alreadyReferred = refers[varName] {
       // If we've referred this var before, we should error out if the referred var isn't in a system namespace
       if let ns = alreadyReferred.name.ns where interpreter.namespaces[ns]?.isSystemNamespace == true {
         alreadyReferred.bindValue(newValue)
-        return .Var(alreadyReferred)
+        return .Just(alreadyReferred)
       }
       return .Error(EvalError(.VarRebindingError))
     }
     else if let alreadyInterned = vars[varName] {
       // The Var was previously interned locally; update it
       alreadyInterned.bindValue(newValue)
-      return .Var(alreadyInterned)
+      return .Just(alreadyInterned)
     }
     else {
       // Create a new Var and intern it
       let qualifiedName = InternedSymbol(varName.nameComponent(self), namespace: name, ivs: ivs)
       let newVar = VarType(qualifiedName, value: newValue)
       vars[qualifiedName.unqualified] = newVar
-      return .Var(newVar)
+      return .Just(newVar)
     }
   }
 

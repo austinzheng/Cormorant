@@ -9,17 +9,14 @@
 import Foundation
 
 /// An enum representing the result of prebuilding a function or macro.
-private enum PrebuildResult {
-  case Success(([Int : SingleFn], SingleFn?))
-  case Failure(EvalError)
-}
+typealias PrebuildResult = EvalOptional<([Int : SingleFn], SingleFn?)>
 
 /// Given an array of SingleFn objects representing different arities, return a PrebuildResult that is either an error
 /// or a map of arities to SingleFn objects.
 private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
   if arities.count == 0 {
     // Must have at least one arity
-    return .Failure(EvalError(.NoFnAritiesError, "(none)"))
+    return .Error(EvalError(.NoFnAritiesError, "(none)"))
   }
   // Do validation
   var variadic : SingleFn? = nil
@@ -28,14 +25,14 @@ private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
     // 1. Only one variable arity definition
     if arity.isVariadic {
       if variadic != nil {
-        return .Failure(EvalError(.MultipleVariadicAritiesError, "(none)"))
+        return .Error(EvalError(.MultipleVariadicAritiesError, "(none)"))
       }
       variadic = arity
     }
     // 2. Only one definition per fixed arity
     if !arity.isVariadic {
       if aritiesMap[arity.paramCount] != nil {
-        return .Failure(EvalError(.MultipleDefinitionsPerArityError, "(none)"))
+        return .Error(EvalError(.MultipleDefinitionsPerArityError, "(none)"))
       }
       aritiesMap[arity.paramCount] = arity
     }
@@ -44,11 +41,12 @@ private func prebuildFn(arities: [SingleFn]) -> PrebuildResult {
     for arity in arities {
       // 3. If variable arity definition, no fixed-arity definitions can have more params than the variable arity def
       if !arity.isVariadic && arity.paramCount > actualVariadic.paramCount {
-        return .Failure(EvalError(.FixedArityExceedsVariableArityError, "(none)"))
+        return .Error(EvalError(.FixedArityExceedsVariableArityError, "(none)"))
       }
     }
   }
-  return .Success((aritiesMap, variadic))
+  let result = (aritiesMap, variadic)
+  return .Just(result)
 }
 
 /// A struct representing a single-arity definition for a function or macro. A given function or macro is comprised of
@@ -106,7 +104,7 @@ struct SingleFn {
         for var j=i; j<arguments.count; j++ {
           varargBuffer.append(arguments[j])
         }
-        newContext.pushBinding(.Seq(sequence(varargBuffer)), forSymbol: variadicParameter)
+        newContext.pushBinding(.Seq(sequenceFromItems(varargBuffer)), forSymbol: variadicParameter)
       }
       else {
         newContext.pushBinding(.Nil, forSymbol: variadicParameter)
@@ -151,10 +149,10 @@ public final class Function {
   class func buildFunction(arities: [SingleFn], name: UnqualifiedSymbol?, ctx: Context, asMacro: Bool) -> EvalResult {
     let result = prebuildFn(arities)
     switch result {
-    case let .Success((aritiesMap, variadic)):
+    case let .Just((aritiesMap, variadic)):
       let function = Function(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
       return .Success(asMacro ? .MacroLiteral(function) : .FunctionLiteral(function))
-    case let .Failure(f):
+    case let .Error(f):
       return .Failure(f)
     }
   }

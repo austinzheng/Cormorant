@@ -9,7 +9,7 @@
 import Foundation
 
 /// An opaque struct describing a reader macro and the form upon which it operates.
-public struct ReaderMacro : Hashable {
+public struct ReaderMacro {
   internal enum ReaderMacroType {
     case SyntaxQuote
     case Unquote
@@ -23,14 +23,18 @@ public struct ReaderMacro : Hashable {
     self.type = type; self.internalForm = Box(form)
   }
 
-  public var hashValue : Int { return type.hashValue }
+  internal func equals(that: ReaderMacro) -> Bool {
+    return type == that.type && form == that.form
+  }
+
+  internal var hashValue : Int { return type.hashValue }
 
   // Note that this 'describe' function is only for use while debugging.
   func debugDescribe(ctx: Context?) -> String {
     switch type {
-    case .SyntaxQuote: return "`" + form.describe(ctx).force()
-    case .Unquote: return "~" + form.describe(ctx).force()
-    case .UnquoteSplice: return "~@" + form.describe(ctx).force()
+    case .SyntaxQuote: return "`" + form.describe(ctx).forceUnwrap()
+    case .Unquote: return "~" + form.describe(ctx).forceUnwrap()
+    case .UnquoteSplice: return "~@" + form.describe(ctx).forceUnwrap()
     }
   }
 }
@@ -107,9 +111,13 @@ private func constructForm(result: ListExpandResult, f: SeqType -> SeqType) -> E
 
 /// Given a list (a b c) which forms the list part of the syntax-quoted form `(a b c ...), return the expansion.
 private func expandSyntaxQuotedList(list: SeqType, _ helper: SymbolGensymHelper, _ ctx: Context) -> ListExpandResult {
-  var b : [Value] = []    // each element corresponds to a list element after transformation
+  guard case let .Just(listOfSymbols) = collectSymbols(list) else {
+    // TODO: (az) any way to avoid the optional?
+    internalError("Could not collect symbols...")
+  }
 
-  for element in collectSymbols(list).force() {
+  var b : [Value] = []    // each element corresponds to a list element after transformation
+  for element in listOfSymbols {
     switch element {
     case .Nil, .BoolAtom, .IntAtom, .FloatAtom, .CharAtom, .StringAtom, .Keyword, .Symbol, .Special, .BuiltInFunction, .Auxiliary:
       // Atomic items are wrapped in 'list': ATOM --> (list ATOM)
@@ -148,7 +156,7 @@ private func expandSyntaxQuotedList(list: SeqType, _ helper: SymbolGensymHelper,
     }
   }
 
-  return .Success(sequence(b))
+  return .Success(sequenceFromItems(b))
 }
 
 /// Given a list (e.g. (a b c)), return an expanded version of the list where each element has been expanded itself.
@@ -168,7 +176,7 @@ private func expandList(seq: ContiguousList, _ ctx: Context) -> ExpandResult {
     case .Failure: return expanded
     }
   }
-  return .Success(.Seq(sequence(copy)))
+  return .Success(.Seq(sequenceFromItems(copy)))
 }
 
 /// Given a vector (e.g. [a b c]), return an expanded version of the vector where each element has been expanded itself.
@@ -249,14 +257,14 @@ extension Value {
       if let seq = seq as? ContiguousList {
         return expandList(seq, ctx)
       }
-      if seq.isEmpty.force() {
+      if seq.isEmpty.forceUnwrap() {
         return .Success(.Seq(seq))
       }
       // Put the seq in a list.
       let rseq = ContiguousList.fromSequence(seq)
       switch rseq {
         // TODO: Make sure that this is handled properly.
-      case let .Seq(seq):
+      case let .Just(seq):
         if let seq = seq as? ContiguousList {
           return expandList(seq, ctx)
         }
@@ -307,7 +315,7 @@ extension Value {
     case let .Seq(s):
       // We have a list, e.g. `(a b c d e)
       // We need to reader-expand each individual a, b, c, then wrap it all in a (seq (cons X))
-      if s.isEmpty.force() {
+      if s.isEmpty.forceUnwrap() {
         // `() --> (list)
         return .Success(.Seq(sequence(LIST)))
       }
@@ -320,7 +328,7 @@ extension Value {
       }
     case let .Vector(vector):
       // Turn the syntax-quoted vector `[a b] into (apply (vector `(a b)))
-      let result = expandSyntaxQuotedList(sequence(vector), thisHelper, ctx)
+      let result = expandSyntaxQuotedList(sequenceFromItems(vector), thisHelper, ctx)
       return constructForm(result) {
         sequence(APPLY, VECTOR, .Seq(sequence(SEQ, .Seq(cons(CONCAT, next: $0)))))
       }

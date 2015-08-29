@@ -10,6 +10,15 @@ import Foundation
 import XCTest
 @testable import Lambdatron
 
+private extension Value {
+  var asKeyword : InternedKeyword? {
+    if case let .Keyword(value) = self {
+      return value
+    }
+    return nil
+  }
+}
+
 class TestKeywordBuiltin : InterpreterTest {
 
   /// .keyword should properly return a keyword when given a new keyword.

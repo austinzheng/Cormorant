@@ -24,7 +24,7 @@ internal let LOOP = Value.Special(.Loop)
 internal let RECUR = Value.Special(.Recur)
 internal let APPLY = Value.Special(.Apply)
 
-/// An enum describing all the special forms recognized by the interpreter.
+/// A type describing all the special forms recognized by the interpreter.
 public enum SpecialForm : String, CustomStringConvertible {
   // Add special forms below. The string is the name of the special form, and takes precedence over all functions, macros, and user defs
   case Quote = "quote"
@@ -80,9 +80,8 @@ func sf_if(args: Params, _ ctx: Context) -> EvalResult {
   if args.count != 2 && args.count != 3 {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
-  let testResult = args[0].evaluate(ctx)
 
-  let result = next(testResult) { testForm in
+  let result = args[0].evaluate(ctx).then { testForm in
     let then = args[1]
     let otherwise : Value? = args.count == 3 ? args[2] : nil
 
@@ -142,7 +141,7 @@ func sf_def(args: Params, _ ctx: Context) -> EvalResult {
       case let .Success(result):
         let result = ctx.root.setVar(name, newValue: result)
         switch result {
-        case let .Var(aVar): return .Success(.Var(aVar))
+        case let .Just(aVar): return .Success(.Var(aVar))
         case let .Error(err): return .Failure(err)
         }
       case .Recur:
@@ -157,7 +156,7 @@ func sf_def(args: Params, _ ctx: Context) -> EvalResult {
       // If invalid, create the var as unbound
       let result = ctx.root.setUnboundVar(sym.unqualified, shouldUnbind: false)
       switch result {
-      case let .Var(aVar): return .Success(.Var(aVar))
+      case let .Just(aVar): return .Success(.Var(aVar))
       case let .Error(err): return .Failure(err)
       }
     }
@@ -224,14 +223,14 @@ func sf_var(args: Params, _ ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   // Special form takes one argument: a literal symbol
-  if let varSymbol = args[0].asSymbol {
-    if let varResult = ctx.root.resolveSymbolFor(varSymbol) {
-      return .Success(.Var(varResult))
-    }
-    // Symbol did not resolve to a Var
-    return .Failure(EvalError(.InvalidSymbolError))
+  guard case let .Symbol(varSymbol) = args[0] else {
+    return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol"))
   }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol"))
+  if let varResult = ctx.root.resolveSymbolFor(varSymbol) {
+    return .Success(.Var(varResult))
+  }
+  // Symbol did not resolve to a Var
+  return .Failure(EvalError(.InvalidSymbolError))
 }
 
 /// Define a user-defined function, consisting of an parameter vector followed by zero or more forms comprising the
@@ -245,7 +244,7 @@ func sf_fn(args: Params, _ ctx: Context) -> EvalResult {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
   let name : UnqualifiedSymbol?
-  if let nameSymbol = args[0].asSymbol {
+  if case let .Symbol(nameSymbol) = args[0] {
     // If the optional symbol used as an internal reference to the anonymous function exists, it must be unqualified
     if !nameSymbol.isUnqualified {
       return .Failure(EvalError(.QualifiedSymbolMisuseError))
@@ -260,7 +259,7 @@ func sf_fn(args: Params, _ ctx: Context) -> EvalResult {
   if rest.count == 0 {
     return .Failure(EvalError.arityError("at least 2 (if first arg is a name)", actual: args.count, fn))
   }
-  if rest[0].asVector != nil {
+  if case .Vector = rest[0] {
     // Single arity
     let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
     if let actualSingleArity = singleArity {
@@ -291,26 +290,23 @@ func sf_defmacro(args: Params, _ ctx: Context) -> EvalResult {
   if args.count < 2 {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
   }
-  if let sym = args[0].asSymbol {
+  if case let .Symbol(sym) = args[0] {
     if let ns = sym.ns where ns != ctx.interpreter.currentNsName {
       // Qualified symbols must be qualified with the current namespace
       return .Failure(EvalError(.QualifiedSymbolMisuseError))
     }
     let name = sym.unqualified
     let rest = args.rest()
-    if rest[0].asVector != nil {
+    if case .Vector = rest[0] {
       // Single arity
       let singleArity = buildSingleFnFor(.Vector(rest.asArray), ctx: ctx)
       if let actualSingleArity = singleArity {
         let macroResult = Macro.buildFunction([actualSingleArity], name: name, ctx: ctx, asMacro: true)
         switch macroResult {
         case let .Success(macro):
-          let result = ctx.root.setVar(name, newValue: macro)
-          switch result {
-          case let .Var(aVar): return .Success(.Var(aVar))
-          case let .Error(err): return .Failure(err)
-          }
-        case .Recur, .Failure: return macroResult
+          return ctx.root.setVar(name, newValue: macro).then { .Success(.Var($0)) }
+        case .Recur, .Failure:
+          return macroResult
         }
       }
     }
@@ -330,7 +326,7 @@ func sf_defmacro(args: Params, _ ctx: Context) -> EvalResult {
       case let .Success(macro):
         let result = ctx.root.setVar(name, newValue: macro)
         switch result {
-        case let .Var(aVar): return .Success(.Var(aVar))
+        case let .Just(aVar): return .Success(.Var(aVar))
         case let .Error(err): return .Failure(err)
         }
       case .Recur, .Failure: return macroResult
@@ -350,7 +346,7 @@ func sf_loop(args: Params, _ ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
-  if let bindingsVector = args[0].asVector {
+  if case let .Vector(bindingsVector) = args[0] {
     // The first argument must be a vector of bindings and values
     // Evaluate each binding's initializer and bind it to the corresponding symbol
     if bindingsVector.count % 2 != 0 {
@@ -432,8 +428,7 @@ func sf_apply(args: Params, _ ctx: Context) -> EvalResult {
   if args.count < 2 {
     return .Failure(EvalError.arityError("2 or more", actual: args.count, fn))
   }
-  let first = args[0].evaluate(ctx)
-  let result = next(first) { first in
+  let result = args[0].evaluate(ctx).then { first in
     // Collect all remaining args
     var paramsToApply = Params()
     
@@ -459,7 +454,7 @@ func sf_apply(args: Params, _ ctx: Context) -> EvalResult {
         for item in SeqIterator(seq) {
           // Add each item to the params object
           switch item {
-          case let .Success(item): paramsToApply.append(item)
+          case let .Just(item): paramsToApply.append(item)
           case let .Error(err): return .Failure(err)
           }
         }
@@ -546,9 +541,9 @@ private func buildSingleFnFor(item: Value, ctx: Context) -> SingleFn? {
   switch item {
   case let .Seq(seq):
     switch collectSymbols(seq) {
-    case let .Success(params): itemAsVector = params.asArray
+    case let .Just(params): itemAsVector = params.asArray
       // XXX: This should properly propagate the error.
-    case .Failure: itemAsVector = nil
+    case .Error: itemAsVector = nil
     }
   case let .Vector(v): itemAsVector = v
   default: itemAsVector = nil
@@ -559,7 +554,7 @@ private func buildSingleFnFor(item: Value, ctx: Context) -> SingleFn? {
     if vector.count == 0 {
       return nil
     }
-    if let params = vector[0].asVector, let paramTuple = extractParameters(params, ctx) {
+    if case let .Vector(params) = vector[0], let paramTuple = extractParameters(params, ctx) {
       // Now we've taken out the parameters (they are symbols in a vector
       let (paramNames, variadic) = paramTuple
       let forms = vector.count > 1 ? Array(vector[1..<vector.count]) : []

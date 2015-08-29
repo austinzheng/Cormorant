@@ -26,7 +26,7 @@ class TestNsReferBuiltin : InterpreterTest {
 
   /// .ns-refer should reject a symbol not naming a namespace.
   func testInvalidNamespaceName() {
-    expectThat("(.ns-refer 'asdkajsdl)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-refer 'asdkajsdl)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-refer should reject non-symbol arguments.
@@ -108,7 +108,7 @@ class TestNsRefersBuiltin : InterpreterTest {
 
   /// .ns-refers should reject a symbol not naming a namespace.
   func testInvalidNamespaceName() {
-    expectThat("(.ns-refers 'asdkajsdl)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-refers 'asdkajsdl)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-refers should reject non-symbol and non-namespace arguments.

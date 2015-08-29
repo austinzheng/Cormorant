@@ -13,7 +13,7 @@ func pr_list(args: Params, _ ctx: Context) -> EvalResult {
   if args.count == 0 {
     return .Success(.Seq(Empty()))
   }
-  let list = sequence(args.asArray)
+  let list = sequenceFromItems(args.asArray)
   return .Success(.Seq(list))
 }
 
@@ -81,12 +81,12 @@ func pr_first(args: Params, _ ctx: Context) -> EvalResult {
     return .Success(.Nil)
   case let .StringAtom(s):
     switch StringSequenceView(s).first {
-    case let .Success(s): return .Success(s)
+    case let .Just(s): return .Success(s)
     case let .Error(err): return .Failure(err)
     }
   case let .Seq(seq):
     switch seq.first {
-    case let .Success(s): return .Success(s)
+    case let .Just(s): return .Success(s)
     case let .Error(err): return .Failure(err)
     }
   case let .Vector(v):
@@ -111,23 +111,23 @@ func pr_rest(args: Params, _ ctx: Context) -> EvalResult {
     return .Success(.Seq(Empty()))
   case let .StringAtom(s):
     switch StringSequenceView(s).rest {
-    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.Seq(seq))
     case let .Error(err): return .Failure(err)
     }
   case let .Seq(seq):
     // Ask the sequence what the rest of its items are
     switch seq.rest {
-    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.Seq(seq))
     case let .Error(err): return .Failure(err)
     }
   case let .Vector(vector):
     switch VectorSequenceView(vector).rest {
-    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.Seq(seq))
     case let .Error(err): return .Failure(err)
     }
   case let .Map(map):
     switch HashmapSequenceView(map).rest {
-    case let .Seq(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.Seq(seq))
     case let .Error(err): return .Failure(err)
     }
   default:
@@ -147,36 +147,36 @@ func pr_next(args: Params, _ ctx: Context) -> EvalResult {
   case .Nil: return .Success(.Nil)
   case let .StringAtom(str):
     switch StringSequenceView(str).rest {
-    case let .Seq(rest):
+    case let .Just(rest):
       switch rest.isEmpty {
-      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
     }
   case let .Seq(seq):
     switch seq.rest {
-    case let .Seq(rest):
+    case let .Just(rest):
       switch rest.isEmpty {
-      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
     }
   case let .Vector(vector):
     switch VectorSequenceView(vector).rest {
-    case let .Seq(rest):
+    case let .Just(rest):
       switch rest.isEmpty {
-      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
     }
   case let .Map(m):
     switch HashmapSequenceView(m).rest {
-    case let .Seq(rest):
+    case let .Just(rest):
       switch rest.isEmpty {
-      case let .Boolean(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
@@ -200,7 +200,7 @@ func pr_seq(args: Params, _ ctx: Context) -> EvalResult {
   case let .Seq(seq):
     if let result = sequence(seq) {
       switch result {
-      case let .Seq(s): return .Success(.Seq(s))
+      case let .Just(s): return .Success(.Seq(s))
       case let .Error(err): return .Failure(err)
       }
     }
@@ -240,19 +240,17 @@ func pr_conj(args: Params, _ ctx: Context) -> EvalResult {
   case let .Vector(vector):
     return .Success(.Vector(vector + [toAdd]))
   case let .Map(m):
-    if let vector = toAdd.asVector {
-      if vector.count != 2 {
-        return .Failure(EvalError.invalidArgumentError(fn,
-          message: "vector arg to map conj must be a two-element pair vector"))
-      }
-      var newMap = m
-      newMap[vector[0]] = vector[1]
-      return .Success(.Map(newMap))
-    }
-    else {
+    guard case let .Vector(vector) = toAdd else {
       return .Failure(EvalError.invalidArgumentError(fn,
         message: "if first argument is a hashmap, second argument must be a vector"))
     }
+    guard vector.count == 2 else {
+      return .Failure(EvalError.invalidArgumentError(fn,
+        message: "vector arg to map conj must be a two-element pair vector"))
+    }
+    var newMap = m
+    newMap[vector[0]] = vector[1]
+    return .Success(.Map(newMap))
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a collection"))
   }
@@ -280,14 +278,14 @@ func pr_concat(args: Params, _ ctx: Context) -> EvalResult {
       }
       else {
         switch seq.isEmpty {
-        case let .Boolean(seqIsEmpty):
+        case let .Just(seqIsEmpty):
           if seqIsEmpty {
             // Skip empty seqs
             continue
           }
           // Make a copy of this list, connected to our in-progress list.
           switch ContiguousList.fromSequence(seq, next: head) {
-          case let .Seq(seq): head = seq
+          case let .Just(seq): head = seq
           case let .Error(err): return .Failure(err)
           }
         case let .Error(err): return .Failure(err)
@@ -311,7 +309,7 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
   if args.count < 2 || args.count > 3 {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
-  if let idx = args[1].asInteger {
+  if case let .IntAtom(idx) = args[1] {
     let fallback : Value? = args.count == 3 ? args[2] : nil
     if idx < 0 {
       // Index can't be negative
@@ -335,7 +333,7 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
       for (ctr, item) in SeqIterator(seq).enumerate() {
         // Go through the list. If we can find the item at the right index without running into an error, return it.
         switch item {
-        case let .Success(item):
+        case let .Just(item):
           if ctr == idx { return .Success(item) }
         case let .Error(err):
           return .Failure(err)
@@ -380,12 +378,12 @@ func pr_get(args: Params, _ ctx: Context) -> EvalResult {
   
   switch args[0] {
   case let .StringAtom(s):
-    if let idx = key.asInteger, let character = characterAtIndex(s, idx: idx) {
+    if case let .IntAtom(idx) = key, let character = characterAtIndex(s, idx: idx) {
       return .Success(.CharAtom(character))
     }
     return .Success(fallback)
   case let .Vector(v):
-    if let idx = key.asInteger where idx >= 0 && idx < v.count {
+    if case let .IntAtom(idx) = key where idx >= 0 && idx < v.count {
       return .Success(v[idx])
     }
     return .Success(fallback)
@@ -421,7 +419,7 @@ func pr_assoc(args: Params, _ ctx: Context) -> EvalResult {
     // Each pair is an index and a new value. Update a copy of the vector and return that.
     var copy = vector
     for (key, value) in PairSequence(rest) {
-      if let idx = key.asInteger {
+      if case let .IntAtom(idx) = key {
         if idx < 0 || idx > copy.count {
           return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
         }
@@ -519,11 +517,11 @@ func pr_reduce(args: Params, _ ctx: Context) -> EvalResult {
     if let acc = initial {
       // There is at least one item.
       switch acc {
-      case let .Success(acc):
+      case let .Just(acc):
         var accumulator = acc
         while let this = generator.next() {
           switch this {
-          case let .Success(this):
+          case let .Just(this):
             // Update accumulator with the value of (function accumulator this)
             let params = Params(accumulator, this)
             let result = apply(function, args: params, ctx: ctx, fn: fn)

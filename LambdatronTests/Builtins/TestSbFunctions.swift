@@ -10,6 +10,15 @@ import Foundation
 import XCTest
 @testable import Lambdatron
 
+private extension Value {
+  var asStringBuilder : StringBuilderType? {
+    if case let .Auxiliary(value as StringBuilderType) = self {
+      return value
+    }
+    return nil
+  }
+}
+
 /// Test the '.sb' built-in function.
 class TestSbBuiltin : InterpreterTest {
 

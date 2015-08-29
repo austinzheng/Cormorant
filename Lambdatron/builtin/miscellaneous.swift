@@ -14,11 +14,7 @@ func pr_equals(args: Params, _ ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  let compareResult : BoolOrEvalError = args[0] == args[1]
-  switch compareResult {
-  case let .Boolean(b): return .Success(.BoolAtom(b))
-  case let .Error(err): return .Failure(err)
-  }
+  return args[0].equals(args[1]).then { .Success(.BoolAtom($0)) }
 }
 
 /// Given a Var (and in the future, an Atom), return the value actually stored inside.
@@ -56,12 +52,11 @@ func pr_readString(args: Params, _ ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let string = args[0]
-  if let string = string.asString {
-    return readString(string, ctx, fn)
+  guard case let .StringAtom(string) = args[0] else {
+    // Must pass in a string
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
   }
-  // Must pass in a string
-  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
+  return readString(string, ctx, fn)
 }
 
 /// Print zero or more args to screen. Returns nil.
@@ -84,7 +79,7 @@ func pr_gensym(args: Params, _ ctx: Context) -> EvalResult {
   //  ":").
   let prefix = args[0].toString(ctx)
   switch prefix {
-  case let .Desc(prefix):
+  case let .Just(prefix):
     let gensym = ctx.ivs.produceGensym(prefix, suffix: nil)
     return .Success(.Symbol(gensym))
   case let .Error(err):
@@ -114,7 +109,12 @@ func pr_eval(args: Params, _ ctx: Context) -> EvalResult {
 /// Force a failure. Call with zero arguments or a string containing an error message.
 func pr_fail(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".fail"
-  let message = args.first?.asString ?? "(fail was called)"
+  let message : String
+  if case let .StringAtom(m)? = args.first {
+    message = m
+  } else {
+    message = "(fail was called)"
+  }
   return .Failure(EvalError.runtimeError(fn, message: message))
 }
 
@@ -126,19 +126,19 @@ private func readString(string: String, _ ctx: Context, _ fn: String) -> EvalRes
   // Lex and parse the string
   let lexed = lex(string)
   switch lexed {
-  case let .Success(lexed):
+  case let .Just(lexed):
     let parsed = parse(lexed, ctx)
     switch parsed {
-    case let .Success(parsed):
+    case let .Just(parsed):
       let expanded = parsed.expand(ctx)
       switch expanded {
       case let .Success(expanded):
         return .Success(expanded)
       case let .Failure(err): return .Failure(EvalError.readError(forFn: fn, error: err))
       }
-    case let .Failure(err): return .Failure(EvalError.readError(forFn: fn, error: err))
+    case let .Error(err): return .Failure(EvalError.readError(forFn: fn, error: err))
     }
-  case let .Failure(err): return .Failure(EvalError.readError(forFn: fn, error: err))
+  case let .Error(err): return .Failure(EvalError.readError(forFn: fn, error: err))
   }
 }
 
@@ -146,14 +146,14 @@ private func readString(string: String, _ ctx: Context, _ fn: String) -> EvalRes
 private func printOrPrintln(args: Params, ctx: Context, isPrintln: Bool) -> EvalResult {
   var descs : [String] = []
   for arg in args {
-    if let str = arg.asString {
+    if case let .StringAtom(str) = arg {
       // Strings are used as-is
       descs.append(str)
     }
     else {
       // Everything else is described. If a lazy-seq is involved, we need to guard agains failure.
       switch arg.describe(ctx) {
-      case let .Desc(desc): descs.append(desc)
+      case let .Just(desc): descs.append(desc)
       case let .Error(err): return .Failure(err)
       }
     }

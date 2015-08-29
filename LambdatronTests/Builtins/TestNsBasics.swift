@@ -10,6 +10,15 @@ import Foundation
 import XCTest
 @testable import Lambdatron
 
+private extension Value {
+  var asNamespace : NamespaceContext? {
+    if case let .Namespace(value) = self {
+      return value
+    }
+    return nil
+  }
+}
+
 /// Test the '.ns-create' built-in function.
 class TestNsCreateBuiltin : InterpreterTest {
 
@@ -193,7 +202,7 @@ class TestNsGetBuiltin : InterpreterTest {
 
   /// .ns-get should reject name symbols that don't correspond to namespaces.
   func testInvalidNamespaceName() {
-    expectThat("(.ns-get 'asdakdjlakd)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-get 'asdakdjlakd)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-get should return the namespace given a namespace, even if the namespace has been removed, but should not get
@@ -204,7 +213,7 @@ class TestNsGetBuiltin : InterpreterTest {
       // Remove the 'foo namespace
       runCode("(.ns-remove 'foo)")
       // Name symbol should not resolve.
-      expectThat("(.ns-get 'foo)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+      expectThat("(.ns-get 'foo)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
       // The namespace itself should resolve.
       if let namespace = runCode("(.ns-get a)")?.asNamespace {
         XCTAssert(initial === namespace, ".ns-get didn't return the proper namespace given a namespace")

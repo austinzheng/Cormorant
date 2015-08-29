@@ -87,10 +87,10 @@ public class Interpreter {
     let context = currentNamespace
     let lexed = lex(form)
     switch lexed {
-    case let .Success(lexed):
+    case let .Just(lexed):
       let parsed = parse(lexed, context)
       switch parsed {
-      case let .Success(parsed):
+      case let .Just(parsed):
         let expanded = parsed.expand(context)
         switch expanded {
         case let .Success(expanded):
@@ -103,9 +103,9 @@ public class Interpreter {
           }
         case let .Failure(f): return .ReadFailure(f)
         }
-      case let .Failure(f): return .ReadFailure(f)
+      case let .Error(f): return .ReadFailure(f)
       }
-    case let .Failure(f): return .ReadFailure(f)
+    case let .Error(f): return .ReadFailure(f)
     }
   }
 
@@ -126,24 +126,24 @@ public class Interpreter {
     let context = currentNamespace
     let lexed = lex(form)
     switch lexed {
-    case let .Success(lexed):
+    case let .Just(lexed):
       let parsed = parse(lexed, context)
       switch parsed {
-      case let .Success(parsed):
+      case let .Just(parsed):
         let expanded = parsed.expand(context)
         switch expanded {
         case let .Success(expanded):
           return Form(expanded)
         case .Failure: return nil
         }
-      case .Failure: return nil
+      case .Error: return nil
       }
-    case .Failure: return nil
+    case .Error: return nil
     }
   }
 
   /// Given a Lambdatron form, return a prettified description.
-  public func describe(form: Value) -> DescribeResult {
+  public func describe(form: Value) -> EvalOptional<String> {
     return form.describe(currentNamespace)
   }
 

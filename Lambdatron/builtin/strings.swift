@@ -18,7 +18,7 @@ func str_str(args: Params, _ ctx: Context) -> EvalResult {
   for arg in args {
     let result = arg.toString(ctx)
     switch result {
-    case let .Desc(desc): buffer.append(desc)
+    case let .Just(desc): buffer.append(desc)
     case let .Error(err): return .Failure(err)
     }
   }
@@ -32,10 +32,11 @@ func str_subs(args: Params, _ ctx: Context) -> EvalResult {
   if !(args.count == 2 || args.count == 3) {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
-  if let s = args[0].asString {
+  if case let .StringAtom(theString) = args[0] {
     if let start = args[1].extractInt() {
       // Use the UTF16 view, since that facilitates indexing into the string using integers (i.e. Clojure's behavior)
-      let utf16Str = s as NSString
+      let utf16Str = theString as NSString
+      // TODO: Maybe this should really be Unicode-safe.
       if args.count == 2 {
         // Start index only
         return (start < utf16Str.length
@@ -71,7 +72,7 @@ func str_uppercase(args: Params, _ ctx: Context) -> EvalResult {
   }
   let s = args[0].toString(ctx)
   switch s {
-  case let .Desc(s): return .Success(.StringAtom(s.uppercaseString))
+  case let .Just(s): return .Success(.StringAtom(s.uppercaseString))
   case let .Error(err): return .Failure(err)
   }
 }
@@ -84,7 +85,7 @@ func str_lowercase(args: Params, _ ctx: Context) -> EvalResult {
   }
   let s = args[0].toString(ctx)
   switch s {
-  case let .Desc(s): return .Success(.StringAtom(s.lowercaseString))
+  case let .Just(s): return .Success(.StringAtom(s.lowercaseString))
   case let .Error(err): return .Failure(err)
   }
 }
@@ -108,7 +109,7 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
   if args.count != 3 {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
   }
-  if let s = args[0].asString {
+  if case let .StringAtom(theString) = args[0] {
     let match = args[1]
     let replacement = args[2]
     switch match {
@@ -116,33 +117,30 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
       switch replacement {
       case let .StringAtom(replacement):
         // Replace all occurrences of the match string with the replacement string
-        return replaceWithString(s, m: match, replacement: replacement, firstOnly: firstOnly, fn: fn)
+        return replaceWithString(theString, m: match, replacement: replacement, firstOnly: firstOnly, fn: fn)
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "if the match is a string, the replacement must also be a string"))
       }
     case let .Auxiliary(aux):
-      if let match = aux as? NSRegularExpression {
-        switch replacement {
-        case let .StringAtom(replacement):
-          // The replacement argument is a template string
-          let newStr = replaceWithTemplate(s, m: match, template: replacement, firstOnly: firstOnly, fn: fn)
-          return .Success(.StringAtom(newStr))
-        default:
-          // The replacement argument will be treated as a function that takes in match results and returns a string
-          return replaceWithFunction(s, match: match, function: replacement, firstOnly: firstOnly, fn: fn, ctx: ctx)
-        }
-      }
-      else {
-        // Must be regex
+      guard let match = aux as? RegularExpressionType else {
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "second argument must be a string, character, or regex pattern"))
+      }
+      switch replacement {
+      case let .StringAtom(replacement):
+        // The replacement argument is a template string
+        let newStr = replaceWithTemplate(theString, m: match, template: replacement, firstOnly: firstOnly, fn: fn)
+        return .Success(.StringAtom(newStr))
+      default:
+        // The replacement argument will be treated as a function that takes in match results and returns a string
+        return replaceWithFunction(theString, match: match, function: replacement, firstOnly: firstOnly, fn: fn, ctx: ctx)
       }
     case let .CharAtom(match):
       // Replace all occurrences of the match character with the replacement character
       switch replacement {
       case let .CharAtom(replacement):
-        return replaceWithString(s, m: String(match), replacement: String(replacement), firstOnly: firstOnly, fn: fn)
+        return replaceWithString(theString, m: String(match), replacement: String(replacement), firstOnly: firstOnly, fn: fn)
       default:
         return .Failure(EvalError.invalidArgumentError(fn,
           message: "if the match is a character, the replacement must also be a character"))
@@ -156,10 +154,10 @@ private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) ->
 }
 
 private func replaceWithString(s: String, m: String, replacement: String, firstOnly: Bool, fn: String) -> EvalResult {
-  let match = NSRegularExpression.escapedPatternForString(m)
-  let template = NSRegularExpression.escapedTemplateForString(replacement)
+  let match = RegularExpressionType.escapedPatternForString(m)
+  let template = RegularExpressionType.escapedTemplateForString(replacement)
   switch constructRegex(match) {
-  case let .Success(regex):
+  case let .Just(regex):
     let stringRange = NSRange(location: 0, length: s.utf16.count)
     let searchRange = firstOnly ? regex.rangeOfFirstMatchInString(s, options: [], range: stringRange) : stringRange
     let newStr = (rangeIsValid(searchRange)
@@ -171,7 +169,7 @@ private func replaceWithString(s: String, m: String, replacement: String, firstO
   }
 }
 
-private func replaceWithTemplate(s: String, m: NSRegularExpression, template: String, firstOnly: Bool, fn: String) -> String {
+private func replaceWithTemplate(s: String, m: RegularExpressionType, template: String, firstOnly: Bool, fn: String) -> String {
   let stringRange = NSRange(location: 0, length: s.utf16.count)
   let searchRange = firstOnly ? m.rangeOfFirstMatchInString(s, options: [], range: stringRange) : stringRange
   return (rangeIsValid(searchRange)
@@ -179,7 +177,7 @@ private func replaceWithTemplate(s: String, m: NSRegularExpression, template: St
     : s)
 }
 
-private func replaceWithFunction(s: String, match: NSRegularExpression, function: Value, firstOnly: Bool, fn: String, ctx: Context) -> EvalResult {
+private func replaceWithFunction(s: String, match: RegularExpressionType, function: Value, firstOnly: Bool, fn: String, ctx: Context) -> EvalResult {
   // Handle the case where the match is a regex and the replacement is defined by a function
   let utf16Str = s as NSString
 

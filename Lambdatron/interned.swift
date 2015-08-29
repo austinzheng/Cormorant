@@ -318,11 +318,6 @@ public func ==(lhs: InternedKeyword, rhs: InternedKeyword) -> Bool {
   return lhs.qualified == rhs.qualified
 }
 
-enum InternedSymbolResult {
-  case Symbol(InternedSymbol)
-  case Error(EvalError)
-}
-
 struct NamespaceName : Hashable {
   let name : InternedString
   let isUnqualified : Bool
@@ -330,16 +325,18 @@ struct NamespaceName : Hashable {
   var hashValue : Int { return name.hashValue }
 
   /// Return an InternedSymbolResult that represents the symbol naming this namespace.
-  func asSymbol(ivs: InternedValueStore) -> InternedSymbolResult {
+  func asSymbol(ivs: InternedValueStore) -> EvalOptional<InternedSymbol> {
     if isUnqualified {
-      return .Symbol(InternedSymbol(name))
+      return .Just(InternedSymbol(name))
     }
     else {
       // Slow path: retrieve the string and parse the string back into a symbol
       let fqn = ivs.nameForInternedString(name)
       switch splitSymbol(fqn) {
-      case let .Success(name, nsName):
-        return .Symbol(InternedSymbol(name, namespace: nsName, ivs: ivs))
+      case let .Just(symbolStruct):
+        let name = symbolStruct.name
+        let namespaceName = symbolStruct.namespace
+        return .Just(InternedSymbol(name, namespace: namespaceName, ivs: ivs))
       case let .Error(err):
         return .Error(EvalError.readError(forFn: "(none)", error: err))
       }

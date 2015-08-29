@@ -24,15 +24,11 @@ private enum NextFormTreatment {
   case UnquoteSplice
 }
 
-private enum TokenCollectionResult {
-  case Tokens([LexToken]), Error(ReadError)
-}
-
 /// Given an array containing all lexical tokens, a starting index, and a type of collection (list, vector, or map), go
 /// through the array to collect and return all tokens that make up the collection whose left delimiter is found at the
 /// starting index. This function also updates the index to the position immediately following the token which closes
 /// the collection.
-private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollectionType) -> TokenCollectionResult {
+private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollectionType) -> ReadOptional<[LexToken]> {
   // Arguments:
   // tokens: an array of all the LexTokens being currently processed
   // idx: an index into `tokens` describing the start of the collection (must be a '(', '[', or '{' token, and the start
@@ -87,7 +83,7 @@ private func collectTokens(tokens: [LexToken], inout idx: Int, type: TokenCollec
       break
     }
   }
-  return count == 0 ? .Tokens(buffer) : .Error(ReadError(.MismatchedDelimiterError))
+  return count == 0 ? .Just(buffer) : .Error(ReadError(.MismatchedDelimiterError))
 }
 
 /// Given a reader form and the 'wrapStack' array, pop a wrap command off the array and wrap the reader form within the
@@ -120,16 +116,11 @@ private func wrappedConsItem(item: Value, inout _ wrapStack: [NextFormTreatment]
   return wrappedItem
 }
 
-private enum TokenListResult {
-  case Success([Value])
-  case Failure(ReadError)
-}
-
 /// Given a list of LexTokens comprising the tokens *inside* a collection form (such as a list), return a list of
 /// corresponding Value items. These items can be used by the calling function to build the collection in question. This
 /// method recursively finds token sequences representing collections and calls the appropriate function to build a
 /// valid Value for that collection.
-private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListResult {
+private func processTokenList(tokens: [LexToken], _ ctx: Context) -> ReadOptional<[Value]> {
   // For example: listWithTokens() is called with the tokens <(>, <1>, <true>, <)>. This function is called with the
   //  constituent tokens [<1>, <true>], and returns [Value.IntAtom(1), Value.BoolAtom(true)].
   var wrapStack : [NextFormTreatment] = []
@@ -148,29 +139,29 @@ private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListRe
         //  actual List, and advance the idx as well.
         let list = listWithTokens(collectTokens(tokens, idx: &idx, type: .List), ctx)
         switch list {
-        case let .Success(list): buffer.append(wrappedConsItem(.Seq(list), &wrapStack))
-        case let .Failure(f): return .Failure(f)
+        case let .Just(list): buffer.append(wrappedConsItem(.Seq(list), &wrapStack))
+        case let .Error(f): return .Error(f)
         }
       case .RightParentheses:
         // Note that this should fail because anytime we see a left parentheses, we call listWithToken(), which consumes
         //  all tokens up to and including the corresponding right parentheses.
-        return .Failure(ReadError(.MismatchedDelimiterError))
+        return .Error(ReadError(.MismatchedDelimiterError))
       case .LeftSquareBracket:
         let vector = vectorWithTokens(collectTokens(tokens, idx: &idx, type: .Vector), ctx)
         switch vector {
-        case let .Success(vector): buffer.append(wrappedConsItem(.Vector(vector), &wrapStack))
-        case let .Failure(f): return .Failure(f)
+        case let .Just(vector): buffer.append(wrappedConsItem(.Vector(vector), &wrapStack))
+        case let .Error(f): return .Error(f)
         }
       case .RightSquareBracket:
-        return .Failure(ReadError(.MismatchedDelimiterError))
+        return .Error(ReadError(.MismatchedDelimiterError))
       case .LeftBrace:
         let map = mapWithTokens(collectTokens(tokens, idx: &idx, type: .Map), ctx)
         switch map {
-        case let .Success(map): buffer.append(wrappedConsItem(.Map(map), &wrapStack))
-        case let .Failure(f): return .Failure(f)
+        case let .Just(map): buffer.append(wrappedConsItem(.Map(map), &wrapStack))
+        case let .Error(f): return .Error(f)
         }
       case .RightBrace:
-        return .Failure(ReadError(.MismatchedDelimiterError))
+        return .Error(ReadError(.MismatchedDelimiterError))
       case .Quote:
         wrapStack.append(.Quote)
       case .Backquote:
@@ -185,7 +176,7 @@ private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListRe
         wrapStack.append(.Var)
       case .HashLeftBrace, .HashLeftParentheses, .HashUnderscore:
         // TODO: Implement support for all of these
-        return .Failure(ReadError(.UnimplementedFeatureError))
+        return .Error(ReadError(.UnimplementedFeatureError))
       }
     case .Nil:
       buffer.append(wrappedConsItem(.Nil, &wrapStack))
@@ -195,8 +186,8 @@ private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListRe
       buffer.append(wrappedConsItem(.StringAtom(s), &wrapStack))
     case let .RegexPattern(s):
       switch constructRegex(s) {
-      case let .Success(regex): buffer.append(wrappedConsItem(.Auxiliary(regex), &wrapStack))
-      case let .Error(error): return .Failure(error)
+      case let .Just(regex): buffer.append(wrappedConsItem(.Auxiliary(regex), &wrapStack))
+      case let .Error(error): return .Error(error)
       }
     case let .Integer(v):
       buffer.append(wrappedConsItem(.IntAtom(v), &wrapStack))
@@ -206,19 +197,19 @@ private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListRe
       buffer.append(wrappedConsItem(.BoolAtom(b), &wrapStack))
     case let .Keyword(k):
       switch splitKeyword(k, currentNamespace: ctx.root) {
-      case let .Success(name, nsName):
-        let internedKeyword = InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)
+      case let .Just(resultStruct):
+        let internedKeyword = InternedKeyword(resultStruct.name, namespace: resultStruct.namespace, ivs: ctx.ivs)
         buffer.append(wrappedConsItem(.Keyword(internedKeyword), &wrapStack))
       case let .Error(err):
-        return .Failure(err)
+        return .Error(err)
       }
     case let .Identifier(sym):
       switch splitSymbol(sym) {
-      case let .Success(name, nsName):
-        let internedSymbol = InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)
+      case let .Just(resultStruct):
+        let internedSymbol = InternedSymbol(resultStruct.name, namespace: resultStruct.namespace, ivs: ctx.ivs)
         buffer.append(wrappedConsItem(.Symbol(internedSymbol), &wrapStack))
       case let .Error(err):
-        return .Failure(err)
+        return .Error(err)
       }
     case let .Special(s):
       buffer.append(wrappedConsItem(.Special(s), &wrapStack))
@@ -230,117 +221,74 @@ private func processTokenList(tokens: [LexToken], _ ctx: Context) -> TokenListRe
   if wrapStack.count > 0 {
     // If there are still items in the wrapStack, this means that we have a dangling wrappable item (e.g. a dangling
     //  syntax quote).
-    return .Failure(ReadError(.MismatchedReaderMacroError))
+    return .Error(ReadError(.MismatchedReaderMacroError))
   }
 
-  return .Success(buffer)
-}
-
-// We need all these small enums because "unimplemented IR generation feature non-fixed multi-payload enum layout" is
-// still, annoyingly, a thing.
-private enum ListResult {
-  case Success(SeqType)
-  case Failure(ReadError)
+  return .Just(buffer)
 }
 
 /// Given a list of tokens that corresponds to a single list (e.g. <(>, <1>, <2>, <)>), build a List data structure.
-private func listWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> ListResult {
-  switch tokens {
-  case let .Tokens(tokens):
-    if tokens.count == 0 {
-      // Empty list: ()
-      return .Success(Empty())
-    }
-    let processedForms = processTokenList(tokens, ctx)
-    switch processedForms {
-    case let .Success(processedForms): return .Success(sequence(processedForms))
-    case let .Failure(f): return .Failure(f)
-    }
-  case let .Error(e): return .Failure(e)
+private func listWithTokens(tokens: ReadOptional<[LexToken]>, _ ctx: Context) -> ReadOptional<SeqType> {
+  return tokens.then { tokens in
+    // No tokens --> empty list ()
+    return tokens.isEmpty
+      ? .Just(Empty())
+      : processTokenList(tokens, ctx).then { .Just(sequenceFromItems($0)) }
   }
-}
-
-private enum VectorResult {
-  case Success([Value])
-  case Failure(ReadError)
 }
 
 /// Given a list of tokens that corresponds to a single vector (e.g. <[>, <1>, <2>, <]>), build a Vector data structure.
-private func vectorWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> VectorResult {
-  switch tokens {
-  case let .Tokens(tokens):
-    if tokens.count == 0 {
-      // Empty vector: []
-      return .Success([])
-    }
-    let processedForms = processTokenList(tokens, ctx)
-    switch processedForms {
-    case let .Success(processedForms): return .Success(processedForms)
-    case let .Failure(f): return .Failure(f)
-    }
-  case let .Error(e): return .Failure(e)
+private func vectorWithTokens(tokens: ReadOptional<[LexToken]>, _ ctx: Context) -> ReadOptional<[Value]> {
+  return tokens.then { tokens in
+    // No tokens --> empty vector []
+    return tokens.isEmpty
+      ? .Just([])
+      : processTokenList(tokens, ctx).then { .Just($0) }
   }
-}
-
-private enum MapResult {
-  case Success(MapType)
-  case Failure(ReadError)
 }
 
 /// Given a list of tokens that corresponds to a single map (e.g. <{>, <:a>, <100>, <}>), build a Map data structure.
-private func mapWithTokens(tokens: TokenCollectionResult, _ ctx: Context) -> MapResult {
-  switch tokens {
-  case let .Tokens(tokens):
-    if tokens.count == 0 {
-      // Empty map: []
-      return .Success([:])
+private func mapWithTokens(tokens: ReadOptional<[LexToken]>, _ ctx: Context) -> ReadOptional<MapType> {
+  return tokens.then { tokens in
+    guard !tokens.isEmpty else {
+      // No tokens --> empty map {}
+      return .Just([:])
     }
-    let processedForms = processTokenList(tokens, ctx)
-    switch processedForms {
-    case let .Success(processedForms):
+    return processTokenList(tokens, ctx).then { processedForms in
+      guard processedForms.count % 2 == 0 else {
+        // Invalid; need an even number of tokens
+        return .Error(ReadError(.MapKeyValueMismatchError))
+      }
       // Create the vector itself
       var newMap : MapType = [:]
-      if processedForms.count % 2 != 0 {
-        // Invalid; need an even number of tokens
-        return .Failure(ReadError(.MapKeyValueMismatchError))
-      }
       for (key, value) in PairSequence(processedForms) {
         newMap[key] = value
       }
-      return .Success(newMap)
-    case let .Failure(f): return .Failure(f)
+      return .Just(newMap)
     }
-  case let .Error(e): return .Failure(e)
   }
-}
-
-enum ParseResult {
-  case Success(Value)
-  case Failure(ReadError)
 }
 
 /// Given an array of lexical tokens, parse them into a Value data structure, or return an error if this is not
 /// possible.
-func parse(tokens: [LexToken], _ ctx: Context) -> ParseResult {
+func parse(tokens: [LexToken], _ ctx: Context) -> ReadOptional<Value> {
+  guard !tokens.isEmpty else {
+    return .Error(ReadError(.EmptyInputError))
+  }
   var index = 0
   var wrapStack : [NextFormTreatment] = []
-  if tokens.count == 0 {
-    return .Failure(ReadError(.EmptyInputError))
-  }
 
   /// Parse the entire top-level form and wrap it inside a reader macro.
-  func createTopLevelReaderMacro(macroType: NextFormTreatment) -> ParseResult {
+  func createTopLevelReaderMacro(macroType: NextFormTreatment) -> ReadOptional<Value> {
     if tokens.count > 1 {
       var restTokens = tokens
       restTokens.removeAtIndex(0)
-      switch parse(restTokens, ctx) {
-      case let .Success(result):
+      return parse(restTokens, ctx).then { result in
         wrapStack.append(macroType)
-        return .Success(wrappedConsItem(result, &wrapStack))
-      case let .Failure(f): return .Failure(f)
+        return .Just(wrappedConsItem(result, &wrapStack))
       }
     }
-    return .Failure(ReadError(.MismatchedReaderMacroError))
+    return .Error(ReadError(.MismatchedReaderMacroError))
   }
 
   // Figure out how to parse
@@ -348,26 +296,17 @@ func parse(tokens: [LexToken], _ ctx: Context) -> ParseResult {
   case let .Syntax(s):
     switch s {
     case .LeftParentheses:
-      switch listWithTokens(collectTokens(tokens, idx: &index, type: .List), ctx) {
-      case let .Success(result): return .Success(.Seq(result))
-      case let .Failure(f): return .Failure(f)
-      }
+      return listWithTokens(collectTokens(tokens, idx: &index, type: .List), ctx).then { .Just(.Seq($0)) }
     case .RightParentheses:
-      return .Failure(ReadError(.BadStartTokenError))
+      return .Error(ReadError(.BadStartTokenError))
     case .LeftSquareBracket:
-      switch vectorWithTokens(collectTokens(tokens, idx: &index, type: .Vector), ctx) {
-      case let .Success(result): return .Success(.Vector(result))
-      case let .Failure(f): return .Failure(f)
-      }
+      return vectorWithTokens(collectTokens(tokens, idx: &index, type: .Vector), ctx).then { .Just(.Vector($0)) }
     case .RightSquareBracket:
-      return .Failure(ReadError(.BadStartTokenError))
+      return .Error(ReadError(.BadStartTokenError))
     case .LeftBrace:
-      switch mapWithTokens(collectTokens(tokens, idx: &index, type: .Map), ctx) {
-      case let .Success(result): return .Success(.Map(result))
-      case let .Failure(f): return .Failure(f)
-      }
+      return mapWithTokens(collectTokens(tokens, idx: &index, type: .Map), ctx).then { .Just(.Map($0)) }
     case .RightBrace:
-      return .Failure(ReadError(.BadStartTokenError))
+      return .Error(ReadError(.BadStartTokenError))
     case .Quote:
       return createTopLevelReaderMacro(.Quote)
     case .Backquote:
@@ -382,56 +321,56 @@ func parse(tokens: [LexToken], _ ctx: Context) -> ParseResult {
       return createTopLevelReaderMacro(.Var)
     case .HashLeftBrace, .HashLeftParentheses, .HashUnderscore:
       // TODO: Implement support for all of these
-      return .Failure(ReadError(.UnimplementedFeatureError))
+      return .Error(ReadError(.UnimplementedFeatureError))
     }
-  case .Nil: return .Success(.Nil)
-  case let .CharLiteral(c): return .Success(.CharAtom(c))
-  case let .StringLiteral(s): return .Success(.StringAtom(s))
-  case let .RegexPattern(s):
-    switch constructRegex(s) {
-    case let .Success(regex): return .Success(.Auxiliary(regex))
-    case let .Error(error): return .Failure(error)
-    }
-  case let .Integer(v): return .Success(.IntAtom(v))
-  case let .FlPtNumber(n): return .Success(.FloatAtom(n))
-  case let .Boolean(b): return .Success(.BoolAtom(b))
+  case .Nil:
+    return .Just(.Nil)
+  case let .CharLiteral(c):
+    return .Just(.CharAtom(c))
+  case let .StringLiteral(s):
+    return .Just(.StringAtom(s))
+  case let .RegexPattern(pattern):
+    return constructRegex(pattern).then { .Just(.Auxiliary($0)) }
+  case let .Integer(v):
+    return .Just(.IntAtom(v))
+  case let .FlPtNumber(n):
+    return .Just(.FloatAtom(n))
+  case let .Boolean(b):
+    return .Just(.BoolAtom(b))
   case let .Keyword(k):
-    switch splitKeyword(k, currentNamespace: ctx.root) {
-    case let .Success(name, nsName):
-      let internedKeyword = InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)
-      return .Success(.Keyword(internedKeyword))
-    case let .Error(err):
-      return .Failure(err)
+    return splitKeyword(k, currentNamespace: ctx.root).then { resultStruct in
+      return .Just(.Keyword(InternedKeyword(resultStruct.name, namespace: resultStruct.namespace, ivs: ctx.ivs)))
     }
   case let .Identifier(sym):
-    switch splitSymbol(sym) {
-    case let .Success(name, nsName):
-       let internedSymbol = InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)
-      return .Success(.Symbol(internedSymbol))
-    case let .Error(err):
-      return .Failure(err)
+    return splitSymbol(sym).then { resultStruct in
+      return .Just(.Symbol(InternedSymbol(resultStruct.name, namespace: resultStruct.namespace, ivs: ctx.ivs)))
     }
-  case let .Special(s): return .Success(.Special(s))
-  case let .BuiltInFunction(b): return .Success(.BuiltInFunction(b))
+  case let .Special(s):
+    return .Just(.Special(s))
+  case let .BuiltInFunction(b):
+    return .Just(.BuiltInFunction(b))
   }
 }
 
 
 // MARK: Private helper functions
 
-enum SplitResult {
-  case Success(name: String, namespace: String?)
-  case Error(ReadError)
+struct SymbolSplitResult {
+  let name : String, namespace : String?
 }
+
+//typealias SplitResult = ReadOptional<(name: String, namespace: String?)>    // breaks compiler in Xcode 6.0
+typealias SplitResult = ReadOptional<SymbolSplitResult>
 
 /// Given a symbol which may or may not be qualified by a forward slash, return either the components or an error.
 func splitSymbol(symbol: String) -> SplitResult {
   if symbol.characters.count < 2 {
     // Automatically accept one-character symbols
-    return .Success(name: symbol, namespace: nil)
+    return .Just(SymbolSplitResult(name: symbol, namespace: nil))
   }
   let parts = symbol.characters.split(1, allowEmptySlices: true) { $0 == "/" }.map { String($0) }
   precondition(parts.count <= 2, "Symbol string can only be split into a maximum of two components")
+
   if parts.count == 2 {
     if parts[0].isEmpty {
       return .Error(ReadError(.InvalidNamespaceError))
@@ -440,11 +379,13 @@ func splitSymbol(symbol: String) -> SplitResult {
       return .Error(ReadError(.SymbolParseFailureError))
     }
     else {
-      return .Success(name: parts[1], namespace: parts[0])
+      return .Just(SymbolSplitResult(name: parts[1], namespace: parts[0]))
     }
   }
   // Only one part
-  return parts[0].isEmpty ? .Error(ReadError(.SymbolParseFailureError)) : .Success(name: parts[0], namespace: nil)
+  return parts[0].isEmpty
+    ? .Error(ReadError(.SymbolParseFailureError))
+    : .Just(SymbolSplitResult(name: parts[0], namespace: nil))
 }
 
 /// Given a keyword which may or may not be qualified by a forward slash, return either the components or an error.
@@ -452,7 +393,7 @@ func splitKeyword(keyword: String, currentNamespace: NamespaceContext) -> SplitR
   precondition(keyword.isEmpty == false, "Raw keyword string to split cannot be empty")
   if keyword.characters.count == 1 {
     // Keyword is one character long
-    return .Success(name: keyword, namespace: nil)
+    return .Just(SymbolSplitResult(name: keyword, namespace: nil))
   }
   if keyword[keyword.startIndex] == ":" {
     // Keyword is qualified by "::"
@@ -461,12 +402,11 @@ func splitKeyword(keyword: String, currentNamespace: NamespaceContext) -> SplitR
       return .Error(ReadError(.KeywordParseFailureError))
     }
     let name = keyword.substringFromIndex(keyword.startIndex.successor())
-    return .Success(name: name, namespace: currentNamespace.name)
+    return .Just(SymbolSplitResult(name: name, namespace: currentNamespace.name))
   }
   // TODO: Additional checking? Maybe when NSCharacterSet isn't as painful to use
 
   let parts = keyword.characters.split(1, allowEmptySlices: true) { $0 == "/" }.map { String($0) }
-//    split(keyword , maxSplit: 1, allowEmptySlices: true) { $0 == "/" }
   precondition(parts.count <= 2, "Keyword string can only be split into a maximum of two components")
   if parts.count == 2 {
     if parts[0].isEmpty {
@@ -476,9 +416,11 @@ func splitKeyword(keyword: String, currentNamespace: NamespaceContext) -> SplitR
       return .Error(ReadError(.KeywordParseFailureError))
     }
     else {
-      return .Success(name: parts[1], namespace: parts[0])
+      return .Just(SymbolSplitResult(name: parts[1], namespace: parts[0]))
     }
   }
   // Only one part
-  return parts[0].isEmpty ? .Error(ReadError(.KeywordParseFailureError)) : .Success(name: parts[0], namespace: nil)
+  return parts[0].isEmpty
+    ? .Error(ReadError(.KeywordParseFailureError))
+    : .Just(SymbolSplitResult(name: parts[0], namespace: nil))
 }

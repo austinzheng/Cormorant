@@ -48,7 +48,7 @@ class TestNsAliasBuiltin : InterpreterTest {
   /// .ns-alias should not allow aliasing to another alias.
   func testAliasingAliases() {
     runCode("(.ns-alias 'foo *ns*)")
-    expectThat("(.ns-alias 'bar 'foo)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-alias 'bar 'foo)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-alias should not allow resolving aliases from outside the namespace within which the alias was defined.
@@ -73,7 +73,7 @@ class TestNsAliasBuiltin : InterpreterTest {
   func testInvalidNamespaceName() {
     runCode("(.ns-create 'other)")
     expectThat("(.ns-alias 'first 'other)", shouldEvalTo: .Nil)
-    expectThat("(.ns-alias 'second 'another)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-alias 'second 'another)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-alias should reject reassigning the same alias (originally aliased to another namespace).
@@ -214,7 +214,7 @@ class TestNsUnaliasBuiltin : InterpreterTest {
 
   /// .ns-unalias should reject name symbols that don't actually name a namespace.
   func testInvalidNamespaceName() {
-    expectThat("(.ns-unalias 'asdasdasd 'adadasdasd)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-unalias 'asdasdasd 'adadasdasd)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-unalias should reject first arguments that aren't symbols or namespaces.
@@ -297,7 +297,7 @@ class TestNsAliasesBuiltin : InterpreterTest {
 
   /// .ns-aliases should reject namespaces names that are invalid.
   func testInvalidNamespaceName() {
-    expectThat("(.ns-aliases 'askdjasldj)", shouldFailAs: EvalError.ErrorType.InvalidNamespaceError)
+    expectThat("(.ns-aliases 'askdjasldj)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
   }
 
   /// .ns-aliases should reject arguments that aren't symbols or namespaces.

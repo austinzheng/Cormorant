@@ -10,6 +10,15 @@ import Foundation
 import XCTest
 @testable import Lambdatron
 
+private extension Value {
+  var asSymbol : InternedSymbol? {
+    if case let .Symbol(value) = self {
+      return value
+    }
+    return nil
+  }
+}
+
 class TestSymbolBuiltin : InterpreterTest {
 
   /// .symbol should properly return a novel symbol when given a symbol argument.

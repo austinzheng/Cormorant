@@ -86,18 +86,14 @@ struct PairSequenceGenerator<T : SequenceType> : GeneratorType {
 
 // MARK: Regex
 
-enum RegexResult {
-  case Success(NSRegularExpression), Error(ReadError)
-}
-
 func rangeIsValid(r: NSRange) -> Bool {
   return !(r.location == NSNotFound && r.length == 0)
 }
 
 /// Given a pattern, try to build a regex pattern object.
-func constructRegex(pattern: String) -> RegexResult {
+func constructRegex(pattern: String) -> ReadOptional<RegularExpressionType> {
   do {
-    return .Success(try NSRegularExpression(pattern: pattern, options: []))
+    return .Just(try RegularExpressionType(pattern: pattern, options: []))
   } catch {
     return .Error(ReadError(.InvalidRegexError))
   }

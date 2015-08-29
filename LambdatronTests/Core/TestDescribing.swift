@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTest
+@testable import Lambdatron
 
 class TestDescribing : InterpreterTest {
 
@@ -35,7 +36,7 @@ class TestDescribing : InterpreterTest {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(raw):
-      let actual = interpreter.describe(raw).asString
+      let actual = interpreter.describe(raw).rawStringValue
       XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
     case let .ReadFailure(f):
       XCTFail("read error: \(f.description)")

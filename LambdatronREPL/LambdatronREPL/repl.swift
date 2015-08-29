@@ -54,7 +54,7 @@ class ReadEvaluatePrintLoop {
           switch result {
           case let .Success(v):
             switch interpreter.describe(v) {
-            case let .Desc(d): print(d)
+            case let .Just(d): print(d)
             case let .Error(err): print("Read error \(err)")
             }
           case let .ReadFailure(f): print("Read error \(f)")

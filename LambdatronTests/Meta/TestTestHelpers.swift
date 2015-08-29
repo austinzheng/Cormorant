@@ -21,7 +21,7 @@ class TestTestHelpers : InterpreterTest {
 
   /// listForItems should return a list containing items when invoked with arguments.
   func testListForItems() {
-    let ref = Value.Seq(sequence([1, .StringAtom("foo"), true]))
+    let ref = Value.Seq(sequenceFromItems([1, .StringAtom("foo"), true]))
     let list = listWithItems(1, .StringAtom("foo"), true)
     XCTAssert(ref == list, "listWithItems failed to build a non-empty list properly")
   }

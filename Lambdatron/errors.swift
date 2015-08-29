@@ -24,7 +24,7 @@ public typealias MetaDict = [MetadataKey : String]
 
 /// An object representing an error that occurs during the lexing, parsing, or reader macro expansion stages.
 public struct ReadError : CustomStringConvertible {
-  public enum ErrorType : String {
+  public enum ReadErrorType : String {
     case InvalidStringEscapeSequenceError
     case InvalidCharacterError
     case InvalidUnicodeError
@@ -44,10 +44,10 @@ public struct ReadError : CustomStringConvertible {
     case IllegalExpansionFormError
     case UnquoteSpliceMisuseError
   }
-  public let error : ErrorType
+  public let error : ReadErrorType
   public let metadata : MetaDict
 
-  init(_ error: ErrorType, metadata: MetaDict? = nil) {
+  init(_ error: ReadErrorType, metadata: MetaDict? = nil) {
     self.error = error; self.metadata = metadata ?? [:]
   }
 
@@ -78,7 +78,7 @@ public struct ReadError : CustomStringConvertible {
 
 /// An enum describing errors that can happen at runtime when evaluating macros, functions, or special forms.
 public struct EvalError : CustomStringConvertible {
-  public enum ErrorType : String {
+  public enum EvalErrorType : String {
     case ArityError
     case InvalidArgumentError
     case OutOfBoundsError
@@ -102,10 +102,10 @@ public struct EvalError : CustomStringConvertible {
     case ReservedNamespaceError
     case RuntimeError
   }
-  public let error : ErrorType
+  public let error : EvalErrorType
   public let metadata : MetaDict
 
-  init(_ error: ErrorType, _ fn: String, message: String? = nil, metadata: MetaDict? = nil) {
+  init(_ error: EvalErrorType, _ fn: String, message: String? = nil, metadata: MetaDict? = nil) {
     var meta = metadata ?? [:]
     meta[.Fn] = fn
     if let message =  message {
@@ -115,7 +115,7 @@ public struct EvalError : CustomStringConvertible {
     self.metadata = meta
   }
 
-  init(_ error: ErrorType, message: String? = nil, metadata: MetaDict? = nil) {
+  init(_ error: EvalErrorType, message: String? = nil, metadata: MetaDict? = nil) {
     self.error = error
     self.metadata = metadata ?? [:]
   }

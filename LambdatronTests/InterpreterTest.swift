@@ -10,12 +10,12 @@ import Foundation
 import XCTest
 @testable import Lambdatron
 
-extension ObjectResult {
-  func force() -> Value {
-    switch self {
-    case let .Success(v): return v
-    case .Error: fatalError("ObjectResult's 'force' method used improperly")
+extension Value {
+  var asSeq : SeqType? {
+    if case let .Seq(value) = self {
+      return value
     }
+    return nil
   }
 }
 
@@ -90,22 +90,22 @@ class InterpreterTest : XCTestCase {
     let context = interpreter.currentNamespace
     let lexed = lex(input)
     switch lexed {
-    case let .Success(lexed):
+    case let .Just(lexed):
       let parsed = parse(lexed, context)
       switch parsed {
-      case let .Success(parsed):
+      case let .Just(parsed):
         let expanded = parsed.expand(context)
         switch expanded {
         case let .Success(expanded):
-          let actualOutput = expanded.describe(context).asString
+          let actualOutput = expanded.describe(context).rawStringValue
           XCTAssert(actualOutput == output, "expected: \(output), got: \(actualOutput)")
         case let .Failure(f):
           XCTFail("reader macro expansion error: \(f.description)")
         }
-      case .Failure:
+      case .Error:
         XCTFail("parser error")
       }
-    case .Failure:
+    case .Error:
       XCTFail("lexer error")
     }
   }
@@ -115,7 +115,8 @@ class InterpreterTest : XCTestCase {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(actual):
-      XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
+      let isEqual : Bool = (expected == actual)
+      XCTAssert(isEqual /*expected == actual*/, "expected: \(expected), got: \(actual)")
     case let .ReadFailure(f):
       XCTFail("read error: \(f.description)")
     case let .EvalFailure(f):
@@ -135,7 +136,11 @@ class InterpreterTest : XCTestCase {
       if let actual = actual.asSeq {
         var actualItems = Set<Value>()
         for item in SeqIterator(actual) {
-          actualItems.insert(item.force())
+          if case let .Just(item) = item {
+            actualItems.insert(item)
+          } else {
+            fatalError("Test is in a bad state")
+          }
         }
         XCTAssert(expectedItems == actualItems, "actual and expected items didn't match:\nexpected \(expectedItems)\ngot \(actualItems)")
       }
@@ -171,7 +176,7 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and expect a particular read failure.
-  func expectThat(input: String, shouldFailAs expected: ReadError.ErrorType) {
+  func expectThat(input: String, shouldFailAs expected: ReadError.ReadErrorType) {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(s):
@@ -186,7 +191,7 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and expect a particular evaluation failure.
-  func expectThat(input: String, shouldFailAs expected: EvalError.ErrorType) {
+  func expectThat(input: String, shouldFailAs expected: EvalError.EvalErrorType) {
     let result = interpreter.evaluate(input)
     switch result {
     case let .Success(s):
@@ -252,7 +257,7 @@ class InterpreterTest : XCTestCase {
         return
       }
       switch thisListItem! {
-      case let .Success(value):
+      case let .Just(value):
         if value != thisMatchItem! {
           XCTFail("Item mismatch: expected: \(thisMatchItem!), got: \(value)")
           return

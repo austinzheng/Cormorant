@@ -18,7 +18,7 @@ func loadStdlibInto(context: Context, files: [String]) {
       if let segments = segmentsForFile(data) {
         for s in segments {
           switch parse(s, context) {
-          case let .Success(parsedData):
+          case let .Just(parsedData):
             // Data parsed successfully
             let re = parsedData.expand(context)
             switch re {
@@ -38,7 +38,7 @@ func loadStdlibInto(context: Context, files: [String]) {
               print("Unable to load stdlib: \(f)")
               exit(EXIT_FAILURE)
             }
-          case let .Failure(f):
+          case let .Error(f):
             // Data failed to parse
             print("Unable to load stdlib: \(f)")
             exit(EXIT_FAILURE)
@@ -67,9 +67,9 @@ func stringDataForBundledFile(name: String) -> String? {
 func segmentsForFile(data: String) -> ([[LexToken]])? {
   let lexResult = lex(data)
   switch lexResult {
-  case let .Success(lexedData):
+  case let .Just(lexedData):
     return segment(lexedData)
-  case .Failure: return nil
+  case .Error: return nil
   }
 }
 

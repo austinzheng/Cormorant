@@ -8,34 +8,6 @@
 
 import Foundation
 
-// MARK: Result enums
-
-public enum BoolOrEvalError : BooleanLiteralConvertible {
-  case Boolean(Bool)
-  case Error(EvalError)
-
-  public init(booleanLiteral value: Bool) { self = .Boolean(value) }
-
-  /// Unboxes the boolean value. This will crash the interpreter if used improperly (i.e. an error is being stored).
-  func force() -> Bool {
-    switch self {
-    case let .Boolean(b): return b
-    case .Error: internalError("BoolOrEvalError's 'force' method called improperly")
-    }
-  }
-}
-
-public enum SeqResult {
-  case Seq(SeqType)
-  case Error(EvalError)
-}
-
-public enum ObjectResult {
-  case Success(Value)
-  case Error(EvalError)
-}
-
-
 // MARK: Utility functions
 
 /// Return a new sequence resulting from prepending the given item to an existing sequence.
@@ -44,20 +16,20 @@ func cons(item: Value, next seq: SeqType) -> SeqType {
 }
 
 /// Return a sequence from the given sequence, or nil if the sequence is empty. Lazy sequences will be forced.
-func sequence(seq: SeqType) -> SeqResult? {
-  let s : SeqResult
+func sequence(seq: SeqType) -> EvalOptional<SeqType>? {
+  let s : EvalOptional<SeqType>
   if let seq = seq as? LazySeq {
     s = seq.force()
   }
   else {
-    s = .Seq(seq)
+    s = .Just(seq)
   }
 
   switch s {
-  case let .Seq(seq):
+  case let .Just(seq):
     // Now check to see if it's empty
     switch seq.isEmpty {
-    case let .Boolean(seqIsEmpty):
+    case let .Just(seqIsEmpty):
       return seqIsEmpty ? nil : s
     case let .Error(err):
       return .Error(err)
@@ -82,7 +54,7 @@ func sequence(first: Value, _ second: Value, _ third: Value) -> SeqType {
 }
 
 /// Return a new sequence containing multiple items.
-func sequence(items: [Value]) -> SeqType {
+func sequenceFromItems(items: [Value]) -> SeqType {
   return items.isEmpty ? Empty() : ContiguousList(items)
 }
 
@@ -92,13 +64,13 @@ func sequence(items: [Value]) -> SeqType {
 /// A protocol representing sequence types.
 public protocol SeqType {
   /// Return the first item within the sequence.
-  var first : ObjectResult { get }
+  var first : EvalOptional<Value> { get }
 
   /// Return the sequence comprised of all items except for the first item.
-  var rest : SeqResult { get }
+  var rest : EvalOptional<SeqType> { get }
 
   /// Return true if the sequence is empty.
-  var isEmpty : BoolOrEvalError { get }
+  var isEmpty : EvalOptional<Bool> { get }
 
   var hashValue : Int { get }
 }
@@ -113,24 +85,24 @@ struct StringSequenceView : SeqType {
   let next : SeqType
   var hashValue : Int { return underlying.hashValue }
 
-  var first : ObjectResult {
+  var first : EvalOptional<Value> {
     if underlying.isEmpty {
-      return .Success(.Nil)
+      return .Just(.Nil)
     }
     precondition(this < underlying.endIndex, "StringSequenceView violates precondition: index must be valid")
-    return .Success(.CharAtom(underlying[this]))
+    return .Just(.CharAtom(underlying[this]))
   }
 
-  var rest : SeqResult {
+  var rest : EvalOptional<SeqType> {
     if underlying.characters.count > 1 && this < underlying.endIndex.predecessor() {
-      return .Seq(StringSequenceView(underlying, next: next, position: this.successor()))
+      return .Just(StringSequenceView(underlying, next: next, position: this.successor()))
     }
-    return .Seq(next)
+    return .Just(next)
   }
 
-  var isEmpty : BoolOrEvalError {
+  var isEmpty : EvalOptional<Bool> {
     let empty = !(this < underlying.endIndex)
-    return empty ? next.isEmpty : .Boolean(false)
+    return empty ? next.isEmpty : .Just(false)
   }
 
   init(_ string: String, next: SeqType = Empty(), position: String.Index? = nil) {
@@ -145,24 +117,24 @@ struct VectorSequenceView : SeqType {
   let next : SeqType
   var hashValue : Int { return underlying.isEmpty ? this : underlying[0].hashValue }
 
-  var first : ObjectResult {
+  var first : EvalOptional<Value> {
     if underlying.isEmpty {
-      return .Success(.Nil)
+      return .Just(.Nil)
     }
     precondition(this < underlying.count, "VectorSequenceView violates precondition: index must be valid")
-    return .Success(underlying[this])
+    return .Just(underlying[this])
   }
 
-  var rest : SeqResult {
+  var rest : EvalOptional<SeqType> {
     if this < underlying.count - 1 {
-      return .Seq(VectorSequenceView(underlying, next: next, position: this + 1))
+      return .Just(VectorSequenceView(underlying, next: next, position: this + 1))
     }
-    return .Seq(next)
+    return .Just(next)
   }
 
-  var isEmpty : BoolOrEvalError {
+  var isEmpty : EvalOptional<Bool> {
     let empty = !(this < underlying.count)
-    return empty ? next.isEmpty : .Boolean(false)
+    return empty ? next.isEmpty : .Just(false)
   }
 
   init(_ vector: VectorType, next: SeqType = Empty(), position: Int = 0) {
@@ -177,25 +149,25 @@ struct HashmapSequenceView : SeqType {
   let next : SeqType
   var hashValue : Int { return underlying.count }
 
-  var first : ObjectResult {
+  var first : EvalOptional<Value> {
     if underlying.isEmpty {
-      return .Success(.Nil)
+      return .Just(.Nil)
     }
     precondition(this < underlying.endIndex, "HashmapSequenceView violates precondition: index must be valid")
     let (key, value) = underlying[this]
-    return .Success(.Vector([key, value]))
+    return .Just(.Vector([key, value]))
   }
 
-  var rest : SeqResult {
+  var rest : EvalOptional<SeqType> {
     if underlying.count > 1 && this.successor() < underlying.endIndex {
-      return .Seq(HashmapSequenceView(underlying, next: next, position: this.successor()))
+      return .Just(HashmapSequenceView(underlying, next: next, position: this.successor()))
     }
-    return .Seq(next)
+    return .Just(next)
   }
 
-  var isEmpty : BoolOrEvalError {
+  var isEmpty : EvalOptional<Bool> {
     let empty = !(this < underlying.endIndex)
-    return empty ? next.isEmpty : .Boolean(false)
+    return empty ? next.isEmpty : .Just(false)
   }
 
   init(_ m: MapType, next: SeqType = Empty(), position: MapType.Index? = nil) {
@@ -209,33 +181,30 @@ final class ContiguousList : SeqType {
   let next : SeqType
   var hashValue : Int { return items[0].hashValue }
 
-  var first : ObjectResult {
-    return .Success(items[0])
+  var first : EvalOptional<Value> {
+    return .Just(items[0])
   }
 
-  var rest : SeqResult {
-    if items.count > 1 {
-      return .Seq(VectorSequenceView(items, next: next, position: 1))
-    }
-    return .Seq(next)
+  var rest : EvalOptional<SeqType> {
+    return items.count > 1 ? .Just(VectorSequenceView(items, next: next, position: 1)) : .Just(next)
   }
 
   var backingArray : [Value] {
     return items
   }
 
-  var isEmpty : BoolOrEvalError { return false }
+  var isEmpty : EvalOptional<Bool> { return .Just(false) }
 
   /// Build a ContiguousList out of another sequence.
-  class func fromSequence(seq: SeqType, next: SeqType = Empty()) -> SeqResult {
+  class func fromSequence(seq: SeqType, next: SeqType = Empty()) -> EvalOptional<SeqType> {
     var buffer : [Value] = []
     for item in SeqIterator(seq) {
       switch item {
-      case let .Success(s): buffer.append(s)
+      case let .Just(s): buffer.append(s)
       case let .Error(err): return .Error(err)
       }
     }
-    return .Seq(ContiguousList(buffer, next: next))
+    return .Just(ContiguousList(buffer, next: next))
   }
 
   init(_ items : [Value], next: SeqType = Empty()) {
@@ -255,28 +224,28 @@ final class LazySeq : SeqType {
   var hashValue : Int { return ObjectIdentifier(self).hashValue }
 
   /// Compute or retrieve the value of the sequence as a realized list.
-  private func force() -> SeqResult {
+  private func force() -> EvalOptional<SeqType> {
     switch state {
     case let .Thunk(thunk, context):
       let result = apply(thunk, args: Params(), ctx: context, fn: "LazySeq-thunk")
       switch result {
       case let .Success(item):
-        if item.isNil {
+        if case .Nil = item {
           // If the thunk returns nil, we should return the empty list
           state = .Cached(Empty())
-          return .Seq(Empty())
+          return .Just(Empty())
         }
         // Turn the item into a sequence
         let result = pr_seq(Params(item), context)
         switch result {
         case let .Success(item):
-          if let seq = item.asSeq {
+          if case let .Seq(seq) = item {
             state = .Cached(seq)
-            return .Seq(seq)
+            return .Just(seq)
           }
-          else if item.isNil {
+          else if case .Nil = item {
             state = .Cached(Empty())
-            return .Seq(Empty())
+            return .Just(Empty())
           }
           state = .Cached(Empty())
           return .Error(EvalError.invalidArgumentError("LazySeq-thunk",
@@ -300,30 +269,30 @@ final class LazySeq : SeqType {
       }
     case let .Cached(seq):
       // No need to do anything. We already got the sequence.
-      return .Seq(seq)
+      return .Just(seq)
     }
   }
 
-  var isEmpty : BoolOrEvalError {
+  var isEmpty : EvalOptional<Bool> {
     let result = force()
     switch result {
-    case let .Seq(list): return list.isEmpty
+    case let .Just(list): return list.isEmpty
     case let .Error(err): return .Error(err)
     }
   }
 
-  var first : ObjectResult {
+  var first : EvalOptional<Value> {
     let result = force()
     switch result {
-    case let .Seq(list): return list.first
+    case let .Just(list): return list.first
     case let .Error(err): return .Error(err)
     }
   }
 
-  var rest : SeqResult {
+  var rest : EvalOptional<SeqType> {
     let result = force()
     switch result {
-    case let .Seq(list): return list.rest
+    case let .Just(list): return list.rest
     case .Error: return result
     }
   }
@@ -340,9 +309,9 @@ final class Cons : SeqType {
 
   var hashValue : Int { return value.hashValue }
 
-  var first : ObjectResult { return .Success(value) }
-  var rest : SeqResult { return .Seq(next) }
-  var isEmpty : BoolOrEvalError { return false }
+  var first : EvalOptional<Value> { return .Just(value) }
+  var rest : EvalOptional<SeqType> { return .Just(next) }
+  var isEmpty : EvalOptional<Bool> { return .Just(false) }
 
   // Initialize a list constructed from an element preceding an existing list.
   private init(_ value: Value, next: SeqType = Empty()) {
@@ -354,9 +323,9 @@ final class Cons : SeqType {
 struct Empty : SeqType {
   var hashValue : Int { return 0 }
 
-  var first : ObjectResult { return .Success(.Nil) }
-  var rest : SeqResult { return .Seq(self) }
-  var isEmpty : BoolOrEvalError { return true }
+  var first : EvalOptional<Value> { return .Just(.Nil) }
+  var rest : EvalOptional<SeqType> { return .Just(self) }
+  var isEmpty : EvalOptional<Bool> { return .Just(true) }
 }
 
 
@@ -371,26 +340,26 @@ struct SeqIterator : SequenceType, GeneratorType {
     return self
   }
 
-  mutating func next() -> ObjectResult? {
+  mutating func next() -> EvalOptional<Value>? {
     if let pfx = prefix {
       // Handle the prefix, if any
       prefix = nil
-      return .Success(pfx)
+      return .Just(pfx)
     }
     switch seq.isEmpty {
-    case let .Boolean(sequenceIsEmpty):
+    case let .Just(sequenceIsEmpty):
       // Check if the sequence is empty or not
       if sequenceIsEmpty {
         return nil
       }
       let first = seq.first
       switch first {
-      case let .Success(value):
+      case let .Just(value):
         // Got the current item. Now, try to get the rest of the sequence.
         switch seq.rest {
-        case let .Seq(sequence):
+        case let .Just(sequence):
           seq = sequence
-          return .Success(value)
+          return .Just(value)
         case let .Error(err):
           // Could not successfully get the rest of the sequence
           seq = Empty()

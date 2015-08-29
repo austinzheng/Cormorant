@@ -19,7 +19,7 @@ func sb_sb(args: Params, _ ctx: Context) -> EvalResult {
   }
   let result = args[0].toString(ctx)
   switch result {
-  case let .Desc(desc): return .Success(.Auxiliary(StringBuilderType(desc)))
+  case let .Just(desc): return .Success(.Auxiliary(StringBuilderType(desc)))
   case let .Error(err): return .Failure(err)
   }
 }
@@ -30,17 +30,13 @@ func sb_append(args: Params, _ ctx: Context) -> EvalResult {
   if args.count != 2 {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
-  if let builder = args[0].asStringBuilder {
-    let result = args[1].toString(ctx)
-    switch result {
-    case let .Desc(desc):
-      builder.append(desc)
-      return .Success(args[0])
-    case let .Error(err):
-      return .Failure(err)
-    }
+  guard case let .Auxiliary(builder as StringBuilderType) = args[0] else {
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string builder"))
   }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string builder"))
+  return args[1].toString(ctx).then { desc in
+    builder.append(desc)
+    return .Success(args[0])
+  }
 }
 
 /// Given a string builder, reverse the characters in the string builder in-place.
@@ -49,9 +45,9 @@ func sb_reverse(args: Params, _ ctx: Context) -> EvalResult {
   if args.count != 1 {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  if let builder = args[0].asStringBuilder {
-    builder.reverse()
-    return .Success(args[0])
+  guard case let .Auxiliary(builder as StringBuilderType) = args[0] else {
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string builder"))
   }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string builder"))
+  builder.reverse()
+  return .Success(args[0])
 }

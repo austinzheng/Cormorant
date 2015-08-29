@@ -24,7 +24,7 @@ func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
     if args.count == 2 {
       // Qualified symbol
       let nsName = str
-      if let name = args[1].asString where !nsName.isEmpty {
+      if case let .StringAtom(name) = args[1] where !nsName.isEmpty {
         if name.isEmpty {
           return .Success(.Nil)
         }
@@ -66,7 +66,7 @@ func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
     if args.count == 2 {
       // Qualified keyword
       let nsName = str
-      if let name = args[1].asString where !nsName.isEmpty {
+      if !nsName.isEmpty, case let .StringAtom(name) = args[1] {
         if name.isEmpty {
           return .Success(.Nil)
         }
