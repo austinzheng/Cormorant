@@ -2,7 +2,7 @@ Lambdatron
 ==========
 
 [![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
-*CI disabled pending final release of Xcode 6.3*
+*CI disabled pending Xcode 7/Swift 2*
 
 An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
@@ -10,9 +10,11 @@ An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in S
 Application
 -----------
 
-Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.3 (beta 3) or later to build. Lambdatron runs on 10.9 or higher. Note that there is a `swift1.1` branch with the last Swift 1.1-compatible version of the codebase.
+Lambdatron is an OS X command-line application written in Swift. You will need Xcode 6.4 to build. Lambdatron runs on 10.9 or higher. There are tags for the last versions compatible with Swift 1.1 and Swift 1.2.
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
+
+*Running from Xcode*: Select the `LambdatronREPLRunner` target and press the Run button; the application opens up a new instance of Terminal.app and runs in that. Alternately, select `LambdatronTests` and run that to run the test suite. See the *Development* section below for more details on the development environment and configuration.
 
 [Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the intended behavior of all included functions and special forms.
 
