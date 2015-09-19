@@ -11,23 +11,18 @@ import Foundation
 /// Return a new string builder, initialized with the contents of the argument (if any).
 func sb_sb(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".sb"
-  if args.count > 1 {
+  guard args.isEmpty || args.count == 1 else {
     return .Failure(EvalError.arityError("0 or 1", actual: args.count, fn))
   }
-  if args.count == 0 {
-    return .Success(.Auxiliary(StringBuilderType()))
-  }
-  let result = args[0].toString(ctx)
-  switch result {
-  case let .Just(desc): return .Success(.Auxiliary(StringBuilderType(desc)))
-  case let .Error(err): return .Failure(err)
-  }
+  return args.isEmpty
+    ? .Success(.Auxiliary(StringBuilderType()))
+    : args[0].toString(ctx).then { .Success(.Auxiliary(StringBuilderType($0))) }
 }
 
 /// Given a string builder and some value, append that value to the string builder's buffer.
 func sb_append(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".sb-append"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   guard case let .Auxiliary(builder as StringBuilderType) = args[0] else {
@@ -42,7 +37,7 @@ func sb_append(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a string builder, reverse the characters in the string builder in-place.
 func sb_reverse(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".sb-reverse"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   guard case let .Auxiliary(builder as StringBuilderType) = args[0] else {

@@ -11,7 +11,7 @@ import Foundation
 /// Return whether or not the argument is nil.
 func pr_isNil(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".nil?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -23,7 +23,7 @@ func pr_isNil(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a number of some sort.
 func pr_isNumber(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".number?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -35,7 +35,7 @@ func pr_isNumber(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a floating point number.
 func pr_isInteger(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".int?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -47,7 +47,7 @@ func pr_isInteger(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a floating point number.
 func pr_isFloat(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".float?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -59,7 +59,7 @@ func pr_isFloat(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a string.
 func pr_isString(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".string?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -71,7 +71,7 @@ func pr_isString(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a character.
 func pr_isChar(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".char?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -83,7 +83,7 @@ func pr_isChar(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a symbol.
 func pr_isSymbol(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".symbol?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -95,7 +95,7 @@ func pr_isSymbol(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a keyword.
 func pr_isKeyword(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".keyword?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -107,7 +107,7 @@ func pr_isKeyword(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a user-defined or built-in function.
 func pr_isFunction(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".fn?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -119,7 +119,7 @@ func pr_isFunction(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is something that can be called in function position (e.g. special forms).
 func pr_isEvalable(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".eval?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   // User-defined functions, built-ins, and special forms are eval'able.
@@ -135,7 +135,7 @@ func pr_isEvalable(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is the boolean value 'true'.
 func pr_isTrue(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".true?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -147,7 +147,7 @@ func pr_isTrue(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is the boolean value 'false'.
 func pr_isFalse(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".false?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -159,7 +159,7 @@ func pr_isFalse(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a Var.
 func pr_isVar(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".var?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -171,7 +171,7 @@ func pr_isVar(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a sequence.
 func pr_isSeq(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".seq?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -183,7 +183,7 @@ func pr_isSeq(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a vector.
 func pr_isVector(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".vector?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -195,7 +195,7 @@ func pr_isVector(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not the argument is a map.
 func pr_isMap(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".map?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -207,7 +207,7 @@ func pr_isMap(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not a number is positive.
 func pr_isPos(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".pos?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let num = args[0].extractNumber()
@@ -224,7 +224,7 @@ func pr_isPos(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not a number is negative.
 func pr_isNeg(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".neg?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let num = args[0].extractNumber()
@@ -241,7 +241,7 @@ func pr_isNeg(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not a number is zero.
 func pr_isZero(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".zero?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let num = args[0].extractNumber()
@@ -258,7 +258,7 @@ func pr_isZero(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not a number is floating-point and subnormal (indicating underflow).
 func pr_isSubnormal(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".subnormal?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let num = args[0].extractNumber()
@@ -275,7 +275,7 @@ func pr_isSubnormal(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not a number is floating-point and infinite.
 func pr_isInfinite(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".infinite?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let num = args[0].extractNumber()
@@ -292,7 +292,7 @@ func pr_isInfinite(args: Params, _ ctx: Context) -> EvalResult {
 /// Return whether or not a number is floating-point and a NaN.
 func pr_isNaN(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".nan?"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let num = args[0].extractNumber()

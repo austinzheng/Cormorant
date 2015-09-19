@@ -11,7 +11,7 @@ import Foundation
 /// Given a string or a regular expression pattern, build and return a corresponding regular expression pattern.
 func re_pattern(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-pattern"
-  if args.count > 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let pattern = args[0]
@@ -28,7 +28,7 @@ func re_pattern(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a regex pattern and a string, return the first match and groups (if any), otherwise nil.
 func re_first(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-first"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   guard case let .Auxiliary(pattern as RegularExpressionType) = args[0] else {
@@ -67,7 +67,7 @@ func re_first(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a regex pattern and a string, return a sequence of all matches and groups (if any), otherwise nil.
 func re_seq(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-seq"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   guard case let .Auxiliary(pattern as RegularExpressionType) = args[0] else {
@@ -103,7 +103,7 @@ func re_seq(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a regex pattern, a string, and a function, call the function once for each match in the string.
 func re_iterate(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-iterate"
-  if args.count != 3 {
+  guard args.count == 3 else {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
   }
   guard case let .Auxiliary(pattern as RegularExpressionType) = args[0] else {
@@ -163,8 +163,8 @@ func re_iterate(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a string, return an escaped version suitable for use as a template.
 func re_quoteReplacement(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".re-quote-replacement"
-  if args.count != 1 {
-    return .Failure(EvalError.arityError("3", actual: args.count, fn))
+  guard args.count == 1 else {
+    return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   if case let .StringAtom(str) = args[0] {
     return .Success(.StringAtom(RegularExpressionType.escapedTemplateForString(str)))

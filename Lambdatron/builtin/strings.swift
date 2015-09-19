@@ -29,65 +29,53 @@ func str_str(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a string, a start index, and an optional end index, return a substring.
 func str_subs(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".subs"
-  if !(args.count == 2 || args.count == 3) {
+  guard args.count == 2 || args.count == 3 else {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
-  if case let .StringAtom(theString) = args[0] {
-    if let start = args[1].extractInt() {
-      // Use the UTF16 view, since that facilitates indexing into the string using integers (i.e. Clojure's behavior)
-      let utf16Str = theString as NSString
-      // TODO: Maybe this should really be Unicode-safe.
-      if args.count == 2 {
-        // Start index only
-        return (start < utf16Str.length
-          ? .Success(.StringAtom(utf16Str.substringFromIndex(start)))
-          : .Failure(EvalError.outOfBoundsError(fn, idx: start)))
-      }
-      else {
-        if let end = args[2].extractInt() {
-          // Start and end indices
-          return (start <= utf16Str.length
-            ? (end <= utf16Str.length && !(end < start)
-              ? .Success(.StringAtom(utf16Str.substringWithRange(NSMakeRange(start, end - start))))
-              : .Failure(EvalError.outOfBoundsError(fn, idx: end)))
-            : .Failure(EvalError.outOfBoundsError(fn, idx: start)))
-        }
-        else {
-          return .Failure(EvalError.invalidArgumentError(fn, message: "second argument must be numeric"))
-        }
-      }
-    }
-    else {
-      return .Failure(EvalError.invalidArgumentError(fn, message: "second argument must be numeric"))
-    }
+  guard case let .StringAtom(theString) = args[0] else {
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
   }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
+  guard let start = args[1].extractInt() else {
+    return .Failure(EvalError.invalidArgumentError(fn, message: "second argument must be numeric"))
+  }
+  // Use the UTF16 view, since that facilitates indexing into the string using integers (i.e. Clojure's behavior)
+  let utf16Str = theString as NSString
+  // TODO: Maybe this should really be Unicode-safe.
+  if args.count == 2 {
+    // Start index only
+    return (start < utf16Str.length
+      ? .Success(.StringAtom(utf16Str.substringFromIndex(start)))
+      : .Failure(EvalError.outOfBoundsError(fn, idx: start)))
+  }
+  else {
+    guard let end = args[2].extractInt() else {
+      return .Failure(EvalError.invalidArgumentError(fn, message: "third argument must be numeric"))
+    }
+    // Start and end indices
+    return (start <= utf16Str.length
+      ? (end <= utf16Str.length && !(end < start)
+        ? .Success(.StringAtom(utf16Str.substringWithRange(NSMakeRange(start, end - start))))
+        : .Failure(EvalError.outOfBoundsError(fn, idx: end)))
+      : .Failure(EvalError.outOfBoundsError(fn, idx: start)))
+  }
 }
 
 /// Given any type of object, return an equivalent string but with all letters in uppercase.
 func str_uppercase(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".upper-case"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let s = args[0].toString(ctx)
-  switch s {
-  case let .Just(s): return .Success(.StringAtom(s.uppercaseString))
-  case let .Error(err): return .Failure(err)
-  }
+  return args[0].toString(ctx).then { .Success(.StringAtom($0.uppercaseString)) }
 }
 
 /// Given any type of object, return an equivalent string but with all letters in lowercase.
 func str_lowercase(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".upper-case"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
-  let s = args[0].toString(ctx)
-  switch s {
-  case let .Just(s): return .Success(.StringAtom(s.lowercaseString))
-  case let .Error(err): return .Failure(err)
-  }
+  return args[0].toString(ctx).then { .Success(.StringAtom($0.lowercaseString)) }
 }
 
 /// Given a string, a match object, and a replacement object, replace all occurrences of the match in the string.
@@ -106,51 +94,46 @@ func str_replaceFirst(args: Params, _ ctx: Context) -> EvalResult {
 // MARK: Private helpers
 
 private func replace(args: Params, ctx: Context, fn: String, firstOnly: Bool) -> EvalResult {
-  if args.count != 3 {
+  guard args.count == 3 else {
     return .Failure(EvalError.arityError("3", actual: args.count, fn))
   }
-  if case let .StringAtom(theString) = args[0] {
-    let match = args[1]
-    let replacement = args[2]
-    switch match {
-    case let .StringAtom(match):
-      switch replacement {
-      case let .StringAtom(replacement):
-        // Replace all occurrences of the match string with the replacement string
-        return replaceWithString(theString, m: match, replacement: replacement, firstOnly: firstOnly, fn: fn)
-      default:
-        return .Failure(EvalError.invalidArgumentError(fn,
-          message: "if the match is a string, the replacement must also be a string"))
-      }
-    case let .Auxiliary(aux):
-      guard let match = aux as? RegularExpressionType else {
-        return .Failure(EvalError.invalidArgumentError(fn,
-          message: "second argument must be a string, character, or regex pattern"))
-      }
-      switch replacement {
-      case let .StringAtom(replacement):
-        // The replacement argument is a template string
-        let newStr = replaceWithTemplate(theString, m: match, template: replacement, firstOnly: firstOnly, fn: fn)
-        return .Success(.StringAtom(newStr))
-      default:
-        // The replacement argument will be treated as a function that takes in match results and returns a string
-        return replaceWithFunction(theString, match: match, function: replacement, firstOnly: firstOnly, fn: fn, ctx: ctx)
-      }
-    case let .CharAtom(match):
-      // Replace all occurrences of the match character with the replacement character
-      switch replacement {
-      case let .CharAtom(replacement):
-        return replaceWithString(theString, m: String(match), replacement: String(replacement), firstOnly: firstOnly, fn: fn)
-      default:
-        return .Failure(EvalError.invalidArgumentError(fn,
-          message: "if the match is a character, the replacement must also be a character"))
-      }
-    default:
-      return .Failure(EvalError.invalidArgumentError(fn,
-        message: "second argument must be a string, character, or regex pattern"))
-    }
+  guard case let .StringAtom(theString) = args[0] else {
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
   }
-  return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
+
+  let match = args[1]
+  let replacement = args[2]
+  switch (match, replacement) {
+  case let (.StringAtom(match), .StringAtom(replacement)):
+    // Replace all occurrences of the match string with the replacement string
+    return replaceWithString(theString, m: match, replacement: replacement, firstOnly: firstOnly, fn: fn)
+  case let (.CharAtom(match), .CharAtom(replacement)):
+    // Replace all occurrences of the match character with the replacement character
+    return replaceWithString(theString, m: String(match), replacement: String(replacement), firstOnly: firstOnly, fn: fn)
+  case let (.Auxiliary(match as RegularExpressionType), _):
+    // Replace all occurrences of the match regex with either a template string or a transformer function
+    switch replacement {
+    case let .StringAtom(replacement):
+      // The replacement argument is a template string
+      let newStr = replaceWithTemplate(theString, m: match, template: replacement, firstOnly: firstOnly, fn: fn)
+      return .Success(.StringAtom(newStr))
+    default:
+      // The replacement argument will be treated as a function that takes in match results and returns a string
+      return replaceWithFunction(theString, match: match, function: replacement, firstOnly: firstOnly, fn: fn, ctx: ctx)
+    }
+  case (.StringAtom, _):
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "if the match is a string, the replacement must also be a string"))
+  case (.CharAtom, _):
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "if the match is a character, the replacement must also be a character"))
+  case (.Auxiliary, _):
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "second argument must be a string, character, or regex pattern"))
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "second argument must be a string, character, or regex pattern"))
+  }
 }
 
 private func replaceWithString(s: String, m: String, replacement: String, firstOnly: Bool, fn: String) -> EvalResult {

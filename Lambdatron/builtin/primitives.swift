@@ -11,12 +11,12 @@ import Foundation
 /// Given a symbol or string, return a corresponding symbol.
 func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".symbol"
-  if args.count != 1 && args.count != 2 {
+  guard args.count == 1 || args.count == 2 else {
     return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
   }
   switch args[0] {
   case .Symbol:
-    if args.count != 1 {
+    guard args.count == 1 else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is symbol, can only have one argument"))
     }
     return .Success(args[0])
@@ -24,15 +24,10 @@ func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
     if args.count == 2 {
       // Qualified symbol
       let nsName = str
-      if case let .StringAtom(name) = args[1] where !nsName.isEmpty {
-        if name.isEmpty {
-          return .Success(.Nil)
-        }
-        return .Success(.Symbol(InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)))
-      }
-      else {
+      guard !nsName.isEmpty, case let .StringAtom(name) = args[1] else {
         return .Failure(EvalError.invalidArgumentError(fn, message: "arguments must be strings"))
       }
+      return .Success(name.isEmpty ? .Nil : .Symbol(InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)))
     }
     else {
       // Unqualified symbol
@@ -46,19 +41,19 @@ func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a symbol, string, or keyword, return a corresponding keyword; otherwise, return nil.
 func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".keyword"
-  if args.count != 1 && args.count != 2 {
+  guard args.count == 1 || args.count == 2 else {
     return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
   }
   switch args[0] {
   case let .Symbol(sym):
-    if args.count != 1 {
+    guard args.count == 1 else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is symbol, can only have one argument"))
     }
     // The keyword is created directly from the symbol. It shares the symbol's name, and if the symbol is qualified,
     // also its namespace.
     return .Success(.Keyword(InternedKeyword(symbol: sym)))
   case .Keyword:
-    if args.count != 1 {
+    guard args.count == 1 else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is keyword, can only have one argument"))
     }
     return .Success(args[0])
@@ -66,15 +61,10 @@ func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
     if args.count == 2 {
       // Qualified keyword
       let nsName = str
-      if !nsName.isEmpty, case let .StringAtom(name) = args[1] {
-        if name.isEmpty {
-          return .Success(.Nil)
-        }
-        return .Success(.Keyword(InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)))
-      }
-      else {
+      guard !nsName.isEmpty, case let .StringAtom(name) = args[1] else {
         return .Failure(EvalError.invalidArgumentError(fn, message: "arguments must be strings"))
       }
+      return .Success(name.isEmpty ? .Nil : .Keyword(InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)))
     }
     else {
       // Unqualified keyword
@@ -88,7 +78,7 @@ func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
 /// Return the namespace string of a symbol or keyword, or nil if not present.
 func pr_namespace(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".namespace"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -110,7 +100,7 @@ func pr_namespace(args: Params, _ ctx: Context) -> EvalResult {
 /// Cast an argument to an integer.
 func pr_int(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".int"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -132,7 +122,7 @@ func pr_int(args: Params, _ ctx: Context) -> EvalResult {
 /// Cast an argument to a float.
 func pr_double(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".double"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {

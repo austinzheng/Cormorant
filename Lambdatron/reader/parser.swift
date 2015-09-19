@@ -250,7 +250,7 @@ private func vectorWithTokens(tokens: ReadOptional<[LexToken]>, _ ctx: Context) 
 /// Given a list of tokens that corresponds to a single map (e.g. <{>, <:a>, <100>, <}>), build a Map data structure.
 private func mapWithTokens(tokens: ReadOptional<[LexToken]>, _ ctx: Context) -> ReadOptional<MapType> {
   return tokens.then { tokens in
-    guard !tokens.isEmpty else {
+    if tokens.isEmpty {
       // No tokens --> empty map {}
       return .Just([:])
     }

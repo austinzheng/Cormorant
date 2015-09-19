@@ -25,7 +25,7 @@ func pr_vector(args: Params, _ ctx: Context) -> EvalResult {
 /// Given zero or more arguments, construct a map whose components are the keys and values (or the empty map).
 func pr_hashmap(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".hashmap"
-  if args.count % 2 != 0 {
+  guard args.count % 2 == 0 else {
     // Must have an even number of arguments
     return .Failure(EvalError.arityError("even number", actual: args.count, fn))
   }
@@ -64,15 +64,16 @@ func pr_cons(args: Params, _ ctx: Context) -> EvalResult {
     //  key-value pairs
     let seq = cons(first, next: HashmapSequenceView(m))
     return .Success(.Seq(seq))
-  default: return .Failure(EvalError.invalidArgumentError(fn,
-    message: "second argument must be a string, list, vector, map, or nil"))
+  default:
+    return .Failure(EvalError.invalidArgumentError(fn,
+      message: "second argument must be a string, list, vector, map, or nil"))
   }
 }
 
 /// Given a sequence, return the first item.
 func pr_first(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".first"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
@@ -102,7 +103,7 @@ func pr_first(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a sequence, return the sequence comprised of all items but the first.
 func pr_rest(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".rest"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
@@ -139,7 +140,7 @@ func pr_rest(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a sequence, return the sequence comprised of all items but the first, or nil if there are no more items.
 func pr_next(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".next"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   let first = args[0]
@@ -190,7 +191,7 @@ func pr_next(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a single sequence, return nil (if empty) or a list built out of that sequence.
 func pr_seq(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".seq"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -199,10 +200,7 @@ func pr_seq(args: Params, _ ctx: Context) -> EvalResult {
     return .Success(str.isEmpty ? .Nil : .Seq(StringSequenceView(str)))
   case let .Seq(seq):
     if let result = sequence(seq) {
-      switch result {
-      case let .Just(s): return .Success(.Seq(s))
-      case let .Error(err): return .Failure(err)
-      }
+      return result.then { .Success(.Seq($0)) }
     }
     return .Success(.Nil)     // Sequence was empty; return nil
   case let .Vector(vector):
@@ -218,7 +216,7 @@ func pr_seq(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a form to evaluate to create a sequence, return a corresponding lazy sequence.
 func pr_lazyseq(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".lazy-seq"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   return .Success(.Seq(LazySeq(args[0], ctx: ctx)))
@@ -227,7 +225,7 @@ func pr_lazyseq(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a collection and an item to 'add' to the collection, return a new collection with the added item.
 func pr_conj(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".conj"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let coll = args[0]
@@ -306,7 +304,7 @@ func pr_concat(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a sequence and an index, return the item at that index, or return an optional 'not found' value.
 func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".nth"
-  if args.count < 2 || args.count > 3 {
+  guard args.count == 2 || args.count == 3 else {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
   if case let .IntAtom(idx) = args[1] {
@@ -370,7 +368,7 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value.
 func pr_get(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".get"
-  if args.count < 2 || args.count > 3 {
+  guard args.count == 2 || args.count == 3 else {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
   let key = args[1]
@@ -398,12 +396,12 @@ func pr_get(args: Params, _ ctx: Context) -> EvalResult {
 func pr_assoc(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".assoc"
   // This function requires at least one collection/nil and one key/index-value pair
-  if args.count < 3 {
+  guard args.count >= 3 else {
     return .Failure(EvalError.arityError("3 or more", actual: args.count, fn))
   }
   // Collect all arguments after the first one
   let rest = args.rest()
-  if rest.count % 2 != 0 {
+  guard rest.count % 2 == 0 else {
     // Must have an even number of key/index-value pairs
     return .Failure(EvalError.arityError("even number", actual: args.count, fn))
   }
@@ -452,7 +450,7 @@ func pr_assoc(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a countable collection, return the number of items.
 func pr_count(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".count"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -478,7 +476,7 @@ func pr_count(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
 func pr_dissoc(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".dissoc"
-  if args.count == 0 {
+  guard !args.isEmpty else {
     return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
   }
   if args.count == 1 {
@@ -502,52 +500,51 @@ func pr_dissoc(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a collection, a function that takes two arguments, and an optional initial value, perform a reduction.
 func pr_reduce(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".reduce"
-  if !(args.count == 2 || args.count == 3) {
+  guard args.count == 2 || args.count == 3 else {
     return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
   }
 
   let function = args[0]
   let coll = args.count == 3 ? args[2] : args[1]
-  let initial : Value? = args.count == 3 ? args[1] : nil
+  let first : Value? = args.count == 3 ? args[1] : nil
 
-  if let seq = SeqIterator(coll, prefix: initial) {
-    // The sequence was one of the supported types.
-    var generator = seq.generate()
-    let initial = generator.next()
-    if let acc = initial {
-      // There is at least one item.
-      switch acc {
-      case let .Just(acc):
-        var accumulator = acc
-        while let this = generator.next() {
-          switch this {
-          case let .Just(this):
-            // Update accumulator with the value of (function accumulator this)
-            let params = Params(accumulator, this)
-            let result = apply(function, args: params, ctx: ctx, fn: fn)
-            switch result {
-            case let .Success(result):
-              accumulator = result
-            default: return result
-            }
-          case let .Error(err):
-            // Subsequent item was a lazy sequence that failed to expand properly
-            return .Failure(err)
+  guard let seq = SeqIterator(coll, prefix: first) else {
+    // The type was incorrect.
+    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a collection"))
+  }
+
+  // The sequence was one of the supported types.
+  var generator = seq.generate()
+  let initial = generator.next()
+  if let acc = initial {
+    // There is at least one item.
+    switch acc {
+    case let .Just(acc):
+      var accumulator = acc
+      while let this = generator.next() {
+        switch this {
+        case let .Just(this):
+          // Update accumulator with the value of (function accumulator this)
+          let params = Params(accumulator, this)
+          let result = apply(function, args: params, ctx: ctx, fn: fn)
+          switch result {
+          case let .Success(result):
+            accumulator = result
+          default: return result
           }
+        case let .Error(err):
+          // Subsequent item was a lazy sequence that failed to expand properly
+          return .Failure(err)
         }
-        return .Success(accumulator)
-      case let .Error(err):
-        // First item was a lazy sequence that failed to expand properly
-        return .Failure(err)
       }
-    }
-    else {
-      // There are no items at all (initial was not provided). Return (function).
-      return apply(function, args: Params(), ctx: ctx, fn: fn)
+      return .Success(accumulator)
+    case let .Error(err):
+      // First item was a lazy sequence that failed to expand properly
+      return .Failure(err)
     }
   }
   else {
-    // The type was incorrect.
-    return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a collection"))
+    // There are no items at all (initial was not provided). Return (function).
+    return apply(function, args: Params(), ctx: ctx, fn: fn)
   }
 }

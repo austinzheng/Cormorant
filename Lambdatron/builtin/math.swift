@@ -36,7 +36,7 @@ func pr_lteq(args: Params, _ ctx: Context) -> EvalResult {
 /// Take two numbers and return their sum.
 func pr_plus(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".+"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = args[0].extractNumber()
@@ -70,7 +70,7 @@ func pr_plus(args: Params, _ ctx: Context) -> EvalResult {
 /// Take two numbers and return their difference.
 func pr_minus(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".-"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = args[0].extractNumber()
@@ -104,7 +104,7 @@ func pr_minus(args: Params, _ ctx: Context) -> EvalResult {
 /// Take two numbers and return their product.
 func pr_multiply(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".*"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = args[0].extractNumber()
@@ -138,7 +138,7 @@ func pr_multiply(args: Params, _ ctx: Context) -> EvalResult {
 /// Take two numbers and return the result of dividing the first by the second.
 func pr_divide(args: Params, _ ctx: Context) -> EvalResult {
   let fn = "./"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = args[0].extractNumber()
@@ -184,7 +184,7 @@ func pr_divide(args: Params, _ ctx: Context) -> EvalResult {
 /// Take the remainder of two numbers.
 func pr_rem(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".rem"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = args[0].extractNumber()
@@ -222,7 +222,7 @@ func pr_rem(args: Params, _ ctx: Context) -> EvalResult {
 /// Take two numbers and return their quotient.
 func pr_quot(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".quot"
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let num0 = args[0].extractNumber()
@@ -264,7 +264,7 @@ private typealias IntTestFn = (Int, Int) -> Bool
 private typealias DoubleTestFn = (Double, Double) -> Bool
 
 private func test(args: Params, _ ipred: IntTestFn, _ dpred: DoubleTestFn, _ fn: String) -> EvalResult {
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   let first = args[0].extractNumber()

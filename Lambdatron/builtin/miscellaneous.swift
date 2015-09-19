@@ -11,7 +11,7 @@ import Foundation
 /// Evaluate the equality of one or more forms.
 func pr_equals(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".="
-  if args.count != 2 {
+  guard args.count == 2 else {
     return .Failure(EvalError.arityError("2", actual: args.count, fn))
   }
   return args[0].equals(args[1]).then { .Success(.BoolAtom($0)) }
@@ -20,7 +20,7 @@ func pr_equals(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a Var (and in the future, an Atom), return the value actually stored inside.
 func pr_deref(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".deref"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   switch args[0] {
@@ -34,7 +34,7 @@ func pr_deref(args: Params, _ ctx: Context) -> EvalResult {
 /// Read in a string from the host interpreter's readInput function, and then expand it into a Lambdatron form.
 func pr_read(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".read"
-  if args.count != 0 {
+  guard args.isEmpty else {
     return .Failure(EvalError.runtimeError(fn, message: "Custom readers are not supported"))
   }
   let readFn = ctx.interpreter.readInput
@@ -49,7 +49,7 @@ func pr_read(args: Params, _ ctx: Context) -> EvalResult {
 /// Given a string as an argument, read and expand it into a Lambdatron form.
 func pr_readString(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".read-string"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   guard case let .StringAtom(string) = args[0] else {
@@ -72,26 +72,19 @@ func pr_println(args: Params, _ ctx: Context) -> EvalResult {
 /// Generate a unique symbol, intern it, and return it.
 func pr_gensym(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".gensym"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   // Note that calling this function with keywords can generate symbols that look exactly like keywords (prefixed by
   //  ":").
-  let prefix = args[0].toString(ctx)
-  switch prefix {
-  case let .Just(prefix):
-    let gensym = ctx.ivs.produceGensym(prefix, suffix: nil)
-    return .Success(.Symbol(gensym))
-  case let .Error(err):
-    return .Failure(err)
-  }
+  return args[0].toString(ctx).then { .Success(.Symbol(ctx.ivs.produceGensym($0, suffix: nil))) }
 }
 
 /// Return a random number between 0 (inclusive) and 1 (exclusive).
 func pr_rand(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".rand"
-  if args.count != 0 {
-    return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
+  guard args.isEmpty else {
+    return .Failure(EvalError.arityError("0", actual: args.count, fn))
   }
   let randomNumber = Double(arc4random_uniform(UInt32.max - 1))
   return .Success(.FloatAtom(randomNumber / Double(UInt32.max)))
@@ -100,7 +93,7 @@ func pr_rand(args: Params, _ ctx: Context) -> EvalResult {
 /// Evaluate a given form and return the result.
 func pr_eval(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".eval"
-  if args.count != 1 {
+  guard args.count == 1 else {
     return .Failure(EvalError.arityError("1", actual: args.count, fn))
   }
   return args[0].evaluate(ctx)
