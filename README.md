@@ -3,6 +3,8 @@ Lambdatron
 
 [![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
 
+*Build is failing because xctool doesn't work properly with Xcode 7, not because of the project itself. Sigh.*
+
 An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
 
