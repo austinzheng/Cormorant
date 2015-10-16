@@ -123,6 +123,8 @@ Development
 
 Some notes on Lambdatron development tools follow.
 
+**WARNING**: Due to [SIP](https://en.wikipedia.org/wiki/System_Integrity_Protection) on OS X 10.11, the Lambdatron REPL can no longer be attached to Terminal.app from Xcode (unless SIP is disabled). In order to debug the app, you must change the LambdatronREPLRunner scheme to run the LambdatronREPLRunner executable rather than Terminal.app. Due to an issue with libedit and the Xcode console, anything you type will be echoed back to the terminal prompt twice. I'm trying to find a workaround that doesn't involve turning off SIP.
+
 ### Code Organization
 
 Lambdatron is divided into three components:
