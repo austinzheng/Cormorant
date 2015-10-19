@@ -3,8 +3,6 @@ Lambdatron
 
 [![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
 
-*Build is failing because xctool doesn't work properly with Xcode 7, not because of the project itself. Sigh.*
-
 An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
 
@@ -123,7 +121,15 @@ Development
 
 Some notes on Lambdatron development tools follow.
 
-**WARNING**: Due to [SIP](https://en.wikipedia.org/wiki/System_Integrity_Protection) on OS X 10.11, the Lambdatron REPL can no longer be attached to Terminal.app from Xcode (unless SIP is disabled). In order to debug the app, you must change the LambdatronREPLRunner scheme to run the LambdatronREPLRunner executable rather than Terminal.app. Due to an issue with libedit and the Xcode console, anything you type will be echoed back to the terminal prompt twice. I'm trying to find a workaround that doesn't involve turning off SIP.
+### Development and OS X's SIP
+
+When debugging Lambdatron, you have at least three options:
+
+* **Disable [SIP](https://en.wikipedia.org/wiki/System_Integrity_Protection)** (if on OS X 10.11) and debug Lambdatron by attaching the `LambdatronREPLRunner` executable to `Terminal.app`. Instructions for disabling SIP [here](http://osxdaily.com/2015/10/05/disable-rootless-system-integrity-protection-mac-os-x/).
+* Don't disable SIP, and change the `LambdatronREPLRunner` scheme to run the executable rather than `Terminal.app`. This runs the REPL in Xcode's built-in console. Because of issues with libedit, anything you type will be echoed twice, but everything else should work.
+* Add Lambdatron as a library to your own Cocoa or command-line app, and debug from there.
+
+If anyone knows how to attach a process to Terminal for debugging without disabling SIP, please let me know.
 
 ### Code Organization
 
