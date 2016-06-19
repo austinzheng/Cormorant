@@ -1,21 +1,21 @@
-Lambdatron
-==========
+# Cormorant
 
 [![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
 
 (CI is probably broken because Xcode 8 is not working properly on Travis. Sorry.)
 
-An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift. The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
+An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift (and formerly known as _Lambdatron_). The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
+
+Bug reports, feature requests, PRs, and other contributions are welcome!
 
 
-Application
------------
+## Application
 
-Lambdatron is a library and an OS X command-line application written in Swift 3. You will need Xcode 8 beta 1 or later to build.
+Cormorant is a library and an OS X command-line application written in Swift 3. You will need Xcode 8 beta 1 or later to build.
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
-*Running from Xcode*: Select the `LambdatronREPLRunner` target and press the Run button; the application opens up a new instance of Terminal.app and runs in that. Alternately, select `LambdatronTests` and run that to run the test suite. See the *Development* section below for more details on the development environment and configuration.
+*Running from Xcode*: Select the `CormorantREPLRunner` target and press the Run button; the application opens up a new instance of Terminal.app and runs in that. Alternately, select `CormorantTests` and run that to run the test suite. See the *Development* section below for more details on the development environment and configuration.
 
 [Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the intended behavior of all included functions and special forms.
 
@@ -50,17 +50,16 @@ Need ideas? Try:
 
 ### Current Limitations
 
-Lambdatron has a couple of limitations, due mostly to its work-in-progress status:
+Cormorant has a couple of limitations, due mostly to its work-in-progress status:
 
 - The REPL can only take one form at a time.
 
 These will disappear as the feature set is filled out.
 
 
-Features
---------
+## Features
 
-Lambdatron has a number of possibly useful features. Lambdatron's data structures should share identical semantics with Clojure's data structures (in that they are immutable and persistent), although some of them are implemented using Swift's naive copy-on-write features rather than as proper persistent data structures.
+Cormorant has a number of possibly useful features. Cormorant's data structures should share identical semantics with Clojure's data structures (in that they are immutable and persistent), although some of them are implemented using Swift's naive copy-on-write features rather than as proper persistent data structures.
 
 **Sequences**, like in Clojure. Sequences are immutable, and come in several flavors. You can prepend items using `cons`, extract the first element using `first`, or get the sequence consisting of all but the first element using `rest`. Create a sequence or get a sequence view using `seq`.
 
@@ -73,7 +72,7 @@ Lambdatron has a number of possibly useful features. Lambdatron's data structure
 
 **Maps**, declared using braces: `{"one" 1 "two" nil "three" [1 2 3]}`, or the `hash-map` function. Maps can be used in function position in order to get a value for a key.
 
-**Strings**, declared using double quotes: `"this is a string literal"`. Strings can be manipulated using `first`, `rest`, etc. Lambdatron also supports a mutating **string builder** which can be used to efficiently construct strings through concatenation. Create one using `sb`, work with the buffer using `sb-append` and `sb-reverse`, and turn it back into a string using `str`.
+**Strings**, declared using double quotes: `"this is a string literal"`. Strings can be manipulated using `first`, `rest`, etc. Cormorant also supports a mutating **string builder** which can be used to efficiently construct strings through concatenation. Create one using `sb`, work with the buffer using `sb-append` and `sb-reverse`, and turn it back into a string using `str`.
 
 **Regular expressions**, declared as such: `#"[0-9]+"`, and backed by `NSRegularExpression`. Use `re-pattern` to create a regex at runtime. Use `re-first` to get the first match of a pattern in a string, and `re-seq` to get a list of all matches of a pattern in a string. Call `re-iterate` with a pattern, a string, and a function that takes two arguments; the function will be called once for each match with a vector of match tokens and a vector of ranges. The function can return `true` to end iteration, or any other value to allow iteration to continue.
 
@@ -118,44 +117,43 @@ The following special forms, reader macros, and functions are built into the int
 Additional functions and macros are available as part of the standard library.
 
 
-Development
------------
+## Development
 
-Some notes on Lambdatron development tools follow.
+Some notes on Cormorant development tools follow.
 
 ### Development and OS X's SIP
 
-When debugging Lambdatron, you have at least three options:
+When debugging Cormorant, you have at least three options:
 
-* **Disable [SIP](https://en.wikipedia.org/wiki/System_Integrity_Protection)** (if on OS X 10.11) and debug Lambdatron by attaching the `LambdatronREPLRunner` executable to `Terminal.app`. Instructions for disabling SIP [here](http://osxdaily.com/2015/10/05/disable-rootless-system-integrity-protection-mac-os-x/).
-* Don't disable SIP, and change the `LambdatronREPLRunner` scheme to run the executable rather than `Terminal.app`. This runs the REPL in Xcode's built-in console. Because of issues with libedit, anything you type will be echoed twice, but everything else should work.
-* Add Lambdatron as a library to your own Cocoa or command-line app, and debug from there.
+* **Disable [SIP](https://en.wikipedia.org/wiki/System_Integrity_Protection)** (if on OS X 10.11) and debug Cormorant by attaching the `CormorantREPLRunner` executable to `Terminal.app`. Instructions for disabling SIP [here](http://osxdaily.com/2015/10/05/disable-rootless-system-integrity-protection-mac-os-x/).
+* Don't disable SIP, and change the `CormorantREPLRunner` scheme to run the executable rather than `Terminal.app`. This runs the REPL in Xcode's built-in console. Because of issues with libedit, anything you type will be echoed twice, but everything else should work.
+* Add Cormorant as a library to your own Cocoa or command-line app, and debug from there.
 
 If anyone knows how to attach a process to Terminal for debugging without disabling SIP, please let me know.
 
 ### Code Organization
 
-Lambdatron is divided into three components:
+Cormorant is divided into three components:
 
-* The core framework (`Lambdatron`)
-* The REPL framework (`LambdatronREPL`)
-* A command-line app and associated build settings for running the REPL (`LambdatronREPLRunner`)
+* The core framework (`Cormorant`)
+* The REPL framework (`CormorantREPL`)
+* A command-line app and associated build settings for running the REPL (`CormorantREPLRunner`)
 
 **IMPORTANT**: If you change either of the two frameworks, you must rebuild the framework that was changed before building and running the command-line app, otherwise your changes will not be reflected. This is an unfortunate side effect of the hacks necessary to build a command-line app which properly consumes Swift dylibs.
 
-At this time Lambdatron always builds with optimizations, even if the scheme is set to 'Debug'. I'm looking for Xcode documentation that explains how build configurations between dependencies actually works. In the meantime, if you really want, manually enable or disable optimizations for both Debug and Release modes for the two frameworks and the REPL runner app.
+At this time Cormorant always builds with optimizations, even if the scheme is set to 'Debug'. I'm looking for Xcode documentation that explains how build configurations between dependencies actually works. In the meantime, if you really want, manually enable or disable optimizations for both Debug and Release modes for the two frameworks and the REPL runner app.
 
 If you want to run the REPL, make sure the bundle is in the same directory.
 
 
 ### Debugging
 
-Note that running (or profiling) Lambdatron in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Lambdatron, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "Lambdatron" (it should show up under "Likely Targets").
+Note that running (or profiling) Cormorant in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Cormorant, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "CormorantREPLRunner" (it should show up under "Likely Targets").
 
 
 ### Profiling
 
-Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "LambdatronREPLRunner" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
+Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "CormorantREPLRunner" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
 
 
 ### Logging
@@ -174,13 +172,12 @@ The code snippet is lexed, parsed, and expanded before the benchmark, and the ex
 
 ### Unit Tests
 
-Lambdatron has a comprehensive unit test suite that exercises the interpreter (not the standard library). Run the unit tests from within Xcode.
+Cormorant has a comprehensive unit test suite that exercises the interpreter (not the standard library). Run the unit tests from within Xcode.
 
-Lambdatron relies on Travis CI for continuous integration. Click on the badge at the top of the README to see more information about CI testing.
+Cormorant relies on Travis CI for continuous integration. Click on the badge at the top of the README to see more information about CI testing.
 
 
-Development Objectives
-----------------------
+## Development Objectives
 
 Development objectives can be divided into two categories.
 
@@ -212,15 +209,14 @@ These are objectives that are either too big in scope to schedule, too technical
 - Better Swift runtime interop (if proper reflection support ever comes to Swift)
 
 
-Differences From Clojure
-------------------------
+## Differences From Clojure
 
 Aside from the (long) list of features not yet implemented (see the *Working On* and *(Very) Long Term Goals* sections above), there are a couple of intentional deviations from Clojure's API or conventions:
 
 * Hashmap iteration is not guaranteed to traverse the elements in the same order as in Clojure. No guarantees are made on hashmap iteration except that each key-value pair is visited exactly once. This has implications for any function that converts a map into an ordered sequence.
-* `ifn?` doesn't exist; use `eval?` instead. This is because Lambdatron does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
+* `ifn?` doesn't exist; use `eval?` instead. This is because Cormorant does not use protocols (i.e. interfaces) to define constructs that can be used in function position.
 * `try` doesn't exist. `attempt` is a (very basic) error handling facility. It takes one or more forms, executing each sequentially, and returns the first successful value (or the error from executing the final form).
-* The `byte`, `short`, `long`, and `float` functions are not implemented, as Lambdatron only has an integer and a double-precision floating point numerical data type.
+* The `byte`, `short`, `long`, and `float` functions are not implemented, as Cormorant only has an integer and a double-precision floating point numerical data type.
 * The `subnormal?`, `infinite?`, and `nan?` functions return false for integer arguments, and can be used to test whether floating point numbers are subnormal, infinite, or NaN (respectively).
 * `keyword` returns `nil` if given an empty string as an argument, not an invalid empty symbol.
 * `read` does not take an optional argument representing a reader object.
@@ -229,9 +225,8 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * Once a namespace has been marked for deletion using `ns-remove`, all its aliases are automatically unregistered, and new aliases or refers can no longer be set for it.
 
 
-License
--------
+## License
 
-Lambdatron © 2015-2016 Austin Zheng, released as open-source software subject to the following terms.
+Cormorant © 2015-2016 Austin Zheng, released as open-source software subject to the following terms.
 
 The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound by the terms of this license. You must not remove this notice, or any other, from this software.

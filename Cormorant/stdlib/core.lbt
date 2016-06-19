@@ -1,0 +1,192 @@
+; Cormorant standard library
+; core.lbt
+; Parts of this code adapted from Clojure's standard library.
+
+; Define a function in the global context.
+(defmacro defn [fnname & fnargs]
+  `(def ~fnname (fn ~@fnargs)))
+
+; Return the argument.
+(defn identity [x] x)
+
+; Return the logical opposite of the argument.
+(defn not [x]
+  (if x false true))
+
+; Return the logical AND of zero or more values.
+(defmacro and
+  ([] true)
+  ([x] x)
+  ([x & next]
+    `(let [and# ~x]
+        (if and# (and ~@next) and#))))
+
+; Return the logical OR of zero or more values.
+(defmacro or
+  ([] nil)
+  ([x] x)
+  ([x & next]
+    `(let [or# ~x]
+      (if or# or# (or ~@next)))))
+
+; Return the second item in a collection.
+(defn second [x] (first (next x)))
+
+; Intern and return a completely new symbol.
+(defn gensym
+  ([] (.gensym "G__"))
+  ([x] (.gensym x)))
+
+; Given an item and a collection, return a new collection with the item added in the most idiomatic way.
+(defn conj
+  ([coll x] (.conj coll x))
+  ([coll x & xs]
+    (if xs
+      (recur (.conj coll x) (first xs) (next xs))
+      (.conj coll x))))
+
+; Return a random number between 0 (inclusive) and n (defaults to 1) (exclusive).
+(defn rand
+  ([] (.rand))
+  ([n] (* n (.rand))))
+
+; Return the sum of zero or more numeric values.
+(defn +
+  ([] 0)
+  ([x] x)
+  ([x y] (.+ x y))
+  ([x y & more] (.reduce .+ (.+ x y) more))
+)
+
+; Return the difference of one or more numeric values.
+(defn -
+  ([x] (- 0 x))
+  ([x y] (.- x y))
+  ([x y & more] (.reduce .- (.- x y) more))
+)
+
+; Return the product of zero or more numeric values.
+(defn *
+  ([] 1)
+  ([x] x)
+  ([x y] (.* x y))
+  ([x y & more] (.reduce .* (.* x y) more))
+)
+
+; Return the quotient of one or more numeric values.
+(defn /
+  ([x] (/ 1 x))
+  ([x y] (./ x y))
+  ([x y & more] (.reduce ./ (./ x y) more))
+)
+
+; Return whether one or more numerical values are strictly increasing in value.
+(defn <
+  ([x] true)
+  ([x y] (.< x y))
+  ([x y & more]
+    (if (.< x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.< y (first more))
+      )
+      false)))
+
+; Return whether one or more numerical values are monotonically increasing in value.
+(defn <=
+  ([x] true)
+  ([x y] (.<= x y))
+  ([x y & more]
+    (if (.<= x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.<= y (first more))
+      )
+      false)))
+
+; Return whether one or more numerical values are strictly decreasing in value.
+(defn >
+  ([x] true)
+  ([x y] (.> x y))
+  ([x y & more]
+    (if (.> x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.> y (first more))
+      )
+      false)))
+
+; Return whether one or more numerical values are monotonically decreasing in value.
+(defn >=
+  ([x] true)
+  ([x y] (.>= x y))
+  ([x y & more]
+    (if (.>= x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.>= y (first more))
+      )
+      false)))
+
+; Return whether one or more numeric values are equivalent.
+(defn ==
+  ([x] true)
+  ([x y] (.== x y))
+  ([x y & more]
+    (if (.== x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.== y (first more))
+      )
+      false)))
+
+; Return whether one or more values are equal.
+(defn =
+  ([x] true)
+  ([x y] (.= x y))
+  ([x y & more]
+    (if (.= x y)
+      (if (.next more)
+        (recur y (first more) (rest more))
+        (.= y (first more))
+      )
+      false)))
+
+; Return a value one greater than num.
+(defn inc [num] (+ num 1))
+
+; Return a value one less than num.
+(defn dec [num] (- num 1))
+
+; Equivalent to (not (= obj1 obj2))
+(defn not=
+  ([x] false)
+  ([x y] (not (= x y)))
+  ([x y & more]
+    (not (apply = x y more))))
+
+(defn resolve [sym] (.ns-resolve *ns* sym))
+
+(defn spread
+  [arglist]
+  (cond
+    (nil? arglist) nil
+    (nil? (next arglist)) (seq (first arglist))
+    :else (cons (first arglist) (spread (next arglist)))))
+
+; Returns name string for character, or nil if none.
+(def char-name-string
+  {\newline "newline"
+   \tab "tab"
+   \space "space"
+   \backspace "backspace"
+   \formfeed "formfeed"
+   \return "return"})
+
+; Returns escape string for character, or nil if none.
+(def char-escape-string
+  {\newline "\\n"
+   \tab  "\\t"
+   \return "\\r"
+   \" "\\\""
+   \\  "\\\\"})

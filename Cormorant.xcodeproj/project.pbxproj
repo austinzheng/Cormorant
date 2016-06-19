@@ -1,0 +1,923 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 47;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1A14EB391D174D2E002069C3 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EB311D174CEA002069C3 /* Info.plist */; };
+		1A14EB3A1D174D5C002069C3 /* InterpreterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB321D174CEA002069C3 /* InterpreterTest.swift */; };
+		1A14EB3B1D174D61002069C3 /* TestArithmetic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA11D174C8D002069C3 /* TestArithmetic.swift */; };
+		1A14EB3C1D174D61002069C3 /* TestAssoc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA21D174C8D002069C3 /* TestAssoc.swift */; };
+		1A14EB3D1D174D61002069C3 /* TestCaseChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA31D174C8D002069C3 /* TestCaseChange.swift */; };
+		1A14EB3E1D174D61002069C3 /* TestComparisons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA41D174C8D002069C3 /* TestComparisons.swift */; };
+		1A14EB3F1D174D61002069C3 /* TestConcat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA51D174C8D002069C3 /* TestConcat.swift */; };
+		1A14EB401D174D61002069C3 /* TestConj.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA61D174C8D002069C3 /* TestConj.swift */; };
+		1A14EB411D174D61002069C3 /* TestCons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA71D174C8D002069C3 /* TestCons.swift */; };
+		1A14EB421D174D61002069C3 /* TestCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA81D174C8D002069C3 /* TestCount.swift */; };
+		1A14EB431D174D61002069C3 /* TestDeref.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAA91D174C8D002069C3 /* TestDeref.swift */; };
+		1A14EB441D174D61002069C3 /* TestDissoc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAAA1D174C8D002069C3 /* TestDissoc.swift */; };
+		1A14EB451D174D61002069C3 /* TestDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAAB1D174C8D002069C3 /* TestDouble.swift */; };
+		1A14EB461D174D61002069C3 /* TestEquals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAAC1D174C8D002069C3 /* TestEquals.swift */; };
+		1A14EB471D174D61002069C3 /* TestEval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAAD1D174C8D002069C3 /* TestEval.swift */; };
+		1A14EB481D174D61002069C3 /* TestFirst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAAE1D174C8D002069C3 /* TestFirst.swift */; };
+		1A14EB491D174D61002069C3 /* TestGensym.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAAF1D174C8D002069C3 /* TestGensym.swift */; };
+		1A14EB4A1D174D61002069C3 /* TestGet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB01D174C8D002069C3 /* TestGet.swift */; };
+		1A14EB4B1D174D61002069C3 /* TestHashmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB11D174C8D002069C3 /* TestHashmap.swift */; };
+		1A14EB4C1D174D61002069C3 /* TestInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB21D174C8D002069C3 /* TestInt.swift */; };
+		1A14EB4D1D174D61002069C3 /* TestIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB31D174C8D002069C3 /* TestIO.swift */; };
+		1A14EB4E1D174D61002069C3 /* TestKeyword.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB41D174C8D002069C3 /* TestKeyword.swift */; };
+		1A14EB4F1D174D61002069C3 /* TestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB51D174C8D002069C3 /* TestList.swift */; };
+		1A14EB501D174D61002069C3 /* TestNamespace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB61D174C8D002069C3 /* TestNamespace.swift */; };
+		1A14EB511D174D61002069C3 /* TestNext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB71D174C8D002069C3 /* TestNext.swift */; };
+		1A14EB521D174D61002069C3 /* TestNsAliasRelated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB81D174C8D002069C3 /* TestNsAliasRelated.swift */; };
+		1A14EB531D174D61002069C3 /* TestNsBasics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAB91D174C8D002069C3 /* TestNsBasics.swift */; };
+		1A14EB541D174D61002069C3 /* TestNsReferRelated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EABA1D174C8D002069C3 /* TestNsReferRelated.swift */; };
+		1A14EB551D174D61002069C3 /* TestNsResolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EABB1D174C8D002069C3 /* TestNsResolve.swift */; };
+		1A14EB561D174D61002069C3 /* TestNth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EABC1D174C8D002069C3 /* TestNth.swift */; };
+		1A14EB571D174D61002069C3 /* TestQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EABD1D174C8D002069C3 /* TestQueries.swift */; };
+		1A14EB581D174D61002069C3 /* TestRand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EABE1D174C8D002069C3 /* TestRand.swift */; };
+		1A14EB591D174D61002069C3 /* TestReadString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EABF1D174C8D002069C3 /* TestReadString.swift */; };
+		1A14EB5A1D174D61002069C3 /* TestReduce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC01D174C8D002069C3 /* TestReduce.swift */; };
+		1A14EB5B1D174D61002069C3 /* TestReFirst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC11D174C8D002069C3 /* TestReFirst.swift */; };
+		1A14EB5C1D174D61002069C3 /* TestReIterate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC21D174C8D002069C3 /* TestReIterate.swift */; };
+		1A14EB5D1D174D61002069C3 /* TestRePattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC31D174C8D002069C3 /* TestRePattern.swift */; };
+		1A14EB5E1D174D61002069C3 /* TestReplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC41D174C8D002069C3 /* TestReplace.swift */; };
+		1A14EB5F1D174D61002069C3 /* TestReplaceFirst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC51D174C8D002069C3 /* TestReplaceFirst.swift */; };
+		1A14EB601D174D61002069C3 /* TestReQuoteReplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC61D174C8D002069C3 /* TestReQuoteReplace.swift */; };
+		1A14EB611D174D61002069C3 /* TestReSeq.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC71D174C8D002069C3 /* TestReSeq.swift */; };
+		1A14EB621D174D61002069C3 /* TestRest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC81D174C8D002069C3 /* TestRest.swift */; };
+		1A14EB631D174D61002069C3 /* TestSbFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EAC91D174C8D002069C3 /* TestSbFunctions.swift */; };
+		1A14EB641D174D61002069C3 /* TestSeq.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EACA1D174C8D002069C3 /* TestSeq.swift */; };
+		1A14EB651D174D61002069C3 /* TestStr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EACB1D174C8D002069C3 /* TestStr.swift */; };
+		1A14EB661D174D61002069C3 /* TestSubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EACC1D174C8D002069C3 /* TestSubs.swift */; };
+		1A14EB671D174D61002069C3 /* TestSymbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EACD1D174C8D002069C3 /* TestSymbol.swift */; };
+		1A14EB681D174D61002069C3 /* TestVar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EACE1D174C8D002069C3 /* TestVar.swift */; };
+		1A14EB691D174D61002069C3 /* TestVector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EACF1D174C8D002069C3 /* TestVector.swift */; };
+		1A14EB6A1D174D67002069C3 /* TestDescribing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB001D174CA2002069C3 /* TestDescribing.swift */; };
+		1A14EB6B1D174D67002069C3 /* TestEvaluating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB011D174CA2002069C3 /* TestEvaluating.swift */; };
+		1A14EB6C1D174D67002069C3 /* TestFnPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB021D174CA2002069C3 /* TestFnPosition.swift */; };
+		1A14EB6D1D174D67002069C3 /* TestLazySeqs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB031D174CA2002069C3 /* TestLazySeqs.swift */; };
+		1A14EB6E1D174D67002069C3 /* TestLexing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB041D174CA2002069C3 /* TestLexing.swift */; };
+		1A14EB6F1D174D67002069C3 /* TestLists.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB051D174CA2002069C3 /* TestLists.swift */; };
+		1A14EB701D174D67002069C3 /* TestNamespaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB061D174CA2002069C3 /* TestNamespaces.swift */; };
+		1A14EB711D174D67002069C3 /* TestParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB071D174CA2002069C3 /* TestParsing.swift */; };
+		1A14EB721D174D67002069C3 /* TestScoping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB081D174CA2002069C3 /* TestScoping.swift */; };
+		1A14EB731D174D70002069C3 /* TestTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB131D174CB5002069C3 /* TestTestHelpers.swift */; };
+		1A14EB741D174D76002069C3 /* rawstrings.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EB361D174CF8002069C3 /* rawstrings.txt */; };
+		1A14EB751D174D7F002069C3 /* TestApply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB1A1D174CD4002069C3 /* TestApply.swift */; };
+		1A14EB761D174D7F002069C3 /* TestAttempt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB1B1D174CD4002069C3 /* TestAttempt.swift */; };
+		1A14EB771D174D7F002069C3 /* TestDef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB1C1D174CD4002069C3 /* TestDef.swift */; };
+		1A14EB781D174D7F002069C3 /* TestDefmacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB1D1D174CD4002069C3 /* TestDefmacro.swift */; };
+		1A14EB791D174D7F002069C3 /* TestDo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB1E1D174CD4002069C3 /* TestDo.swift */; };
+		1A14EB7A1D174D7F002069C3 /* TestFn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB1F1D174CD4002069C3 /* TestFn.swift */; };
+		1A14EB7B1D174D7F002069C3 /* TestIf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB201D174CD4002069C3 /* TestIf.swift */; };
+		1A14EB7C1D174D7F002069C3 /* TestLet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB211D174CD4002069C3 /* TestLet.swift */; };
+		1A14EB7D1D174D7F002069C3 /* TestLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB221D174CD4002069C3 /* TestLoop.swift */; };
+		1A14EB7E1D174D7F002069C3 /* TestQuote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB231D174CD4002069C3 /* TestQuote.swift */; };
+		1A14EB7F1D174D7F002069C3 /* TestRecur.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB241D174CD4002069C3 /* TestRecur.swift */; };
+		1A14EB801D174D83002069C3 /* TestSimpleReaderMacros.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB151D174CC1002069C3 /* TestSimpleReaderMacros.swift */; };
+		1A14EB811D174D83002069C3 /* TestSyntaxQuote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB161D174CC1002069C3 /* TestSyntaxQuote.swift */; };
+		1A14EB8F1D174E93002069C3 /* AuxiliaryTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB821D174E93002069C3 /* AuxiliaryTypes.swift */; };
+		1A14EB901D174E93002069C3 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB831D174E93002069C3 /* Context.swift */; };
+		1A14EB911D174E93002069C3 /* Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB841D174E93002069C3 /* Descriptions.swift */; };
+		1A14EB921D174E93002069C3 /* ErrorTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB851D174E93002069C3 /* ErrorTypes.swift */; };
+		1A14EB931D174E93002069C3 /* Context+Evaluation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB861D174E93002069C3 /* Context+Evaluation.swift */; };
+		1A14EB941D174E93002069C3 /* InternedValueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB871D174E93002069C3 /* InternedValueStore.swift */; };
+		1A14EB951D174E93002069C3 /* Interpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB881D174E93002069C3 /* Interpreter.swift */; };
+		1A14EB961D174E93002069C3 /* Params.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB891D174E93002069C3 /* Params.swift */; };
+		1A14EB971D174E93002069C3 /* ReaderForms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB8A1D174E93002069C3 /* ReaderForms.swift */; };
+		1A14EB981D174E93002069C3 /* ResultTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB8B1D174E93002069C3 /* ResultTypes.swift */; };
+		1A14EB991D174E93002069C3 /* Sequences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB8C1D174E93002069C3 /* Sequences.swift */; };
+		1A14EB9A1D174E93002069C3 /* SpecialForms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB8D1D174E93002069C3 /* SpecialForms.swift */; };
+		1A14EB9B1D174E93002069C3 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB8E1D174E93002069C3 /* Utility.swift */; };
+		1A14EB9F1D174EDF002069C3 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB9C1D174EDF002069C3 /* Value.swift */; };
+		1A14EBA01D174EDF002069C3 /* Value+API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB9D1D174EDF002069C3 /* Value+API.swift */; };
+		1A14EBA11D174EDF002069C3 /* Value+Equality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EB9E1D174EDF002069C3 /* Value+Equality.swift */; };
+		1A14EBA51D174EF2002069C3 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBA21D174EF2002069C3 /* Lexer.swift */; };
+		1A14EBA61D174EF2002069C3 /* Loader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBA31D174EF2002069C3 /* Loader.swift */; };
+		1A14EBA71D174EF2002069C3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBA41D174EF2002069C3 /* Parser.swift */; };
+		1A14EBAE1D174EFF002069C3 /* builtin.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EBA81D174EFF002069C3 /* builtin.lbt */; };
+		1A14EBAF1D174EFF002069C3 /* core.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EBA91D174EFF002069C3 /* core.lbt */; };
+		1A14EBB01D174EFF002069C3 /* flow.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EBAA1D174EFF002069C3 /* flow.lbt */; };
+		1A14EBB11D174EFF002069C3 /* higherorder.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EBAB1D174EFF002069C3 /* higherorder.lbt */; };
+		1A14EBB21D174EFF002069C3 /* math.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EBAC1D174EFF002069C3 /* math.lbt */; };
+		1A14EBB31D174EFF002069C3 /* sequences.lbt in Resources */ = {isa = PBXBuildFile; fileRef = 1A14EBAD1D174EFF002069C3 /* sequences.lbt */; };
+		1A14EBBE1D174F19002069C3 /* builtin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBB41D174F19002069C3 /* builtin.swift */; };
+		1A14EBBF1D174F19002069C3 /* collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBB51D174F19002069C3 /* collections.swift */; };
+		1A14EBC01D174F19002069C3 /* math.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBB61D174F19002069C3 /* math.swift */; };
+		1A14EBC11D174F19002069C3 /* miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBB71D174F19002069C3 /* miscellaneous.swift */; };
+		1A14EBC21D174F19002069C3 /* namespaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBB81D174F19002069C3 /* namespaces.swift */; };
+		1A14EBC31D174F19002069C3 /* primitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBB91D174F19002069C3 /* primitives.swift */; };
+		1A14EBC41D174F19002069C3 /* querying.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBBA1D174F19002069C3 /* querying.swift */; };
+		1A14EBC51D174F19002069C3 /* regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBBB1D174F19002069C3 /* regex.swift */; };
+		1A14EBC61D174F19002069C3 /* stringbuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBBC1D174F19002069C3 /* stringbuilder.swift */; };
+		1A14EBC71D174F19002069C3 /* strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBBD1D174F19002069C3 /* strings.swift */; };
+		1A14EBCB1D174FEA002069C3 /* FunctionObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBCA1D174FEA002069C3 /* FunctionObjects.swift */; };
+		1AE62F511B9182C30038FA44 /* Cormorant.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1AE62F521B9182C30038FA44 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A73F0CD19F7138000F266DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1ADD0BA91AD3AE0100419F94;
+			remoteInfo = Lambdatron;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1A14EAA11D174C8D002069C3 /* TestArithmetic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestArithmetic.swift; path = CormorantTests/Builtins/TestArithmetic.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA21D174C8D002069C3 /* TestAssoc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestAssoc.swift; path = CormorantTests/Builtins/TestAssoc.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA31D174C8D002069C3 /* TestCaseChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestCaseChange.swift; path = CormorantTests/Builtins/TestCaseChange.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA41D174C8D002069C3 /* TestComparisons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestComparisons.swift; path = CormorantTests/Builtins/TestComparisons.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA51D174C8D002069C3 /* TestConcat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestConcat.swift; path = CormorantTests/Builtins/TestConcat.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA61D174C8D002069C3 /* TestConj.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestConj.swift; path = CormorantTests/Builtins/TestConj.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA71D174C8D002069C3 /* TestCons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestCons.swift; path = CormorantTests/Builtins/TestCons.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA81D174C8D002069C3 /* TestCount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestCount.swift; path = CormorantTests/Builtins/TestCount.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAA91D174C8D002069C3 /* TestDeref.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDeref.swift; path = CormorantTests/Builtins/TestDeref.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAAA1D174C8D002069C3 /* TestDissoc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDissoc.swift; path = CormorantTests/Builtins/TestDissoc.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAAB1D174C8D002069C3 /* TestDouble.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDouble.swift; path = CormorantTests/Builtins/TestDouble.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAAC1D174C8D002069C3 /* TestEquals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestEquals.swift; path = CormorantTests/Builtins/TestEquals.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAAD1D174C8D002069C3 /* TestEval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestEval.swift; path = CormorantTests/Builtins/TestEval.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAAE1D174C8D002069C3 /* TestFirst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFirst.swift; path = CormorantTests/Builtins/TestFirst.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAAF1D174C8D002069C3 /* TestGensym.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestGensym.swift; path = CormorantTests/Builtins/TestGensym.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB01D174C8D002069C3 /* TestGet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestGet.swift; path = CormorantTests/Builtins/TestGet.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB11D174C8D002069C3 /* TestHashmap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestHashmap.swift; path = CormorantTests/Builtins/TestHashmap.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB21D174C8D002069C3 /* TestInt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestInt.swift; path = CormorantTests/Builtins/TestInt.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB31D174C8D002069C3 /* TestIO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestIO.swift; path = CormorantTests/Builtins/TestIO.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB41D174C8D002069C3 /* TestKeyword.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestKeyword.swift; path = CormorantTests/Builtins/TestKeyword.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB51D174C8D002069C3 /* TestList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestList.swift; path = CormorantTests/Builtins/TestList.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB61D174C8D002069C3 /* TestNamespace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNamespace.swift; path = CormorantTests/Builtins/TestNamespace.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB71D174C8D002069C3 /* TestNext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNext.swift; path = CormorantTests/Builtins/TestNext.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB81D174C8D002069C3 /* TestNsAliasRelated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNsAliasRelated.swift; path = CormorantTests/Builtins/TestNsAliasRelated.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAB91D174C8D002069C3 /* TestNsBasics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNsBasics.swift; path = CormorantTests/Builtins/TestNsBasics.swift; sourceTree = SOURCE_ROOT; };
+		1A14EABA1D174C8D002069C3 /* TestNsReferRelated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNsReferRelated.swift; path = CormorantTests/Builtins/TestNsReferRelated.swift; sourceTree = SOURCE_ROOT; };
+		1A14EABB1D174C8D002069C3 /* TestNsResolve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNsResolve.swift; path = CormorantTests/Builtins/TestNsResolve.swift; sourceTree = SOURCE_ROOT; };
+		1A14EABC1D174C8D002069C3 /* TestNth.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNth.swift; path = CormorantTests/Builtins/TestNth.swift; sourceTree = SOURCE_ROOT; };
+		1A14EABD1D174C8D002069C3 /* TestQueries.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestQueries.swift; path = CormorantTests/Builtins/TestQueries.swift; sourceTree = SOURCE_ROOT; };
+		1A14EABE1D174C8D002069C3 /* TestRand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestRand.swift; path = CormorantTests/Builtins/TestRand.swift; sourceTree = SOURCE_ROOT; };
+		1A14EABF1D174C8D002069C3 /* TestReadString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReadString.swift; path = CormorantTests/Builtins/TestReadString.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC01D174C8D002069C3 /* TestReduce.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReduce.swift; path = CormorantTests/Builtins/TestReduce.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC11D174C8D002069C3 /* TestReFirst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReFirst.swift; path = CormorantTests/Builtins/TestReFirst.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC21D174C8D002069C3 /* TestReIterate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReIterate.swift; path = CormorantTests/Builtins/TestReIterate.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC31D174C8D002069C3 /* TestRePattern.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestRePattern.swift; path = CormorantTests/Builtins/TestRePattern.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC41D174C8D002069C3 /* TestReplace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReplace.swift; path = CormorantTests/Builtins/TestReplace.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC51D174C8D002069C3 /* TestReplaceFirst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReplaceFirst.swift; path = CormorantTests/Builtins/TestReplaceFirst.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC61D174C8D002069C3 /* TestReQuoteReplace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReQuoteReplace.swift; path = CormorantTests/Builtins/TestReQuoteReplace.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC71D174C8D002069C3 /* TestReSeq.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestReSeq.swift; path = CormorantTests/Builtins/TestReSeq.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC81D174C8D002069C3 /* TestRest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestRest.swift; path = CormorantTests/Builtins/TestRest.swift; sourceTree = SOURCE_ROOT; };
+		1A14EAC91D174C8D002069C3 /* TestSbFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSbFunctions.swift; path = CormorantTests/Builtins/TestSbFunctions.swift; sourceTree = SOURCE_ROOT; };
+		1A14EACA1D174C8D002069C3 /* TestSeq.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSeq.swift; path = CormorantTests/Builtins/TestSeq.swift; sourceTree = SOURCE_ROOT; };
+		1A14EACB1D174C8D002069C3 /* TestStr.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestStr.swift; path = CormorantTests/Builtins/TestStr.swift; sourceTree = SOURCE_ROOT; };
+		1A14EACC1D174C8D002069C3 /* TestSubs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSubs.swift; path = CormorantTests/Builtins/TestSubs.swift; sourceTree = SOURCE_ROOT; };
+		1A14EACD1D174C8D002069C3 /* TestSymbol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSymbol.swift; path = CormorantTests/Builtins/TestSymbol.swift; sourceTree = SOURCE_ROOT; };
+		1A14EACE1D174C8D002069C3 /* TestVar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestVar.swift; path = CormorantTests/Builtins/TestVar.swift; sourceTree = SOURCE_ROOT; };
+		1A14EACF1D174C8D002069C3 /* TestVector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestVector.swift; path = CormorantTests/Builtins/TestVector.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB001D174CA2002069C3 /* TestDescribing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDescribing.swift; path = CormorantTests/Core/TestDescribing.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB011D174CA2002069C3 /* TestEvaluating.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestEvaluating.swift; path = CormorantTests/Core/TestEvaluating.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB021D174CA2002069C3 /* TestFnPosition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFnPosition.swift; path = CormorantTests/Core/TestFnPosition.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB031D174CA2002069C3 /* TestLazySeqs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLazySeqs.swift; path = CormorantTests/Core/TestLazySeqs.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB041D174CA2002069C3 /* TestLexing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLexing.swift; path = CormorantTests/Core/TestLexing.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB051D174CA2002069C3 /* TestLists.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLists.swift; path = CormorantTests/Core/TestLists.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB061D174CA2002069C3 /* TestNamespaces.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNamespaces.swift; path = CormorantTests/Core/TestNamespaces.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB071D174CA2002069C3 /* TestParsing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestParsing.swift; path = CormorantTests/Core/TestParsing.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB081D174CA2002069C3 /* TestScoping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestScoping.swift; path = CormorantTests/Core/TestScoping.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB131D174CB5002069C3 /* TestTestHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestTestHelpers.swift; path = CormorantTests/Meta/TestTestHelpers.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB151D174CC1002069C3 /* TestSimpleReaderMacros.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSimpleReaderMacros.swift; path = CormorantTests/Reader/TestSimpleReaderMacros.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB161D174CC1002069C3 /* TestSyntaxQuote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSyntaxQuote.swift; path = CormorantTests/Reader/TestSyntaxQuote.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB1A1D174CD4002069C3 /* TestApply.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestApply.swift; path = CormorantTests/SpecialForms/TestApply.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB1B1D174CD4002069C3 /* TestAttempt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestAttempt.swift; path = CormorantTests/SpecialForms/TestAttempt.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB1C1D174CD4002069C3 /* TestDef.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDef.swift; path = CormorantTests/SpecialForms/TestDef.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB1D1D174CD4002069C3 /* TestDefmacro.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDefmacro.swift; path = CormorantTests/SpecialForms/TestDefmacro.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB1E1D174CD4002069C3 /* TestDo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestDo.swift; path = CormorantTests/SpecialForms/TestDo.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB1F1D174CD4002069C3 /* TestFn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestFn.swift; path = CormorantTests/SpecialForms/TestFn.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB201D174CD4002069C3 /* TestIf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestIf.swift; path = CormorantTests/SpecialForms/TestIf.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB211D174CD4002069C3 /* TestLet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLet.swift; path = CormorantTests/SpecialForms/TestLet.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB221D174CD4002069C3 /* TestLoop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestLoop.swift; path = CormorantTests/SpecialForms/TestLoop.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB231D174CD4002069C3 /* TestQuote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestQuote.swift; path = CormorantTests/SpecialForms/TestQuote.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB241D174CD4002069C3 /* TestRecur.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestRecur.swift; path = CormorantTests/SpecialForms/TestRecur.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB311D174CEA002069C3 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CormorantTests/Info.plist; sourceTree = SOURCE_ROOT; };
+		1A14EB321D174CEA002069C3 /* InterpreterTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InterpreterTest.swift; path = CormorantTests/InterpreterTest.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB361D174CF8002069C3 /* rawstrings.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = rawstrings.txt; path = CormorantTests/SupportingFiles/rawstrings.txt; sourceTree = SOURCE_ROOT; };
+		1A14EB821D174E93002069C3 /* AuxiliaryTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AuxiliaryTypes.swift; path = Cormorant/AuxiliaryTypes.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB831D174E93002069C3 /* Context.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Context.swift; path = Cormorant/Context.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB841D174E93002069C3 /* Descriptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Descriptions.swift; path = Cormorant/Descriptions.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB851D174E93002069C3 /* ErrorTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ErrorTypes.swift; path = Cormorant/ErrorTypes.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB861D174E93002069C3 /* Context+Evaluation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Context+Evaluation.swift"; path = "Cormorant/Context+Evaluation.swift"; sourceTree = SOURCE_ROOT; };
+		1A14EB871D174E93002069C3 /* InternedValueStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InternedValueStore.swift; path = Cormorant/InternedValueStore.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB881D174E93002069C3 /* Interpreter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Interpreter.swift; path = Cormorant/Interpreter.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB891D174E93002069C3 /* Params.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Params.swift; path = Cormorant/Params.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB8A1D174E93002069C3 /* ReaderForms.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReaderForms.swift; path = Cormorant/ReaderForms.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB8B1D174E93002069C3 /* ResultTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResultTypes.swift; path = Cormorant/ResultTypes.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB8C1D174E93002069C3 /* Sequences.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Sequences.swift; path = Cormorant/Sequences.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB8D1D174E93002069C3 /* SpecialForms.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SpecialForms.swift; path = Cormorant/SpecialForms.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB8E1D174E93002069C3 /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Utility.swift; path = Cormorant/Utility.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB9C1D174EDF002069C3 /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Value.swift; path = Cormorant/Value/Value.swift; sourceTree = SOURCE_ROOT; };
+		1A14EB9D1D174EDF002069C3 /* Value+API.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Value+API.swift"; path = "Cormorant/Value/Value+API.swift"; sourceTree = SOURCE_ROOT; };
+		1A14EB9E1D174EDF002069C3 /* Value+Equality.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Value+Equality.swift"; path = "Cormorant/Value/Value+Equality.swift"; sourceTree = SOURCE_ROOT; };
+		1A14EBA21D174EF2002069C3 /* Lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Lexer.swift; path = Cormorant/reader/Lexer.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBA31D174EF2002069C3 /* Loader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Loader.swift; path = Cormorant/reader/Loader.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBA41D174EF2002069C3 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Parser.swift; path = Cormorant/reader/Parser.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBA81D174EFF002069C3 /* builtin.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = builtin.lbt; path = Cormorant/stdlib/builtin.lbt; sourceTree = SOURCE_ROOT; };
+		1A14EBA91D174EFF002069C3 /* core.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = core.lbt; path = Cormorant/stdlib/core.lbt; sourceTree = SOURCE_ROOT; };
+		1A14EBAA1D174EFF002069C3 /* flow.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = flow.lbt; path = Cormorant/stdlib/flow.lbt; sourceTree = SOURCE_ROOT; };
+		1A14EBAB1D174EFF002069C3 /* higherorder.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = higherorder.lbt; path = Cormorant/stdlib/higherorder.lbt; sourceTree = SOURCE_ROOT; };
+		1A14EBAC1D174EFF002069C3 /* math.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = math.lbt; path = Cormorant/stdlib/math.lbt; sourceTree = SOURCE_ROOT; };
+		1A14EBAD1D174EFF002069C3 /* sequences.lbt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = sequences.lbt; path = Cormorant/stdlib/sequences.lbt; sourceTree = SOURCE_ROOT; };
+		1A14EBB41D174F19002069C3 /* builtin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = builtin.swift; path = Cormorant/builtin/builtin.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBB51D174F19002069C3 /* collections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = collections.swift; path = Cormorant/builtin/collections.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBB61D174F19002069C3 /* math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = math.swift; path = Cormorant/builtin/math.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBB71D174F19002069C3 /* miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = miscellaneous.swift; path = Cormorant/builtin/miscellaneous.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBB81D174F19002069C3 /* namespaces.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = namespaces.swift; path = Cormorant/builtin/namespaces.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBB91D174F19002069C3 /* primitives.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = primitives.swift; path = Cormorant/builtin/primitives.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBBA1D174F19002069C3 /* querying.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = querying.swift; path = Cormorant/builtin/querying.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBBB1D174F19002069C3 /* regex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = regex.swift; path = Cormorant/builtin/regex.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBBC1D174F19002069C3 /* stringbuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = stringbuilder.swift; path = Cormorant/builtin/stringbuilder.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBBD1D174F19002069C3 /* strings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = strings.swift; path = Cormorant/builtin/strings.swift; sourceTree = SOURCE_ROOT; };
+		1A14EBCA1D174FEA002069C3 /* FunctionObjects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FunctionObjects.swift; path = Cormorant/FunctionObjects.swift; sourceTree = SOURCE_ROOT; };
+		1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cormorant.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE62F4C1B9182C30038FA44 /* CormorantTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CormorantTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1ADD0BA61AD3AE0100419F94 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62F491B9182C30038FA44 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE62F511B9182C30038FA44 /* Cormorant.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1A14EAFF1D174C90002069C3 /* Builtins */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EAA11D174C8D002069C3 /* TestArithmetic.swift */,
+				1A14EAA21D174C8D002069C3 /* TestAssoc.swift */,
+				1A14EAA31D174C8D002069C3 /* TestCaseChange.swift */,
+				1A14EAA41D174C8D002069C3 /* TestComparisons.swift */,
+				1A14EAA51D174C8D002069C3 /* TestConcat.swift */,
+				1A14EAA61D174C8D002069C3 /* TestConj.swift */,
+				1A14EAA71D174C8D002069C3 /* TestCons.swift */,
+				1A14EAA81D174C8D002069C3 /* TestCount.swift */,
+				1A14EAA91D174C8D002069C3 /* TestDeref.swift */,
+				1A14EAAA1D174C8D002069C3 /* TestDissoc.swift */,
+				1A14EAAB1D174C8D002069C3 /* TestDouble.swift */,
+				1A14EAAC1D174C8D002069C3 /* TestEquals.swift */,
+				1A14EAAD1D174C8D002069C3 /* TestEval.swift */,
+				1A14EAAE1D174C8D002069C3 /* TestFirst.swift */,
+				1A14EAAF1D174C8D002069C3 /* TestGensym.swift */,
+				1A14EAB01D174C8D002069C3 /* TestGet.swift */,
+				1A14EAB11D174C8D002069C3 /* TestHashmap.swift */,
+				1A14EAB21D174C8D002069C3 /* TestInt.swift */,
+				1A14EAB31D174C8D002069C3 /* TestIO.swift */,
+				1A14EAB41D174C8D002069C3 /* TestKeyword.swift */,
+				1A14EAB51D174C8D002069C3 /* TestList.swift */,
+				1A14EAB61D174C8D002069C3 /* TestNamespace.swift */,
+				1A14EAB71D174C8D002069C3 /* TestNext.swift */,
+				1A14EAB81D174C8D002069C3 /* TestNsAliasRelated.swift */,
+				1A14EAB91D174C8D002069C3 /* TestNsBasics.swift */,
+				1A14EABA1D174C8D002069C3 /* TestNsReferRelated.swift */,
+				1A14EABB1D174C8D002069C3 /* TestNsResolve.swift */,
+				1A14EABC1D174C8D002069C3 /* TestNth.swift */,
+				1A14EABD1D174C8D002069C3 /* TestQueries.swift */,
+				1A14EABE1D174C8D002069C3 /* TestRand.swift */,
+				1A14EABF1D174C8D002069C3 /* TestReadString.swift */,
+				1A14EAC01D174C8D002069C3 /* TestReduce.swift */,
+				1A14EAC11D174C8D002069C3 /* TestReFirst.swift */,
+				1A14EAC21D174C8D002069C3 /* TestReIterate.swift */,
+				1A14EAC31D174C8D002069C3 /* TestRePattern.swift */,
+				1A14EAC41D174C8D002069C3 /* TestReplace.swift */,
+				1A14EAC51D174C8D002069C3 /* TestReplaceFirst.swift */,
+				1A14EAC61D174C8D002069C3 /* TestReQuoteReplace.swift */,
+				1A14EAC71D174C8D002069C3 /* TestReSeq.swift */,
+				1A14EAC81D174C8D002069C3 /* TestRest.swift */,
+				1A14EAC91D174C8D002069C3 /* TestSbFunctions.swift */,
+				1A14EACA1D174C8D002069C3 /* TestSeq.swift */,
+				1A14EACB1D174C8D002069C3 /* TestStr.swift */,
+				1A14EACC1D174C8D002069C3 /* TestSubs.swift */,
+				1A14EACD1D174C8D002069C3 /* TestSymbol.swift */,
+				1A14EACE1D174C8D002069C3 /* TestVar.swift */,
+				1A14EACF1D174C8D002069C3 /* TestVector.swift */,
+			);
+			name = Builtins;
+			sourceTree = "<group>";
+		};
+		1A14EB121D174CA5002069C3 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB001D174CA2002069C3 /* TestDescribing.swift */,
+				1A14EB011D174CA2002069C3 /* TestEvaluating.swift */,
+				1A14EB021D174CA2002069C3 /* TestFnPosition.swift */,
+				1A14EB031D174CA2002069C3 /* TestLazySeqs.swift */,
+				1A14EB041D174CA2002069C3 /* TestLexing.swift */,
+				1A14EB051D174CA2002069C3 /* TestLists.swift */,
+				1A14EB061D174CA2002069C3 /* TestNamespaces.swift */,
+				1A14EB071D174CA2002069C3 /* TestParsing.swift */,
+				1A14EB081D174CA2002069C3 /* TestScoping.swift */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		1A14EB191D174CC5002069C3 /* Reader */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB151D174CC1002069C3 /* TestSimpleReaderMacros.swift */,
+				1A14EB161D174CC1002069C3 /* TestSyntaxQuote.swift */,
+			);
+			name = Reader;
+			sourceTree = "<group>";
+		};
+		1A14EB301D174CD8002069C3 /* SpecialForms */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB1A1D174CD4002069C3 /* TestApply.swift */,
+				1A14EB1B1D174CD4002069C3 /* TestAttempt.swift */,
+				1A14EB1C1D174CD4002069C3 /* TestDef.swift */,
+				1A14EB1D1D174CD4002069C3 /* TestDefmacro.swift */,
+				1A14EB1E1D174CD4002069C3 /* TestDo.swift */,
+				1A14EB1F1D174CD4002069C3 /* TestFn.swift */,
+				1A14EB201D174CD4002069C3 /* TestIf.swift */,
+				1A14EB211D174CD4002069C3 /* TestLet.swift */,
+				1A14EB221D174CD4002069C3 /* TestLoop.swift */,
+				1A14EB231D174CD4002069C3 /* TestQuote.swift */,
+				1A14EB241D174CD4002069C3 /* TestRecur.swift */,
+			);
+			name = SpecialForms;
+			sourceTree = "<group>";
+		};
+		1A14EB351D174CEC002069C3 /* Meta */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB131D174CB5002069C3 /* TestTestHelpers.swift */,
+			);
+			name = Meta;
+			sourceTree = "<group>";
+		};
+		1A14EB381D174CFB002069C3 /* SupportingFiles */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB361D174CF8002069C3 /* rawstrings.txt */,
+				1A14EB311D174CEA002069C3 /* Info.plist */,
+			);
+			name = SupportingFiles;
+			path = ..;
+			sourceTree = "<group>";
+		};
+		1A14EBCC1D1752D2002069C3 /* Context */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB831D174E93002069C3 /* Context.swift */,
+				1A14EB861D174E93002069C3 /* Context+Evaluation.swift */,
+				1A14EB871D174E93002069C3 /* InternedValueStore.swift */,
+			);
+			name = Context;
+			sourceTree = "<group>";
+		};
+		1A22BCB11A25AFEE00D34872 /* Reader */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EBA21D174EF2002069C3 /* Lexer.swift */,
+				1A14EBA41D174EF2002069C3 /* Parser.swift */,
+				1A14EBA31D174EF2002069C3 /* Loader.swift */,
+			);
+			name = Reader;
+			sourceTree = "<group>";
+		};
+		1A73F0CC19F7138000F266DA = {
+			isa = PBXGroup;
+			children = (
+				1A73F0D719F7138100F266DA /* Cormorant */,
+				1AAC2DA81A68E86E0019A5DD /* CormorantTests */,
+				1A73F0D619F7138100F266DA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1A73F0D619F7138100F266DA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */,
+				1AE62F4C1B9182C30038FA44 /* CormorantTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1A73F0D719F7138100F266DA /* Cormorant */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB881D174E93002069C3 /* Interpreter.swift */,
+				1A14EB891D174E93002069C3 /* Params.swift */,
+				1A14EB8C1D174E93002069C3 /* Sequences.swift */,
+				1A14EBCA1D174FEA002069C3 /* FunctionObjects.swift */,
+				1A14EB841D174E93002069C3 /* Descriptions.swift */,
+				1A14EB8A1D174E93002069C3 /* ReaderForms.swift */,
+				1A14EB8D1D174E93002069C3 /* SpecialForms.swift */,
+				1A14EB8B1D174E93002069C3 /* ResultTypes.swift */,
+				1A14EB851D174E93002069C3 /* ErrorTypes.swift */,
+				1A14EB821D174E93002069C3 /* AuxiliaryTypes.swift */,
+				1A14EB8E1D174E93002069C3 /* Utility.swift */,
+				1A14EBCC1D1752D2002069C3 /* Context */,
+				1AEF466E1BACC19400119D81 /* Value */,
+				1A22BCB11A25AFEE00D34872 /* Reader */,
+				1AC8D3081A3F633E00B72D49 /* Builtin */,
+				1A98B10B1A1C79AA00019DB4 /* stdlib */,
+			);
+			name = Cormorant;
+			path = Lambdatron;
+			sourceTree = "<group>";
+		};
+		1A98B10B1A1C79AA00019DB4 /* stdlib */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EBA81D174EFF002069C3 /* builtin.lbt */,
+				1A14EBA91D174EFF002069C3 /* core.lbt */,
+				1A14EBAD1D174EFF002069C3 /* sequences.lbt */,
+				1A14EBAB1D174EFF002069C3 /* higherorder.lbt */,
+				1A14EBAA1D174EFF002069C3 /* flow.lbt */,
+				1A14EBAC1D174EFF002069C3 /* math.lbt */,
+			);
+			name = stdlib;
+			sourceTree = "<group>";
+		};
+		1AAC2DA81A68E86E0019A5DD /* CormorantTests */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB321D174CEA002069C3 /* InterpreterTest.swift */,
+				1A14EAFF1D174C90002069C3 /* Builtins */,
+				1A14EB121D174CA5002069C3 /* Core */,
+				1A14EB191D174CC5002069C3 /* Reader */,
+				1A14EB301D174CD8002069C3 /* SpecialForms */,
+				1A14EB381D174CFB002069C3 /* SupportingFiles */,
+				1A14EB351D174CEC002069C3 /* Meta */,
+			);
+			name = CormorantTests;
+			path = LambdatronTests;
+			sourceTree = "<group>";
+		};
+		1AC8D3081A3F633E00B72D49 /* Builtin */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EBB41D174F19002069C3 /* builtin.swift */,
+				1A14EBB81D174F19002069C3 /* namespaces.swift */,
+				1A14EBB51D174F19002069C3 /* collections.swift */,
+				1A14EBB91D174F19002069C3 /* primitives.swift */,
+				1A14EBBD1D174F19002069C3 /* strings.swift */,
+				1A14EBBC1D174F19002069C3 /* stringbuilder.swift */,
+				1A14EBBB1D174F19002069C3 /* regex.swift */,
+				1A14EBBA1D174F19002069C3 /* querying.swift */,
+				1A14EBB61D174F19002069C3 /* math.swift */,
+				1A14EBB71D174F19002069C3 /* miscellaneous.swift */,
+			);
+			name = Builtin;
+			sourceTree = "<group>";
+		};
+		1AEF466E1BACC19400119D81 /* Value */ = {
+			isa = PBXGroup;
+			children = (
+				1A14EB9C1D174EDF002069C3 /* Value.swift */,
+				1A14EB9D1D174EDF002069C3 /* Value+API.swift */,
+				1A14EB9E1D174EDF002069C3 /* Value+Equality.swift */,
+			);
+			name = Value;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1ADD0BA91AD3AE0100419F94 /* Cormorant */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1ADD0BBD1AD3AE0200419F94 /* Build configuration list for PBXNativeTarget "Cormorant" */;
+			buildPhases = (
+				1ADD0BA51AD3AE0100419F94 /* Sources */,
+				1ADD0BA61AD3AE0100419F94 /* Frameworks */,
+				1ADD0BA81AD3AE0100419F94 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Cormorant;
+			productName = Lambdatron;
+			productReference = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		1AE62F4B1B9182C30038FA44 /* CormorantTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE62F541B9182C30038FA44 /* Build configuration list for PBXNativeTarget "CormorantTests" */;
+			buildPhases = (
+				1AE62F481B9182C30038FA44 /* Sources */,
+				1AE62F491B9182C30038FA44 /* Frameworks */,
+				1AE62F4A1B9182C30038FA44 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AE62F531B9182C30038FA44 /* PBXTargetDependency */,
+			);
+			name = CormorantTests;
+			productName = LambdatronTests;
+			productReference = 1AE62F4C1B9182C30038FA44 /* CormorantTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1A73F0CD19F7138000F266DA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0700;
+				LastUpgradeCheck = 0800;
+				ORGANIZATIONNAME = "Austin Zheng";
+				TargetAttributes = {
+					1ADD0BA91AD3AE0100419F94 = {
+						CreatedOnToolsVersion = 6.3;
+					};
+					1AE62F4B1B9182C30038FA44 = {
+						CreatedOnToolsVersion = 7.0;
+					};
+				};
+			};
+			buildConfigurationList = 1A73F0D019F7138100F266DA /* Build configuration list for PBXProject "Cormorant" */;
+			compatibilityVersion = "Xcode 6.3";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 1A73F0CC19F7138000F266DA;
+			productRefGroup = 1A73F0D619F7138100F266DA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1ADD0BA91AD3AE0100419F94 /* Cormorant */,
+				1AE62F4B1B9182C30038FA44 /* CormorantTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1ADD0BA81AD3AE0100419F94 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A14EBB21D174EFF002069C3 /* math.lbt in Resources */,
+				1A14EBAF1D174EFF002069C3 /* core.lbt in Resources */,
+				1A14EBAE1D174EFF002069C3 /* builtin.lbt in Resources */,
+				1A14EBB11D174EFF002069C3 /* higherorder.lbt in Resources */,
+				1A14EBB01D174EFF002069C3 /* flow.lbt in Resources */,
+				1A14EBB31D174EFF002069C3 /* sequences.lbt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62F4A1B9182C30038FA44 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A14EB741D174D76002069C3 /* rawstrings.txt in Resources */,
+				1A14EB391D174D2E002069C3 /* Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1ADD0BA51AD3AE0100419F94 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A14EB941D174E93002069C3 /* InternedValueStore.swift in Sources */,
+				1A14EB951D174E93002069C3 /* Interpreter.swift in Sources */,
+				1A14EBBF1D174F19002069C3 /* collections.swift in Sources */,
+				1A14EB981D174E93002069C3 /* ResultTypes.swift in Sources */,
+				1A14EBA11D174EDF002069C3 /* Value+Equality.swift in Sources */,
+				1A14EBC51D174F19002069C3 /* regex.swift in Sources */,
+				1A14EB901D174E93002069C3 /* Context.swift in Sources */,
+				1A14EB911D174E93002069C3 /* Descriptions.swift in Sources */,
+				1A14EB9A1D174E93002069C3 /* SpecialForms.swift in Sources */,
+				1A14EB991D174E93002069C3 /* Sequences.swift in Sources */,
+				1A14EBA01D174EDF002069C3 /* Value+API.swift in Sources */,
+				1A14EB9B1D174E93002069C3 /* Utility.swift in Sources */,
+				1A14EB971D174E93002069C3 /* ReaderForms.swift in Sources */,
+				1A14EBA61D174EF2002069C3 /* Loader.swift in Sources */,
+				1A14EBC61D174F19002069C3 /* stringbuilder.swift in Sources */,
+				1A14EBCB1D174FEA002069C3 /* FunctionObjects.swift in Sources */,
+				1A14EBC01D174F19002069C3 /* math.swift in Sources */,
+				1A14EB9F1D174EDF002069C3 /* Value.swift in Sources */,
+				1A14EBC21D174F19002069C3 /* namespaces.swift in Sources */,
+				1A14EBA71D174EF2002069C3 /* Parser.swift in Sources */,
+				1A14EBC71D174F19002069C3 /* strings.swift in Sources */,
+				1A14EBBE1D174F19002069C3 /* builtin.swift in Sources */,
+				1A14EB921D174E93002069C3 /* ErrorTypes.swift in Sources */,
+				1A14EB8F1D174E93002069C3 /* AuxiliaryTypes.swift in Sources */,
+				1A14EBC41D174F19002069C3 /* querying.swift in Sources */,
+				1A14EBC11D174F19002069C3 /* miscellaneous.swift in Sources */,
+				1A14EB931D174E93002069C3 /* Context+Evaluation.swift in Sources */,
+				1A14EBA51D174EF2002069C3 /* Lexer.swift in Sources */,
+				1A14EBC31D174F19002069C3 /* primitives.swift in Sources */,
+				1A14EB961D174E93002069C3 /* Params.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62F481B9182C30038FA44 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A14EB641D174D61002069C3 /* TestSeq.swift in Sources */,
+				1A14EB511D174D61002069C3 /* TestNext.swift in Sources */,
+				1A14EB401D174D61002069C3 /* TestConj.swift in Sources */,
+				1A14EB801D174D83002069C3 /* TestSimpleReaderMacros.swift in Sources */,
+				1A14EB7C1D174D7F002069C3 /* TestLet.swift in Sources */,
+				1A14EB591D174D61002069C3 /* TestReadString.swift in Sources */,
+				1A14EB3A1D174D5C002069C3 /* InterpreterTest.swift in Sources */,
+				1A14EB6A1D174D67002069C3 /* TestDescribing.swift in Sources */,
+				1A14EB481D174D61002069C3 /* TestFirst.swift in Sources */,
+				1A14EB6B1D174D67002069C3 /* TestEvaluating.swift in Sources */,
+				1A14EB7F1D174D7F002069C3 /* TestRecur.swift in Sources */,
+				1A14EB7D1D174D7F002069C3 /* TestLoop.swift in Sources */,
+				1A14EB791D174D7F002069C3 /* TestDo.swift in Sources */,
+				1A14EB4D1D174D61002069C3 /* TestIO.swift in Sources */,
+				1A14EB541D174D61002069C3 /* TestNsReferRelated.swift in Sources */,
+				1A14EB5D1D174D61002069C3 /* TestRePattern.swift in Sources */,
+				1A14EB761D174D7F002069C3 /* TestAttempt.swift in Sources */,
+				1A14EB3D1D174D61002069C3 /* TestCaseChange.swift in Sources */,
+				1A14EB4F1D174D61002069C3 /* TestList.swift in Sources */,
+				1A14EB4B1D174D61002069C3 /* TestHashmap.swift in Sources */,
+				1A14EB561D174D61002069C3 /* TestNth.swift in Sources */,
+				1A14EB461D174D61002069C3 /* TestEquals.swift in Sources */,
+				1A14EB7E1D174D7F002069C3 /* TestQuote.swift in Sources */,
+				1A14EB691D174D61002069C3 /* TestVector.swift in Sources */,
+				1A14EB3C1D174D61002069C3 /* TestAssoc.swift in Sources */,
+				1A14EB411D174D61002069C3 /* TestCons.swift in Sources */,
+				1A14EB531D174D61002069C3 /* TestNsBasics.swift in Sources */,
+				1A14EB771D174D7F002069C3 /* TestDef.swift in Sources */,
+				1A14EB421D174D61002069C3 /* TestCount.swift in Sources */,
+				1A14EB6D1D174D67002069C3 /* TestLazySeqs.swift in Sources */,
+				1A14EB4A1D174D61002069C3 /* TestGet.swift in Sources */,
+				1A14EB451D174D61002069C3 /* TestDouble.swift in Sources */,
+				1A14EB3B1D174D61002069C3 /* TestArithmetic.swift in Sources */,
+				1A14EB501D174D61002069C3 /* TestNamespace.swift in Sources */,
+				1A14EB6E1D174D67002069C3 /* TestLexing.swift in Sources */,
+				1A14EB3E1D174D61002069C3 /* TestComparisons.swift in Sources */,
+				1A14EB671D174D61002069C3 /* TestSymbol.swift in Sources */,
+				1A14EB5C1D174D61002069C3 /* TestReIterate.swift in Sources */,
+				1A14EB7B1D174D7F002069C3 /* TestIf.swift in Sources */,
+				1A14EB551D174D61002069C3 /* TestNsResolve.swift in Sources */,
+				1A14EB651D174D61002069C3 /* TestStr.swift in Sources */,
+				1A14EB621D174D61002069C3 /* TestRest.swift in Sources */,
+				1A14EB4E1D174D61002069C3 /* TestKeyword.swift in Sources */,
+				1A14EB701D174D67002069C3 /* TestNamespaces.swift in Sources */,
+				1A14EB571D174D61002069C3 /* TestQueries.swift in Sources */,
+				1A14EB661D174D61002069C3 /* TestSubs.swift in Sources */,
+				1A14EB681D174D61002069C3 /* TestVar.swift in Sources */,
+				1A14EB431D174D61002069C3 /* TestDeref.swift in Sources */,
+				1A14EB631D174D61002069C3 /* TestSbFunctions.swift in Sources */,
+				1A14EB6F1D174D67002069C3 /* TestLists.swift in Sources */,
+				1A14EB581D174D61002069C3 /* TestRand.swift in Sources */,
+				1A14EB3F1D174D61002069C3 /* TestConcat.swift in Sources */,
+				1A14EB731D174D70002069C3 /* TestTestHelpers.swift in Sources */,
+				1A14EB5F1D174D61002069C3 /* TestReplaceFirst.swift in Sources */,
+				1A14EB5B1D174D61002069C3 /* TestReFirst.swift in Sources */,
+				1A14EB521D174D61002069C3 /* TestNsAliasRelated.swift in Sources */,
+				1A14EB5E1D174D61002069C3 /* TestReplace.swift in Sources */,
+				1A14EB781D174D7F002069C3 /* TestDefmacro.swift in Sources */,
+				1A14EB601D174D61002069C3 /* TestReQuoteReplace.swift in Sources */,
+				1A14EB751D174D7F002069C3 /* TestApply.swift in Sources */,
+				1A14EB721D174D67002069C3 /* TestScoping.swift in Sources */,
+				1A14EB711D174D67002069C3 /* TestParsing.swift in Sources */,
+				1A14EB611D174D61002069C3 /* TestReSeq.swift in Sources */,
+				1A14EB441D174D61002069C3 /* TestDissoc.swift in Sources */,
+				1A14EB491D174D61002069C3 /* TestGensym.swift in Sources */,
+				1A14EB7A1D174D7F002069C3 /* TestFn.swift in Sources */,
+				1A14EB5A1D174D61002069C3 /* TestReduce.swift in Sources */,
+				1A14EB811D174D83002069C3 /* TestSyntaxQuote.swift in Sources */,
+				1A14EB6C1D174D67002069C3 /* TestFnPosition.swift in Sources */,
+				1A14EB4C1D174D61002069C3 /* TestInt.swift in Sources */,
+				1A14EB471D174D61002069C3 /* TestEval.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1AE62F531B9182C30038FA44 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1ADD0BA91AD3AE0100419F94 /* Cormorant */;
+			targetProxy = 1AE62F521B9182C30038FA44 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1A73F0DA19F7138100F266DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1A73F0DB19F7138100F266DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		1ADD0BBE1AD3AE0200419F94 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = CormorantTests/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.f3nghuang.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		1ADD0BBF1AD3AE0200419F94 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
+				INFOPLIST_FILE = CormorantTests/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.f3nghuang.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		1AE62F551B9182C30038FA44 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = f3nghuang.CormorantTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		1AE62F561B9182C30038FA44 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = f3nghuang.CormorantTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A73F0D019F7138100F266DA /* Build configuration list for PBXProject "Cormorant" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A73F0DA19F7138100F266DA /* Debug */,
+				1A73F0DB19F7138100F266DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1ADD0BBD1AD3AE0200419F94 /* Build configuration list for PBXNativeTarget "Cormorant" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1ADD0BBE1AD3AE0200419F94 /* Debug */,
+				1ADD0BBF1AD3AE0200419F94 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AE62F541B9182C30038FA44 /* Build configuration list for PBXNativeTarget "CormorantTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE62F551B9182C30038FA44 /* Debug */,
+				1AE62F561B9182C30038FA44 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1A73F0CD19F7138000F266DA /* Project object */;
+}
