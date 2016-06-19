@@ -2,4 +2,4 @@ language: objective-c
 os: osx
 osx_image: xcode8
 xcode_project: Cormorant.xcodeproj
-xcode_scheme: CormorantTests
+xcode_scheme: Cormorant
