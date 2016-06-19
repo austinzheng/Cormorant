@@ -19,10 +19,10 @@ import Foundation
 // MARK: Numbers
 
 /// An enum wrapping one of several numerical types, or an invalid value sigil.
-enum NumericalType {
-  case Integer(Int)
-  case Float(Double)
-  case Invalid
+enum Number {
+  case integer(Int)
+  case float(Double)
+  case invalid
 }
 
 

@@ -43,26 +43,26 @@ func pr_plus(args: Params, _ ctx: Context) -> EvalResult {
   let num1 = args[1].extractNumber()
   
   switch num0 {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       let (sum, overflow) = Int.addWithOverflow(v1, v2)
       return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.int(sum))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(Double(v1) + v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       return .Success(.float(v1 + Double(v2)))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(v1 + v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -77,26 +77,26 @@ func pr_minus(args: Params, _ ctx: Context) -> EvalResult {
   let num1 = args[1].extractNumber()
   
   switch num0 {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       let (difference, overflow) = Int.subtractWithOverflow(v1, v2)
       return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.int(difference))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(Double(v1) - v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       return .Success(.float(v1 - Double(v2)))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(v1 - v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -111,26 +111,26 @@ func pr_multiply(args: Params, _ ctx: Context) -> EvalResult {
   let num1 = args[1].extractNumber()
   
   switch num0 {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       let (product, overflow) = Int.multiplyWithOverflow(v1, v2)
       return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.int(product))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(Double(v1) * v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       return .Success(.float(v1 * Double(v2)))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(v1 * v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -145,9 +145,9 @@ func pr_divide(args: Params, _ ctx: Context) -> EvalResult {
   let num1 = args[1].extractNumber()
   
   switch num0 {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       // In lieu of support for rationals (at this time), we return an Int if the two numbers are evenly divisible, a
       //  Double otherwise.
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
@@ -162,21 +162,21 @@ func pr_divide(args: Params, _ ctx: Context) -> EvalResult {
       else {
         return .Success(.float(Double(v1) / Double(v2)))
       }
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(Double(v1) / v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       return .Success(.float(v1 / Double(v2)))
-    case let .Float(v2):
+    case let .float(v2):
       return .Success(.float(v1 / v2))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -191,30 +191,30 @@ func pr_rem(args: Params, _ ctx: Context) -> EvalResult {
   let num1 = args[1].extractNumber()
   
   switch num0 {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (remainder, overflow) = Int.remainderWithOverflow(v1, v2)
       return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.int(remainder))
-    case let .Float(v2):
+    case let .float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.float(Double(v1).truncatingRemainder(dividingBy: v2)))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.float(v1.truncatingRemainder(dividingBy: Double(v2))))
-    case let .Float(v2):
+    case let .float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.float(v1.truncatingRemainder(dividingBy: v2)))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -229,30 +229,30 @@ func pr_quot(args: Params, _ ctx: Context) -> EvalResult {
   let num1 = args[1].extractNumber()
 
   switch num0 {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       let (quotient, overflow) = Int.divideWithOverflow(v1, v2)
       return overflow ? .Failure(EvalError(.IntegerOverflowError, fn)) : .Success(.int(quotient))
-    case let .Float(v2):
+    case let .float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.float(floor(Double(v1) / v2)))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch num1 {
-    case let .Integer(v2):
+    case let .integer(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.float(floor(v1 / Double(v2))))
-    case let .Float(v2):
+    case let .float(v2):
       if v2 == 0 { return .Failure(EvalError(.DivideByZeroError, fn)) }
       return .Success(.float(floor(v1 / v2)))
-    case .Invalid:
+    case .invalid:
       return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -270,18 +270,18 @@ private func test(_ args: Params, _ ipred: IntTestFn, _ dpred: DoubleTestFn, _ f
   let first = args[0].extractNumber()
   let second = args[1].extractNumber()
   switch first {
-  case let .Integer(v1):
+  case let .integer(v1):
     switch second {
-    case let .Integer(v2): return .Success(.bool(ipred(v1, v2)))
-    case let .Float(v2): return .Success(.bool(dpred(Double(v1), v2)))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
+    case let .integer(v2): return .Success(.bool(ipred(v1, v2)))
+    case let .float(v2): return .Success(.bool(dpred(Double(v1), v2)))
+    case .invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case let .Float(v1):
+  case let .float(v1):
     switch second {
-    case let .Integer(v2): return .Success(.bool(dpred(v1, Double(v2))))
-    case let .Float(v2): return .Success(.bool(dpred(v1, v2)))
-    case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
+    case let .integer(v2): return .Success(.bool(dpred(v1, Double(v2))))
+    case let .float(v2): return .Success(.bool(dpred(v1, v2)))
+    case .invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
     }
-  case .Invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
+  case .invalid: return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

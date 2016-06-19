@@ -212,11 +212,11 @@ func pr_isPos(args: Params, _ ctx: Context) -> EvalResult {
   }
   let num = args[0].extractNumber()
   switch num {
-  case let .Integer(v):
+  case let .integer(v):
     return .Success(.bool(v > 0))
-  case let .Float(v):
+  case let .float(v):
     return .Success(.bool(v.sign == .plus && !v.isNaN && !v.isZero))
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -229,11 +229,11 @@ func pr_isNeg(args: Params, _ ctx: Context) -> EvalResult {
   }
   let num = args[0].extractNumber()
   switch num {
-  case let .Integer(v):
+  case let .integer(v):
     return .Success(.bool(v < 0))
-  case let .Float(v):
+  case let .float(v):
     return .Success(.bool(v.sign == .minus && !v.isNaN && !v.isZero))
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -246,11 +246,11 @@ func pr_isZero(args: Params, _ ctx: Context) -> EvalResult {
   }
   let num = args[0].extractNumber()
   switch num {
-  case let .Integer(v):
+  case let .integer(v):
     return .Success(.bool(v == 0))
-  case let .Float(v):
+  case let .float(v):
     return .Success(.bool(v.isZero))
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -263,11 +263,11 @@ func pr_isSubnormal(args: Params, _ ctx: Context) -> EvalResult {
   }
   let num = args[0].extractNumber()
   switch num {
-  case .Integer:
+  case .integer:
     return .Success(false)
-  case let .Float(v):
+  case let .float(v):
     return .Success(.bool(v.isSubnormal))
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -280,11 +280,11 @@ func pr_isInfinite(args: Params, _ ctx: Context) -> EvalResult {
   }
   let num = args[0].extractNumber()
   switch num {
-  case .Integer:
+  case .integer:
     return .Success(false)
-  case let .Float(v):
+  case let .float(v):
     return .Success(.bool(v.isInfinite))
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }
@@ -297,11 +297,11 @@ func pr_isNaN(args: Params, _ ctx: Context) -> EvalResult {
   }
   let num = args[0].extractNumber()
   switch num {
-  case .Integer:
+  case .integer:
     return .Success(false)
-  case let .Float(v):
+  case let .float(v):
     return .Success(.bool(v.isNaN))
-  case .Invalid:
+  case .invalid:
     return .Failure(EvalError.nonNumericArgumentError(fn))
   }
 }

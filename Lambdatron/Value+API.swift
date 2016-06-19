@@ -70,11 +70,11 @@ extension Value : BooleanLiteralConvertible {
 extension Value {
 
   /// Extract value into an equivalent NumericalType token.
-  func extractNumber() -> NumericalType {
+  func extractNumber() -> Number {
     switch self {
-    case let .int(v): return .Integer(v)
-    case let .float(v): return .Float(v)
-    default: return .Invalid
+    case let .int(v): return .integer(v)
+    case let .float(v): return .float(v)
+    default: return .invalid
     }
   }
 
