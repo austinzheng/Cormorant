@@ -1,12 +1,14 @@
 # Cormorant
 
-[![Build Status](https://travis-ci.org/austinzheng/Lambdatron.svg?branch=master)](https://travis-ci.org/austinzheng/Lambdatron)
+[![Build Status](https://travis-ci.org/austinzheng/Cormorant.svg?branch=master)](https://travis-ci.org/austinzheng/Cormorant)
 
 (CI is probably broken because Xcode 8 is not working properly on Travis. Sorry.)
 
 An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in Swift (and formerly known as _Lambdatron_). The interpreter endeavors to match Clojure's behavior as closely as possible. The eventual goal is a library that can be used independently of the REPL front-end.
 
 Bug reports, feature requests, PRs, and other contributions are welcome!
+
+Web site: http://cormorant-lang.org (coming soon); Twitter: [@cormorantlang](https://twitter.com/cormorantlang).
 
 
 ## Application
