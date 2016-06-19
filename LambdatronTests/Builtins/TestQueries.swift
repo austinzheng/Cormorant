@@ -204,7 +204,7 @@ class TestIsString : InterpreterTest {
 class TestIsChar : InterpreterTest {
   /// .char? should return true for characters.
   func testIsCharWithCharacter() {
-    runCode("(def a \\a)")
+    run(input: "(def a \\a)")
     expectThat("(.char? \\a)", shouldEvalTo: true)
     expectThat("(.char? \\newline)", shouldEvalTo: true)
     expectThat("(.char? a)", shouldEvalTo: true)
@@ -238,7 +238,7 @@ class TestIsChar : InterpreterTest {
 class TestIsSymbol : InterpreterTest {
   /// .symbol? should return true for symbols.
   func testIsSymbolWithSymbol() {
-    runCode("(def a 'b)")
+    run(input: "(def a 'b)")
     expectThat("(.symbol? 'a)", shouldEvalTo: true)
     expectThat("(.symbol? 'mysymbol)", shouldEvalTo: true)
     expectThat("(.symbol? a)", shouldEvalTo: true)
@@ -272,7 +272,7 @@ class TestIsSymbol : InterpreterTest {
 class TestIsKeyword : InterpreterTest {
   /// .keyword? should return true for keywords.
   func testIsKeywordWithKeyword() {
-    runCode("(def a :some-keyword)")
+    run(input: "(def a :some-keyword)")
     expectThat("(.keyword? :a)", shouldEvalTo: true)
     expectThat("(.keyword? :else)", shouldEvalTo: true)
     expectThat("(.keyword? a)", shouldEvalTo: true)
@@ -307,7 +307,7 @@ class TestIsFn : InterpreterTest {
   /// .fn? should return true for user-defined functions.
   func testWithUserDefinedFns() {
     expectThat("(.fn? (fn [a b] (.+ a b)))", shouldEvalTo: true)
-    runCode("(def testfn (fn [a b] (.+ 1 2 a b)))")
+    run(input: "(def testfn (fn [a b] (.+ 1 2 a b)))")
     expectThat("(.fn? testfn)", shouldEvalTo: true)
   }
 
@@ -346,7 +346,7 @@ class TestIsEval : InterpreterTest {
   /// .eval? should return true for user-defined functions.
   func testWithUserDefinedFns() {
     expectThat("(.eval? (fn [a b] (.+ a b)))", shouldEvalTo: true)
-    runCode("(def testfn (fn [a b] (.+ 1 2 a b)))")
+    run(input: "(def testfn (fn [a b] (.+ 1 2 a b)))")
     expectThat("(.eval? testfn)", shouldEvalTo: true)
   }
 
@@ -666,7 +666,7 @@ class TestIsSubnormal : InterpreterTest {
     expectThat("(.subnormal? 0.00000000001)", shouldEvalTo: false)
     expectThat("(.subnormal? -0.00000000001)", shouldEvalTo: false)
     // Build a subnormal number (1 / 2048^93)
-    runCode("(def a ((fn [val ctr] (if (.= 0 ctr) val (recur (./ val 2048.0) (.- ctr 1)))) 1.0 93))")
+    run(input: "(def a ((fn [val ctr] (if (.= 0 ctr) val (recur (./ val 2048.0) (.- ctr 1)))) 1.0 93))")
     expectThat("(.subnormal? a)", shouldEvalTo: true)
   }
 

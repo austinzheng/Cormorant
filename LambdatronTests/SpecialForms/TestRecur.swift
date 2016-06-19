@@ -12,7 +12,7 @@ import Foundation
 class TestRecur : InterpreterTest {
   // Note: tests for proper execution of functions and loops with 'recur' can be found in TestEvaluating and TestLoops.
 
-  func expectRecurErrorFrom(input: String) {
+  func expectRecurErrorFrom(_ input: String) {
     expectThat(input, shouldFailAs: .RecurMisuseError)
   }
 

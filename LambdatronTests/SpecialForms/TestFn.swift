@@ -14,8 +14,8 @@ class TestFn : InterpreterTest {
 
   /// fn should allow the user to define a function with no explicit body.
   func testEmptyFn() {
-    expectThat("((fn []))", shouldEvalTo: .Nil)
-    expectThat("((fn ([])))", shouldEvalTo: .Nil)
+    expectThat("((fn []))", shouldEvalTo: .nilValue)
+    expectThat("((fn ([])))", shouldEvalTo: .nilValue)
   }
 
   /// fn should allow the user to define a single-arity function.
@@ -30,12 +30,12 @@ class TestFn : InterpreterTest {
 
   // fn should allow the user to define a multiple-arity function.
   func testVariadicFn() {
-    expectThat("((fn [a b & c] (.concat (.list a b) c)) 5 16 3 2 9)", shouldEvalTo: listWithItems(5, 16, 3, 2, 9))
+    expectThat("((fn [a b & c] (.concat (.list a b) c)) 5 16 3 2 9)", shouldEvalTo: list(containing: 5, 16, 3, 2, 9))
   }
 
   // fn should allow the user to define a function with only a variadic argument.
   func testVarargOnlyFn() {
-    expectThat("((fn [& a] a) 1 2 3 4 5)", shouldEvalTo: listWithItems(1, 2, 3, 4, 5))
+    expectThat("((fn [& a] a) 1 2 3 4 5)", shouldEvalTo: list(containing: 1, 2, 3, 4, 5))
   }
 
   // fn should reject an attempt to define a function with multiple bodies with the same arity.

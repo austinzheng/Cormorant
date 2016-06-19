@@ -18,7 +18,7 @@ class TestLet : InterpreterTest {
 
   /// let should return nil if it has no constituent forms.
   func testNoForms() {
-    expectThat("(let [a 10])", shouldEvalTo: .Nil)
+    expectThat("(let [a 10])", shouldEvalTo: .nilValue)
   }
 
   /// let should not accept a binding vector with an odd number of arguments.
@@ -63,7 +63,7 @@ class TestLet : InterpreterTest {
 
   /// let should return the evaluated result of its last form.
   func testLetBody() {
-    expectThat("(let [a 10] (.print a) (.+ 1 2) nil \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
+    expectThat("(let [a 10] (.print a) (.+ 1 2) nil \"foobar\")", shouldEvalTo: .string("foobar"))
     expectOutputBuffer(toBe: "10")
   }
 

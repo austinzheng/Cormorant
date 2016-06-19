@@ -13,7 +13,7 @@ class TestDo : InterpreterTest {
 
   /// do with no forms should just return nil
   func testEmptyDo() {
-    expectThat("(do)", shouldEvalTo: .Nil)
+    expectThat("(do)", shouldEvalTo: .nilValue)
   }
 
   /// do with a single form should just return the result of that form.
@@ -24,7 +24,7 @@ class TestDo : InterpreterTest {
   /// do with multiple forms should execute all forms in order, and return the result of the last form.
   func testDoWithMultipleForms() {
     expectThat("(do (.print \"form1\") (.print \"form2\") (.print \"form3\") (.print \"form4\") \"result\")",
-      shouldEvalTo: .StringAtom("result"))
+      shouldEvalTo: .string("result"))
     expectOutputBuffer(toBe: "form1form2form3form4")
   }
 

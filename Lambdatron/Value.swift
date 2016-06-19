@@ -12,29 +12,29 @@ public typealias VectorType = [Value]
 public typealias MapType = [Value : Value]
 
 /// An opaque type representing a regular expression.
-public typealias RegularExpressionType = NSRegularExpression
+public typealias RegularExpressionType = RegularExpression
 
 /// A sum type representing an atom, collection, or other fundamental Lambdatron type.
 public enum Value {
-  case Nil
-  case BoolAtom(Bool)
-  case IntAtom(Int)
-  case FloatAtom(Double)
-  case CharAtom(Character)
-  case StringAtom(String)
-  case Symbol(InternedSymbol)
-  case Keyword(InternedKeyword)
-  case Namespace(NamespaceContext)
-  case Var(VarType)
-  case Auxiliary(AuxiliaryType)
-  case Seq(SeqType)
-  case Vector(VectorType)
-  case Map(MapType)
-  case MacroLiteral(Macro)
-  case FunctionLiteral(Function)
-  case BuiltInFunction(BuiltIn)
-  case Special(SpecialForm)
-  case ReaderMacroForm(ReaderMacro)
+  case nilValue
+  case bool(Bool)
+  case int(Int)
+  case float(Double)
+  case char(Character)
+  case string(String)
+  case symbol(InternedSymbol)
+  case keyword(InternedKeyword)
+  case namespace(NamespaceContext)
+  case `var`(VarType)
+  case auxiliary(AuxiliaryType)
+  case seq(SeqType)
+  case vector(VectorType)
+  case map(MapType)
+  case macroLiteral(Macro)
+  case functionLiteral(Function)
+  case builtInFunction(BuiltIn)
+  case special(SpecialForm)
+  case readerMacroForm(ReaderMacro)
 }
 
 
@@ -49,7 +49,7 @@ final class UnboundVarObject : AuxiliaryType {
   func debugDescribe() -> String { return "Object.UnboundVarObject(\(name))" }
   func toString() -> String { return describe() }
 
-  func equals(that: AuxiliaryType) -> Bool {
+  func equals(_ that: AuxiliaryType) -> Bool {
     if let that = that as? UnboundVarObject {
       return self.name == that.name
     }
@@ -77,11 +77,11 @@ public final class VarType : Hashable {
   var isBound : Bool { return store != nil }
 
   func value(usingContext ctx: Context) -> Value {
-    return store ?? .Auxiliary(UnboundVarObject(name, ctx: ctx))
+    return store ?? .auxiliary(UnboundVarObject(name, ctx: ctx))
   }
 
   /// Bind a new value to this Var
-  func bindValue(value: Value) { store = value }
+  func bind(value: Value) { store = value }
 
   init(_ name: InternedSymbol, value: Value? = nil) { self.name = name; store = value }
 }

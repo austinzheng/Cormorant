@@ -12,7 +12,7 @@ import XCTest
 
 private extension Value {
   var asNamespace : NamespaceContext? {
-    if case let .Namespace(value) = self {
+    if case let .namespace(value) = self {
       return value
     }
     return nil
@@ -24,7 +24,7 @@ class TestNsCreateBuiltin : InterpreterTest {
 
   /// .ns-create should return a new namespace if one doesn't exist.
   func testCreateNewNamespace() {
-    let fooNamespace = runCode("(.ns-create 'foo)")
+    let fooNamespace = run(input: "(.ns-create 'foo)")
     if let namespace = fooNamespace?.asNamespace {
       XCTAssert(namespace.name == "foo", ".ns-create did not create a namespace with the correct name")
     }
@@ -35,8 +35,8 @@ class TestNsCreateBuiltin : InterpreterTest {
 
   /// .ns-create should return an existing namespace if one does exist.
   func testReturnExistingNamespace() {
-    let initial = runCode("(.ns-set 'foo)")
-    let another = runCode("(.ns-create 'foo)")
+    let initial = run(input: "(.ns-set 'foo)")
+    let another = run(input: "(.ns-create 'foo)")
     if let initial = initial?.asNamespace, another = another?.asNamespace {
       XCTAssert(initial === another, ".ns-create did not return an existing namespace when one existed")
     }
@@ -47,17 +47,17 @@ class TestNsCreateBuiltin : InterpreterTest {
 
   /// .ns-create should not change the current namespace.
   func testCurrentNamespaceStatus() {
-    if let initial = runCode("*ns*")?.asNamespace {
-      runCode("(.ns-create 'foo)")
-      let a1 = runCode("core/*ns*")
+    if let initial = run(input: "*ns*")?.asNamespace {
+      run(input: "(.ns-create 'foo)")
+      let a1 = run(input: "core/*ns*")
       if let a1 = a1?.asNamespace {
         XCTAssert(initial === a1, "Namespace was changed after .ns-create was run to create foo")
       }
       else {
         XCTFail("*ns* failed to return namespace object: \(a1)")
       }
-      runCode("(.ns-create 'bar)")
-      let b1 = runCode("core/*ns*")
+      run(input: "(.ns-create 'bar)")
+      let b1 = run(input: "core/*ns*")
       if let b1 = b1?.asNamespace {
         XCTAssert(initial === b1, "Namespace was changed after .ns-create was run to create bar")
       }
@@ -100,7 +100,7 @@ class TestNsSetBuiltin : InterpreterTest {
 
   /// .ns-set should return a new namespace if one doesn't exist.
   func testCreateNewNamespace() {
-    let fooNamespace = runCode("(.ns-set 'foo)")
+    let fooNamespace = run(input: "(.ns-set 'foo)")
     if let namespace = fooNamespace?.asNamespace {
       XCTAssert(namespace.name == "foo", ".ns-set did not create a namespace with the correct name")
     }
@@ -111,8 +111,8 @@ class TestNsSetBuiltin : InterpreterTest {
 
   /// .ns-set should return an existing namespace if one does exist.
   func testReturnExistingNamespace() {
-    let initial = runCode("(.ns-create 'foo)")
-    let another = runCode("(.ns-set 'foo)")
+    let initial = run(input: "(.ns-create 'foo)")
+    let another = run(input: "(.ns-set 'foo)")
     if let initial = initial?.asNamespace, another = another?.asNamespace {
       XCTAssert(initial === another, ".ns-set did not return an existing namespace when one existed")
     }
@@ -123,17 +123,17 @@ class TestNsSetBuiltin : InterpreterTest {
 
   /// .ns-set should change the current namespace.
   func testCurrentNamespaceStatus() {
-    if runCode("*ns*")?.asNamespace != nil {
-      let a = runCode("(.ns-set 'foo)")
-      let a1 = runCode("core/*ns*")
+    if run(input: "*ns*")?.asNamespace != nil {
+      let a = run(input: "(.ns-set 'foo)")
+      let a1 = run(input: "core/*ns*")
       if let a = a?.asNamespace, a1 = a1?.asNamespace {
         XCTAssert(a === a1, "Namespace created by .ns-set (foo) should now be set as current namespace")
       }
       else {
         XCTFail(".ns-set or *ns* failed to return namespace objects: .ns-set: \(a); *ns*: \(a1)")
       }
-      let b = runCode("(.ns-set 'bar)")
-      let b1 = runCode("core/*ns*")
+      let b = run(input: "(.ns-set 'bar)")
+      let b1 = run(input: "core/*ns*")
       if let b = b?.asNamespace, b1 = b1?.asNamespace {
         XCTAssert(b === b1, "Namespace created by .ns-set (bar) should now be set as current namespace")
       }
@@ -181,8 +181,8 @@ class TestNsGetBuiltin : InterpreterTest {
 
   /// .ns-get should return a namespace given a symbol naming it.
   func testNamespaceForSymbol() {
-    runCode("(.ns-create 'foo)")
-    if let namespace = runCode("(.ns-get 'foo)")?.asNamespace {
+    run(input: "(.ns-create 'foo)")
+    if let namespace = run(input: "(.ns-get 'foo)")?.asNamespace {
       XCTAssert(namespace.name == "foo", ".ns-get failed to return the proper namespace given a symbol: \(namespace)")
     }
     else {
@@ -192,7 +192,7 @@ class TestNsGetBuiltin : InterpreterTest {
 
   /// .ns-get should return a namespace verbatim.
   func testNamespaceForNamespace() {
-    if let namespace = runCode("(.ns-get (.ns-create 'foo))")?.asNamespace {
+    if let namespace = run(input: "(.ns-get (.ns-create 'foo))")?.asNamespace {
       XCTAssert(namespace.name == "foo", ".ns-get failed to return the same namespace given a namespace")
     }
     else {
@@ -208,14 +208,14 @@ class TestNsGetBuiltin : InterpreterTest {
   /// .ns-get should return the namespace given a namespace, even if the namespace has been removed, but should not get
   /// the namespace given a symbol.
   func testGettingNamespaceAfterRemoval() {
-    runCode("(def a (.ns-create 'foo))")
-    if let initial = runCode("a")?.asNamespace {
+    run(input: "(def a (.ns-create 'foo))")
+    if let initial = run(input: "a")?.asNamespace {
       // Remove the 'foo namespace
-      runCode("(.ns-remove 'foo)")
+      run(input: "(.ns-remove 'foo)")
       // Name symbol should not resolve.
       expectThat("(.ns-get 'foo)", shouldFailAs: EvalError.EvalErrorType.InvalidNamespaceError)
       // The namespace itself should resolve.
-      if let namespace = runCode("(.ns-get a)")?.asNamespace {
+      if let namespace = run(input: "(.ns-get a)")?.asNamespace {
         XCTAssert(initial === namespace, ".ns-get didn't return the proper namespace given a namespace")
       }
       else {

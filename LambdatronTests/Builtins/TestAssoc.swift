@@ -14,42 +14,42 @@ class TestAssocBuiltin : InterpreterTest {
 
   /// .assoc should properly build a map when its first argument is nil.
   func testWithNil() {
-    expectThat("(.assoc nil \"foo\" 1)", shouldEvalTo: mapWithItems((.StringAtom("foo"), 1)))
+    expectThat("(.assoc nil \"foo\" 1)", shouldEvalTo: map(containing: (.string("foo"), 1)))
     expectThat("(.assoc nil \\a 10 \\b 20 \\c 30)", shouldEvalTo:
-      mapWithItems((.CharAtom("a"), 10), (.CharAtom("b"), 20), (.CharAtom("c"), 30)))
+      map(containing: (.char("a"), 10), (.char("b"), 20), (.char("c"), 30)))
   }
 
   /// .assoc should properly add key-value pairs to a map.
   func testMapsWithNewKeys() {
     expectThat("(.assoc {} 1 true 2 false 3 true)", shouldEvalTo:
-      mapWithItems((1, true), (2, false), (3, true)))
+      map(containing: (1, true), (2, false), (3, true)))
     expectThat("(.assoc {\\a \"foo\"} \"bar\" nil true 152)", shouldEvalTo:
-      mapWithItems((.CharAtom("a"), .StringAtom("foo")), (.StringAtom("bar"), .Nil), (true, 152)))
+      map(containing: (.char("a"), .string("foo")), (.string("bar"), .nilValue), (true, 152)))
   }
 
   /// .assoc should properly update key-value pairs in a map.
   func testMapsWithUpdatedValues() {
     expectThat("(.assoc {\\a \"foo\" \\b \"bar\"} \\a \"baz\")", shouldEvalTo:
-      mapWithItems((.CharAtom("a"), .StringAtom("baz")), (.CharAtom("b"), .StringAtom("bar"))))
+      map(containing: (.char("a"), .string("baz")), (.char("b"), .string("bar"))))
     expectThat("(.assoc {true 152 nil 99.18 false 999} true 32 false \\z nil nil)", shouldEvalTo:
-      mapWithItems((true, 32), (false, .CharAtom("z")), (.Nil, .Nil)))
-    expectThat("(.assoc {true 9} true \"foobar\" true \"baz\")", shouldEvalTo: mapWithItems((true, .StringAtom("baz"))))
+      map(containing: (true, 32), (false, .char("z")), (.nilValue, .nilValue)))
+    expectThat("(.assoc {true 9} true \"foobar\" true \"baz\")", shouldEvalTo: map(containing: (true, .string("baz"))))
   }
 
   /// .assoc should append a value if called with a key equal to the vector length.
   func testVectorsWithAppendedValues() {
-    expectThat("(.assoc [] 0 true)", shouldEvalTo: vectorWithItems(.BoolAtom(true)))
-    expectThat("(.assoc [1 2] 2 \"foo\")", shouldEvalTo: vectorWithItems(1, 2, .StringAtom("foo")))
+    expectThat("(.assoc [] 0 true)", shouldEvalTo: vector(containing: .bool(true)))
+    expectThat("(.assoc [1 2] 2 \"foo\")", shouldEvalTo: vector(containing: 1, 2, .string("foo")))
     expectThat("(.assoc [1 2] 2 \"foo\" 2 \"bar\" 3 \"baz\" 4 \"qux\")", shouldEvalTo:
-      vectorWithItems(1, 2, .StringAtom("bar"), .StringAtom("baz"), .StringAtom("qux")))
+      vector(containing: 1, 2, .string("bar"), .string("baz"), .string("qux")))
   }
 
   /// .assoc should properly update values in a vector.
   func testVectorsWithUpdatedValues() {
-    expectThat("(.assoc [1 2 3] 0 true)", shouldEvalTo: vectorWithItems(true, 2, 3))
-    expectThat("(.assoc [1 2 3] 0 true 1 false 2 nil)", shouldEvalTo: vectorWithItems(true, false, .Nil))
+    expectThat("(.assoc [1 2 3] 0 true)", shouldEvalTo: vector(containing: true, 2, 3))
+    expectThat("(.assoc [1 2 3] 0 true 1 false 2 nil)", shouldEvalTo: vector(containing: true, false, .nilValue))
     expectThat("(.assoc [\"foo\", \"bar\", \"baz\"] 1 \"foobar\" 2 \\newline)", shouldEvalTo:
-      vectorWithItems(.StringAtom("foo"), .StringAtom("foobar"), .CharAtom("\n")))
+      vector(containing: .string("foo"), .string("foobar"), .char("\n")))
   }
 
   /// .assoc should reject keys that are out of bounds when called with a vector.

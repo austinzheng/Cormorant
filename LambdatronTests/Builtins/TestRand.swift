@@ -14,11 +14,11 @@ class TestRand : InterpreterTest {
   /// .rand should return a random floating-point number between 0 (inclusive) and 1 (exclusive).
   func testRand() {
     for _ in 0..<10 {
-      let value = interpreter.evaluate("(.rand)")
+      let value = interpreter.evaluate(form: "(.rand)")
       switch value {
       case let .Success(s):
         switch s {
-        case let .FloatAtom(f):
+        case let .float(f):
           XCTAssert(f >= 0.0 && f < 1.0, ".rand must return a value between 0 (inclusive) and 1 (exclusive)")
         default: XCTFail(".rand must return a floating-point value")
         }

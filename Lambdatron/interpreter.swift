@@ -38,8 +38,13 @@ public typealias InputFunction = () -> String
 
 /// A class representing a Lambdatron interpreter.
 public class Interpreter {
-  var userNamespaceName : NamespaceName { return NamespaceName(internStore.internedSymbolFor(.User)) }
-  var coreNamespaceName : NamespaceName { return NamespaceName(internStore.internedSymbolFor(.Core)) }
+  var userNamespaceName : NamespaceName {
+    return NamespaceName(internStore.internedSymbol(for: .User))
+  }
+
+  var coreNamespaceName : NamespaceName {
+    return NamespaceName(internStore.internedSymbol(for: .Core))
+  }
 
   /// The core namespace.
   private var coreNamespace : NamespaceContext?
@@ -49,7 +54,7 @@ public class Interpreter {
     willSet {
       // Namespace is being changed; change *ns* as well
       if let core = coreNamespace, newValue = newValue {
-        core.setVar(internStore.internedSymbolFor(._Ns), newValue: .Namespace(newValue))
+        core.setVar(named: internStore.internedSymbol(for: ._Ns), toValue: .namespace(newValue))
       }
     }
   }
@@ -84,17 +89,17 @@ public class Interpreter {
 
   /// Given a string, evaluate it as Lambdatron code and return a successful result or error.
   public func evaluate(form: String) -> Result {
-    let context = currentNamespace
+    let context = currentNamespace!
     let lexed = lex(form)
     switch lexed {
     case let .Just(lexed):
-      let parsed = parse(lexed, context)
+      let parsed = parse(tokens: lexed, context)
       switch parsed {
       case let .Just(parsed):
-        let expanded = parsed.expand(context)
+        let expanded = context.expand(parsed)
         switch expanded {
         case let .Success(expanded):
-          let result = evaluateForm(expanded, context)
+          let result = context.evaluate(value: expanded)
           switch result {
           case let .Success(s): return .Success(s)
           case .Recur:
@@ -111,8 +116,8 @@ public class Interpreter {
 
   /// Given a form, evaluate it and return a successful result or error.
   public func evaluate(form: Form) -> Result {
-    let context = currentNamespace
-    let result = evaluateForm(form.value, context)
+    let context = currentNamespace!
+    let result = context.evaluate(value: form.value)
     switch result {
     case let .Success(s): return .Success(s)
     case .Recur:
@@ -122,15 +127,15 @@ public class Interpreter {
   }
 
   /// Given a string, return a form that can be directly evaluated later or repeatedly.
-  public func readIntoForm(form: String) -> Form? {
-    let context = currentNamespace
+  public func read(form: String) -> Form? {
+    let context = currentNamespace!
     let lexed = lex(form)
     switch lexed {
     case let .Just(lexed):
-      let parsed = parse(lexed, context)
+      let parsed = parse(tokens: lexed, context)
       switch parsed {
       case let .Just(parsed):
-        let expanded = parsed.expand(context)
+        let expanded = context.expand(parsed)
         switch expanded {
         case let .Success(expanded):
           return Form(expanded)
@@ -158,7 +163,7 @@ public class Interpreter {
       }
     }
     for ns in toRemove {
-      namespaces.removeValueForKey(ns)
+      namespaces.removeValue(forKey: ns)
     }
 
     // Create a new "user" namespace, and set it as current.
@@ -177,7 +182,7 @@ public class Interpreter {
   // MARK: Internal API
 
   /// Given a domain and a message, pass the message on to the appropriate logging function (if one exists).
-  func log(domain: LogDomain, message: () -> String) {
+  func log(_ domain: LogDomain, _ message: () -> String) {
     switch domain {
     case .Eval:
       evalLogging?(message)
@@ -185,9 +190,9 @@ public class Interpreter {
   }
 
   /// Look up the Var bound to a symbol in a particular namespace.
-  func resolveBinding(symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> Value? {
+  func resolveBinding(for symbol: UnqualifiedSymbol, inNamespace ns: NamespaceName) -> Value? {
     if let namespace = namespaces[ns] {
-      return namespace.resolveVar(symbol)
+      return namespace.resolveVar(for: symbol)
     }
     // Namespace in question doesn't exist; very sad
     return nil
@@ -203,18 +208,18 @@ public class Interpreter {
   }
 
   /// Given a symbol and a namespace, unmap the symbol from the namespace.
-  func unmapVar(symbol: UnqualifiedSymbol, fromNamespace namespace: NamespaceContext) -> EvalError? {
+  func unmap(symbol: UnqualifiedSymbol, fromNamespace namespace: NamespaceContext) -> EvalError? {
     precondition(namespaces[namespace.internedName] != nil,
       "Namespace being unmapped must exist in interpreter")
     if namespace.isSystemNamespace {
       return EvalError(.ReservedNamespaceError)
     }
-    namespace.unmapVar(symbol)
+    namespace.unmapVar(named: symbol)
     return nil
   }
 
   /// Given an alias (to some other namespace) and a namespace name, remove the alias from that namespace.
-  func removeAlias(alias: NamespaceName, fromNamespace namespace: NamespaceContext) -> EvalError? {
+  func remove(alias: NamespaceName, fromNamespace namespace: NamespaceContext) -> EvalError? {
     precondition(namespaces[namespace.internedName] != nil,
       "Namespace for which alias is being removed must exist in interpreter")
     if namespace.isSystemNamespace {
@@ -225,7 +230,7 @@ public class Interpreter {
   }
 
   /// Given the name of a namespace, create the namespace (or return it if it already exists).
-  func createNamespace(ns: NamespaceName) -> NamespaceResult {
+  func create(namespace ns: NamespaceName) -> NamespaceResult {
     if let nsToUse = namespaces[ns] {
       return .Success(nsToUse)
     }
@@ -239,8 +244,8 @@ public class Interpreter {
 
   /// Given the name of a namespace to switch to, switch to that namespace. If the namespace does not exist, the
   /// interpreter will create the namespace and switch to it.
-  func switchNamespace(ns: NamespaceName) -> NamespaceResult {
-    let result = createNamespace(ns)
+  func switchToNamespace(_ ns: NamespaceName) -> NamespaceResult {
+    let result = create(namespace: ns)
     switch result {
     case let .Success(namespace):
       if namespace.isSystemNamespace {
@@ -249,7 +254,7 @@ public class Interpreter {
       }
       currentNamespace = namespace
       // TODO: Any way to do this without the optional?
-      coreNamespace?.setVar(internStore.internedSymbolFor(._Ns), newValue: .Namespace(namespace))
+      coreNamespace?.setVar(named: internStore.internedSymbol(for: ._Ns), toValue: .namespace(namespace))
       return result
     case .Nil, .Error:
       return result
@@ -260,16 +265,16 @@ public class Interpreter {
   /// namespace, the namespace will remain usable until switched, but the namespace will be removed from the map of
   /// namespaces kept by the interpreter. Note that the system namespaces cannot be removed. Also note that removed
   /// namespaces have all aliases destroyed in order to prevent retain cycles.
-  func removeNamespace(ns: NamespaceName) -> NamespaceResult {
+  func remove(namespace ns: NamespaceName) -> NamespaceResult {
     if let namespaceToDelete = namespaces[ns] where namespaceToDelete.isSystemNamespace {
       return .Error(EvalError(.ReservedNamespaceError))
     }
-    let namespace = namespaces.removeValueForKey(ns)
+    let namespace = namespaces.removeValue(forKey: ns)
     if let namespace = namespace {
       namespace.prepareForRemoval()
       if namespace.name == currentNamespace.name {
         // Current namespace removed; unbind *ns* in core
-        coreNamespace?.unmapVar(internStore.internedSymbolFor(._Ns).unqualified)
+        coreNamespace?.unmapVar(named: internStore.internedSymbol(for: ._Ns).unqualified)
       }
       return .Success(namespace)
     }
@@ -278,7 +283,7 @@ public class Interpreter {
 
   /// Return a sequence of all namespaces loaded in the interpreter.
   func allNamespaces() -> VectorType {
-    return namespaces.values.map { .Namespace($0) }
+    return namespaces.values.map { .namespace($0) }
   }
 
 
@@ -290,7 +295,7 @@ public class Interpreter {
     let stdlib = NamespaceContext(interpreter: self, ns: coreNamespaceName, asSystemNamespace: true)
     namespaces[coreNamespaceName] = stdlib
     currentNamespace = stdlib
-    loadStdlibInto(stdlib, files: stdlib_files)
+    loadStdlibInto(context: stdlib, files: stdlib_files)
     coreNamespace = stdlib
 
     // Create the user namespace.
@@ -299,7 +304,7 @@ public class Interpreter {
     currentNamespace = user
 
     // Manually bind *ns* the first time
-    stdlib.setVar(internStore.internedSymbolFor(._Ns), newValue: .Namespace(user))
+    stdlib.setVar(named: internStore.internedSymbol(for: ._Ns), toValue: .namespace(user))
 
     // Once the stdlib has been completely prepared, have 'user' refer to it
     user.refer(stdlib)
@@ -312,7 +317,7 @@ public class Interpreter {
 
 // Testing-related extension
 extension Interpreter {
-  func testOnly_addNamespace(namespace: NamespaceContext, named name: NamespaceName) {
+  func testOnly_add(namespace: NamespaceContext, named name: NamespaceName) {
     namespaces[name] = namespace
   }
 }

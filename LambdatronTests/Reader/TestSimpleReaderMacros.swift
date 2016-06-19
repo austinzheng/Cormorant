@@ -13,22 +13,22 @@ class TestVarReaderMacro : InterpreterTest {
 
   /// The var reader macro should properly expand against a simple symbol.
   func testWithSymbol() {
-    expect("#'a", shouldExpandTo: "(var a)")
+    expect(input: "#'a", shouldExpandTo: "(var a)")
   }
 
   /// The var reader macro should properly expand against a list.
   func testWithList() {
-    expect("#'(a b c d)", shouldExpandTo: "(var (a b c d))")
+    expect(input: "#'(a b c d)", shouldExpandTo: "(var (a b c d))")
   }
 
   /// The var reader macro should properly expand against the var macro.
   func testWithVarMacro() {
-    expect("#'#'a", shouldExpandTo: "(var (var a))")
+    expect(input: "#'#'a", shouldExpandTo: "(var (var a))")
   }
 
   /// The var reader macro should properly expand against the deref macro.
   func testWithDerefMacro() {
-    expect("#'@a", shouldExpandTo: "(var (.deref a))")
+    expect(input: "#'@a", shouldExpandTo: "(var (.deref a))")
   }
 }
 
@@ -37,21 +37,21 @@ class TestDerefReaderMacro : InterpreterTest {
 
   /// The deref reader macro should properly expand against a simple symbol.
   func testWithSymbol() {
-    expect("@a", shouldExpandTo: "(.deref a)")
+    expect(input: "@a", shouldExpandTo: "(.deref a)")
   }
 
   /// The deref reader macro should properly expand against a list.
   func testWithList() {
-    expect("@(a b c d)", shouldExpandTo: "(.deref (a b c d))")
+    expect(input: "@(a b c d)", shouldExpandTo: "(.deref (a b c d))")
   }
 
   /// The deref reader macro should properly expand against the var macro.
   func testWithVarMacro() {
-    expect("@#'a", shouldExpandTo: "(.deref (var a))")
+    expect(input: "@#'a", shouldExpandTo: "(.deref (var a))")
   }
 
   /// The deref reader macro should properly expand against the deref macro.
   func testWithDerefMacro() {
-    expect("@@a", shouldExpandTo: "(.deref (.deref a))")
+    expect(input: "@@a", shouldExpandTo: "(.deref (.deref a))")
   }
 }

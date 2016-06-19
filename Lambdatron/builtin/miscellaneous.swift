@@ -12,19 +12,19 @@ import Foundation
 func pr_equals(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".="
   guard args.count == 2 else {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
-  return args[0].equals(args[1]).then { .Success(.BoolAtom($0)) }
+  return args[0].equals(args[1]).then { .Success(.bool($0)) }
 }
 
 /// Given a Var (and in the future, an Atom), return the value actually stored inside.
 func pr_deref(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".deref"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   switch args[0] {
-  case let .Var(aVar):
+  case let .`var`(aVar):
     return .Success(aVar.value(usingContext: ctx))
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a Var"))
@@ -40,23 +40,23 @@ func pr_read(args: Params, _ ctx: Context) -> EvalResult {
   let readFn = ctx.interpreter.readInput
   if let readFn = readFn {
     let str = readFn()
-    return readString(str, ctx, fn)
+    return read(string: str, ctx, fn)
   }
   // If no reader is defined, just return nil
-  return .Success(.Nil)
+  return .Success(.nilValue)
 }
 
 /// Given a string as an argument, read and expand it into a Lambdatron form.
 func pr_readString(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".read-string"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  guard case let .StringAtom(string) = args[0] else {
+  guard case let .string(string) = args[0] else {
     // Must pass in a string
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a string"))
   }
-  return readString(string, ctx, fn)
+  return read(string: string, ctx, fn)
 }
 
 /// Print zero or more args to screen. Returns nil.
@@ -73,37 +73,37 @@ func pr_println(args: Params, _ ctx: Context) -> EvalResult {
 func pr_gensym(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".gensym"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   // Note that calling this function with keywords can generate symbols that look exactly like keywords (prefixed by
   //  ":").
-  return args[0].toString(ctx).then { .Success(.Symbol(ctx.ivs.produceGensym($0, suffix: nil))) }
+  return args[0].toString(ctx).then { .Success(.symbol(ctx.ivs.produceGensym(prefix: $0, suffix: nil))) }
 }
 
 /// Return a random number between 0 (inclusive) and 1 (exclusive).
 func pr_rand(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".rand"
   guard args.isEmpty else {
-    return .Failure(EvalError.arityError("0", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "0", actual: args.count, fn))
   }
   let randomNumber = Double(arc4random_uniform(UInt32.max - 1))
-  return .Success(.FloatAtom(randomNumber / Double(UInt32.max)))
+  return .Success(.float(randomNumber / Double(UInt32.max)))
 }
 
 /// Evaluate a given form and return the result.
 func pr_eval(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".eval"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  return args[0].evaluate(ctx)
+  return ctx.evaluate(value: args[0])
 }
 
 /// Force a failure. Call with zero arguments or a string containing an error message.
 func pr_fail(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".fail"
   let message : String
-  if case let .StringAtom(m)? = args.first {
+  if case let .string(m)? = args.first {
     message = m
   } else {
     message = "(fail was called)"
@@ -115,15 +115,15 @@ func pr_fail(args: Params, _ ctx: Context) -> EvalResult {
 // MARK: Private helpers
 
 /// Given a string and a context, lex, parse, and reader-expand the string into a Lambdatron data structure.
-private func readString(string: String, _ ctx: Context, _ fn: String) -> EvalResult {
+private func read(string: String, _ ctx: Context, _ fn: String) -> EvalResult {
   // Lex and parse the string
   let lexed = lex(string)
   switch lexed {
   case let .Just(lexed):
-    let parsed = parse(lexed, ctx)
+    let parsed = parse(tokens: lexed, ctx)
     switch parsed {
     case let .Just(parsed):
-      let expanded = parsed.expand(ctx)
+      let expanded = ctx.expand(parsed)
       switch expanded {
       case let .Success(expanded):
         return .Success(expanded)
@@ -136,10 +136,10 @@ private func readString(string: String, _ ctx: Context, _ fn: String) -> EvalRes
 }
 
 /// Print zero or more args to screen, either with or without a trailing newline.
-private func printOrPrintln(args: Params, ctx: Context, isPrintln: Bool) -> EvalResult {
+private func printOrPrintln(_ args: Params, ctx: Context, isPrintln: Bool) -> EvalResult {
   var descs : [String] = []
   for arg in args {
-    if case let .StringAtom(str) = arg {
+    if case let .string(str) = arg {
       // Strings are used as-is
       descs.append(str)
     }
@@ -151,7 +151,7 @@ private func printOrPrintln(args: Params, ctx: Context, isPrintln: Bool) -> Eval
       }
     }
   }
-  let outStr = descs.count > 0 ? descs.joinWithSeparator(" ") : ""
+  let outStr = descs.count > 0 ? descs.joined(separator: " ") : ""
   ctx.interpreter.writeOutput?(isPrintln ? outStr + "\n" : outStr)
-  return .Success(.Nil)
+  return .Success(.nilValue)
 }

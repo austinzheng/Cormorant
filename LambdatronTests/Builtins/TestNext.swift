@@ -12,65 +12,65 @@ class TestNextBuiltin : InterpreterTest {
 
   /// .next should return nil if passed in nil.
   func testWithNil() {
-    expectThat("(.next nil)", shouldEvalTo: .Nil)
+    expectThat("(.next nil)", shouldEvalTo: .nilValue)
   }
 
   /// .next should return nil for empty collections.
   func testWithEmptyCollections() {
-    expectThat("(.next \"\")", shouldEvalTo: .Nil)
-    expectThat("(.next ())", shouldEvalTo: .Nil)
-    expectThat("(.next (.lazy-seq (fn [])))", shouldEvalTo: .Nil)
-    expectThat("(.next [])", shouldEvalTo: .Nil)
-    expectThat("(.next {})", shouldEvalTo: .Nil)
+    expectThat("(.next \"\")", shouldEvalTo: .nilValue)
+    expectThat("(.next ())", shouldEvalTo: .nilValue)
+    expectThat("(.next (.lazy-seq (fn [])))", shouldEvalTo: .nilValue)
+    expectThat("(.next [])", shouldEvalTo: .nilValue)
+    expectThat("(.next {})", shouldEvalTo: .nilValue)
   }
 
   /// .next should return nil for single-element collections.
   func testWithOneElement() {
-    expectThat("(.next \"a\")", shouldEvalTo: .Nil)
-    expectThat("(.next '(:a))", shouldEvalTo: .Nil)
-    expectThat("(.next (.lazy-seq (fn [] '(10))))", shouldEvalTo: .Nil)
-    expectThat("(.next [\\a])", shouldEvalTo: .Nil)
-    expectThat("(.next {'a 10})", shouldEvalTo: .Nil)
+    expectThat("(.next \"a\")", shouldEvalTo: .nilValue)
+    expectThat("(.next '(:a))", shouldEvalTo: .nilValue)
+    expectThat("(.next (.lazy-seq (fn [] '(10))))", shouldEvalTo: .nilValue)
+    expectThat("(.next [\\a])", shouldEvalTo: .nilValue)
+    expectThat("(.next {'a 10})", shouldEvalTo: .nilValue)
   }
 
   /// .next should return a sequence comprised of the rest of the characters of a string.
   func testWithStrings() {
     expectThat("(.next \"abc\")",
-      shouldEvalTo: listWithItems(.CharAtom("b"), .CharAtom("c")))
+      shouldEvalTo: list(containing: .char("b"), .char("c")))
     expectThat("(.next \"\\n\\\\\nq\")",
-      shouldEvalTo: listWithItems(.CharAtom("\\"), .CharAtom("\n"), .CharAtom("q")))
+      shouldEvalTo: list(containing: .char("\\"), .char("\n"), .char("q")))
     expectThat("(.next \"foobar\")",
-      shouldEvalTo: listWithItems(.CharAtom("o"), .CharAtom("o"), .CharAtom("b"),
-        .CharAtom("a"), .CharAtom("r")))
+      shouldEvalTo: list(containing: .char("o"), .char("o"), .char("b"),
+        .char("a"), .char("r")))
   }
 
   /// .next should return a sequence comprised of the rest of the elements in a list.
   func testWithLists() {
     expectThat("(.next '(true false nil 1 2.1 3))",
-      shouldEvalTo: listWithItems(false, .Nil, 1, 2.1, 3))
+      shouldEvalTo: list(containing: false, .nilValue, 1, 2.1, 3))
     expectThat("(.next '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo:
-      listWithItems(listWithItems(3, 4), listWithItems(5, 6), listWithItems(7, 8), listWithItems()))
+      list(containing: list(containing: 3, 4), list(containing: 5, 6), list(containing: 7, 8), list()))
   }
 
   /// .next should return the rest of a lazy seq, forcing evaluation if necessary.
   func testWithLazySeqs() {
-    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") '(\"foo\" \"bar\" \"baz\"))))")
+    run(input: "(def a (.lazy-seq (fn [] (.print \"executed thunk\") '(\"foo\" \"bar\" \"baz\"))))")
     expectEmptyOutputBuffer()
     // At this point, the thunk should fire
-    expectThat("(.next a)", shouldEvalTo: listWithItems(.StringAtom("bar"), .StringAtom("baz")))
+    expectThat("(.next a)", shouldEvalTo: list(containing: .string("bar"), .string("baz")))
     expectOutputBuffer(toBe: "executed thunk")
     clearOutputBuffer()
     // Don't re-evalaute the thunk
-    expectThat("(.next a)", shouldEvalTo: listWithItems(.StringAtom("bar"), .StringAtom("baz")))
+    expectThat("(.next a)", shouldEvalTo: list(containing: .string("bar"), .string("baz")))
     expectEmptyOutputBuffer()
   }
 
   /// .next should return a sequence comprised of the rest of the elements in a vector.
   func testWithVectors() {
     expectThat("(.next [false true nil 1 2.1 3])",
-      shouldEvalTo: listWithItems(true, .Nil, 1, 2.1, 3))
+      shouldEvalTo: list(containing: true, .nilValue, 1, 2.1, 3))
     expectThat("(.next [[1 2] [3 4] [5 6] [7 8] []])", shouldEvalTo:
-      listWithItems(vectorWithItems(3, 4), vectorWithItems(5, 6), vectorWithItems(7, 8), vectorWithItems()))
+      list(containing: vector(containing: 3, 4), vector(containing: 5, 6), vector(containing: 7, 8), vector()))
   }
 
   // TODO: (az) make this less fragile
@@ -80,11 +80,11 @@ class TestNextBuiltin : InterpreterTest {
 //    let b = keyword("b")
 ////    let c = keyword("c")
 //    expectThat("(.next {:a 1 :b 2 :c 3 \\d 4})", shouldEvalTo:
-//      listWithItems(vectorWithItems(.Keyword(b), 2), vectorWithItems(.Keyword(a), 1),
-//        vectorWithItems(.CharAtom("d"), 4)))
+//      listWithItems(vector(containing: .keyword(b), 2), vector(containing: .keyword(a), 1),
+//        vector(containing: .char("d"), 4)))
 //    expectThat("(.next {\"foo\" \\a nil \"baz\" true \"bar\"})", shouldEvalTo:
-//      listWithItems(vectorWithItems(true, .StringAtom("bar")),
-//        vectorWithItems(.StringAtom("foo"), .CharAtom("a"))))
+//      listWithItems(vector(containing: true, .string("bar")),
+//        vector(containing: .string("foo"), .char("a"))))
 //  }
 
   /// .next should reject non-collection arguments.

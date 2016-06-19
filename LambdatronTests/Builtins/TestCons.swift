@@ -13,100 +13,99 @@ class TestConsBuiltin : InterpreterTest {
 
   // .cons should produce a single-item list if the second argument is nil.
   func testWithNilCollection() {
-    expectThat("(.cons nil nil)", shouldEvalTo: listWithItems(.Nil))
-    expectThat("(.cons true nil)", shouldEvalTo: listWithItems(.BoolAtom(true)))
-    expectThat("(.cons 1 nil)", shouldEvalTo: listWithItems(.IntAtom(1)))
-    expectThat("(.cons () nil)", shouldEvalTo: listWithItems(.Seq(EmptyNode)))
-    expectThat("(.cons {} nil)", shouldEvalTo: listWithItems(.Map([:])))
+    expectThat("(.cons nil nil)", shouldEvalTo: list(containing: .nilValue))
+    expectThat("(.cons true nil)", shouldEvalTo: list(containing: .bool(true)))
+    expectThat("(.cons 1 nil)", shouldEvalTo: list(containing: .int(1)))
+    expectThat("(.cons () nil)", shouldEvalTo: list(containing: .seq(EmptyNode)))
+    expectThat("(.cons {} nil)", shouldEvalTo: list(containing: .map([:])))
   }
 
   // .cons should produce a single-item list if the second item is an empty string.
   func testWithEmptyString() {
-    expectThat("(.cons nil \"\")", shouldEvalTo: listWithItems(.Nil))
-    expectThat("(.cons true \"\")", shouldEvalTo: listWithItems(.BoolAtom(true)))
-    expectThat("(.cons 1 \"\")", shouldEvalTo: listWithItems(.IntAtom(1)))
-    expectThat("(.cons () \"\")", shouldEvalTo: listWithItems(.Seq(EmptyNode)))
-    expectThat("(.cons {} \"\")", shouldEvalTo: listWithItems(.Map([:])))
+    expectThat("(.cons nil \"\")", shouldEvalTo: list(containing: .nilValue))
+    expectThat("(.cons true \"\")", shouldEvalTo: list(containing: .bool(true)))
+    expectThat("(.cons 1 \"\")", shouldEvalTo: list(containing: .int(1)))
+    expectThat("(.cons () \"\")", shouldEvalTo: list(containing: .seq(EmptyNode)))
+    expectThat("(.cons {} \"\")", shouldEvalTo: list(containing: .map([:])))
   }
 
   // .cons should produce a list with the first item and the characters of the second string argument.
   func testWithString() {
-    expectThat("(.cons nil \"foo\")", shouldEvalTo: listWithItems(
-      .Nil,
-      .CharAtom("f"),
-      .CharAtom("o"),
-      .CharAtom("o")))
-    expectThat("(.cons \"foo\" \"bard\")", shouldEvalTo: listWithItems(
-      .StringAtom("foo"),
-      .CharAtom("b"),
-      .CharAtom("a"),
-      .CharAtom("r"), .CharAtom("d")))
+    expectThat("(.cons nil \"foo\")", shouldEvalTo: list(containing: .nilValue,
+      .char("f"),
+      .char("o"),
+      .char("o")))
+    expectThat("(.cons \"foo\" \"bard\")", shouldEvalTo: list(containing: .string("foo"),
+      .char("b"),
+      .char("a"),
+      .char("r"), .char("d")))
   }
 
   // .cons should produce a single-item list if the second item is an empty list.
   func testWithEmptyList() {
-    expectThat("(.cons nil ())", shouldEvalTo: listWithItems(.Nil))
-    expectThat("(.cons true ())", shouldEvalTo: listWithItems(.BoolAtom(true)))
-    expectThat("(.cons 1 ())", shouldEvalTo: listWithItems(.IntAtom(1)))
-    expectThat("(.cons () ())", shouldEvalTo: listWithItems(.Seq(EmptyNode)))
-    expectThat("(.cons {} ())", shouldEvalTo: listWithItems(.Map([:])))
+    expectThat("(.cons nil ())", shouldEvalTo: list(containing: .nilValue))
+    expectThat("(.cons true ())", shouldEvalTo: list(containing: .bool(true)))
+    expectThat("(.cons 1 ())", shouldEvalTo: list(containing: .int(1)))
+    expectThat("(.cons () ())", shouldEvalTo: list(containing: .seq(EmptyNode)))
+    expectThat("(.cons {} ())", shouldEvalTo: list(containing: .map([:])))
   }
 
   // .cons should produce a list with the first item and the rest of the list.
   func testWithList() {
     let bar = keyword("bar")
-    expectThat("(.cons 1.234 '(\"foo\" [1 2] true :bar))", shouldEvalTo:
-      listWithItems(1.234, .StringAtom("foo"), vectorWithItems(1, 2), true, .Keyword(bar)))
-    expectThat("(.cons '(1 2 3) '(4 5))", shouldEvalTo: listWithItems(listWithItems(1, 2, 3), 4, 5))
+    expectThat("(.cons 1.234 '(\"foo\" [1 2] true :bar))",
+               shouldEvalTo: list(containing: 1.234, .string("foo"), vector(containing: 1, 2), true, .keyword(bar)))
+    expectThat("(.cons '(1 2 3) '(4 5))",
+               shouldEvalTo: list(containing: list(containing: 1, 2, 3), 4, 5))
   }
 
   /// .cons should produce a list with the first item and the lazy seq.
   func testWithEmptyLazySeq() {
-    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") nil)))")
-    runCode("(def b (.cons 10 a))")
+    run(input: "(def a (.lazy-seq (fn [] (.print \"executed thunk\") nil)))")
+    run(input: "(def b (.cons 10 a))")
     // Validate 'cons' worked by taking apart the list
     expectThat("(.first b)", shouldEvalTo: 10)
     expectEmptyOutputBuffer()
-    expectThat("(.rest b)", shouldEvalTo: listWithItems())
+    expectThat("(.rest b)", shouldEvalTo: list())
     expectOutputBuffer(toBe: "executed thunk")
   }
 
   /// .cons should produce a list with the first item and an empty lazy seq.
   func testWithLazySeq() {
-    runCode("(def a (.lazy-seq (fn [] (.print \"executed thunk\") [0 1 2 3])))")
-    runCode("(def b (.cons 10 a))")
+    run(input: "(def a (.lazy-seq (fn [] (.print \"executed thunk\") [0 1 2 3])))")
+    run(input: "(def b (.cons 10 a))")
     // Validate 'cons' worked by taking apart the list
     expectThat("(.first b)", shouldEvalTo: 10)
     expectEmptyOutputBuffer()
-    expectThat("(.rest b)", shouldEvalTo: listWithItems(0, 1, 2, 3))
+    expectThat("(.rest b)", shouldEvalTo: list(containing: 0, 1, 2, 3))
     expectOutputBuffer(toBe: "executed thunk")
   }
 
   // .cons should produce a single-item list if the second item is an empty vector.
   func testWithEmptyVector() {
-    expectThat("(.cons nil [])", shouldEvalTo: listWithItems(.Nil))
-    expectThat("(.cons true [])", shouldEvalTo: listWithItems(.BoolAtom(true)))
-    expectThat("(.cons 1 [])", shouldEvalTo: listWithItems(.IntAtom(1)))
-    expectThat("(.cons () [])", shouldEvalTo: listWithItems(.Seq(EmptyNode)))
-    expectThat("(.cons {} [])", shouldEvalTo: listWithItems(.Map([:])))
+    expectThat("(.cons nil [])", shouldEvalTo: list(containing: .nilValue))
+    expectThat("(.cons true [])", shouldEvalTo: list(containing: .bool(true)))
+    expectThat("(.cons 1 [])", shouldEvalTo: list(containing: .int(1)))
+    expectThat("(.cons () [])", shouldEvalTo: list(containing: .seq(EmptyNode)))
+    expectThat("(.cons {} [])", shouldEvalTo: list(containing: .map([:])))
   }
 
   // .cons should produce a list with the first item and all items in the vector.
   func testWithVector() {
     let bar = symbol("bar")
     expectThat("(.cons \\newline [nil '(1 2) 'bar \\z])", shouldEvalTo:
-      listWithItems(.CharAtom("\n"), .Nil, listWithItems(1, 2), .Symbol(bar), .CharAtom("z")))
+      list(containing: .char("\n"), .nilValue, list(containing: 1, 2), .symbol(bar), .char("z")))
     expectThat("(.cons '[1 2 3] '[4 5])", shouldEvalTo:
-      listWithItems(vectorWithItems(1, 2, 3), 4, 5))
+      list(containing: vector(containing: 1, 2, 3), 4, 5))
   }
 
   // .cons should produce a single-item list if the second item is an empty list.
   func testWithEmptyMap() {
-    expectThat("(.cons nil {})", shouldEvalTo: listWithItems(.Nil))
-    expectThat("(.cons true {})", shouldEvalTo: listWithItems(.BoolAtom(true)))
-    expectThat("(.cons 1 {})", shouldEvalTo: listWithItems(.IntAtom(1)))
-    expectThat("(.cons () {})", shouldEvalTo: listWithItems(.Seq(EmptyNode)))
-    expectThat("(.cons {} {})", shouldEvalTo: listWithItems(.Map([:])))
+    expectThat("(.cons nil {})", shouldEvalTo: list(containing: .nilValue))
+    expectThat("(.cons true {})", shouldEvalTo: list(containing: .bool(true)))
+    expectThat("(.cons 1 {})", shouldEvalTo: list(containing: .int(1)))
+    expectThat("(.cons () {})", shouldEvalTo: list(containing: .seq(EmptyNode)))
+    expectThat("(.cons {} {})", shouldEvalTo: list(containing: .map([:])))
   }
 
   // .cons should produce a list with the first item and all key-value pairs in the map.
@@ -114,13 +113,13 @@ class TestConsBuiltin : InterpreterTest {
     let foo = symbol("foo")
     let bar = keyword("bar")
     expectThat("(.cons :bar {1 \"one\" 2 \"two\" 'foo \\5 100.1 nil})",
-      shouldEvalToContain: .Keyword(bar), vectorWithItems(2, .StringAtom("two")),
-      vectorWithItems(.Symbol(foo), .CharAtom("5")), vectorWithItems(1, .StringAtom("one")),
-      vectorWithItems(100.1, .Nil))
+      shouldEvalToContain: .keyword(bar), vector(containing: 2, .string("two")),
+      vector(containing: .symbol(foo), .char("5")), vector(containing: 1, .string("one")),
+      vector(containing: 100.1, .nilValue))
     expectThat("(.cons {1 \"one\" 2 \"two\"} {3 \"three\" 4 \"four\" 5 \"five\"})",
-      shouldEvalToContain: mapWithItems((1, .StringAtom("one")), (2, .StringAtom("two"))),
-      vectorWithItems(5, .StringAtom("five")), vectorWithItems(3, .StringAtom("three")),
-      vectorWithItems(4, .StringAtom("four")))
+      shouldEvalToContain: map(containing: (1, .string("one")), (2, .string("two"))),
+      vector(containing: 5, .string("five")), vector(containing: 3, .string("three")),
+      vector(containing: 4, .string("four")))
   }
 
   // .cons should reject invalid collection types.

@@ -12,7 +12,7 @@ import XCTest
 
 private extension Value {
   var asStringBuilder : StringBuilderType? {
-    if case let .Auxiliary(value as StringBuilderType) = self {
+    if case let .auxiliary(value as StringBuilderType) = self {
       return value
     }
     return nil
@@ -24,7 +24,7 @@ class TestSbBuiltin : InterpreterTest {
 
   /// .sb called without any arguments should produce an empty string builder.
   func testEmptyBuilder() {
-    let sb = runCode("(.sb)")
+    let sb = run(input: "(.sb)")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == "", "(.sb) should produce an empty string")
     }
@@ -36,7 +36,7 @@ class TestSbBuiltin : InterpreterTest {
   /// .sb called with a string argument should initialize the string builder with the string.
   func testWithInitialString() {
     let testStr = "the quick brown fox jumps across the lazy dog"
-    let sb = runCode("(.sb \"\(testStr)\")")
+    let sb = run(input: "(.sb \"\(testStr)\")")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == testStr, "String builder should have been initialized with the string \"\(testStr)\"")
     }
@@ -47,7 +47,7 @@ class TestSbBuiltin : InterpreterTest {
 
   /// .sb called with a non-string argument should initialize the string builder with the stringified argument.
   func testWithInitialArgument() {
-    let sb = runCode("(.sb :foobar-baz)")
+    let sb = run(input: "(.sb :foobar-baz)")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == ":foobar-baz",
         "String builder should have been initialized with the stringified value \":foobar-baz\"")
@@ -69,9 +69,9 @@ class TestSbAppendBuiltin : InterpreterTest {
   /// .sb-append should do nothing if called with an empty string.
   func testWithEmptyString() {
     let referenceStr = "meela"
-    runCode("(def a (.sb \"\(referenceStr)\"))")
-    runCode("(.sb-append a \"\")")
-    let sb = runCode("a")
+    run(input: "(def a (.sb \"\(referenceStr)\"))")
+    run(input: "(.sb-append a \"\")")
+    let sb = run(input: "a")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == referenceStr, "String builder should have retained the value \"\(referenceStr)\"")
     }
@@ -83,12 +83,12 @@ class TestSbAppendBuiltin : InterpreterTest {
   /// .sb-append should append strings to a string buffer.
   func testWithStrings() {
     let referenceStr = "meela, yuen, piper, and holland..."
-    runCode("(def a (.sb))")
-    runCode("(.sb-append a \"meela, \")")
-    runCode("(.sb-append a \"yuen, \")")
-    runCode("(.sb-append a \"piper, \")")
-    runCode("(.sb-append a \"and holland...\")")
-    let sb = runCode("a")
+    run(input: "(def a (.sb))")
+    run(input: "(.sb-append a \"meela, \")")
+    run(input: "(.sb-append a \"yuen, \")")
+    run(input: "(.sb-append a \"piper, \")")
+    run(input: "(.sb-append a \"and holland...\")")
+    let sb = run(input: "a")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == referenceStr, "String builder should have retained the value \"\(referenceStr)\"")
     }
@@ -127,9 +127,9 @@ class TestSbReverseBuiltin : InterpreterTest {
 
   /// .sb-reverse should do nothing to an empty string builder.
   func testWithEmptyBuilder() {
-    runCode("(def a (.sb))")
-    runCode("(.sb-reverse a)")
-    let sb = runCode("a")
+    run(input: "(def a (.sb))")
+    run(input: "(.sb-reverse a)")
+    let sb = run(input: "a")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == "", "String builder should have been empty")
     }
@@ -140,9 +140,9 @@ class TestSbReverseBuiltin : InterpreterTest {
 
   /// .sb-reverse should reverse the buffer of a non-empty string builder.
   func testWithNonemptyBuilder() {
-    runCode("(def a (.sb \"foobarbaz\"))")
-    runCode("(.sb-reverse a)")
-    let sb = runCode("a")
+    run(input: "(def a (.sb \"foobarbaz\"))")
+    run(input: "(.sb-reverse a)")
+    let sb = run(input: "a")
     if let sb = sb?.asStringBuilder {
       XCTAssert(sb.string() == "zabraboof", "String builder should have reversed the string")
     }

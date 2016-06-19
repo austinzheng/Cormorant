@@ -10,35 +10,45 @@ import Foundation
 
 /// A struct holding an arbitrary number of parameters without using refcounted storage if there are eight or fewer
 /// params.
-struct Params : CustomStringConvertible, CollectionType {
+struct Params : CustomStringConvertible, RandomAccessCollection {
   private var a0, a1, a2, a3, a4, a5, a6, a7 : Value?
 
   /// An array containing all parameters from 8 and onwards.
   private var others : [Value]?
 
   /// How many parameters are stored within the struct.
-  private(set) var count = 0
+  private var effectiveCount = 0
 
   var description : String { return describe(nil).rawStringValue }
 
   var startIndex : Int { return 0 }
-  var endIndex : Int { return count }
+  var endIndex : Int { return effectiveCount }
+
+  func index(after i: Int) -> Int {
+    precondition(i < endIndex)
+    return i + 1
+  }
+
+  func index(before i: Int) -> Int {
+    precondition(i > startIndex)
+    return i - 1
+  }
 
   init() { }
 
   init(_ a0: Value) {
     self.a0 = a0
-    count = 1
+    effectiveCount = 1
   }
 
   init(_ a0: Value, _ a1: Value) {
     self.a0 = a0; self.a1 = a1
-    count = 2
+    effectiveCount = 2
   }
 
   init(_ a0: Value, _ a1: Value, _ a2: Value) {
     self.a0 = a0; self.a1 = a1; self.a2 = a2
-    count = 3
+    effectiveCount = 3
   }
 
   /// Return a Params consisting of all arguments in the current Params except for the first.
@@ -47,7 +57,7 @@ struct Params : CustomStringConvertible, CollectionType {
       return self
     }
     var newParams = Params()
-    for (idx, item) in enumerate() {
+    for (idx, item) in enumerated() {
       if idx > 0 {
         newParams.append(item)
       }
@@ -56,7 +66,7 @@ struct Params : CustomStringConvertible, CollectionType {
   }
 
   /// Return a Params consisting of a prefix argument followed by all arguments in the current Params.
-  func prefixedBy(prefix: Value) -> Params {
+  func prefixed(by prefix: Value) -> Params {
     var newParams = Params(prefix)
     for item in self {
       newParams.append(item)
@@ -86,7 +96,7 @@ struct Params : CustomStringConvertible, CollectionType {
 
   /// Push another value onto the Params struct. This is ONLY meant for the use case where the Params struct is
   /// initially being populated.
-  mutating func append(newValue: Value) {
+  mutating func append(_ newValue: Value) {
     switch count {
     case 0: a0 = newValue
     case 1: a1 = newValue
@@ -102,7 +112,7 @@ struct Params : CustomStringConvertible, CollectionType {
         others = [newValue]
       }
     }
-    count++
+    effectiveCount += 1
   }
 
    subscript(idx: Int) -> Value {
@@ -124,7 +134,7 @@ struct Params : CustomStringConvertible, CollectionType {
   }
 }
 
-struct ParamsGenerator : GeneratorType {
+struct ParamsGenerator : IteratorProtocol {
   private let params : Params
   private var index = 0
 

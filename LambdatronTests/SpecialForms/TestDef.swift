@@ -15,7 +15,7 @@ class TestDef : InterpreterTest {
   /// def should properly take a symbol as its first argument.
   func testDefWithSymbolFirstArg() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    runCode("(def a)")
+    run(input: "(def a)")
   }
 
   /// def should only take a symbol as its first argument.
@@ -37,29 +37,29 @@ class TestDef : InterpreterTest {
   /// def with an initializer should work properly.
   func testDefWithInitializer() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    runCode("(def a 1523)")
+    run(input: "(def a 1523)")
     expectThat("a", shouldEvalTo: 1523)
   }
 
   /// def with an initializer should evaluate the initializer form.
   func testDefWithInitializer2() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    runCode("(def a (.+ 12 2))")
+    run(input: "(def a (.+ 12 2))")
     expectThat("a", shouldEvalTo: 14)
   }
 
   /// def should allow qualified symbols only if they are in the current namespace.
   func testQualifiedSymbols() {
-    runCode("(.ns-set 'foo)")
+    run(input: "(.ns-set 'foo)")
     expectThat("(def bar/a 10)", shouldFailAs: .QualifiedSymbolMisuseError)
-    runCode("(def foo/a 10)")
-    runCode("(def foo/b 15)")
+    run(input: "(def foo/a 10)")
+    run(input: "(def foo/b 15)")
     expectThat("(def bar/z)", shouldFailAs: .QualifiedSymbolMisuseError)
     // Move namespaces
-    runCode("(.ns-set 'bar)")
+    run(input: "(.ns-set 'bar)")
     expectThat("(def foo/a 10)", shouldFailAs: .QualifiedSymbolMisuseError)
-    runCode("(def bar/a 10)")
-    runCode("(def bar/b 15)")
+    run(input: "(def bar/a 10)")
+    run(input: "(def bar/b 15)")
     expectThat("(def foo/z)", shouldFailAs: .QualifiedSymbolMisuseError)
   }
 
@@ -67,18 +67,18 @@ class TestDef : InterpreterTest {
   func testOverwritingUnboundDef() {
     let a = symbol("a", namespace: "user")
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    runCode("(def a)")
-    expectThat("a", shouldEvalTo: .Auxiliary(UnboundVarObject(a, ctx: interpreter.currentNamespace)))
-    runCode("(def a \"foobar\")")
-    expectThat("a", shouldEvalTo: .StringAtom("foobar"))
+    run(input: "(def a)")
+    expectThat("a", shouldEvalTo: .auxiliary(UnboundVarObject(a, ctx: interpreter.currentNamespace)))
+    run(input: "(def a \"foobar\")")
+    expectThat("a", shouldEvalTo: .string("foobar"))
   }
 
   /// def should overwrite a previous bound def with a new value.
   func testOverwritingBoundDef() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    runCode("(def a \\c)")
-    expectThat("a", shouldEvalTo: .CharAtom("c"))
-    runCode("(def a true)")
+    run(input: "(def a \\c)")
+    expectThat("a", shouldEvalTo: .char("c"))
+    run(input: "(def a true)")
     expectThat("a", shouldEvalTo: true)
   }
 
@@ -86,20 +86,20 @@ class TestDef : InterpreterTest {
   func testOverwritingBoundDefWithUnbound() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
     let code = keyword("foobar")
-    runCode("(def a :foobar)")
-    expectThat("a", shouldEvalTo: .Keyword(code))
-    runCode("(def a)")
-    expectThat("a", shouldEvalTo: .Keyword(code))
+    run(input: "(def a :foobar)")
+    expectThat("a", shouldEvalTo: .keyword(code))
+    run(input: "(def a)")
+    expectThat("a", shouldEvalTo: .keyword(code))
   }
 
   /// def should not bind by reference, but by value.
   func testDefBindingByValue() {
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    runCode("(def a 10)")
+    run(input: "(def a 10)")
     expectThat("b", shouldFailAs: .InvalidSymbolError)
-    runCode("(def b a)")
+    run(input: "(def b a)")
     expectThat("b", shouldEvalTo: 10)
-    runCode("(def a 20)")
+    run(input: "(def a 20)")
     // The value of 'b' should not change because 'a' changed.
     expectThat("b", shouldEvalTo: 10)
   }

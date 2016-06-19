@@ -25,9 +25,9 @@ class TestListBasics : XCTestCase {
 
   /// A non-empty Cons should work properly in the context of a for-in loop.
   func testConsIteration() {
-    let sublist = listWithItems(true, false)
-    let vector = Value.Vector([.Nil, 1.23456, .CharAtom("\n")])
-    let testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
+    let sublist = list(containing: true, false)
+    let vector = Value.vector([.nilValue, 1.23456, .char("\n")])
+    let testCons = list(containing: 15, sublist, vector, .string("foobar"))
     var counter = 0
 
     for item in SeqIterator(testCons)! {
@@ -61,7 +61,7 @@ class TestListBasics : XCTestCase {
       else if counter == 3 {
         switch item {
         case let .Just(item):
-          XCTAssert(item == .StringAtom("foobar"),
+          XCTAssert(item == .string("foobar"),
             "The fourth item in the list should have been the string \"foobar\".")
         case .Error:
           XCTFail("The fourth item in the list didn't expand properly")
@@ -70,19 +70,19 @@ class TestListBasics : XCTestCase {
       else {
         XCTFail("The list should only be visited 4 times.")
       }
-      counter++
+      counter += 1
     }
     XCTAssert(counter == 4, "There should have been four iterations through the testCons list.")
   }
 
   /// A non-empty cons should work properly with enumerate.
   func testConsEnumerateIteration() {
-    let sublist = listWithItems(true, false)
-    let vector = Value.Vector([.Nil, 1.23456, .CharAtom("\n")])
-    let testCons = listWithItems(15, sublist, vector, .StringAtom("foobar"))
+    let sublist = list(containing: true, false)
+    let vector = Value.vector([.nilValue, 1.23456, .char("\n")])
+    let testCons = list(containing: 15, sublist, vector, .string("foobar"))
     var counter = 0
 
-    for (idx, item) in SeqIterator(testCons)!.enumerate() {
+    for (idx, item) in SeqIterator(testCons)!.enumerated() {
       XCTAssert(idx == counter, "The idx reported by enumerate() should always be in sync with 'counter'.")
       if counter == 0 {
         switch item {
@@ -114,7 +114,7 @@ class TestListBasics : XCTestCase {
       else if counter == 3 {
         switch item {
         case let .Just(item):
-          XCTAssert(item == .StringAtom("foobar"),
+          XCTAssert(item == .string("foobar"),
             "The fourth item in the list should have been the string \"foobar\".")
         case .Error:
           XCTFail("The fourth item in the list didn't expand properly")
@@ -123,7 +123,7 @@ class TestListBasics : XCTestCase {
       else {
         XCTFail("The list should only be visited 4 times.")
       }
-      counter++
+      counter += 1
     }
     XCTAssert(counter == 4, "There should have been four iterations through the testCons list.")
   }

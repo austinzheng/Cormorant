@@ -12,48 +12,48 @@ class TestSeqBuiltin : InterpreterTest {
 
   /// .seq should return nil if passed in nil.
   func testWithNil() {
-    expectThat("(.seq nil)", shouldEvalTo: .Nil)
+    expectThat("(.seq nil)", shouldEvalTo: .nilValue)
   }
 
   /// .seq should return nil for empty collections.
   func testWithEmptyCollections() {
-    expectThat("(.seq \"\")", shouldEvalTo: .Nil)
-    expectThat("(.seq ())", shouldEvalTo: .Nil)
-    expectThat("(.seq [])", shouldEvalTo: .Nil)
-    expectThat("(.seq {})", shouldEvalTo: .Nil)
+    expectThat("(.seq \"\")", shouldEvalTo: .nilValue)
+    expectThat("(.seq ())", shouldEvalTo: .nilValue)
+    expectThat("(.seq [])", shouldEvalTo: .nilValue)
+    expectThat("(.seq {})", shouldEvalTo: .nilValue)
   }
 
   /// .seq should return a sequence comprised of the characters of a string.
   func testWithStrings() {
     expectThat("(.seq \"abc\")",
-      shouldEvalTo: listWithItems(.CharAtom("a"), .CharAtom("b"), .CharAtom("c")))
+      shouldEvalTo: list(containing: .char("a"), .char("b"), .char("c")))
     expectThat("(.seq \"\\n\\\\\nq\")",
-      shouldEvalTo: listWithItems(.CharAtom("\n"), .CharAtom("\\"), .CharAtom("\n"),
-        .CharAtom("q")))
+      shouldEvalTo: list(containing: .char("\n"), .char("\\"), .char("\n"),
+        .char("q")))
     expectThat("(.seq \"foobar\")",
-      shouldEvalTo: listWithItems(.CharAtom("f"), .CharAtom("o"), .CharAtom("o"),
-        .CharAtom("b"), .CharAtom("a"), .CharAtom("r")))
+      shouldEvalTo: list(containing: .char("f"), .char("o"), .char("o"),
+        .char("b"), .char("a"), .char("r")))
   }
 
   /// .seq should return a sequence comprised of the elements in a list.
   func testWithLists() {
-    expectThat("(.seq '(true false nil 1 2.1 3))", shouldEvalTo: listWithItems(true, false, .Nil, 1, 2.1, 3))
+    expectThat("(.seq '(true false nil 1 2.1 3))", shouldEvalTo: list(containing: true, false, .nilValue, 1, 2.1, 3))
     expectThat("(.seq '((1 2) (3 4) (5 6) (7 8) ()))", shouldEvalTo:
-      listWithItems(listWithItems(1, 2), listWithItems(3, 4), listWithItems(5, 6), listWithItems(7, 8),
-        listWithItems()))
+      list(containing: list(containing: 1, 2), list(containing: 3, 4), list(containing: 5, 6), list(containing: 7, 8),
+        list()))
   }
 
   /// .seq should return a sequence from a lazy seq, evaluating if necessary.
   func testWithLazySeqs() {
-    expectThat("(.seq (.lazy-seq (fn [] '(1 2 3 4 5 6 7))))", shouldEvalTo: listWithItems(1, 2, 3, 4, 5, 6, 7))
+    expectThat("(.seq (.lazy-seq (fn [] '(1 2 3 4 5 6 7))))", shouldEvalTo: list(containing: 1, 2, 3, 4, 5, 6, 7))
   }
 
   /// .seq should return a sequence comprised of the elements in a vector.
   func testWithVectors() {
-    expectThat("(.seq [false true nil 1 2.1 3])", shouldEvalTo: listWithItems(false, true, .Nil, 1, 2.1, 3))
+    expectThat("(.seq [false true nil 1 2.1 3])", shouldEvalTo: list(containing: false, true, .nilValue, 1, 2.1, 3))
     expectThat("(.seq [[1 2] [3 4] [5 6] [7 8] []])", shouldEvalTo:
-      listWithItems(vectorWithItems(1, 2), vectorWithItems(3, 4), vectorWithItems(5, 6), vectorWithItems(7, 8),
-        vectorWithItems()))
+      list(containing: vector(containing: 1, 2), vector(containing: 3, 4), vector(containing: 5, 6), vector(containing: 7, 8),
+        vector()))
   }
 
   /// .seq should return a sequence comprised of the key-value pairs in a map.
@@ -62,11 +62,11 @@ class TestSeqBuiltin : InterpreterTest {
     let b = keyword("b")
     let c = keyword("c")
     expectThat("(.seq {:a 1 :b 2 :c 3 \\d 4})",
-      shouldEvalToContain: vectorWithItems(.Keyword(a), 1), vectorWithItems(.Keyword(b), 2),
-      vectorWithItems(.Keyword(c), 3), vectorWithItems(.CharAtom("d"), 4))
+      shouldEvalToContain: vector(containing: .keyword(a), 1), vector(containing: .keyword(b), 2),
+      vector(containing: .keyword(c), 3), vector(containing: .char("d"), 4))
     expectThat("(.seq {\"foo\" \\a nil \"baz\" true \"bar\"})",
-      shouldEvalToContain: vectorWithItems(.Nil, .StringAtom("baz")), vectorWithItems(true, .StringAtom("bar")),
-      vectorWithItems(.StringAtom("foo"), .CharAtom("a")))
+      shouldEvalToContain: vector(containing: .nilValue, .string("baz")), vector(containing: true, .string("bar")),
+      vector(containing: .string("foo"), .char("a")))
   }
 
   /// .seq should reject non-collection arguments.

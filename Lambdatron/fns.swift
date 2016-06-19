@@ -70,9 +70,9 @@ struct SingleFn {
     if (isVariadic && arguments.count < parameters.count) || (!isVariadic && arguments.count != parameters.count) {
       return false
     }
-    for (idx, parameter) in parameters.enumerate() {
+    for (idx, parameter) in parameters.enumerated() {
       let argument = arguments[idx]
-      ctx.updateBinding(argument, forSymbol: parameter)
+      ctx.update(binding: argument, forSymbol: parameter)
     }
     if let variadicParameter = variadicParameter {
       // If we're rebinding parameters, we MUST have a vararg if the function signature specifies a vararg.
@@ -81,7 +81,7 @@ struct SingleFn {
         return false
       }
       // Bind the last argument directly to the vararg param; because of the above check 'last' will always be valid
-      ctx.updateBinding(arguments.last!, forSymbol: variadicParameter)
+      ctx.update(binding: arguments.last!, forSymbol: variadicParameter)
     }
     return true
   }
@@ -93,36 +93,36 @@ struct SingleFn {
       return nil
     }
     let newContext = LexicalScopeContext(parent: ctx)
-    var i=0
-    for ; i<parameters.count; i++ {
-      newContext.pushBinding(arguments[i], forSymbol: parameters[i])
+    for i in 0..<parameters.count {
+      newContext.push(binding: arguments[i], forSymbol: parameters[i])
     }
     if let variadicParameter = variadicParameter {
       // Add the rest of the arguments (if any) to the vararg vector
       if arguments.count > parameters.count {
         var varargBuffer : [Value] = []
-        for var j=i; j<arguments.count; j++ {
+        for j in parameters.count..<arguments.count {
           varargBuffer.append(arguments[j])
         }
-        newContext.pushBinding(.Seq(sequenceFromItems(varargBuffer)), forSymbol: variadicParameter)
+        newContext.push(binding: .seq(sequence(fromItems: varargBuffer)), forSymbol: variadicParameter)
       }
       else {
-        newContext.pushBinding(.Nil, forSymbol: variadicParameter)
+        newContext.push(binding: .nilValue, forSymbol: variadicParameter)
       }
+
     }
     return newContext
   }
 
   func evaluate(arguments: Params, _ ctx: Context) -> EvalResult {
     // Create the context, then perform a 'do' with the body of the function
-    let activeContext = bindToNewContext(arguments, ctx: ctx)
+    let activeContext = bindToNewContext(arguments: arguments, ctx: ctx)
     if let activeContext = activeContext {
       while true {
         let result = sf_do(forms, activeContext)
         switch result {
         case let .Recur(newBindings):
           // If result is 'recur', we need to rebind and run the function again from the start.
-          let success = rebindArguments(newBindings, toContext: activeContext)
+          let success = rebindArguments(arguments: newBindings, toContext: activeContext)
           if !success {
             return .Failure(EvalError(.ArityError, "(user-defined function)"))
           }
@@ -147,11 +147,11 @@ public final class Function {
   var hashValue : Int { return ObjectIdentifier(self).hashValue }
   
   class func buildFunction(arities: [SingleFn], name: UnqualifiedSymbol?, ctx: Context, asMacro: Bool) -> EvalResult {
-    let result = prebuildFn(arities)
+    let result = prebuildFn(arities: arities)
     switch result {
     case let .Just((aritiesMap, variadic)):
       let function = Function(specificFns: aritiesMap, variadic: variadic, name: name, ctx: ctx)
-      return .Success(asMacro ? .MacroLiteral(function) : .FunctionLiteral(function))
+      return .Success(asMacro ? .macroLiteral(function) : .functionLiteral(function))
     case let .Error(f):
       return .Failure(f)
     }
@@ -164,7 +164,7 @@ public final class Function {
     if let actualName = name {
       self.name = name
       let newContext = LexicalScopeContext(parent: ctx)
-      newContext.pushBinding(.FunctionLiteral(self), forSymbol: actualName)
+      newContext.push(binding: .functionLiteral(self), forSymbol: actualName)
       context = newContext
     }
     else {
@@ -180,11 +180,11 @@ public final class Function {
     // Get the correct function
     if let functionToUse = specificFns[arguments.count] {
       // We have a valid fixed arity definition to use; use it
-      return functionToUse.evaluate(arguments, context)
+      return functionToUse.evaluate(arguments: arguments, context)
     }
     else if let varargFunction = variadic where arguments.count >= varargFunction.paramCount {
       // We have a valid variable arity definition to use (e.g. at least as many argument values as vararg params)
-      return varargFunction.evaluate(arguments, context)
+      return varargFunction.evaluate(arguments: arguments, context)
     }
     return .Failure(EvalError(.ArityError, "(user-defined function)"))
   }

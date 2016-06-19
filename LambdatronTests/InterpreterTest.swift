@@ -12,7 +12,7 @@ import XCTest
 
 extension Value {
   var asSeq : SeqType? {
-    if case let .Seq(value) = self {
+    if case let .seq(value) = self {
       return value
     }
     return nil
@@ -22,36 +22,36 @@ extension Value {
 let EmptyNode = Empty()
 
 /// Convenience function: given a bunch of Values, return a list.
-func listWithItems(items: Value...) -> Value {
-  return .Seq(items.count == 0 ? Empty() : ContiguousList(items))
+func list(containing items: Value...) -> Value {
+  return .seq(items.count == 0 ? Empty() : ContiguousList(items))
 }
 
 /// Convenience functions: given a bunch of Values, return a vector.
-func vectorWithItems(items: Value...) -> Value {
-  return .Vector(items)
+func vector(containing items: Value...) -> Value {
+  return .vector(items)
 }
 
 /// Convenience function: given a bunch of Value key-value pairs, return a map.
-func mapWithItems(items: (Value, Value)...) -> Value {
+func map(containing items: (Value, Value)...) -> Value {
   if items.count == 0 {
-    return .Map([:])
+    return .map([:])
   }
   var buffer : MapType = [:]
   for (key, value) in items {
     buffer[key] = value
   }
-  return .Map(buffer)
+  return .map(buffer)
 }
 
 /// An abstract superclass intended for various interpreter tests.
 class InterpreterTest : XCTestCase {
   var interpreter = Interpreter()
 
-  func keyword(name: String, namespace: String? = nil) -> InternedKeyword {
+  func keyword(_ name: String, namespace: String? = nil) -> InternedKeyword {
     return InternedKeyword(name, namespace: namespace, ivs: interpreter.internStore)
   }
 
-  func symbol(name: String, namespace: String? = nil) -> InternedSymbol {
+  func symbol(_ name: String, namespace: String? = nil) -> InternedSymbol {
     return InternedSymbol(name, namespace: namespace, ivs: interpreter.internStore)
   }
 
@@ -72,8 +72,9 @@ class InterpreterTest : XCTestCase {
   }
 
   // Run some input, expecting no errors.
-  func runCode(input: String) -> Value? {
-    let result = interpreter.evaluate(input)
+  @discardableResult
+  func run(input: String) -> Value? {
+    let result = interpreter.evaluate(form: input)
     switch result {
     case let .Success(s):
       return s
@@ -87,14 +88,14 @@ class InterpreterTest : XCTestCase {
 
   /// Given an input string, lex, parse, and reader-expand it and compare to an expected String output.
   func expect(input: String, shouldExpandTo output: String) {
-    let context = interpreter.currentNamespace
+    let context = interpreter.currentNamespace!
     let lexed = lex(input)
     switch lexed {
     case let .Just(lexed):
-      let parsed = parse(lexed, context)
+      let parsed = parse(tokens: lexed, context)
       switch parsed {
       case let .Just(parsed):
-        let expanded = parsed.expand(context)
+        let expanded = context.expand(parsed)
         switch expanded {
         case let .Success(expanded):
           let actualOutput = expanded.describe(context).rawStringValue
@@ -111,26 +112,28 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and compare the output to an expected Value output.
-  func expectThat(input: String, shouldEvalTo expected: Value) {
-    let result = interpreter.evaluate(input)
-    switch result {
-    case let .Success(actual):
-      let isEqual : Bool = (expected == actual)
-      XCTAssert(isEqual /*expected == actual*/, "expected: \(expected), got: \(actual)")
-    case let .ReadFailure(f):
-      XCTFail("read error: \(f.description)")
-    case let .EvalFailure(f):
-      XCTFail("evaluation error: \(f.description)")
+  func expectThat(_ input: String, shouldEvalTo expected: Value) {
+    autoreleasepool {
+      let result = interpreter.evaluate(form: input)
+      switch result {
+      case let .Success(actual):
+        let isEqual : Bool = (expected == actual)
+        XCTAssert(isEqual /*expected == actual*/, "expected: \(expected), got: \(actual)")
+      case let .ReadFailure(f):
+        XCTFail("read error: \(f.description)")
+      case let .EvalFailure(f):
+        XCTFail("evaluation error: \(f.description)")
+      }
     }
   }
 
   /// Given an input string, evaluate it and expect a seq. Then compare the items in the seq to a given set of items.
   /// This test does not check the order of items, only that they all appear exactly once.
-  func expectThat(input: String, shouldEvalToContain item: Value, _ expected: Value...) {
+  func expectThat(_ input: String, shouldEvalToContain item: Value, _ expected: Value...) {
     // Put the items in a set
     let expectedItems : Set<Value> = Set(expected + [item])
 
-    let result = interpreter.evaluate(input)
+    let result = interpreter.evaluate(form: input)
     switch result {
     case let .Success(actual):
       if let actual = actual.asSeq {
@@ -155,13 +158,13 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string and a string describing an expected form, evaluate both and compare for equality.
-  func expectThat(input: String, shouldEvalTo form: String) {
+  func expectThat(_ input: String, shouldEvalTo form: String) {
     // Evaluate the test form first
-    let actual = interpreter.evaluate(input)
+    let actual = interpreter.evaluate(form: input)
     switch actual {
     case let .Success(actual):
       // Then evaluate the reference form
-      let expected = interpreter.evaluate(form)
+      let expected = interpreter.evaluate(form: form)
       switch expected {
       case let .Success(expected):
         XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
@@ -176,8 +179,8 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and expect a particular read failure.
-  func expectThat(input: String, shouldFailAs expected: ReadError.ReadErrorType) {
-    let result = interpreter.evaluate(input)
+  func expectThat(_ input: String, shouldFailAs expected: ReadError.ReadErrorType) {
+    let result = interpreter.evaluate(form: input)
     switch result {
     case let .Success(s):
       XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
@@ -191,8 +194,8 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and expect a particular evaluation failure.
-  func expectThat(input: String, shouldFailAs expected: EvalError.EvalErrorType) {
-    let result = interpreter.evaluate(input)
+  func expectThat(_ input: String, shouldFailAs expected: EvalError.EvalErrorType) {
+    let result = interpreter.evaluate(form: input)
     switch result {
     case let .Success(s):
       XCTFail("evaluation unexpectedly succeeded; result: \(s.description)")
@@ -206,12 +209,12 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Given an input string, evaluate it and expect an invalid argument error.
-  func expectInvalidArgumentErrorFrom(input: String) {
+  func expectInvalidArgumentErrorFrom(_ input: String) {
     expectThat(input, shouldFailAs: .InvalidArgumentError)
   }
 
   /// Given an input string, evaluate it and expect an arity error.
-  func expectArityErrorFrom(input: String) {
+  func expectArityErrorFrom(_ input: String) {
     expectThat(input, shouldFailAs: .ArityError)
   }
 
@@ -240,9 +243,9 @@ class InterpreterTest : XCTestCase {
   }
 
   /// Test whether or not a ListType matches the items in a collection.
-  func expectList<T : SequenceType where T.Generator.Element == Value>(list: SeqType, toMatch match: T) {
-    var listGenerator = SeqIterator(list).generate()
-    var matchGenerator = match.generate()
+  func expect<T : Sequence where T.Iterator.Element == Value>(list: SeqType, toMatch match: T) {
+    var listGenerator = SeqIterator(list).makeIterator()
+    var matchGenerator = match.makeIterator()
 
     while true {
       let thisListItem = listGenerator.next()

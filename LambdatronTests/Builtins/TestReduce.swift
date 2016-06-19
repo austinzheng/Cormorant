@@ -13,84 +13,84 @@ class TestReduceBuiltin : InterpreterTest {
 
   /// .reduce called on nil with no initial value should call the provided function with no arguments.
   func testNoValNil() {
-    runCode("(def tf (fn [] (.print \"done!\") 12345))")
+    run(input: "(def tf (fn [] (.print \"done!\") 12345))")
     expectThat("(.reduce tf nil)", shouldEvalTo: 12345)
     expectOutputBuffer(toBe: "done!")
   }
 
   /// .reduce called on an empty string with no initial value should call the provided function with no arguments.
   func testNoValEmptyString() {
-    runCode("(def tf (fn [] (.print \"done!\") 12345))")
+    run(input: "(def tf (fn [] (.print \"done!\") 12345))")
     expectThat("(.reduce tf \"\")", shouldEvalTo: 12345)
     expectOutputBuffer(toBe: "done!")
   }
 
   /// .reduce called on an empty list with no initial value should call the provided function with no arguments.
   func testNoValEmptyList() {
-    runCode("(def tf (fn [] (.print \"done!\") 12345))")
+    run(input: "(def tf (fn [] (.print \"done!\") 12345))")
     expectThat("(.reduce tf ())", shouldEvalTo: 12345)
     expectOutputBuffer(toBe: "done!")
   }
 
   /// .reduce called on an empty vector with no initial value should call the provided function with no arguments.
   func testNoValEmptyVector() {
-    runCode("(def tf (fn [] (.print \"done!\") 12345))")
+    run(input: "(def tf (fn [] (.print \"done!\") 12345))")
     expectThat("(.reduce tf [])", shouldEvalTo: 12345)
     expectOutputBuffer(toBe: "done!")
   }
 
   /// .reduce called on an empty map with no initial value should call the provided function with no arguments.
   func testNoValEmptyMap() {
-    runCode("(def tf (fn [] (.print \"done!\") 12345))")
+    run(input: "(def tf (fn [] (.print \"done!\") 12345))")
     expectThat("(.reduce tf {})", shouldEvalTo: 12345)
     expectOutputBuffer(toBe: "done!")
   }
 
   /// .reduce called on a one-character string with no initial value should return the item without calling the fn.
   func testNoValOneItemString() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
-    expectThat("(.reduce tf \"b\")", shouldEvalTo: .CharAtom("b"))
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
+    expectThat("(.reduce tf \"b\")", shouldEvalTo: .char("b"))
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on a one-item list with no initial value should return the item without calling the fn.
   func testNoValOneItemList() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
-    expectThat("(.reduce tf '(\"foobar\"))", shouldEvalTo: .StringAtom("foobar"))
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
+    expectThat("(.reduce tf '(\"foobar\"))", shouldEvalTo: .string("foobar"))
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on a one-item vector with no initial value should return the item without calling the fn.
   func testNoValOneItemVector() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
-    expectThat("(.reduce tf [\"foobar\"])", shouldEvalTo: .StringAtom("foobar"))
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
+    expectThat("(.reduce tf [\"foobar\"])", shouldEvalTo: .string("foobar"))
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on a one-item map with no initial value should return the item without calling the fn.
   func testNoValOneItemMap() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
-    expectThat("(.reduce tf {\"foo\" \"bar\"})", shouldEvalTo: vectorWithItems(.StringAtom("foo"), .StringAtom("bar")))
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
+    expectThat("(.reduce tf {\"foo\" \"bar\"})", shouldEvalTo: vector(containing: .string("foo"), .string("bar")))
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on a string with no initial values should properly reduce.
   func testNoValMultiItemString() {
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ (.int a) (.int b))))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ (.int a) (.int b))))")
     expectThat("(.reduce tf \"foobar\")", shouldEvalTo: 633)
     expectOutputBuffer(toBe: "a: \\f b: \\oa: 213 b: \\oa: 324 b: \\ba: 422 b: \\aa: 519 b: \\r")
   }
 
   /// .reduce called on a list with no initial values should properly reduce.
   func testNoValMultiItemList() {
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
     expectThat("(.reduce tf '(1 3 8 10 14))", shouldEvalTo: 36)
     expectOutputBuffer(toBe: "a: 1 b: 3a: 4 b: 8a: 12 b: 10a: 22 b: 14")
   }
 
   /// .reduce called on a list with no initial values should properly reduce.
   func testNoValMultiItemVector() {
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
     expectThat("(.reduce tf [1 3 8 10 14])", shouldEvalTo: 36)
     expectOutputBuffer(toBe: "a: 1 b: 3a: 4 b: 8a: 12 b: 10a: 22 b: 14")
   }
@@ -102,64 +102,64 @@ class TestReduceBuiltin : InterpreterTest {
 //    let b = keyword("b")
 //    let c = keyword("c")
 //    let d = keyword("d")
-//    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.concat a b)))")
+//    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.concat a b)))")
 //    expectThat("(.reduce tf {:a 1 :b 2 :c 3 :d 4})", shouldEvalTo: listWithItems(
-//      .Keyword(c), 3, .Keyword(b), 2, .Keyword(a), 1, .Keyword(d), 4))
+//      .keyword(c), 3, .keyword(b), 2, .keyword(a), 1, .keyword(d), 4))
 //    expectOutputBuffer(toBe: "a: [:c 3] b: [:b 2]a: (:c 3 :b 2) b: [:a 1]a: (:c 3 :b 2 :a 1) b: [:d 4]")
 //  }
 
   /// .reduce called on nil with an initial value should return the value without calling the fn.
   func testWithValOnNil() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
     expectThat("(.reduce tf 98765 nil)", shouldEvalTo: 98765)
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on an empty string with an initial value should return the value without calling the fn.
   func testWithValOnEmptyString() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
     expectThat("(.reduce tf 98765 \"\")", shouldEvalTo: 98765)
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on an empty list with an initial value should return the value without calling the fn.
   func testWithValOnEmptyList() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
     expectThat("(.reduce tf 98765 ())", shouldEvalTo: 98765)
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on an empty vector with an initial value should return the value without calling the fn.
   func testWithValOnEmptyVector() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
     expectThat("(.reduce tf 98765 [])", shouldEvalTo: 98765)
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on an empty map with an initial value should return the value without calling the fn.
   func testWithValOnEmptyMap() {
-    runCode("(def tf (fn [] (.print \"done!\") nil))")
+    run(input: "(def tf (fn [] (.print \"done!\") nil))")
     expectThat("(.reduce tf 98765 {})", shouldEvalTo: 98765)
     expectOutputBuffer(toBe: "")
   }
 
   /// .reduce called on a nonempty list with an initial value should properly reduce.
   func testWithValOnString() {
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ (.int a) (.int b))))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ (.int a) (.int b))))")
     expectThat("(.reduce tf -91 \"qwerty\")", shouldEvalTo: 593)
     expectOutputBuffer(toBe: "a: -91 b: \\qa: 22 b: \\wa: 141 b: \\ea: 242 b: \\ra: 356 b: \\ta: 472 b: \\y")
   }
 
   /// .reduce called on a nonempty list with an initial value should properly reduce.
   func testWithValOnList() {
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
     expectThat("(.reduce tf 152 '(1 8 77 6 1001))", shouldEvalTo: 1245)
     expectOutputBuffer(toBe: "a: 152 b: 1a: 153 b: 8a: 161 b: 77a: 238 b: 6a: 244 b: 1001")
   }
 
   /// .reduce called on a nonempty list with an initial value should properly reduce.
   func testWithValOnVector() {
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.+ a b)))")
     expectThat("(.reduce tf 152 [1 8 77 6 1001])", shouldEvalTo: 1245)
     expectOutputBuffer(toBe: "a: 152 b: 1a: 153 b: 8a: 161 b: 77a: 238 b: 6a: 244 b: 1001")
   }
@@ -168,9 +168,9 @@ class TestReduceBuiltin : InterpreterTest {
   func testWithValOnMap() {
     let a = keyword("a")
     let b = keyword("b")
-    runCode("(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.concat a b)))")
+    run(input: "(def tf (fn [a b] (.print \"a:\" a \"b:\" b) (.concat a b)))")
     expectThat("(.reduce tf [6 7 8 9] {:a 1 :b 2})", shouldEvalTo:
-      listWithItems(6, 7, 8, 9, .Keyword(b), 2, .Keyword(a), 1))
+      list(containing: 6, 7, 8, 9, .keyword(b), 2, .keyword(a), 1))
     expectOutputBuffer(toBe: "a: [6 7 8 9] b: [:b 2]a: (6 7 8 9 :b 2) b: [:a 1]")
   }
 
@@ -212,7 +212,7 @@ class TestReduceBuiltin : InterpreterTest {
 
   /// .reduce should throw an arity error if the function it has been given is not a 2-arity function.
   func testInputFunctionArity() {
-    runCode("(def tf (fn [a b c] (.+ a (.* b c))))")
+    run(input: "(def tf (fn [a b c] (.+ a (.* b c))))")
     expectArityErrorFrom("(.reduce tf '(1 2 3 4 5 6 7))")
   }
 

@@ -5,7 +5,7 @@
 
 import Foundation
 
-private func areEqual(this: SeqType, _ that: SeqType) -> EvalOptional<Bool> {
+private func areEqual(_ this: SeqType, _ that: SeqType) -> EvalOptional<Bool> {
   // Walk through the lists
   var leftGenerator = SeqIterator(this).generate()
   var rightGenerator = SeqIterator(that).generate()
@@ -37,7 +37,7 @@ private func areEqual(this: SeqType, _ that: SeqType) -> EvalOptional<Bool> {
   }
 }
 
-private func areEqual(this: SeqType, _ that: VectorType) -> EvalOptional<Bool> {
+private func areEqual(_ this: SeqType, _ that: VectorType) -> EvalOptional<Bool> {
   if that.count == 0 {
     return this.isEmpty
   }
@@ -62,85 +62,85 @@ private func areEqual(this: SeqType, _ that: VectorType) -> EvalOptional<Bool> {
 }
 
 extension Value {
-  func equals(that: Value) -> EvalOptional<Bool> {
+  func equals(_ that: Value) -> EvalOptional<Bool> {
     switch self {
-    case let .Symbol(left):
-      if case let .Symbol(right) = that {
+    case let .symbol(left):
+      if case let .symbol(right) = that {
         return .Just(left == right)
       }
-    case let .Keyword(left):
-      if case let .Keyword(right) = that {
+    case let .keyword(left):
+      if case let .keyword(right) = that {
         return .Just(left == right)
       }
-    case let .Special(left):
-      if case let .Special(right) = that {
+    case let .special(left):
+      if case let .special(right) = that {
         return .Just(left == right)
       }
-    case let .BuiltInFunction(left):
-      if case let .BuiltInFunction(right) = that {
+    case let .builtInFunction(left):
+      if case let .builtInFunction(right) = that {
         return .Just(left == right)
       }
-    case .Nil:
-      if case .Nil = that {
+    case .nilValue:
+      if case .nilValue = that {
         return .Just(true)
       }
-    case let .BoolAtom(left):
-      if case let .BoolAtom(right) = that {
+    case let .bool(left):
+      if case let .bool(right) = that {
         return .Just(left == right)
       }
-    case let .IntAtom(left):
-      if case let .IntAtom(right) = that {
+    case let .int(left):
+      if case let .int(right) = that {
         return .Just(left == right)
       }
-    case let .FloatAtom(left):
-      if case let .FloatAtom(right) = that {
+    case let .float(left):
+      if case let .float(right) = that {
         return .Just(left == right)
       }
-    case let .CharAtom(left):
-      if case let .CharAtom(right) = that {
+    case let .char(left):
+      if case let .char(right) = that {
         return .Just(left == right)
       }
-    case let .StringAtom(left):
-      if case let .StringAtom(right) = that {
+    case let .string(left):
+      if case let .string(right) = that {
         return .Just(left == right)
       }
-    case let .Namespace(left):
-      if case let .Namespace(right) = that {
+    case let .namespace(left):
+      if case let .namespace(right) = that {
         return .Just(left == right)
       }
-    case let .Var(left):
-      if case let .Var(right) = that {
+    case let .`var`(left):
+      if case let .`var`(right) = that {
         return .Just(left == right)
       }
-    case let .Auxiliary(left):
-      if case let .Auxiliary(right) = that {
+    case let .auxiliary(left):
+      if case let .auxiliary(right) = that {
         return .Just(left.equals(right))
       }
-    case let .Seq(left):
+    case let .seq(left):
       switch that {
-      case let .Seq(right): return areEqual(left, right)
-      case let .Vector(right): return areEqual(left, right)
+      case let .seq(right): return areEqual(left, right)
+      case let .vector(right): return areEqual(left, right)
       default: return .Just(false)
       }
-    case let .Vector(left):
+    case let .vector(left):
       switch that {
-      case let .Seq(right): return areEqual(right, left)
-      case let .Vector(right): return .Just(left == right)
+      case let .seq(right): return areEqual(right, left)
+      case let .vector(right): return .Just(left == right)
       default: return .Just(false)
       }
-    case let .Map(left):
-      if case let .Map(right) = that {
+    case let .map(left):
+      if case let .map(right) = that {
         return .Just(left == right)
       }
-    case let .MacroLiteral(left):
-      if case let .MacroLiteral(right) = that {
+    case let .macroLiteral(left):
+      if case let .macroLiteral(right) = that {
         return .Just(left === right)
       }
-    case let .FunctionLiteral(left):
-      if case let .FunctionLiteral(right) = that {
+    case let .functionLiteral(left):
+      if case let .functionLiteral(right) = that {
         return .Just(left === right)
       }
-    case .ReaderMacroForm:
+    case .readerMacroForm:
       return .Just(false)
     }
     return .Just(false)

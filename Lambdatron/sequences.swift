@@ -11,12 +11,12 @@ import Foundation
 // MARK: Utility functions
 
 /// Return a new sequence resulting from prepending the given item to an existing sequence.
-func cons(item: Value, next seq: SeqType) -> SeqType {
+func cons(_ item: Value, next seq: SeqType) -> SeqType {
   return Cons(item, next: seq)
 }
 
 /// Return a sequence from the given sequence, or nil if the sequence is empty. Lazy sequences will be forced.
-func sequence(seq: SeqType) -> EvalOptional<SeqType>? {
+func sequence(fromSeq seq: SeqType) -> EvalOptional<SeqType>? {
   let s : EvalOptional<SeqType>
   if let seq = seq as? LazySeq {
     s = seq.force()
@@ -39,22 +39,22 @@ func sequence(seq: SeqType) -> EvalOptional<SeqType>? {
 }
 
 /// Return a new single-element sequence.
-func sequence(item: Value) -> SeqType {
+func sequence(_ item: Value) -> SeqType {
   return Cons(item)
 }
 
 /// Return a new sequence consisting of two items.
-func sequence(first: Value, _ second: Value) -> SeqType {
+func sequence(_ first: Value, _ second: Value) -> SeqType {
   return Cons(first, next: Cons(second))
 }
 
 /// Return a new sequence consisting of three items.
-func sequence(first: Value, _ second: Value, _ third: Value) -> SeqType {
+func sequence(_ first: Value, _ second: Value, _ third: Value) -> SeqType {
   return ContiguousList([first, second, third])
 }
 
 /// Return a new sequence containing multiple items.
-func sequenceFromItems(items: [Value]) -> SeqType {
+func sequence(fromItems items: [Value]) -> SeqType {
   return items.isEmpty ? Empty() : ContiguousList(items)
 }
 
@@ -87,15 +87,20 @@ struct StringSequenceView : SeqType {
 
   var first : EvalOptional<Value> {
     if underlying.isEmpty {
-      return .Just(.Nil)
+      return .Just(.nilValue)
     }
     precondition(this < underlying.endIndex, "StringSequenceView violates precondition: index must be valid")
-    return .Just(.CharAtom(underlying[this]))
+    return .Just(.char(underlying[this]))
   }
 
   var rest : EvalOptional<SeqType> {
-    if underlying.characters.count > 1 && this < underlying.endIndex.predecessor() {
-      return .Just(StringSequenceView(underlying, next: next, position: this.successor()))
+    if underlying.isEmpty {
+      // Cannot get beforeEndIndex for an empty string, so return early here.
+      return .Just(next)
+    }
+    let beforeEndIndex = underlying.index(before: underlying.endIndex)
+    if underlying.characters.count > 1 && this < beforeEndIndex {
+      return .Just(StringSequenceView(underlying, next: next, position: underlying.index(after: this)))
     }
     return .Just(next)
   }
@@ -119,7 +124,7 @@ struct VectorSequenceView : SeqType {
 
   var first : EvalOptional<Value> {
     if underlying.isEmpty {
-      return .Just(.Nil)
+      return .Just(.nilValue)
     }
     precondition(this < underlying.count, "VectorSequenceView violates precondition: index must be valid")
     return .Just(underlying[this])
@@ -151,16 +156,17 @@ struct HashmapSequenceView : SeqType {
 
   var first : EvalOptional<Value> {
     if underlying.isEmpty {
-      return .Just(.Nil)
+      return .Just(.nilValue)
     }
     precondition(this < underlying.endIndex, "HashmapSequenceView violates precondition: index must be valid")
     let (key, value) = underlying[this]
-    return .Just(.Vector([key, value]))
+    return .Just(.vector([key, value]))
   }
 
   var rest : EvalOptional<SeqType> {
-    if underlying.count > 1 && this.successor() < underlying.endIndex {
-      return .Just(HashmapSequenceView(underlying, next: next, position: this.successor()))
+    let nextIndex = underlying.index(after: this)
+    if underlying.count > 1 && nextIndex < underlying.endIndex {
+      return .Just(HashmapSequenceView(underlying, next: next, position: nextIndex))
     }
     return .Just(next)
   }
@@ -196,7 +202,7 @@ final class ContiguousList : SeqType {
   var isEmpty : EvalOptional<Bool> { return .Just(false) }
 
   /// Build a ContiguousList out of another sequence.
-  class func fromSequence(seq: SeqType, next: SeqType = Empty()) -> EvalOptional<SeqType> {
+  static func sequence(from seq: SeqType, next: SeqType = Empty()) -> EvalOptional<SeqType> {
     var buffer : [Value] = []
     for item in SeqIterator(seq) {
       switch item {
@@ -227,10 +233,10 @@ final class LazySeq : SeqType {
   private func force() -> EvalOptional<SeqType> {
     switch state {
     case let .Thunk(thunk, context):
-      let result = apply(thunk, args: Params(), ctx: context, fn: "LazySeq-thunk")
+      let result = context.apply(arguments: Params(), toFunction: thunk, "LazySeq-thunk")
       switch result {
       case let .Success(item):
-        if case .Nil = item {
+        if case .nilValue = item {
           // If the thunk returns nil, we should return the empty list
           state = .Cached(Empty())
           return .Just(Empty())
@@ -239,11 +245,11 @@ final class LazySeq : SeqType {
         let result = pr_seq(Params(item), context)
         switch result {
         case let .Success(item):
-          if case let .Seq(seq) = item {
+          if case let .seq(seq) = item {
             state = .Cached(seq)
             return .Just(seq)
           }
-          else if case .Nil = item {
+          else if case .nilValue = item {
             state = .Cached(Empty())
             return .Just(Empty())
           }
@@ -323,7 +329,7 @@ final class Cons : SeqType {
 struct Empty : SeqType {
   var hashValue : Int { return 0 }
 
-  var first : EvalOptional<Value> { return .Just(.Nil) }
+  var first : EvalOptional<Value> { return .Just(.nilValue) }
   var rest : EvalOptional<SeqType> { return .Just(self) }
   var isEmpty : EvalOptional<Bool> { return .Just(true) }
 }
@@ -332,7 +338,7 @@ struct Empty : SeqType {
 // MARK: Sequence iterator
 
 /// An iterator that allows Swift iteration through a sequence type.
-struct SeqIterator : SequenceType, GeneratorType {
+struct SeqIterator : Sequence, IteratorProtocol {
   private var seq : SeqType
   private var prefix : Value?
 
@@ -383,11 +389,11 @@ struct SeqIterator : SequenceType, GeneratorType {
   init?(_ value: Value, prefix: Value? = nil) {
     self.prefix = prefix
     switch value {
-    case .Nil: seq = Empty()
-    case let .Seq(s): seq = s
-    case let .StringAtom(string): seq = StringSequenceView(string)
-    case let .Vector(vector): seq = VectorSequenceView(vector)
-    case let .Map(map): seq = HashmapSequenceView(map)
+    case .nilValue: seq = Empty()
+    case let .seq(s): seq = s
+    case let .string(string): seq = StringSequenceView(string)
+    case let .vector(vector): seq = VectorSequenceView(vector)
+    case let .map(map): seq = HashmapSequenceView(map)
     default: return nil
     }
   }

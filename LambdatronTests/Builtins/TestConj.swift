@@ -13,20 +13,20 @@ class TestConjBuiltin : InterpreterTest {
 
   /// .conj should work with nil collections.
   func testNil() {
-    expectThat("(.conj nil 5)", shouldEvalTo: listWithItems(.IntAtom(5)))
-    expectThat("(.conj nil \"foobar\")", shouldEvalTo: listWithItems(.StringAtom("foobar")))
+    expectThat("(.conj nil 5)", shouldEvalTo: list(containing: .int(5)))
+    expectThat("(.conj nil \"foobar\")", shouldEvalTo: list(containing: .string("foobar")))
   }
 
   /// .conj should work with lists.
   func testLists() {
-    expectThat("(.conj () 5)", shouldEvalTo: listWithItems(.IntAtom(5)))
-    expectThat("(.conj '(1 2 3) \\c)", shouldEvalTo: listWithItems(.CharAtom("c"), 1, 2, 3))
+    expectThat("(.conj () 5)", shouldEvalTo: list(containing: .int(5)))
+    expectThat("(.conj '(1 2 3) \\c)", shouldEvalTo: list(containing: .char("c"), 1, 2, 3))
   }
 
   /// .conj should work with vectors.
   func testVectors() {
-    expectThat("(.conj [] 5)", shouldEvalTo: vectorWithItems(.IntAtom(5)))
-    expectThat("(.conj [1 2 3] \\c)", shouldEvalTo: vectorWithItems(1, 2, 3, .CharAtom("c")))
+    expectThat("(.conj [] 5)", shouldEvalTo: vector(containing: .int(5)))
+    expectThat("(.conj [1 2 3] \\c)", shouldEvalTo: vector(containing: 1, 2, 3, .char("c")))
   }
 
   /// .conj should work with maps.
@@ -34,9 +34,9 @@ class TestConjBuiltin : InterpreterTest {
     let aKeyword = keyword("a")
     let bKeyword = keyword("b")
     expectThat("(.conj {} [:a 100])",
-      shouldEvalTo: mapWithItems((.Keyword(aKeyword), 100)))
+      shouldEvalTo: map(containing: (.keyword(aKeyword), 100)))
     expectThat("(.conj {:b \"foo\"} [:a 100])",
-      shouldEvalTo: mapWithItems((.Keyword(aKeyword), 100), (.Keyword(bKeyword), .StringAtom("foo"))))
+      shouldEvalTo: map(containing: (.keyword(aKeyword), 100), (.keyword(bKeyword), .string("foo"))))
   }
 
   /// .conj should require the first argument to be a collection.

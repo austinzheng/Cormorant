@@ -13,34 +13,34 @@ let stdlib_files : [String] = ["builtin", "core", "higherorder", "sequences", "f
 // TODO: rewrite this.
 func loadStdlibInto(context: Context, files: [String]) {
   for file in files {
-    if let data = stringDataForBundledFile(file) {
+    if let contents = stringData(forBundleFileNamed: file) {
       // Data loaded from file as string
-      if let segments = segmentsForFile(data) {
+      if let segments = segments(forFileContents: contents) {
         for s in segments {
-          switch parse(s, context) {
+          switch parse(tokens: s, context) {
           case let .Just(parsedData):
             // Data parsed successfully
-            let re = parsedData.expand(context)
+            let re = context.expand(parsedData)
             switch re {
             case let .Success(re):
-              switch evaluateForm(re, context) {
+              switch context.evaluate(value: re) {
               case .Success: break
               case .Recur:
                 // Stdlib file failed to evaluate successfully
-                print("Unable to load stdlib: recur failure")
+                print("Unable to load stdlib file '\(file)': recur failure")
                 exit(EXIT_FAILURE)
               case let .Failure(f):
                 // Stdlib file failed to evaluate successfully
-                print("Unable to load stdlib: \(f)")
+                print("Unable to load stdlib file '\(file)': \(f)")
                 exit(EXIT_FAILURE)
               }
             case let .Failure(f):
-              print("Unable to load stdlib: \(f)")
+              print("Unable to load stdlib file '\(file)': \(f)")
               exit(EXIT_FAILURE)
             }
           case let .Error(f):
             // Data failed to parse
-            print("Unable to load stdlib: \(f)")
+            print("Unable to load stdlib file '\(file)': \(f)")
             exit(EXIT_FAILURE)
           }
         }
@@ -52,8 +52,8 @@ func loadStdlibInto(context: Context, files: [String]) {
   }
 }
 
-func stringDataForBundledFile(name: String) -> String? {
-  guard let path = NSBundle(forClass: Interpreter.self).pathForResource(name, ofType: "lbt") else {
+func stringData(forBundleFileNamed name: String) -> String? {
+  guard let path = Bundle(for: Interpreter.self).pathForResource(name, ofType: "lbt") else {
     return nil
   }
   do {
@@ -64,11 +64,11 @@ func stringDataForBundledFile(name: String) -> String? {
 }
 
 /// Return a segmented list of token lists for a given file's data
-func segmentsForFile(data: String) -> ([[LexToken]])? {
-  let lexResult = lex(data)
+func segments(forFileContents contents: String) -> ([[LexToken]])? {
+  let lexResult = lex(contents)
   switch lexResult {
-  case let .Just(lexedData):
-    return segment(lexedData)
+  case let .Just(lexedContents):
+    return segment(input: lexedContents)
   case .Error: return nil
   }
 }
@@ -95,11 +95,11 @@ func segment(input: [LexToken]) -> [[LexToken]] {
     switch state {
     case .SingleToken:
       switch token {
-      case _ where token.isA(.LeftParentheses):
+      case _ where token.isA(.leftParentheses):
         flushCurrentSegment()
         count = 1
         state = .List
-      case _ where token.isA(.RightParentheses):
+      case _ where token.isA(.rightParentheses):
         flushCurrentSegment()
         count = 1
         state = .Vector
@@ -109,10 +109,10 @@ func segment(input: [LexToken]) -> [[LexToken]] {
       currentSegment.append(token)
     case .List:
       switch token {
-      case _ where token.isA(.LeftParentheses):
+      case _ where token.isA(.leftParentheses):
         count += 1
         currentSegment.append(token)
-      case _ where token.isA(.RightParentheses):
+      case _ where token.isA(.rightParentheses):
         count -= 1
         currentSegment.append(token)
         if count == 0 {
@@ -124,10 +124,10 @@ func segment(input: [LexToken]) -> [[LexToken]] {
       }
     case .Vector:
       switch token {
-      case _ where token.isA(.LeftSquareBracket):
+      case _ where token.isA(.leftSquareBracket):
         count += 1
         currentSegment.append(token)
-      case _ where token.isA(.RightSquareBracket):
+      case _ where token.isA(.rightSquareBracket):
         count -= 1
         currentSegment.append(token)
         if count == 0 {

@@ -15,13 +15,13 @@ class TestNsReferBuiltin : InterpreterTest {
   /// .ns-refer should refer a namespace given a valid symbol naming that namespace.
   func testReferring() {
     // Create a namespace and refer it
-    runCode("(.ns-set 'toRefer)")
-    runCode("(def a \"foobar\")")
-    runCode("(.ns-set 'user)")
+    run(input: "(.ns-set 'toRefer)")
+    run(input: "(def a \"foobar\")")
+    run(input: "(.ns-set 'user)")
     expectThat("a", shouldFailAs: .InvalidSymbolError)
-    expectThat("(.ns-refer 'toRefer)", shouldEvalTo: .Nil)
+    expectThat("(.ns-refer 'toRefer)", shouldEvalTo: .nilValue)
     // The symbol should resolve properly now
-    expectThat("a", shouldEvalTo: .StringAtom("foobar"))
+    expectThat("a", shouldEvalTo: .string("foobar"))
   }
 
   /// .ns-refer should reject a symbol not naming a namespace.
@@ -59,51 +59,51 @@ class TestNsRefersBuiltin : InterpreterTest {
 
   /// .ns-refers should list all refers when given a symbol naming a namespace.
   func testWithNameSymbol() {
-    runCode("(.ns-set 'foo)")
-    runCode("(.ns-set 'refer1)")
-    runCode("(def a 10)")
-    runCode("(def b 20)")
-    runCode("(.ns-set 'refer2)")
-    runCode("(def c 30)")
-    runCode("(def d 40)")
-    runCode("(.ns-set 'foo)")
-    runCode("(def e 50)")
-    runCode("(def f 60)")
-    runCode("(.ns-refer 'refer1)")
-    runCode("(.ns-refer 'refer2)")
-    runCode("(.ns-set 'user)")
-    expectThat("(.ns-refers 'foo)", shouldEvalTo: .Map([
-      .Symbol(symbol("a")) : .Var(VarType(symbol("a", namespace: "refer1"), value: 10)),
-      .Symbol(symbol("b")) : .Var(VarType(symbol("b", namespace: "refer1"), value: 20)),
-      .Symbol(symbol("c")) : .Var(VarType(symbol("c", namespace: "refer2"), value: 30)),
-      .Symbol(symbol("d")) : .Var(VarType(symbol("d", namespace: "refer2"), value: 40)),]))
+    run(input: "(.ns-set 'foo)")
+    run(input: "(.ns-set 'refer1)")
+    run(input: "(def a 10)")
+    run(input: "(def b 20)")
+    run(input: "(.ns-set 'refer2)")
+    run(input: "(def c 30)")
+    run(input: "(def d 40)")
+    run(input: "(.ns-set 'foo)")
+    run(input: "(def e 50)")
+    run(input: "(def f 60)")
+    run(input: "(.ns-refer 'refer1)")
+    run(input: "(.ns-refer 'refer2)")
+    run(input: "(.ns-set 'user)")
+    expectThat("(.ns-refers 'foo)", shouldEvalTo: .map([
+      .symbol(symbol("a")) : .`var`(VarType(symbol("a", namespace: "refer1"), value: 10)),
+      .symbol(symbol("b")) : .`var`(VarType(symbol("b", namespace: "refer1"), value: 20)),
+      .symbol(symbol("c")) : .`var`(VarType(symbol("c", namespace: "refer2"), value: 30)),
+      .symbol(symbol("d")) : .`var`(VarType(symbol("d", namespace: "refer2"), value: 40)),]))
   }
 
   /// .ns-refers should list all refers when given a namespace object.
   func testWithNamespace() {
     // Create two namespaces and intern some Vars in each
-    runCode("(.ns-set 'refer1)")
-    runCode("(def a true)")
-    runCode("(def b nil)")
-    runCode("(.ns-set 'refer2)")
-    runCode("(def c false)")
-    runCode("(def d \\c)")
+    run(input: "(.ns-set 'refer1)")
+    run(input: "(def a true)")
+    run(input: "(def b nil)")
+    run(input: "(.ns-set 'refer2)")
+    run(input: "(def c false)")
+    run(input: "(def d \\c)")
     // Go back to 'user' and make a 'foo' namespace, capturing a reference to the object
-    runCode("(.ns-set 'user)")
-    runCode("(def testNs (.ns-create 'foo))")
+    run(input: "(.ns-set 'user)")
+    run(input: "(def testNs (.ns-create 'foo))")
     // Go to 'foo', intern some Vars, and refer both 'refer1' and 'refer2'
-    runCode("(.ns-set 'foo)")
-    runCode("(def e 50)")
-    runCode("(def f 60)")
-    runCode("(.ns-refer 'refer1)")
-    runCode("(.ns-refer 'refer2)")
+    run(input: "(.ns-set 'foo)")
+    run(input: "(def e 50)")
+    run(input: "(def f 60)")
+    run(input: "(.ns-refer 'refer1)")
+    run(input: "(.ns-refer 'refer2)")
     // Go back to 'user' and call .ns-refers on 'foo'
-    runCode("(.ns-set 'user)")
-    expectThat("(.ns-refers 'foo)", shouldEvalTo: .Map([
-      .Symbol(symbol("a")) : .Var(VarType(symbol("a", namespace: "refer1"), value: true)),
-      .Symbol(symbol("b")) : .Var(VarType(symbol("b", namespace: "refer1"), value: .Nil)),
-      .Symbol(symbol("c")) : .Var(VarType(symbol("c", namespace: "refer2"), value: false)),
-      .Symbol(symbol("d")) : .Var(VarType(symbol("d", namespace: "refer2"), value: .CharAtom("c")))]))
+    run(input: "(.ns-set 'user)")
+    expectThat("(.ns-refers 'foo)", shouldEvalTo: .map([
+      .symbol(symbol("a")) : .`var`(VarType(symbol("a", namespace: "refer1"), value: true)),
+      .symbol(symbol("b")) : .`var`(VarType(symbol("b", namespace: "refer1"), value: .nilValue)),
+      .symbol(symbol("c")) : .`var`(VarType(symbol("c", namespace: "refer2"), value: false)),
+      .symbol(symbol("d")) : .`var`(VarType(symbol("d", namespace: "refer2"), value: .char("c")))]))
   }
 
   /// .ns-refers should reject a symbol not naming a namespace.

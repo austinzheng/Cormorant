@@ -9,61 +9,61 @@
 import Foundation
 
 /// Given zero or more arguments, construct a list whose components are the arguments (or the empty list).
-func pr_list(args: Params, _ ctx: Context) -> EvalResult {
+func pr_list(_ args: Params, _ ctx: Context) -> EvalResult {
   if args.count == 0 {
-    return .Success(.Seq(Empty()))
+    return .Success(.seq(Empty()))
   }
-  let list = sequenceFromItems(args.asArray)
-  return .Success(.Seq(list))
+  let list = sequence(fromItems: args.asArray)
+  return .Success(.seq(list))
 }
 
 /// Given zero or more arguments, construct a vector whose components are the arguments (or the empty vector).
-func pr_vector(args: Params, _ ctx: Context) -> EvalResult {
-  return .Success(.Vector(args.asArray))
+func pr_vector(_ args: Params, _ ctx: Context) -> EvalResult {
+  return .Success(.vector(args.asArray))
 }
 
 /// Given zero or more arguments, construct a map whose components are the keys and values (or the empty map).
-func pr_hashmap(args: Params, _ ctx: Context) -> EvalResult {
+func pr_hashmap(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".hashmap"
   guard args.count % 2 == 0 else {
     // Must have an even number of arguments
-    return .Failure(EvalError.arityError("even number", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "even number", actual: args.count, fn))
   }
   var buffer : MapType = [:]
   for (key, value) in PairSequence(args) {
     buffer[key] = value
   }
-  return .Success(.Map(buffer))
+  return .Success(.map(buffer))
 }
 
 /// Given a prefix and a list argument, return a new list where the prefix is followed by the list argument.
-func pr_cons(args: Params, _ ctx: Context) -> EvalResult {
+func pr_cons(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".cons"
   if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
   let first = args[0]
   let second = args[1]
   switch second {
-  case .Nil:
+  case .nilValue:
     // Create a new list consisting of just the first object
-    return .Success(.Seq(sequence(first)))
-  case let .StringAtom(str):
+    return .Success(.seq(sequence(first)))
+  case let .string(str):
     // Create a new list consisting of the first object, followed by the seq of the string
     let seq = cons(first, next: StringSequenceView(str))
-    return .Success(.Seq(seq))
-  case let .Seq(seq):
+    return .Success(.seq(seq))
+  case let .seq(seq):
     // Create a new list consisting of the first object followed by the second list (which can be empty)
-    return .Success(.Seq(cons(first, next: seq)))
-  case let .Vector(vector):
+    return .Success(.seq(cons(first, next: seq)))
+  case let .vector(vector):
     // Create a new list consisting of the first object, followed by a list comprised of the vector's items
     let seq = cons(first, next: VectorSequenceView(vector))
-    return .Success(.Seq(seq))
-  case let .Map(m):
+    return .Success(.seq(seq))
+  case let .map(m):
     // Create a new list consisting of the first object, followed by a list comprised of vectors containing the map's
     //  key-value pairs
     let seq = cons(first, next: HashmapSequenceView(m))
-    return .Success(.Seq(seq))
+    return .Success(.seq(seq))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "second argument must be a string, list, vector, map, or nil"))
@@ -71,29 +71,29 @@ func pr_cons(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the first item.
-func pr_first(args: Params, _ ctx: Context) -> EvalResult {
+func pr_first(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".first"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
-  case .Nil:
-    return .Success(.Nil)
-  case let .StringAtom(s):
+  case .nilValue:
+    return .Success(.nilValue)
+  case let .string(s):
     switch StringSequenceView(s).first {
     case let .Just(s): return .Success(s)
     case let .Error(err): return .Failure(err)
     }
-  case let .Seq(seq):
+  case let .seq(seq):
     switch seq.first {
     case let .Just(s): return .Success(s)
     case let .Error(err): return .Failure(err)
     }
-  case let .Vector(v):
-    return .Success(v.count == 0 ? .Nil : v[0])
-  case let .Map(map):
-    return .Success(MapSequence(map).first() ?? .Nil)
+  case let .vector(v):
+    return .Success(v.count == 0 ? .nilValue : v[0])
+  case let .map(map):
+    return .Success(MapSequence(map).first() ?? .nilValue)
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "first argument must be a string, list, vector, map, or nil"))
@@ -101,34 +101,34 @@ func pr_first(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first.
-func pr_rest(args: Params, _ ctx: Context) -> EvalResult {
+func pr_rest(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".rest"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
-  case .Nil:
-    return .Success(.Seq(Empty()))
-  case let .StringAtom(s):
+  case .nilValue:
+    return .Success(.seq(Empty()))
+  case let .string(s):
     switch StringSequenceView(s).rest {
-    case let .Just(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.seq(seq))
     case let .Error(err): return .Failure(err)
     }
-  case let .Seq(seq):
+  case let .seq(seq):
     // Ask the sequence what the rest of its items are
     switch seq.rest {
-    case let .Just(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.seq(seq))
     case let .Error(err): return .Failure(err)
     }
-  case let .Vector(vector):
+  case let .vector(vector):
     switch VectorSequenceView(vector).rest {
-    case let .Just(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.seq(seq))
     case let .Error(err): return .Failure(err)
     }
-  case let .Map(map):
+  case let .map(map):
     switch HashmapSequenceView(map).rest {
-    case let .Just(seq): return .Success(.Seq(seq))
+    case let .Just(seq): return .Success(.seq(seq))
     case let .Error(err): return .Failure(err)
     }
   default:
@@ -138,46 +138,46 @@ func pr_rest(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a sequence, return the sequence comprised of all items but the first, or nil if there are no more items.
-func pr_next(args: Params, _ ctx: Context) -> EvalResult {
+func pr_next(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".next"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   let first = args[0]
   switch first {
-  case .Nil: return .Success(.Nil)
-  case let .StringAtom(str):
+  case .nilValue: return .Success(.nilValue)
+  case let .string(str):
     switch StringSequenceView(str).rest {
     case let .Just(rest):
       switch rest.isEmpty {
-      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .nilValue : .seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
     }
-  case let .Seq(seq):
+  case let .seq(seq):
     switch seq.rest {
     case let .Just(rest):
       switch rest.isEmpty {
-      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .nilValue : .seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
     }
-  case let .Vector(vector):
+  case let .vector(vector):
     switch VectorSequenceView(vector).rest {
     case let .Just(rest):
       switch rest.isEmpty {
-      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .nilValue : .seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
     }
-  case let .Map(m):
+  case let .map(m):
     switch HashmapSequenceView(m).rest {
     case let .Just(rest):
       switch rest.isEmpty {
-      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .Nil : .Seq(rest))
+      case let .Just(listIsEmpty): return .Success(listIsEmpty ? .nilValue : .seq(rest))
       case let .Error(err): return .Failure(err)
       }
     case let .Error(err): return .Failure(err)
@@ -189,24 +189,24 @@ func pr_next(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a single sequence, return nil (if empty) or a list built out of that sequence.
-func pr_seq(args: Params, _ ctx: Context) -> EvalResult {
+func pr_seq(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".seq"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   switch args[0] {
-  case .Nil: return .Success(.Nil)
-  case let .StringAtom(str):
-    return .Success(str.isEmpty ? .Nil : .Seq(StringSequenceView(str)))
-  case let .Seq(seq):
-    if let result = sequence(seq) {
-      return result.then { .Success(.Seq($0)) }
+  case .nilValue: return .Success(.nilValue)
+  case let .string(str):
+    return .Success(str.isEmpty ? .nilValue : .seq(StringSequenceView(str)))
+  case let .seq(seq):
+    if let result = sequence(fromSeq: seq) {
+      return result.then { .Success(.seq($0)) }
     }
-    return .Success(.Nil)     // Sequence was empty; return nil
-  case let .Vector(vector):
-    return .Success(vector.isEmpty ? .Nil : .Seq(VectorSequenceView(vector)))
-  case let .Map(m):
-    return .Success(m.isEmpty ? .Nil : .Seq(HashmapSequenceView(m)))
+    return .Success(.nilValue)     // Sequence was empty; return nil
+  case let .vector(vector):
+    return .Success(vector.isEmpty ? .nilValue : .seq(VectorSequenceView(vector)))
+  case let .map(m):
+    return .Success(m.isEmpty ? .nilValue : .seq(HashmapSequenceView(m)))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a string, list, vector, map, or nil"))
@@ -214,31 +214,31 @@ func pr_seq(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a form to evaluate to create a sequence, return a corresponding lazy sequence.
-func pr_lazyseq(args: Params, _ ctx: Context) -> EvalResult {
+func pr_lazyseq(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".lazy-seq"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  return .Success(.Seq(LazySeq(args[0], ctx: ctx)))
+  return .Success(.seq(LazySeq(args[0], ctx: ctx)))
 }
 
 /// Given a collection and an item to 'add' to the collection, return a new collection with the added item.
-func pr_conj(args: Params, _ ctx: Context) -> EvalResult {
+func pr_conj(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".conj"
   guard args.count == 2 else {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
   let coll = args[0]
   let toAdd = args[1]
   switch coll {
-  case .Nil:
-    return .Success(.Seq(sequence(toAdd)))
-  case .Seq:
+  case .nilValue:
+    return .Success(.seq(sequence(toAdd)))
+  case .seq:
     return pr_cons(Params(toAdd, coll), ctx)
-  case let .Vector(vector):
-    return .Success(.Vector(vector + [toAdd]))
-  case let .Map(m):
-    guard case let .Vector(vector) = toAdd else {
+  case let .vector(vector):
+    return .Success(.vector(vector + [toAdd]))
+  case let .map(m):
+    guard case let .vector(vector) = toAdd else {
       return .Failure(EvalError.invalidArgumentError(fn,
         message: "if first argument is a hashmap, second argument must be a vector"))
     }
@@ -248,7 +248,7 @@ func pr_conj(args: Params, _ ctx: Context) -> EvalResult {
     }
     var newMap = m
     newMap[vector[0]] = vector[1]
-    return .Success(.Map(newMap))
+    return .Success(.map(newMap))
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a collection"))
   }
@@ -256,20 +256,20 @@ func pr_conj(args: Params, _ ctx: Context) -> EvalResult {
 
 // TODO: This should return a lazy sequence in the future
 /// Given zero or more arguments which are collections or nil, return a list created by concatenating the arguments.
-func pr_concat(args: Params, _ ctx: Context) -> EvalResult {
+func pr_concat(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".concat"
   if args.count == 0 {
-    return .Success(.Seq(Empty()))
+    return .Success(.seq(Empty()))
   }
   var head : SeqType = Empty()
 
   // Go through the arguments in *reverse* order
-  for (idx, item) in args.reverse().enumerate() {
+  for (idx, item) in args.reversed().enumerated() {
     switch item {
-    case .Nil: continue
-    case let .StringAtom(str):
+    case .nilValue: continue
+    case let .string(str):
       head = str.isEmpty ? head : StringSequenceView(str, next: head)
-    case let .Seq(seq):
+    case let .seq(seq):
       if idx == 0 {
         // If this is the first (really, the last) list, just use it.
         head = seq
@@ -282,32 +282,32 @@ func pr_concat(args: Params, _ ctx: Context) -> EvalResult {
             continue
           }
           // Make a copy of this list, connected to our in-progress list.
-          switch ContiguousList.fromSequence(seq, next: head) {
+          switch ContiguousList.sequence(from: seq, next: head) {
           case let .Just(seq): head = seq
           case let .Error(err): return .Failure(err)
           }
         case let .Error(err): return .Failure(err)
         }
       }
-    case let .Vector(vector):
+    case let .vector(vector):
       head = vector.isEmpty ? head : VectorSequenceView(vector, next: head)
-    case let .Map(map):
+    case let .map(map):
       head = map.isEmpty ? head : HashmapSequenceView(map, next: head)
     default:
       return .Failure(EvalError.invalidArgumentError(fn,
         message: "arguments must be strings, lists, vectors, maps, or nil"))
     }
   }
-  return .Success(.Seq(head))
+  return .Success(.seq(head))
 }
 
 /// Given a sequence and an index, return the item at that index, or return an optional 'not found' value.
-func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
+func pr_nth(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".nth"
   guard args.count == 2 || args.count == 3 else {
-    return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2 or 3", actual: args.count, fn))
   }
-  if case let .IntAtom(idx) = args[1] {
+  if case let .int(idx) = args[1] {
     let fallback : Value? = args.count == 3 ? args[2] : nil
     if idx < 0 {
       // Index can't be negative
@@ -316,10 +316,10 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
     }
 
     switch args[0] {
-    case let .StringAtom(s):
+    case let .string(s):
       // We have to walk the string
       if let character = characterAtIndex(s, idx: idx) {
-        return .Success(.CharAtom(character))
+        return .Success(.char(character))
       }
       else if let fallback = fallback {
         return .Success(fallback)
@@ -327,8 +327,8 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
       else {
         return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
       }
-    case let .Seq(seq):
-      for (ctr, item) in SeqIterator(seq).enumerate() {
+    case let .seq(seq):
+      for (ctr, item) in SeqIterator(seq).enumerated() {
         // Go through the list. If we can find the item at the right index without running into an error, return it.
         switch item {
         case let .Just(item):
@@ -344,7 +344,7 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
       else {
         return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
       }
-    case let .Vector(v):
+    case let .vector(v):
       if idx < v.count {
         return .Success(v[idx])
       }
@@ -366,26 +366,26 @@ func pr_nth(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a collection and a key, get the corresponding value, or return nil or an optional 'not found' value.
-func pr_get(args: Params, _ ctx: Context) -> EvalResult {
+func pr_get(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".get"
   guard args.count == 2 || args.count == 3 else {
-    return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2 or 3", actual: args.count, fn))
   }
   let key = args[1]
-  let fallback : Value = args.count == 3 ? args[2] : .Nil
+  let fallback : Value = args.count == 3 ? args[2] : .nilValue
   
   switch args[0] {
-  case let .StringAtom(s):
-    if case let .IntAtom(idx) = key, let character = characterAtIndex(s, idx: idx) {
-      return .Success(.CharAtom(character))
+  case let .string(s):
+    if case let .int(idx) = key, let character = characterAtIndex(s, idx: idx) {
+      return .Success(.char(character))
     }
     return .Success(fallback)
-  case let .Vector(v):
-    if case let .IntAtom(idx) = key where idx >= 0 && idx < v.count {
+  case let .vector(v):
+    if case let .int(idx) = key where idx >= 0 && idx < v.count {
       return .Success(v[idx])
     }
     return .Success(fallback)
-  case let .Map(m):
+  case let .map(m):
     return .Success(m[key] ?? fallback)
   default:
     return .Success(fallback)
@@ -393,31 +393,31 @@ func pr_get(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a supported collection and one or more key-value pairs, associate the new values with the keys.
-func pr_assoc(args: Params, _ ctx: Context) -> EvalResult {
+func pr_assoc(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".assoc"
   // This function requires at least one collection/nil and one key/index-value pair
   guard args.count >= 3 else {
-    return .Failure(EvalError.arityError("3 or more", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "3 or more", actual: args.count, fn))
   }
   // Collect all arguments after the first one
   let rest = args.rest()
   guard rest.count % 2 == 0 else {
     // Must have an even number of key/index-value pairs
-    return .Failure(EvalError.arityError("even number", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "even number", actual: args.count, fn))
   }
   switch args[0] {
-  case .Nil:
+  case .nilValue:
     // Put key-value pairs in a new map
     var newMap : MapType = [:]
     for (key, value) in PairSequence(rest) {
       newMap[key] = value
     }
-    return .Success(.Map(newMap))
-  case let .Vector(vector):
+    return .Success(.map(newMap))
+  case let .vector(vector):
     // Each pair is an index and a new value. Update a copy of the vector and return that.
     var copy = vector
     for (key, value) in PairSequence(rest) {
-      if case let .IntAtom(idx) = key {
+      if case let .int(idx) = key {
         if idx < 0 || idx > copy.count {
           return .Failure(EvalError.outOfBoundsError(fn, idx: idx))
         }
@@ -433,14 +433,14 @@ func pr_assoc(args: Params, _ ctx: Context) -> EvalResult {
           message: "key arguments must be integers if .assoc is called on a vector"))
       }
     }
-    return .Success(.Vector(copy))
-  case let .Map(m):
+    return .Success(.vector(copy))
+  case let .map(m):
     // Update or add all keys with their corresponding values.
     var copy = m
     for (key, value) in PairSequence(rest) {
       copy[key] = value
     }
-    return .Success(.Map(copy))
+    return .Success(.map(copy))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "first argument must be a vector, map, or nil"))
@@ -448,60 +448,61 @@ func pr_assoc(args: Params, _ ctx: Context) -> EvalResult {
 }
 
 /// Given a countable collection, return the number of items.
-func pr_count(args: Params, _ ctx: Context) -> EvalResult {
+func pr_count(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".count"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
+
   switch args[0] {
-  case .Nil:
+  case .nilValue:
     return .Success(0)
-  case let .StringAtom(str):
-    return .Success(.IntAtom(str.characters.count))
-  case let .Seq(seq):
+  case let .string(str):
+    return .Success(.int(str.characters.count))
+  case let .seq(seq):
     var count = 0
     for _ in SeqIterator(seq) {
-      count++
+      count += 1
     }
-    return .Success(.IntAtom(count))
-  case let .Vector(vector):
-    return .Success(.IntAtom(vector.count))
-  case let .Map(map):
-    return .Success(.IntAtom(map.count))
+    return .Success(.int(count))
+  case let .vector(vector):
+    return .Success(.int(vector.count))
+  case let .map(map):
+    return .Success(.int(map.count))
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be nil, a collection, or a string"))
   }
 }
 
 /// Given a map and zero or more keys, return a map with the given keys and corresponding values removed.
-func pr_dissoc(args: Params, _ ctx: Context) -> EvalResult {
+func pr_dissoc(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".dissoc"
   guard !args.isEmpty else {
-    return .Failure(EvalError.arityError("> 0", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "> 0", actual: args.count, fn))
   }
   if args.count == 1 {
     // If there are no values, just return the argument unchanged.
     return .Success(args[0])
   }
   switch args[0] {
-  case .Nil:
-    return .Success(.Nil)
-  case let .Map(m):
+  case .nilValue:
+    return .Success(.nilValue)
+  case let .map(m):
     var newMap = m
-    for var i=1; i<args.count; i++ {
-      newMap.removeValueForKey(args[i])
+    for i in 1..<args.count {
+      newMap.removeValue(forKey: args[i])
     }
-    return .Success(.Map(newMap))
+    return .Success(.map(newMap))
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be nil or a map"))
   }
 }
 
 /// Given a collection, a function that takes two arguments, and an optional initial value, perform a reduction.
-func pr_reduce(args: Params, _ ctx: Context) -> EvalResult {
+func pr_reduce(_ args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".reduce"
   guard args.count == 2 || args.count == 3 else {
-    return .Failure(EvalError.arityError("2 or 3", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2 or 3", actual: args.count, fn))
   }
 
   let function = args[0]
@@ -525,8 +526,8 @@ func pr_reduce(args: Params, _ ctx: Context) -> EvalResult {
         switch this {
         case let .Just(this):
           // Update accumulator with the value of (function accumulator this)
-          let params = Params(accumulator, this)
-          let result = apply(function, args: params, ctx: ctx, fn: fn)
+          let args = Params(accumulator, this)
+          let result = ctx.apply(arguments: args, toFunction: function, fn)
           switch result {
           case let .Success(result):
             accumulator = result
@@ -545,6 +546,6 @@ func pr_reduce(args: Params, _ ctx: Context) -> EvalResult {
   }
   else {
     // There are no items at all (initial was not provided). Return (function).
-    return apply(function, args: Params(), ctx: ctx, fn: fn)
+    return ctx.apply(arguments: Params(), toFunction: function, fn)
   }
 }

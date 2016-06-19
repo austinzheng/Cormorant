@@ -13,9 +13,9 @@ class TestReQuoteReplacementBuiltin : InterpreterTest {
 
   /// .re-quote-replacement should turn strings into escaped pattern strings.
   func testQuotingTemplates() {
-    expectThat("(.re-quote-replacement \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
-    expectThat("(.re-quote-replacement \"abc\\\\\")", shouldEvalTo: .StringAtom("abc\\\\"))
-    expectThat("(.re-quote-replacement \"\\\\hello world\\n\")", shouldEvalTo: .StringAtom("\\\\hello world\n"))
+    expectThat("(.re-quote-replacement \"foobar\")", shouldEvalTo: .string("foobar"))
+    expectThat("(.re-quote-replacement \"abc\\\\\")", shouldEvalTo: .string("abc\\\\"))
+    expectThat("(.re-quote-replacement \"\\\\hello world\\n\")", shouldEvalTo: .string("\\\\hello world\n"))
   }
 
   /// .re-quote-replacement should reject non-string arguments.

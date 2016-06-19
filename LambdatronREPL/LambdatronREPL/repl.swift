@@ -16,12 +16,12 @@ class ReadEvaluatePrintLoop {
 
   func run() -> Bool {
     print("Started Lambdatron. Type '?quit' to exit, '?help' for help...")
-    interpreter.setLoggingFunction(.Eval, function: logger.logEval)
+    interpreter.setLoggingFunction(domain: .Eval, function: logger.logEval)
 
     // from http://stackoverflow.com/questions/24004776/input-from-the-keyboard-in-command-line-application
     // TODO use capabilities of EditLine
 //    let prompt: LineReader = LineReader(argv0: Process.unsafeArgv[0])
-    let prompt: LineReader = LineReader(argv0: (processName as NSString).UTF8String)
+    let prompt: LineReader = LineReader(argv0: (processName as NSString).utf8String!)
 
     func getString() -> String {
       return prompt.gets() ?? ""
@@ -31,29 +31,30 @@ class ReadEvaluatePrintLoop {
     while true {
       // Each iteration of this loop represents one REPL loop
       // Update the prompt
-      let nsName = interpreter.currentNamespaceName
+      let nsName = interpreter.currentNamespaceName!
       prompt.setPrompt("\(nsName)-> ")
 
-      if let data = prompt.gets(), string = String(CString: data, encoding: NSUTF8StringEncoding) {
-        if string.isEmpty || string[string.endIndex.predecessor()] != "\n" {
+      if let data = prompt.gets() {
+        let string = data // String(CString: data, encoding: String.Encoding.utf8)
+        if string.isEmpty || string[string.index(before: string.endIndex)] != "\n" {
             // Something wrong with the input
             return false
         }
         // Remove the trailing newline
-        let trimmed = string[string.startIndex..<string.endIndex.predecessor()]
-        if let (command, args) = SpecialCommand.instanceWith(trimmed) {
+        let trimmed = string[string.startIndex..<string.index(before: string.endIndex)]
+        if let (command, args) = SpecialCommand.instanceWith(input: trimmed) {
           // REPL special command
-          let shouldReturn = command.execute(args, logger: logger, repl: self)
+          let shouldReturn = command.execute(args: args, logger: logger, repl: self)
           if shouldReturn {
             return true
           }
         }
         else {
           // Language form
-          let result = interpreter.evaluate(trimmed)
+          let result = interpreter.evaluate(form: trimmed)
           switch result {
           case let .Success(v):
-            switch interpreter.describe(v) {
+            switch interpreter.describe(form: v) {
             case let .Just(d): print(d)
             case let .Error(err): print("Read error \(err)")
             }

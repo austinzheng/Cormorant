@@ -27,7 +27,7 @@ protocol Context : class {
   /// Given a symbol that might be qualified, resolve the binding or Var to which the symbol refers. If the symbol is
   /// unqualified, the binding is resolved locally; in particular, refers are considered. If the symbol is qualified,
   /// the lookup happens through the interpreter.
-  func resolveBindingForSymbol(symbol: InternedSymbol) -> Value?
+  func resolveBinding(for symbol: InternedSymbol) -> Value?
 }
 
 
@@ -73,7 +73,7 @@ final public class NamespaceContext : Context, Hashable {
   func prepareForRemoval() {
     isDeleted = true
     // Remove all aliases to prevent retain cycles
-    aliases.removeAll(keepCapacity: false)
+    aliases.removeAll(keepingCapacity: false)
   }
 
   /// Register an alias for another namespace.
@@ -94,7 +94,7 @@ final public class NamespaceContext : Context, Hashable {
     }
     if namespace === self {
       selfAliases.insert(a)
-      aliases.removeValueForKey(a)
+      aliases.removeValue(forKey: a)
     }
     else {
       aliases[a] = namespace
@@ -104,8 +104,9 @@ final public class NamespaceContext : Context, Hashable {
   }
 
   /// Unregister an alias for another namespace. Returns whether or not the alias is valid.
-  func unalias(a: NamespaceName) -> Bool {
-    return aliases.removeValueForKey(a) != nil || selfAliases.remove(a) != nil
+  @discardableResult
+  func unalias(_ a: NamespaceName) -> Bool {
+    return aliases.removeValue(forKey: a) != nil || selfAliases.remove(a) != nil
   }
 
   /// Return a map of all aliases, each key-value pair matching a symbol to a Namespace object.
@@ -115,7 +116,7 @@ final public class NamespaceContext : Context, Hashable {
     for (alias, namespace) in aliases {
       switch alias.asSymbol(interpreter.internStore) {
       case let .Just(sym):
-        buffer[.Symbol(sym)] = .Namespace(namespace)
+        buffer[.symbol(sym)] = .namespace(namespace)
       case let .Error(err):
         // Not expected to ever get here
         return .Failure(err)
@@ -125,22 +126,22 @@ final public class NamespaceContext : Context, Hashable {
     for alias in selfAliases {
       switch alias.asSymbol(interpreter.internStore) {
       case let .Just(sym):
-        buffer[.Symbol(sym)] = .Namespace(self)
+        buffer[.symbol(sym)] = .namespace(self)
       case let .Error(err):
         // Not expected to ever get here
         return .Failure(err)
       }
     }
-    return .Success(.Map(buffer))
+    return .Success(.map(buffer))
   }
 
   /// Given a symbol, return the Var to which that symbol would resolve within this namespace, if any.
-  func resolveSymbolFor(symbol: InternedSymbol) -> VarType? {
+  func resolveVar(for symbol: InternedSymbol) -> VarType? {
     if let ns = symbol.ns where ns != internedName {
       // Symbol is qualified with a namespace not the same as this one
       if let aliasedNamespace = aliases[ns] {
         // Namespace of this symbol is an alias for another namespace
-        return aliasedNamespace.resolveSymbolFor(symbol)
+        return aliasedNamespace.resolveVar(for: symbol)
       }
       else if selfAliases.contains(ns) {
         // Namespace of this symbol is an alias to this namespace
@@ -148,7 +149,7 @@ final public class NamespaceContext : Context, Hashable {
       }
       else if let otherNamespace = interpreter.namespaces[ns] {
         // Namespace of this symbol is another real namespace
-        return otherNamespace.resolveSymbolFor(symbol)
+        return otherNamespace.resolveVar(for: symbol)
       }
       // Symbol can't be resolved
       return nil
@@ -169,7 +170,8 @@ final public class NamespaceContext : Context, Hashable {
   }
 
   /// Given another namespace, refer it by mapping all its Vars.
-  func refer(namespace: NamespaceContext) -> EvalError? {
+  @discardableResult
+  func refer(_ namespace: NamespaceContext) -> EvalError? {
     if namespace === self || isDeleted {
       return nil
     }
@@ -183,14 +185,14 @@ final public class NamespaceContext : Context, Hashable {
         return EvalError(.VarRebindingError)
       }
       // Unbind the existing Var, if one exists
-      vars.removeValueForKey(unqualified)
+      vars.removeValue(forKey: unqualified)
       refers[unqualified] = aVar
     }
     return nil
   }
 
   /// Given another namespace name, map all the namespace's bindings into this namespace.
-  func refer(ns: NamespaceName) -> EvalError? {
+  func refer(_ ns: NamespaceName) -> EvalError? {
     if let namespace = interpreter.namespaces[ns] {
       return refer(namespace)
     }
@@ -201,7 +203,7 @@ final public class NamespaceContext : Context, Hashable {
   func refersAsMap() -> MapType {
     var buffer : MapType = [:]
     for (symbol, aVar) in refers {
-      buffer[.Symbol(symbol)] = .Var(aVar)
+      buffer[.symbol(symbol)] = .`var`(aVar)
     }
     return buffer
   }
@@ -212,7 +214,7 @@ final public class NamespaceContext : Context, Hashable {
     for (symbol, aVar) in vars {
       // TODO: (az) what is this?
 //      let symbolName = symbol.nameComponent(self)
-      buffer[.Symbol(symbol)] = .Var(aVar)
+      buffer[.symbol(symbol)] = .`var`(aVar)
     }
     return buffer
   }
@@ -238,7 +240,8 @@ final public class NamespaceContext : Context, Hashable {
 //  }
 
   /// Create a new unbound Var, or unbind a locally interned Var.
-  func setUnboundVar(varName: UnqualifiedSymbol, shouldUnbind: Bool) -> EvalOptional<VarType> {
+  @discardableResult
+  func setUnboundVar(named varName: UnqualifiedSymbol, shouldUnbind: Bool) -> EvalOptional<VarType> {
     if let thisVar = vars[varName] {
       if thisVar.isBound && shouldUnbind == false {
         // Don't unbind the var, just return it
@@ -260,18 +263,19 @@ final public class NamespaceContext : Context, Hashable {
   }
 
   /// Create or update a binding between a symbol and a Var.
-  func setVar(varName: UnqualifiedSymbol, newValue: Value) -> EvalOptional<VarType> {
+  @discardableResult
+  func setVar(named varName: UnqualifiedSymbol, toValue newValue: Value) -> EvalOptional<VarType> {
     if let alreadyReferred = refers[varName] {
       // If we've referred this var before, we should error out if the referred var isn't in a system namespace
       if let ns = alreadyReferred.name.ns where interpreter.namespaces[ns]?.isSystemNamespace == true {
-        alreadyReferred.bindValue(newValue)
+        alreadyReferred.bind(value: newValue)
         return .Just(alreadyReferred)
       }
       return .Error(EvalError(.VarRebindingError))
     }
     else if let alreadyInterned = vars[varName] {
       // The Var was previously interned locally; update it
-      alreadyInterned.bindValue(newValue)
+      alreadyInterned.bind(value: newValue)
       return .Just(alreadyInterned)
     }
     else {
@@ -284,28 +288,28 @@ final public class NamespaceContext : Context, Hashable {
   }
 
   /// Remove a Var from the mapping dictionary.
-  func unmapVar(name: UnqualifiedSymbol) {
-    vars.removeValueForKey(name)
+  func unmapVar(named name: UnqualifiedSymbol) {
+    vars.removeValue(forKey: name)
   }
 
   /// Retrieve the interned Var corresponding to the given unqualified symbol. This method does not look up any symbols
   /// that have been locally aliased by a call to 'refer'. This method should only be called by the interpreter when
   /// resolving a qualified symbol.
-  func resolveVar(symbol: UnqualifiedSymbol) -> Value? {
+  func resolveVar(for symbol: UnqualifiedSymbol) -> Value? {
     return vars[symbol]?.value(usingContext: self)
   }
 
-  func resolveBindingForSymbol(symbol: InternedSymbol) -> Value? {
+  func resolveBinding(for symbol: InternedSymbol) -> Value? {
     if let ns = symbol.ns {
       // Check to see if ns is mapped in the aliases dictionary to a namespace already
       if let aliasedNamespace = aliases[ns] {
-        return aliasedNamespace.resolveVar(symbol.unqualified)
+        return aliasedNamespace.resolveVar(for: symbol.unqualified)
       }
       else if selfAliases.contains(ns) {
         // Alias is for this namespace; resolve the Var (note that refers aren't examined in this case)
-        return resolveVar(symbol.unqualified)
+        return resolveVar(for: symbol.unqualified)
       }
-      return interpreter.resolveBinding(symbol.unqualified, inNamespace: ns)
+      return interpreter.resolveBinding(for: symbol.unqualified, inNamespace: ns)
     }
     else {
       // Unqualified symbol; resolve locally
@@ -332,7 +336,7 @@ final public class NamespaceContext : Context, Hashable {
   init(interpreter: Interpreter, ns: NamespaceName, asSystemNamespace isSystem: Bool = false) {
     self.interpreter = interpreter
     internedName = ns
-    name = interpreter.internStore.nameForInternedString(ns.name)
+    name = interpreter.internStore.name(forInternedString: ns.name)
     isSystemNamespace = isSystem
   }
 }
@@ -351,9 +355,9 @@ final class LexicalScopeContext : Context {
   private var count = 0
 
   /// Push a binding into the context.
-  func pushBinding(binding: Value, forSymbol symbol: UnqualifiedSymbol) {
-    if findBindingForSymbol(symbol) != nil {
-      updateBinding(binding, forSymbol: symbol)
+  func push(binding: Value, forSymbol symbol: UnqualifiedSymbol) {
+    if findBinding(for: symbol) != nil {
+      update(binding: binding, forSymbol: symbol)
       return
     }
     switch count {
@@ -385,7 +389,7 @@ final class LexicalScopeContext : Context {
   }
 
   /// Given a symbol, try to look up the corresponding binding.
-  private func findBindingForSymbol(symbol: UnqualifiedSymbol) -> Value? {
+  private func findBinding(for symbol: UnqualifiedSymbol) -> Value? {
     if let b0 = b0 where b0.symbol == symbol {
       return b0.binding
     }
@@ -439,7 +443,7 @@ final class LexicalScopeContext : Context {
 
   /// Given a symbol which should already exist in the context, update its value. The precondition is that the symbol
   /// already exists in the context (otherwise, the pushBinding function should be used to add it).
-  func updateBinding(binding: Value, forSymbol symbol: UnqualifiedSymbol) {
+  func update(binding: Value, forSymbol symbol: UnqualifiedSymbol) {
     if let b0 = b0 where b0.symbol == symbol {
       self.b0 = (symbol, binding)
       return
@@ -514,12 +518,12 @@ final class LexicalScopeContext : Context {
   var interpreter : Interpreter { return root.interpreter }
   var ivs : InternedValueStore { return root.ivs }
 
-  func resolveBindingForSymbol(symbol: InternedSymbol) -> Value? {
-    return findBindingForSymbol(symbol) ?? parent.resolveBindingForSymbol(symbol)
+  func resolveBinding(for symbol: InternedSymbol) -> Value? {
+    return findBinding(for: symbol) ?? parent.resolveBinding(for: symbol)
   }
 
   subscript(x: UnqualifiedSymbol) -> Value? {
-    get { return findBindingForSymbol(x) ?? parent[x] }
+    get { return findBinding(for: x) ?? parent[x] }
   }
 
   init(parent: Context) {

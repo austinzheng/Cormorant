@@ -12,26 +12,26 @@ import Foundation
 func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".symbol"
   guard args.count == 1 || args.count == 2 else {
-    return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1 or 2", actual: args.count, fn))
   }
   switch args[0] {
-  case .Symbol:
+  case .symbol:
     guard args.count == 1 else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is symbol, can only have one argument"))
     }
     return .Success(args[0])
-  case let .StringAtom(str):
+  case let .string(str):
     if args.count == 2 {
       // Qualified symbol
       let nsName = str
-      guard !nsName.isEmpty, case let .StringAtom(name) = args[1] else {
+      guard !nsName.isEmpty, case let .string(name) = args[1] else {
         return .Failure(EvalError.invalidArgumentError(fn, message: "arguments must be strings"))
       }
-      return .Success(name.isEmpty ? .Nil : .Symbol(InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)))
+      return .Success(name.isEmpty ? .nilValue : .symbol(InternedSymbol(name, namespace: nsName, ivs: ctx.ivs)))
     }
     else {
       // Unqualified symbol
-      return .Success(str.isEmpty ? .Nil : .Symbol(InternedSymbol(str, namespace: nil, ivs: ctx.ivs)))
+      return .Success(str.isEmpty ? .nilValue : .symbol(InternedSymbol(str, namespace: nil, ivs: ctx.ivs)))
     }
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol or string"))
@@ -42,36 +42,36 @@ func pr_symbol(args: Params, _ ctx: Context) -> EvalResult {
 func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".keyword"
   guard args.count == 1 || args.count == 2 else {
-    return .Failure(EvalError.arityError("1 or 2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1 or 2", actual: args.count, fn))
   }
   switch args[0] {
-  case let .Symbol(sym):
+  case let .symbol(sym):
     guard args.count == 1 else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is symbol, can only have one argument"))
     }
     // The keyword is created directly from the symbol. It shares the symbol's name, and if the symbol is qualified,
     // also its namespace.
-    return .Success(.Keyword(InternedKeyword(symbol: sym)))
-  case .Keyword:
+    return .Success(.keyword(InternedKeyword(symbol: sym)))
+  case .keyword:
     guard args.count == 1 else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "if argument is keyword, can only have one argument"))
     }
     return .Success(args[0])
-  case let .StringAtom(str):
+  case let .string(str):
     if args.count == 2 {
       // Qualified keyword
       let nsName = str
-      guard !nsName.isEmpty, case let .StringAtom(name) = args[1] else {
+      guard !nsName.isEmpty, case let .string(name) = args[1] else {
         return .Failure(EvalError.invalidArgumentError(fn, message: "arguments must be strings"))
       }
-      return .Success(name.isEmpty ? .Nil : .Keyword(InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)))
+      return .Success(name.isEmpty ? .nilValue : .keyword(InternedKeyword(name, namespace: nsName, ivs: ctx.ivs)))
     }
     else {
       // Unqualified keyword
-      return .Success(str.isEmpty ? .Nil : .Keyword(InternedKeyword(str, namespace: nil, ivs: ctx.ivs)))
+      return .Success(str.isEmpty ? .nilValue : .keyword(InternedKeyword(str, namespace: nil, ivs: ctx.ivs)))
     }
   default:
-    return .Success(.Nil)
+    return .Success(.nilValue)
   }
 }
 
@@ -79,19 +79,19 @@ func pr_keyword(args: Params, _ ctx: Context) -> EvalResult {
 func pr_namespace(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".namespace"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   switch args[0] {
-  case let .Symbol(sym):
+  case let .symbol(sym):
     if let ns = sym.ns {
-      return .Success(.StringAtom(ns.asString(ctx.ivs)))
+      return .Success(.string(ns.asString(ctx.ivs)))
     }
-    return .Success(.Nil)
-  case let .Keyword(keyword):
+    return .Success(.nilValue)
+  case let .keyword(keyword):
     if let ns = keyword.ns {
-      return .Success(.StringAtom(ns.asString(ctx.ivs)))
+      return .Success(.string(ns.asString(ctx.ivs)))
     }
-    return .Success(.Nil)
+    return .Success(.nilValue)
   default:
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol or a keyword"))
   }
@@ -101,18 +101,18 @@ func pr_namespace(args: Params, _ ctx: Context) -> EvalResult {
 func pr_int(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".int"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   switch args[0] {
-  case .IntAtom:
+  case .int:
     return .Success(args[0])
-  case let .FloatAtom(v):
-    return .Success(.IntAtom(Int(v)))
-  case let .CharAtom(v):
+  case let .float(v):
+    return .Success(.int(Int(v)))
+  case let .char(v):
     // Note: this function assumes that characters being stored consist of a single Unicode code point. If the character
     //  consists of multiple code points, only the first will be cast to an integer.
     let scalars = String(v).unicodeScalars
-    return .Success(.IntAtom(Int(scalars[scalars.startIndex].value)))
+    return .Success(.int(Int(scalars[scalars.startIndex].value)))
   default:
     return .Failure(EvalError.invalidArgumentError(fn,
       message: "argument must be a number or a character"))
@@ -123,12 +123,12 @@ func pr_int(args: Params, _ ctx: Context) -> EvalResult {
 func pr_double(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".double"
   guard args.count == 1 else {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   switch args[0] {
-  case let .IntAtom(v):
-    return .Success(.FloatAtom(Double(v)))
-  case .FloatAtom:
+  case let .int(v):
+    return .Success(.float(Double(v)))
+  case .float:
     return .Success(args[0])
   default:
     return .Failure(EvalError.nonNumericArgumentError(fn))

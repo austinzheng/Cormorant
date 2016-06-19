@@ -14,27 +14,27 @@ class TestVectorBuiltin : InterpreterTest {
 
   /// .list invoked with no arguments should return the empty list.
   func testEmpty() {
-    expectThat("(.vector)", shouldEvalTo: vectorWithItems())
+    expectThat("(.vector)", shouldEvalTo: vector())
   }
 
   /// .list invoked with one argument should return a single-argument list.
   func testSingleArg() {
-    expectThat("(.vector nil)", shouldEvalTo: vectorWithItems(.Nil))
-    expectThat("(.vector true)", shouldEvalTo: vectorWithItems(.BoolAtom(true)))
-    expectThat("(.vector false)", shouldEvalTo: vectorWithItems(.BoolAtom(false)))
-    expectThat("(.vector 1523)", shouldEvalTo: vectorWithItems(.IntAtom(1523)))
-    expectThat("(.vector \\c)", shouldEvalTo: vectorWithItems(.CharAtom("c")))
-    expectThat("(.vector \"foobar\")", shouldEvalTo: vectorWithItems(.StringAtom("foobar")))
-    expectThat("(.vector .+)", shouldEvalTo: vectorWithItems(.BuiltInFunction(.Plus)))
+    expectThat("(.vector nil)", shouldEvalTo: vector(containing: .nilValue))
+    expectThat("(.vector true)", shouldEvalTo: vector(containing: .bool(true)))
+    expectThat("(.vector false)", shouldEvalTo: vector(containing: .bool(false)))
+    expectThat("(.vector 1523)", shouldEvalTo: vector(containing: .int(1523)))
+    expectThat("(.vector \\c)", shouldEvalTo: vector(containing: .char("c")))
+    expectThat("(.vector \"foobar\")", shouldEvalTo: vector(containing: .string("foobar")))
+    expectThat("(.vector .+)", shouldEvalTo: vector(containing: .builtInFunction(.Plus)))
   }
 
   /// .list invoked with multiple arguments should return a multiple-argument list.
   func testMultipleArgs() {
     expectThat("(.vector 1 2 3 4)",
-      shouldEvalTo: vectorWithItems(1, 2, 3, 4))
+      shouldEvalTo: vector(containing: 1, 2, 3, 4))
     expectThat("(.vector nil \"hello\" \\newline 1.523 true)",
-      shouldEvalTo: vectorWithItems(.Nil, .StringAtom("hello"), .CharAtom("\n"), 1.523, true))
+      shouldEvalTo: vector(containing: .nilValue, .string("hello"), .char("\n"), 1.523, true))
     expectThat("(.vector () [] {})",
-      shouldEvalTo: vectorWithItems(listWithItems(), vectorWithItems(), mapWithItems()))
+      shouldEvalTo: vector(containing: list(), vector(), map()))
   }
 }

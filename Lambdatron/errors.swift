@@ -120,22 +120,22 @@ public struct EvalError : CustomStringConvertible {
     self.metadata = metadata ?? [:]
   }
 
-  static func outOfBoundsError(fn: String, idx: Int, metadata: MetaDict? = nil) -> EvalError {
+  static func outOfBoundsError(_ fn: String, idx: Int, metadata: MetaDict? = nil) -> EvalError {
     var meta = metadata ?? [:]
     meta[.Index] = "\(idx)"
     let error = EvalError(.OutOfBoundsError, fn, metadata: meta)
     return error
   }
 
-  static func runtimeError(fn: String, message: String, metadata: MetaDict? = nil) -> EvalError {
+  static func runtimeError(_ fn: String, message: String, metadata: MetaDict? = nil) -> EvalError {
     return EvalError(.RuntimeError, fn, message: message, metadata: metadata)
   }
 
-  static func nonNumericArgumentError(fn: String, metadata: MetaDict? = nil) -> EvalError {
+  static func nonNumericArgumentError(_ fn: String, metadata: MetaDict? = nil) -> EvalError {
     return invalidArgumentError(fn, message: "argument must be numeric", metadata: metadata)
   }
 
-  static func invalidArgumentError(fn: String, message: String, metadata: MetaDict? = nil) -> EvalError {
+  static func invalidArgumentError(_ fn: String, message: String, metadata: MetaDict? = nil) -> EvalError {
     return EvalError(.InvalidArgumentError, fn, message: message, metadata: metadata)
   }
 

@@ -10,7 +10,7 @@ import Foundation
 
 /// Force the program to exit if something is wrong. This function is intended only to represent bugs in the Lambdatron
 /// interpreter and should never be invoked at runtime; if it is invoked there is a bug in the interpreter code.
-@noreturn func internalError(@autoclosure message: () -> String) {
+@noreturn func internalError(_ message: @autoclosure() -> String) {
   print("Internal error: \(message())")
   exit(EXIT_FAILURE)
 }
@@ -30,11 +30,11 @@ enum NumericalType {
 
 /// A wrapper for a Map that provides a different iterator for use with the interpreter. This iterator returns each
 /// element as a Vector containing the key and value Values.
-struct MapSequence : SequenceType, GeneratorType {
+struct MapSequence : Sequence, IteratorProtocol {
   let map : MapType
-  var generator : DictionaryGenerator<Value, Value>
+  var iterator : DictionaryIterator<Value, Value>
 
-  init(_ map: MapType) { self.map = map; self.generator = map.generate() }
+  init(_ map: MapType) { self.map = map; self.iterator = map.makeIterator() }
 
   func generate() -> MapSequence { return self }
 
@@ -45,8 +45,8 @@ struct MapSequence : SequenceType, GeneratorType {
   }
 
   mutating func next() -> Value? {
-    if let (key, value) = generator.next() {
-      return .Vector([key, value])
+    if let (key, value) = iterator.next() {
+      return .vector([key, value])
     }
     return nil
   }
@@ -54,23 +54,23 @@ struct MapSequence : SequenceType, GeneratorType {
 
 /// A sequence wrapping another sequence, representing pairs of items. The wrapped sequence must have an even number of
 /// items.
-struct PairSequence<T : SequenceType> : SequenceType {
+struct PairSequence<T : Sequence> : Sequence {
   private let seq : T
 
   init(_ seq: T) { self.seq = seq }
 
-  func generate() -> PairSequenceGenerator<T> {
+  func makeIterator() -> PairSequenceGenerator<T> {
     return PairSequenceGenerator(seq)
   }
 }
 
-struct PairSequenceGenerator<T : SequenceType> : GeneratorType {
+struct PairSequenceGenerator<T : Sequence> : IteratorProtocol {
   private let seq : T
-  private var g : T.Generator
+  private var g : T.Iterator
 
-  private init(_ seq: T) { self.seq = seq; g = seq.generate() }
+  private init(_ seq: T) { self.seq = seq; g = seq.makeIterator() }
 
-  mutating func next() -> (T.Generator.Element, T.Generator.Element)? {
+  mutating func next() -> (T.Iterator.Element, T.Iterator.Element)? {
     if let n1 = g.next() {
       if let n2 = g.next() {
         return (n1, n2)
@@ -86,12 +86,12 @@ struct PairSequenceGenerator<T : SequenceType> : GeneratorType {
 
 // MARK: Regex
 
-func rangeIsValid(r: NSRange) -> Bool {
+func rangeIsValid(_ r: NSRange) -> Bool {
   return !(r.location == NSNotFound && r.length == 0)
 }
 
 /// Given a pattern, try to build a regex pattern object.
-func constructRegex(pattern: String) -> ReadOptional<RegularExpressionType> {
+func constructRegex(_ pattern: String) -> ReadOptional<RegularExpressionType> {
   do {
     return .Just(try RegularExpressionType(pattern: pattern, options: []))
   } catch {
@@ -114,18 +114,19 @@ final class Box<T> {
 
 // MARK: Swift string helpers
 
+// TODO: this should be an extension method
 /// Given a string, return the string but without the last character. If the string is empty, the empty string will be
 /// returned.
-func stringWithoutLastCharacter(str: String) -> String {
+func stringWithoutLastCharacter(_ str: String) -> String {
   if str.isEmpty {
     return str
   }
-  return str[str.startIndex..<str.endIndex.predecessor()]
+  return str[str.startIndex..<str.index(before: str.endIndex)]
 }
 
 // TODO: (az) Make this an extension method
 /// Return whether or not a Swift character is a member of an NSCharacterSet.
-func characterIsMemberOfSet(c: Character, set: NSCharacterSet) -> Bool {
+func character(_ c: Character, isMemberOfSet set: NSCharacterSet) -> Bool {
   let primitive = String(c).utf16[String.UTF16View.Index(_offset: 0)] as unichar
   return set.characterIsMember(primitive)
 }
@@ -133,11 +134,37 @@ func characterIsMemberOfSet(c: Character, set: NSCharacterSet) -> Bool {
 // TODO: (az) Make this an extension method
 /// Retrieve a character within a Swift string, or nil if the provided index is out of bounds. This is an O(n)
 /// operation with respect to the length of the string.
-func characterAtIndex(s: String, idx: Int) -> Character? {
-  for (stringIdx, character) in s.characters.enumerate() {
+func characterAtIndex(_ s: String, idx: Int) -> Character? {
+  for (stringIdx, character) in s.characters.enumerated() {
     if stringIdx == idx {
       return character
     }
   }
   return nil
 }
+
+
+// MARK: Extension
+
+internal extension String.CharacterView {
+
+  /// Returns the index of the last valid character in a non-empty string.
+  var indexOfLastCharacter : String.Index {
+    precondition(!isEmpty)
+    return index(before: endIndex)
+  }
+
+  /// Returns the character following the character at the given index.
+  func character(after theIndex: String.Index) -> Character {
+    precondition(theIndex < endIndex)
+    return self[index(after: theIndex)]
+  }
+
+  /// Returns the index two positions forward from the given index. The index must not be the end index or the index
+  /// before the end index.
+  func indexAdvancedTwice(after theIndex: String.Index) -> String.Index {
+    return index(after: index(after: theIndex))
+  }
+
+}
+

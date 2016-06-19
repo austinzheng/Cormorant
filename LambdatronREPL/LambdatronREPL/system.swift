@@ -10,12 +10,8 @@ import Foundation
 import Lambdatron
 
 private func fileDataForRawPath(p: String) -> String? {
-  if let fileURL = NSURL(string: (p as NSString).stringByExpandingTildeInPath) {
-    do {
-      return try String(contentsOfURL: fileURL, encoding: NSUTF8StringEncoding)
-    } catch {
-      // TODO
-    }
+  if let fileURL = NSURL(string: (p as NSString).expandingTildeInPath) {
+    return String(contentsOfURL: fileURL, encoding: String.Encoding.utf8)
   }
   return nil
 }
@@ -48,8 +44,8 @@ private func fileDataForRawPath(p: String) -> String? {
 // MARK: Entry point
 
 public class REPLWrapper : NSObject {
-  public class func runWithArguments(args: [String]) {
-    interpreterMain(args)
+  public class func run(withArguments args: [String]) {
+    interpreterMain(args: args)
   }
 }
 
@@ -101,7 +97,7 @@ func interpreterMain(args: [String]) {
     print("Lambdatron - the amazingly slow pseudo-Clojure interpreter")
     print("Invoke without arguments to start the REPL, or with '-f FILENAME' to run a file.")
     // Have the user type something in to quit
-    let handle = NSFileHandle.fileHandleWithStandardInput()
+    let handle = FileHandle.standardInput()
     print("Press enter to quit...")
     // TODO: (az) wtf
     let _ = handle.availableData

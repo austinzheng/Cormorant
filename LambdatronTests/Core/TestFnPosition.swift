@@ -14,7 +14,7 @@ class TestFnPositionFnsSpecialForms : InterpreterTest {
 
   /// A function literal without arguments should be recognized as a function in function position.
   func testFunctionLiteral() {
-    expectThat("((fn [] \"foobar\"))", shouldEvalTo: .StringAtom("foobar"))
+    expectThat("((fn [] \"foobar\"))", shouldEvalTo: .string("foobar"))
   }
 
   /// A function literal with arguments should be recognized as a function in function position.
@@ -24,7 +24,7 @@ class TestFnPositionFnsSpecialForms : InterpreterTest {
 
   /// A function bound to a symbol should evaluate properly.
   func testFunctionLiteralSymbol() {
-    runCode("(def testFunc (fn [a b c] (.+ a (.+ b c))))")
+    run(input: "(def testFunc (fn [a b c] (.+ a (.+ b c))))")
     expectThat("(testFunc 1 15 1000)", shouldEvalTo: 1016)
   }
 
@@ -35,7 +35,7 @@ class TestFnPositionFnsSpecialForms : InterpreterTest {
 
   /// A built-in function bound to a symbol should evaluate properly.
   func testBuiltInFunctionSymbol() {
-    runCode("(def testPlus .+)")
+    run(input: "(def testPlus .+)")
     expectThat("(testPlus 15 89)", shouldEvalTo: 104)
   }
 
@@ -71,7 +71,7 @@ class TestFnPositionVectors : InterpreterTest {
 
   /// A vector bound to a symbol should evaluate properly.
   func testWithSymbol() {
-    runCode("(def testVec [1 4 9 16 25])")
+    run(input: "(def testVec [1 4 9 16 25])")
     expectThat("(testVec 2)", shouldEvalTo: 9)
   }
 
@@ -101,19 +101,19 @@ class TestFnPositionMaps : InterpreterTest {
 
   /// A map in function position should return nil for invalid keys if no fallback argument was provided.
   func testInvalidKey() {
-    expectThat("({:a 1 :b 2 :c 3} :d)", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} nil)", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} \"foobar\")", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} 'a)", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} 'b)", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} 'c)", shouldEvalTo: .Nil)
+    expectThat("({:a 1 :b 2 :c 3} :d)", shouldEvalTo: .nilValue)
+    expectThat("({:a 1 :b 2 :c 3} nil)", shouldEvalTo: .nilValue)
+    expectThat("({:a 1 :b 2 :c 3} \"foobar\")", shouldEvalTo: .nilValue)
+    expectThat("({:a 1 :b 2 :c 3} 'a)", shouldEvalTo: .nilValue)
+    expectThat("({:a 1 :b 2 :c 3} 'b)", shouldEvalTo: .nilValue)
+    expectThat("({:a 1 :b 2 :c 3} 'c)", shouldEvalTo: .nilValue)
   }
 
   /// A map in function position should return the fallback argument for invalid keys if one exists.
   func testInvalidKeyWithFallback() {
-    expectThat("({:a 1 :b 2 :c 3} 'a \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
-    expectThat("({:a 1 :b 2 :c 3} 'b nil)", shouldEvalTo: .Nil)
-    expectThat("({:a 1 :b 2 :c 3} 'c [99])", shouldEvalTo: vectorWithItems(.IntAtom(99)))
+    expectThat("({:a 1 :b 2 :c 3} 'a \"foobar\")", shouldEvalTo: .string("foobar"))
+    expectThat("({:a 1 :b 2 :c 3} 'b nil)", shouldEvalTo: .nilValue)
+    expectThat("({:a 1 :b 2 :c 3} 'c [99])", shouldEvalTo: vector(containing: .int(99)))
   }
 
   /// When a map is in function position, all expressions in the list should be evaluated.
@@ -156,16 +156,16 @@ class TestFnPositionSymbols : InterpreterTest {
 
   /// A symbol in function position should return nil for invalid keys if no fallback argument was provided.
   func testInvalidKey() {
-    expectThat("('d {'a 1 'b 2 'c 3})", shouldEvalTo: .Nil)
-    expectThat("('c {:a 1 :b 2 :c 3})", shouldEvalTo: .Nil)
-    expectThat("('foo {\"foo\" 1 'b 2 'c 3})", shouldEvalTo: .Nil)
+    expectThat("('d {'a 1 'b 2 'c 3})", shouldEvalTo: .nilValue)
+    expectThat("('c {:a 1 :b 2 :c 3})", shouldEvalTo: .nilValue)
+    expectThat("('foo {\"foo\" 1 'b 2 'c 3})", shouldEvalTo: .nilValue)
   }
 
   /// A symbol in function position should return the fallback argument for invalid keys if one exists.
   func testInvalidKeyWithFallback() {
-    expectThat("('d {'a 1 'b 2 'c 3} \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
-    expectThat("('c {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .Nil)
-    expectThat("('foo {\"foo\" 1 'b 2 'c 3} [99])", shouldEvalTo: vectorWithItems(.IntAtom(99)))
+    expectThat("('d {'a 1 'b 2 'c 3} \"foobar\")", shouldEvalTo: .string("foobar"))
+    expectThat("('c {:a 1 :b 2 :c 3} nil)", shouldEvalTo: .nilValue)
+    expectThat("('foo {\"foo\" 1 'b 2 'c 3} [99])", shouldEvalTo: vector(containing: .int(99)))
   }
 
   /// When a symbol is in function position, all expressions in the list should be evaluated.
@@ -177,18 +177,18 @@ class TestFnPositionSymbols : InterpreterTest {
 
   /// A symbol in function position with a first parameter of unsupported type should return nil.
   func testWithUnsupported() {
-    expectThat("('foo nil)", shouldEvalTo: .Nil)
-    expectThat("('foo true)", shouldEvalTo: .Nil)
-    expectThat("('foo false)", shouldEvalTo: .Nil)
-    expectThat("('foo 159)", shouldEvalTo: .Nil)
-    expectThat("('foo -2.9981)", shouldEvalTo: .Nil)
-    expectThat("('foo :a)", shouldEvalTo: .Nil)
-    expectThat("('foo 'a)", shouldEvalTo: .Nil)
-    expectThat("('foo \\a)", shouldEvalTo: .Nil)
-    expectThat("('foo \"foobar\")", shouldEvalTo: .Nil)
-    expectThat("('foo '('foo 'bar))", shouldEvalTo: .Nil)
-    expectThat("('foo ['foo 'bar])", shouldEvalTo: .Nil)
-    expectThat("('foo .+)", shouldEvalTo: .Nil)
+    expectThat("('foo nil)", shouldEvalTo: .nilValue)
+    expectThat("('foo true)", shouldEvalTo: .nilValue)
+    expectThat("('foo false)", shouldEvalTo: .nilValue)
+    expectThat("('foo 159)", shouldEvalTo: .nilValue)
+    expectThat("('foo -2.9981)", shouldEvalTo: .nilValue)
+    expectThat("('foo :a)", shouldEvalTo: .nilValue)
+    expectThat("('foo 'a)", shouldEvalTo: .nilValue)
+    expectThat("('foo \\a)", shouldEvalTo: .nilValue)
+    expectThat("('foo \"foobar\")", shouldEvalTo: .nilValue)
+    expectThat("('foo '('foo 'bar))", shouldEvalTo: .nilValue)
+    expectThat("('foo ['foo 'bar])", shouldEvalTo: .nilValue)
+    expectThat("('foo .+)", shouldEvalTo: .nilValue)
   }
 
   /// A symbol in function position with a first parameter of unsupported type should return the fallback.
@@ -233,16 +233,16 @@ class TestFnPositionKeywords : InterpreterTest {
 
   /// A keyword in function position should return nil for invalid keys if no fallback argument was provided.
   func testInvalidKey() {
-    expectThat("(:d {:a 1 :b 2 :c 3})", shouldEvalTo: .Nil)
-    expectThat("(:c {'a 1 'b 2 'c 3})", shouldEvalTo: .Nil)
-    expectThat("(:foo {\"foo\" 1 :b 2 :c 3})", shouldEvalTo: .Nil)
+    expectThat("(:d {:a 1 :b 2 :c 3})", shouldEvalTo: .nilValue)
+    expectThat("(:c {'a 1 'b 2 'c 3})", shouldEvalTo: .nilValue)
+    expectThat("(:foo {\"foo\" 1 :b 2 :c 3})", shouldEvalTo: .nilValue)
   }
 
   /// A keyword in function position should return the fallback argument for invalid keys if one exists.
   func testInvalidKeyWithFallback() {
-    expectThat("(:d {:a 1 :b 2 :c 3} \"foobar\")", shouldEvalTo: .StringAtom("foobar"))
-    expectThat("(:c {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .Nil)
-    expectThat("(:foo {\"foo\" 1 :b 2 :c 3} [99])", shouldEvalTo: vectorWithItems(.IntAtom(99)))
+    expectThat("(:d {:a 1 :b 2 :c 3} \"foobar\")", shouldEvalTo: .string("foobar"))
+    expectThat("(:c {'a 1 'b 2 'c 3} nil)", shouldEvalTo: .nilValue)
+    expectThat("(:foo {\"foo\" 1 :b 2 :c 3} [99])", shouldEvalTo: vector(containing: .int(99)))
   }
 
   /// When a keyword is in function position, all expressions in the list should be evaluated.
@@ -254,18 +254,18 @@ class TestFnPositionKeywords : InterpreterTest {
 
   /// A keyword in function position with a first parameter of unsupported type should return nil.
   func testWithUnsupported() {
-    expectThat("(:foo nil)", shouldEvalTo: .Nil)
-    expectThat("(:foo true)", shouldEvalTo: .Nil)
-    expectThat("(:foo false)", shouldEvalTo: .Nil)
-    expectThat("(:foo 159)", shouldEvalTo: .Nil)
-    expectThat("(:foo -2.9981)", shouldEvalTo: .Nil)
-    expectThat("(:foo :a)", shouldEvalTo: .Nil)
-    expectThat("(:foo 'a)", shouldEvalTo: .Nil)
-    expectThat("(:foo \\a)", shouldEvalTo: .Nil)
-    expectThat("(:foo \"foobar\")", shouldEvalTo: .Nil)
-    expectThat("(:foo '(:foo :bar))", shouldEvalTo: .Nil)
-    expectThat("(:foo [:foo :bar])", shouldEvalTo: .Nil)
-    expectThat("(:foo .+)", shouldEvalTo: .Nil)
+    expectThat("(:foo nil)", shouldEvalTo: .nilValue)
+    expectThat("(:foo true)", shouldEvalTo: .nilValue)
+    expectThat("(:foo false)", shouldEvalTo: .nilValue)
+    expectThat("(:foo 159)", shouldEvalTo: .nilValue)
+    expectThat("(:foo -2.9981)", shouldEvalTo: .nilValue)
+    expectThat("(:foo :a)", shouldEvalTo: .nilValue)
+    expectThat("(:foo 'a)", shouldEvalTo: .nilValue)
+    expectThat("(:foo \\a)", shouldEvalTo: .nilValue)
+    expectThat("(:foo \"foobar\")", shouldEvalTo: .nilValue)
+    expectThat("(:foo '(:foo :bar))", shouldEvalTo: .nilValue)
+    expectThat("(:foo [:foo :bar])", shouldEvalTo: .nilValue)
+    expectThat("(:foo .+)", shouldEvalTo: .nilValue)
   }
 
   /// A keyword in function position with a first parameter of unsupported type should return the fallback.

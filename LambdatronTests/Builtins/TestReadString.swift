@@ -12,13 +12,13 @@ import Foundation
 /// Test the '.read-string' built-in function.
 class TestReadStringBuiltin : InterpreterTest {
 
-  private func expectInputToReadString(input: String, toEvalTo result: Value) {
+  private func expectInputToReadString(_ input: String, toEvalTo result: Value) {
     return expectThat("(.read-string \"\(input)\")", shouldEvalTo: result)
   }
 
   /// .read-string should properly read in literal keywords.
   func testLiteralKeywords() {
-    expectInputToReadString("nil", toEvalTo: .Nil)
+    expectInputToReadString("nil", toEvalTo: .nilValue)
     expectInputToReadString("true", toEvalTo: true)
     expectInputToReadString("false", toEvalTo: false)
   }
@@ -35,9 +35,9 @@ class TestReadStringBuiltin : InterpreterTest {
     let fooSymbol = symbol("foo")
     let barSymbol = symbol("bar")
     let fqFoo = symbol("foo", namespace: "meela")
-    expectInputToReadString("foo", toEvalTo: .Symbol(fooSymbol))
-    expectInputToReadString("bar", toEvalTo: .Symbol(barSymbol))
-    expectInputToReadString("meela/foo", toEvalTo: .Symbol(fqFoo))
+    expectInputToReadString("foo", toEvalTo: .symbol(fooSymbol))
+    expectInputToReadString("bar", toEvalTo: .symbol(barSymbol))
+    expectInputToReadString("meela/foo", toEvalTo: .symbol(fqFoo))
   }
 
   /// .read-string should properly read in keywords.
@@ -45,60 +45,60 @@ class TestReadStringBuiltin : InterpreterTest {
     let fooKeyword = keyword("foo")
     let barKeyword = keyword("bar")
     let fqFoo = keyword("foo", namespace: "meela")
-    expectInputToReadString(":foo", toEvalTo: .Keyword(fooKeyword))
-    expectInputToReadString(":bar", toEvalTo: .Keyword(barKeyword))
-    expectInputToReadString(":meela/foo", toEvalTo: .Keyword(fqFoo))
+    expectInputToReadString(":foo", toEvalTo: .keyword(fooKeyword))
+    expectInputToReadString(":bar", toEvalTo: .keyword(barKeyword))
+    expectInputToReadString(":meela/foo", toEvalTo: .keyword(fqFoo))
   }
 
   /// .read-string should properly read in character literals.
   func testWithCharacters() {
-    expectInputToReadString("\\\\a", toEvalTo: .CharAtom("a"))
-    expectInputToReadString("\\\\newline", toEvalTo: .CharAtom("\n"))
+    expectInputToReadString("\\\\a", toEvalTo: .char("a"))
+    expectInputToReadString("\\\\newline", toEvalTo: .char("\n"))
   }
 
   /// .read-string should properly read in strings.
   func testWithStrings() {
-    expectInputToReadString("\\\"\\\"", toEvalTo: .StringAtom(""))
-    expectInputToReadString("\\\"hello world\\\"", toEvalTo: .StringAtom("hello world"))
+    expectInputToReadString("\\\"\\\"", toEvalTo: .string(""))
+    expectInputToReadString("\\\"hello world\\\"", toEvalTo: .string("hello world"))
   }
 
   /// .read-string should properly read in lists.
   func testWithLists() {
     let fooSymbol = symbol("foo")
-    expectInputToReadString("()", toEvalTo: listWithItems())
-    expectInputToReadString("(1 2 3 4)", toEvalTo: listWithItems(1, 2, 3, 4))
+    expectInputToReadString("()", toEvalTo: list())
+    expectInputToReadString("(1 2 3 4)", toEvalTo: list(containing: 1, 2, 3, 4))
     expectInputToReadString("(foo [1 2] \\\"three\\\" 4)",
-      toEvalTo: listWithItems(.Symbol(fooSymbol), vectorWithItems(1, 2), .StringAtom("three"), 4))
+                            toEvalTo: list(containing: .symbol(fooSymbol), vector(containing: 1, 2), .string("three"), 4))
   }
 
   /// .read-string should properly read in vectors.
   func testWithVectors() {
-    expectInputToReadString("[]", toEvalTo: vectorWithItems())
+    expectInputToReadString("[]", toEvalTo: vector())
     expectInputToReadString("[[[1 2] 3] [4 [5] [6]] 7]", toEvalTo:
-      vectorWithItems(
-        vectorWithItems(
-          vectorWithItems(1, 2),
+      vector(containing: 
+        vector(containing: 
+          vector(containing: 1, 2),
           3),
-        vectorWithItems(4,
-          vectorWithItems(.IntAtom(5)),
-          vectorWithItems(.IntAtom(6))),
+        vector(containing: 4,
+          vector(containing: .int(5)),
+          vector(containing: .int(6))),
         7))
   }
 
   /// .read-string should properly read in maps.
   func testWithMaps() {
-    expectInputToReadString("{}", toEvalTo: mapWithItems())
-    expectInputToReadString("{1 2, 3 4}", toEvalTo: mapWithItems((1, 2), (3, 4)))
-    let foo = Value.Symbol(symbol("foo"))
-    let bar = Value.Keyword(keyword("bar"))
+    expectInputToReadString("{}", toEvalTo: map())
+    expectInputToReadString("{1 2, 3 4}", toEvalTo: map(containing: (1, 2), (3, 4)))
+    let foo = Value.symbol(symbol("foo"))
+    let bar = Value.keyword(keyword("bar"))
     expectInputToReadString("{(10 20 foo) {:bar true nil false}}", toEvalTo:
-      mapWithItems((listWithItems(10, 20, foo), mapWithItems((bar, true), (.Nil, false)))))
+      map(containing: (list(containing: 10, 20, foo), map(containing: (bar, true), (.nilValue, false)))))
   }
 
   /// .read-string should properly read in built-in functions.
   func testWithBuiltInFunctions() {
-    expectInputToReadString(".cons", toEvalTo: .BuiltInFunction(.Cons))
-    expectInputToReadString(".read-string", toEvalTo: .BuiltInFunction(.ReadString))
+    expectInputToReadString(".cons", toEvalTo: .builtInFunction(.Cons))
+    expectInputToReadString(".read-string", toEvalTo: .builtInFunction(.ReadString))
   }
 
   /// .read-string should reject non-string arguments.

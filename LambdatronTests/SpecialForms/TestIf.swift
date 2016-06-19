@@ -27,7 +27,7 @@ class TestIf : InterpreterTest {
   /// If the predicate is false and there is no third form, nil should be returned.
   func testFalseCase() {
     // With no 'else', evaluate to nil
-    expectThat("(if (.> 1 10) (do (.print \"bad\") 10))", shouldEvalTo: .Nil)
+    expectThat("(if (.> 1 10) (do (.print \"bad\") 10))", shouldEvalTo: .nilValue)
     expectOutputBuffer(toBe: "")
   }
 
@@ -39,7 +39,7 @@ class TestIf : InterpreterTest {
 
   /// A predicate evaluating to 'nil' should be treated as false.
   func testNilIsFalse() {
-    expectThat("(if nil \\a \\c)", shouldEvalTo: .CharAtom("c"))
+    expectThat("(if nil \\a \\c)", shouldEvalTo: .char("c"))
   }
 
   /// 'if' should not take fewer than two arguments.

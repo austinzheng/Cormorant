@@ -107,7 +107,7 @@ final class InternedValueStore {
   }
 
   /// Given an interned string, return the actual string. The interned string must be valid.
-  func nameForInternedString(interned: InternedString) -> String {
+  func name(forInternedString interned: InternedString) -> String {
     if let name = internedNames[interned] {
       return name
     }
@@ -115,7 +115,7 @@ final class InternedValueStore {
   }
 
   /// Given a string representing a symbol or other identifier, return the corresponding interned string value.
-  func internedStringFor(name: String) -> InternedString {
+  func internedString(forName name: String) -> InternedString {
     if let internedName = internedNames[name] {
       return internedName
     }
@@ -133,7 +133,7 @@ final class InternedValueStore {
   private let s_core, s_user, s__and, s__ns, s_1, s_2, s_3 : InternedString
 
   /// Given the name of an interned constant, return the corresponding interned string value.
-  func internedStringFor(name: InternedConstant) -> InternedString {
+  func internedString(for name: InternedConstant) -> InternedString {
     switch name {
     case .Core: return s_core
     case .User: return s_user
@@ -146,10 +146,14 @@ final class InternedValueStore {
   }
 
   /// Given the name of an interned constant, return the corresponding unqualified symbol.
-  func internedSymbolFor(name: InternedConstant) -> InternedSymbol { return InternedSymbol(internedStringFor(name)) }
+  func internedSymbol(for name: InternedConstant) -> InternedSymbol {
+    return InternedSymbol(internedString(for: name))
+  }
 
   /// Given the name of an interned constant, return the corresponding unqualified keyword.
-  func internedKeywordFor(name: InternedConstant) -> InternedKeyword { return InternedKeyword(internedStringFor(name)) }
+  func internedKeyword(for name: InternedConstant) -> InternedKeyword {
+    return InternedKeyword(internedString(for: name))
+  }
 
 
   // MARK: Initializer
@@ -205,12 +209,12 @@ public struct InternedSymbol : Hashable {
   }
 
   /// Get the symbol's actual name.
-  func nameComponent(ctx: Context) -> String {
-    return ctx.ivs.nameForInternedString(identifier)
+  func nameComponent(_ ctx: Context) -> String {
+    return ctx.ivs.name(forInternedString: identifier)
   }
 
   /// Get the symbol's actual namespace.
-  func namespaceComponent(ctx: Context) -> String? {
+  func namespaceComponent(_ ctx: Context) -> String? {
     if let ns = ns {
       return ns.asString(ctx.ivs)
     }
@@ -218,7 +222,7 @@ public struct InternedSymbol : Hashable {
   }
 
   /// Get the symbol's actual name, including the namespace if it's qualified.
-  func fullName(ctx: Context) -> String {
+  func fullName(_ ctx: Context) -> String {
     let symbolName = nameComponent(ctx)
     if let namespace = namespaceComponent(ctx) {
       return "\(namespace)/\(symbolName)"
@@ -231,10 +235,10 @@ public struct InternedSymbol : Hashable {
   }
 
   init(_ name: String, namespace nsName: String? = nil, ivs: InternedValueStore) {
-    identifier = ivs.internedStringFor(name)
+    identifier = ivs.internedString(forName: name)
     if let nsName = nsName {
-      ns = NamespaceName(InternedSymbol(ivs.internedStringFor(nsName)))
-      qualified = ivs.internedStringFor("\(name)/\(nsName)")
+      ns = NamespaceName(InternedSymbol(ivs.internedString(forName: nsName)))
+      qualified = ivs.internedString(forName: "\(name)/\(nsName)")
     }
     else {
       ns = nil
@@ -270,12 +274,12 @@ public struct InternedKeyword : Hashable {
   }
 
   /// Get the keyword's actual name.
-  func nameComponent(ctx: Context) -> String {
-    return ctx.ivs.nameForInternedString(identifier)
+  func nameComponent(_ ctx: Context) -> String {
+    return ctx.ivs.name(forInternedString: identifier)
   }
 
   /// Get the keyword's actual namespace.
-  func namespaceComponent(ctx: Context) -> String? {
+  func namespaceComponent(_ ctx: Context) -> String? {
     if let ns = ns {
       return ns.asString(ctx.ivs)
     }
@@ -283,7 +287,7 @@ public struct InternedKeyword : Hashable {
   }
 
   /// Get the keyword's actual name, including a namespace if one exists.
-  func fullName(ctx: Context) -> String {
+  func fullName(_ ctx: Context) -> String {
     let keywordName = nameComponent(ctx)
     if let namespace = namespaceComponent(ctx) {
       return ":\(namespace)/\(keywordName)"
@@ -302,10 +306,10 @@ public struct InternedKeyword : Hashable {
   init(_ name: String, namespace nsName: String? = nil, ivs: InternedValueStore) {
     precondition(!name.isEmpty, "The name of a symbol cannot be an empty string")
     precondition(nsName?.isEmpty != true, "If present, the namespace of a symbol cannot be an empty string")
-    identifier = ivs.internedStringFor(name)
+    identifier = ivs.internedString(forName: name)
     if let nsName = nsName {
-      ns = NamespaceName(InternedSymbol(ivs.internedStringFor(nsName)))
-      qualified = ivs.internedStringFor("\(name)/\(nsName)")
+      ns = NamespaceName(InternedSymbol(ivs.internedString(forName: nsName)))
+      qualified = ivs.internedString(forName: "\(name)/\(nsName)")
     }
     else {
       ns = nil
@@ -325,14 +329,14 @@ struct NamespaceName : Hashable {
   var hashValue : Int { return name.hashValue }
 
   /// Return an InternedSymbolResult that represents the symbol naming this namespace.
-  func asSymbol(ivs: InternedValueStore) -> EvalOptional<InternedSymbol> {
+  func asSymbol(_ ivs: InternedValueStore) -> EvalOptional<InternedSymbol> {
     if isUnqualified {
       return .Just(InternedSymbol(name))
     }
     else {
       // Slow path: retrieve the string and parse the string back into a symbol
-      let fqn = ivs.nameForInternedString(name)
-      switch splitSymbol(fqn) {
+      let fqn = ivs.name(forInternedString: name)
+      switch split(symbol: fqn) {
       case let .Just(symbolStruct):
         let name = symbolStruct.name
         let namespaceName = symbolStruct.namespace
@@ -343,8 +347,8 @@ struct NamespaceName : Hashable {
     }
   }
 
-  func asString(ivs: InternedValueStore) -> String {
-    return ivs.nameForInternedString(name)
+  func asString(_ ivs: InternedValueStore) -> String {
+    return ivs.name(forInternedString: name)
   }
 
   init(_ symbol: InternedSymbol) {

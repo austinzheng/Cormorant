@@ -9,7 +9,7 @@ An interpreter for a dialect of [Clojure](http://clojure.org/), implemented in S
 Application
 -----------
 
-Lambdatron is an OS X command-line application written in Swift. You will need Xcode 7 beta 6 or later to build. Lambdatron runs on 10.9 or higher. There are tags for the last versions compatible with Swift 1.1 and Swift 1.2.
+Lambdatron is an OS X command-line application written in Swift. You will need Xcode 8 beta 1 or later to build.
 
 Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
@@ -186,7 +186,7 @@ Development objectives can be divided into two categories.
 
 These are objectives I am working on right now, or plan on doing in the near future.
 
-- Optimizing and refactoring code to take advantage of Swift 2's new features
+- Optimizing and refactoring code to take advantage of Swift 3's new features
 - Expanding standard library
 - Support for sets
 - Ability to type in multiple forms at the top level
@@ -208,7 +208,6 @@ These are objectives that are either too big in scope to schedule, too technical
 - Interpreter rewrite (compile to bytecode rather than direct interpretation) - probably as a separate project
 - Full Foundation/Cocoa bindings
 - Better Swift runtime interop (if proper reflection support ever comes to Swift)
-- Port to Rust
 
 
 Differences From Clojure
@@ -225,12 +224,12 @@ Aside from the (long) list of features not yet implemented (see the *Working On*
 * `read` does not take an optional argument representing a reader object.
 * `char-escape-string` returns `nil` for the `\formfeed` and `\backspace` arguments, since Swift does not recognize the `\f` and `\b` escape sequences.
 * Regex support follows Cocoa conventions, since `NSRegularExpression` is very different from `java.util.pattern.Regex` and `java.util.pattern.Match`. `re-iterate` provides an idiomatic wrapper for `enumerateMatchesInString:options:range:usingBlock:`.
-* Once a namespace has been marked for deletion using 'ns-remove', all its aliases are automatically unregistered, and new aliases or refers can no longer be set for it.
+* Once a namespace has been marked for deletion using `ns-remove`, all its aliases are automatically unregistered, and new aliases or refers can no longer be set for it.
 
 
 License
 -------
 
-Lambdatron © 2015 Austin Zheng, released as open-source software subject to the following terms.
+Lambdatron © 2015-2016 Austin Zheng, released as open-source software subject to the following terms.
 
 The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound by the terms of this license. You must not remove this notice, or any other, from this software.

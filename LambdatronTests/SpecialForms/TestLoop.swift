@@ -13,7 +13,7 @@ class TestLoop : InterpreterTest {
 
   /// loop should allow the user to define a loop with no explicit body.
   func testEmptyLoop() {
-    expectThat("(loop [])", shouldEvalTo: .Nil)
+    expectThat("(loop [])", shouldEvalTo: .nilValue)
   }
 
   /// loop should allow the user to define a loop with one or more body statements, the last of which is returned.

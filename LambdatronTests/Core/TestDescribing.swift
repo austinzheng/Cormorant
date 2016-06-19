@@ -15,28 +15,28 @@ class TestDescribing : InterpreterTest {
   /// Build and return an array of raw strings from the 'rawstrings.txt' file.
   lazy var rawStrings : [String] = {
     let filename = "/rawstrings.txt"
-    let resourcePath = NSBundle(forClass: self.dynamicType).resourcePath
+    let resourcePath = Bundle(for: self.dynamicType).resourcePath
     if let resourcePath = resourcePath {
       let finalName = resourcePath + filename
-      let strs = try? NSString(contentsOfFile: finalName, encoding: NSUTF8StringEncoding)
+      let strs = try? NSString(contentsOfFile: finalName, encoding: String.Encoding.utf8.rawValue)
       if let strs = strs as? String {
-        return strs.characters.split(Int.max, allowEmptySlices: false) { $0 == "\n" }.map { String($0) }
+        return strs.characters.split(maxSplits: Int.max, omittingEmptySubsequences: true) { $0 == "\n" }.map { String($0) }
       }
     }
     fatalError("ERROR! Could not load strings from test support file \(filename)")
   }()
 
   /// Return the raw string corresponding to the (1-based) line number of the 'rawstrings.txt' file.
-  func rawStringForLine(line: Int) -> String {
+  func rawString(for line: Int) -> String {
     return rawStrings[line-1]
   }
 
   /// Given an input string, evaluate it and compare the description of the output to an expected string.
-  func expectThat(input: String, shouldBeDescribedAs expected: String) {
-    let result = interpreter.evaluate(input)
+  func expectThat(_ input: String, shouldBeDescribedAs expected: String) {
+    let result = interpreter.evaluate(form: input)
     switch result {
     case let .Success(raw):
-      let actual = interpreter.describe(raw).rawStringValue
+      let actual = interpreter.describe(form: raw).rawStringValue
       XCTAssert(expected == actual, "expected: \(expected), got: \(actual)")
     case let .ReadFailure(f):
       XCTFail("read error: \(f.description)")
@@ -86,46 +86,46 @@ class TestDescribing : InterpreterTest {
   }
 
   func testDescribingEmptyStr() {
-    let empty = rawStringForLine(1)
+    let empty = rawString(for: 1)
     expectThat(empty, shouldBeDescribedAs: empty)
   }
 
   func testDescribingBasicStr() {
-    let oneSpace = rawStringForLine(2)
+    let oneSpace = rawString(for: 2)
     expectThat(oneSpace, shouldBeDescribedAs: oneSpace)
-    let helloWorld = rawStringForLine(3)
+    let helloWorld = rawString(for: 3)
     expectThat(helloWorld, shouldBeDescribedAs: helloWorld)
   }
 
   func testDescribingStrWithEscapes() {
-    let escapedHelloWorld = rawStringForLine(4)
+    let escapedHelloWorld = rawString(for: 4)
     expectThat(escapedHelloWorld, shouldBeDescribedAs: escapedHelloWorld)
-    let escapedGoodbye = rawStringForLine(5)
+    let escapedGoodbye = rawString(for: 5)
     expectThat(escapedGoodbye, shouldBeDescribedAs: escapedGoodbye)
   }
 
   func testDescribingBasicList() {
     expectThat("()", shouldBeDescribedAs: "()")
-    let basicInput = rawStringForLine(6)
-    let basicOutput = rawStringForLine(7)
+    let basicInput = rawString(for: 6)
+    let basicOutput = rawString(for: 7)
     expectThat(basicInput, shouldBeDescribedAs: basicOutput)
   }
 
   func testDescribingListWithEscapes() {
-    let escapedInput = rawStringForLine(8)
-    let escapedOutput = rawStringForLine(9)
+    let escapedInput = rawString(for: 8)
+    let escapedOutput = rawString(for: 9)
     expectThat(escapedInput, shouldBeDescribedAs: escapedOutput)
   }
 
   func testDescribingVector() {
     expectThat("[]", shouldBeDescribedAs: "[]")
-    let vectorInput = rawStringForLine(10)
-    let vectorOutput = rawStringForLine(11)
+    let vectorInput = rawString(for: 10)
+    let vectorOutput = rawString(for: 11)
     expectThat(vectorInput, shouldBeDescribedAs: vectorOutput)
   }
 
   func testDescribingRegex() {
-    let regex = rawStringForLine(12)
+    let regex = rawString(for: 12)
     expectThat(regex, shouldBeDescribedAs: regex)
   }
 

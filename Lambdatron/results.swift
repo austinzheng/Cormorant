@@ -15,7 +15,7 @@ enum EvalResult {
   case Recur(Params)
   case Failure(EvalError)
 
-  func then(next: Value -> EvalResult) -> EvalResult {
+  func then(_ next: @noescape (Value) -> EvalResult) -> EvalResult {
     switch self {
     case let .Success(s): return next(s)
     case .Recur, .Failure: return self
@@ -29,7 +29,7 @@ public enum EvalOptional<T> {
   case Just(T)
   case Error(EvalError)
 
-  func then(next: T -> EvalResult) -> EvalResult {
+  func then(_ next: @noescape (T) -> EvalResult) -> EvalResult {
     switch self {
     case let .Just(s): return next(s)
     case let .Error(err): return .Failure(err)
@@ -57,14 +57,14 @@ enum ReadOptional<T> {
   case Just(T)
   case Error(ReadError)
 
-  func then<U>(next: T -> ReadOptional<U>) -> ReadOptional<U> {
+  func then<U>(_ next: @noescape (T) -> ReadOptional<U>) -> ReadOptional<U> {
     switch self {
     case let .Just(s): return next(s)
     case let .Error(err): return .Error(err)
     }
   }
 
-  func then(fn: String, next: T -> EvalResult) -> EvalResult {
+  func then(_ fn: String, _ next: @noescape (T) -> EvalResult) -> EvalResult {
     switch self {
     case let .Just(s): return next(s)
     case let .Error(err): return .Failure(EvalError.readError(forFn: fn, error: err))

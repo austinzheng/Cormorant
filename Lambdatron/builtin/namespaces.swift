@@ -12,46 +12,46 @@ import Foundation
 func ns_create(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-create"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  guard case let .Symbol(nameSymbol) = args[0] else {
+  guard case let .symbol(nameSymbol) = args[0] else {
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a symbol naming a namespace"))
   }
-  return actuate(nameSymbol, ctx, ctx.interpreter.createNamespace)
+  return actuate(nameSymbol, ctx, ctx.interpreter.create)
 }
 
 /// Given a symbol naming a namespace, set the current namespace, creating it if necessary.
 func ns_set(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-set"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  guard case let .Symbol(nameSymbol) = args[0] else {
+  guard case let .symbol(nameSymbol) = args[0] else {
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be a symbol naming a namespace"))
   }
-  return actuate(nameSymbol, ctx, ctx.interpreter.switchNamespace)
+  return actuate(nameSymbol, ctx, ctx.interpreter.switchToNamespace)
 }
 
 /// Given either a symbol naming a namespace, or a namespace itself, return the corresponding namespace.
 func ns_get(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-get"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  return extractNamespace(args[0], ctx, false, fn).then { .Success(.Namespace($0)) }
+  return extractNamespace(args[0], ctx, false, fn).then { .Success(.namespace($0)) }
 }
 
 /// Given either a symbol naming an actual namespace or a namespace, return a symbol representing the namespace name.
 func ns_name(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-name"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   return extractNamespace(args[0], ctx, false, fn).then { namespace in
-    if case .Symbol = args[0] {
+    if case .symbol = args[0] {
       return .Success(args[0])
     }
-    return namespace.internedName.asSymbol(ctx.ivs).then { .Success(.Symbol($0)) }
+    return namespace.internedName.asSymbol(ctx.ivs).then { .Success(.symbol($0)) }
   }
 }
 
@@ -59,46 +59,46 @@ func ns_name(args: Params, _ ctx: Context) -> EvalResult {
 func ns_all(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-all"
   if args.count != 0 {
-    return .Failure(EvalError.arityError("0", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "0", actual: args.count, fn))
   }
-  return .Success(.Seq(VectorSequenceView(ctx.root.interpreter.allNamespaces())))
+  return .Success(.seq(VectorSequenceView(ctx.root.interpreter.allNamespaces())))
 }
 
 /// Return the namespace named by the symbol, or nil if it doesn't exist.
 func ns_find(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-find"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  guard case let .Symbol(sym) = args[0] else {
+  guard case let .symbol(sym) = args[0] else {
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol naming a namespace"))
   }
   let ns = NamespaceName(sym)
   if let namespace = ctx.interpreter.namespaces[ns] {
-    return .Success(.Namespace(namespace))
+    return .Success(.namespace(namespace))
   }
-  return .Success(.Nil)
+  return .Success(.nilValue)
 }
 
 /// Unmap the given symbol from the namespace.
 func ns_unmap(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-unmap"
   if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
   // Extract namespace
   return extractNamespace(args[0], ctx, false, fn).then { namespace in
     // Extract symbol
-    guard case let .Symbol(symbolToRemove) = args[1] else {
+    guard case let .symbol(symbolToRemove) = args[1] else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "second argument must be symbol"))
     }
     if !symbolToRemove.isUnqualified {
       return .Failure(EvalError(.QualifiedSymbolMisuseError))
     }
-    if let error = ctx.interpreter.unmapVar(symbolToRemove.unqualified, fromNamespace: namespace) {
+    if let error = ctx.interpreter.unmap(symbol: symbolToRemove.unqualified, fromNamespace: namespace) {
       return .Failure(error)
     }
-    return .Success(.Nil)
+    return .Success(.nilValue)
   }
 }
 
@@ -106,10 +106,10 @@ func ns_unmap(args: Params, _ ctx: Context) -> EvalResult {
 func ns_alias(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-alias"
   if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
   // Extract symbol representing alias
-  guard case let .Symbol(alias) = args[0] else {
+  guard case let .symbol(alias) = args[0] else {
     return .Failure(EvalError.invalidArgumentError(fn, message: "first argument must be symbol"))
   }
   // Extract namespace
@@ -118,30 +118,30 @@ func ns_alias(args: Params, _ ctx: Context) -> EvalResult {
   case let .Just(n): namespace = n
   case let .Error(err): return .Failure(err)
   }
-  let result = ctx.root.alias(namespace, usingAlias: NamespaceName(alias))
+  let result = ctx.root.alias(namespace: namespace, usingAlias: NamespaceName(alias))
   if let error = result {
     return .Failure(error)
   }
-  return .Success(.Nil)
+  return .Success(.nilValue)
 }
 
 /// Remove the given alias from the given namespace.
 func ns_unalias(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-unalias"
   if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
   // Extract namespace
   return extractNamespace(args[0], ctx, false, fn).then { namespace in
     // Extract symbol representing alias
-    guard case let .Symbol(alias) = args[1] else {
+    guard case let .symbol(alias) = args[1] else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "second argument must be symbol"))
     }
-    let result = ctx.interpreter.removeAlias(NamespaceName(alias), fromNamespace: namespace)
+    let result = ctx.interpreter.remove(alias: NamespaceName(alias), fromNamespace: namespace)
     if let error = result {
       return .Failure(error)
     }
-    return .Success(.Nil)
+    return .Success(.nilValue)
   }
 }
 
@@ -149,7 +149,7 @@ func ns_unalias(args: Params, _ ctx: Context) -> EvalResult {
 func ns_aliases(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-aliases"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   return extractNamespace(args[0], ctx, false, fn).then { $0.aliasesAsMap() }
 }
@@ -159,23 +159,23 @@ func ns_refer(args: Params, _ ctx: Context) -> EvalResult {
   let fn = "ns-refer"
   if args.count != 1 {
     // TODO: Support the filters :exclude, :only, and :rename?
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  guard case let .Symbol(namespaceSymbol) = args[0] else {
+  guard case let .symbol(namespaceSymbol) = args[0] else {
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol naming a namespace"))
   }
   let result = ctx.root.refer(NamespaceName(namespaceSymbol))
   if let error = result {
     return .Failure(error)
   }
-  return .Success(.Nil)
+  return .Success(.nilValue)
 }
 
 /// Given a namespace, return a map of all mappings for that namespace.
 func ns_map(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-map"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
   // Extract namespace
   return extractNamespace(args[0], ctx, false, fn).then { namespace in
@@ -184,7 +184,7 @@ func ns_map(args: Params, _ ctx: Context) -> EvalResult {
     for (key, value) in refers {
       buffer[key] = value
     }
-    return .Success(.Map(buffer))
+    return .Success(.map(buffer))
   }
 }
 
@@ -192,36 +192,36 @@ func ns_map(args: Params, _ ctx: Context) -> EvalResult {
 func ns_interns(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-interns"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  return extractNamespace(args[0], ctx, false, fn).then { .Success(.Map($0.internsAsMap())) }
+  return extractNamespace(args[0], ctx, false, fn).then { .Success(.map($0.internsAsMap())) }
 }
 
 /// Given a namespace, return a map of the refer mappings for that namespace.
 func ns_refers(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-refers"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  return extractNamespace(args[0], ctx, false, fn).then { .Success(.Map($0.refersAsMap())) }
+  return extractNamespace(args[0], ctx, false, fn).then { .Success(.map($0.refersAsMap())) }
 }
 
 /// Given a namespace and a symbol, return the Var to which it will resolve in the namespace.
 func ns_resolve(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-resolve"
   if args.count != 2 {
-    return .Failure(EvalError.arityError("2", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "2", actual: args.count, fn))
   }
   // Extract namespace
   return extractNamespace(args[0], ctx, false, fn).then { namespace in
     // Extract symbol
-    guard case let .Symbol(symbol) = args[1] else {
+    guard case let .symbol(symbol) = args[1] else {
       return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol"))
     }
-    if let thisVar = namespace.resolveSymbolFor(symbol) {
-      return .Success(.Var(thisVar))
+    if let thisVar : VarType = namespace.resolveVar(for: symbol) {
+      return .Success(.`var`(thisVar))
     }
-    return .Success(.Nil)
+    return .Success(.nilValue)
   }
 }
 
@@ -229,12 +229,12 @@ func ns_resolve(args: Params, _ ctx: Context) -> EvalResult {
 func ns_remove(args: Params, _ ctx: Context) -> EvalResult {
   let fn = ".ns-remove"
   if args.count != 1 {
-    return .Failure(EvalError.arityError("1", actual: args.count, fn))
+    return .Failure(EvalError.arityError(expected: "1", actual: args.count, fn))
   }
-  guard case let .Symbol(nameSymbol) = args[0] else {
+  guard case let .symbol(nameSymbol) = args[0] else {
     return .Failure(EvalError.invalidArgumentError(fn, message: "argument must be a symbol naming a namespace"))
   }
-  return actuate(nameSymbol, ctx, ctx.interpreter.removeNamespace)
+  return actuate(nameSymbol, ctx, ctx.interpreter.remove)
 }
 
 
@@ -244,16 +244,16 @@ func ns_remove(args: Params, _ ctx: Context) -> EvalResult {
 /// Given one of several possible canonical representations of a namespace (either a namespace object or a symbol naming
 /// a namespace), extract the namespace, or return an error. Note that, if the Value represents a namespace object, that
 /// namespace object will be returned, even if it has been removed from the interpreter.
-private func extractNamespace(value: Value, _ ctx: Context, _ shouldValidate: Bool, _ fn: String) -> EvalOptional<NamespaceContext> {
+private func extractNamespace(_ value: Value, _ ctx: Context, _ shouldValidate: Bool, _ fn: String) -> EvalOptional<NamespaceContext> {
   switch value {
-  case let .Symbol(sym):
+  case let .symbol(sym):
     if let namespace = ctx.interpreter.namespaces[NamespaceName(sym)] {
       return .Just(namespace)
     }
     else {
       return .Error(EvalError(.InvalidNamespaceError))
     }
-  case let .Namespace(namespace):
+  case let .namespace(namespace):
     if shouldValidate && ctx.interpreter.namespaces[namespace.internedName] == nil {
       return .Error(EvalError(.InvalidNamespaceError))
     }
@@ -265,14 +265,14 @@ private func extractNamespace(value: Value, _ ctx: Context, _ shouldValidate: Bo
 
 // TODO: (az) Is there a way we can make this less clumsy?
 /// Run one of the namespace-management methods on a context's interpreter, returning the result.
-private func actuate(n: InternedSymbol, _ ctx: Context, _ f: NamespaceName -> Interpreter.NamespaceResult) -> EvalResult {
+private func actuate(_ n: InternedSymbol, _ ctx: Context, _ f: (NamespaceName) -> Interpreter.NamespaceResult) -> EvalResult {
   let name = NamespaceName(n)
   let result = f(name)
   switch result {
   case let .Success(namespace):
-    return .Success(.Namespace(namespace))
+    return .Success(.namespace(namespace))
   case .Nil:
-    return .Success(.Nil)
+    return .Success(.nilValue)
   case let .Error(err):
     return .Failure(err)
   }

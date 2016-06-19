@@ -18,8 +18,8 @@ class TestPlusBuiltin : InterpreterTest {
 
   /// Addition with floats should work.
   func testFloats() {
-    expectThat("(.+ 0.1 0.2)", shouldEvalTo: .FloatAtom(0.1 + 0.2))
-    expectThat("(.+ 2.19591 999123.5990712)", shouldEvalTo: .FloatAtom(2.19591 + 999123.5990712))
+    expectThat("(.+ 0.1 0.2)", shouldEvalTo: .float(0.1 + 0.2))
+    expectThat("(.+ 2.19591 999123.5990712)", shouldEvalTo: .float(2.19591 + 999123.5990712))
   }
 
   /// Addition with mixed types should work.
@@ -51,8 +51,8 @@ class TestMinusBuiltin : InterpreterTest {
 
   /// Subtraction with floats should work.
   func testFloats() {
-    expectThat("(.- 0.5921 0.2102)", shouldEvalTo: .FloatAtom(0.5921 - 0.2102))
-    expectThat("(.- 2.19591 999123.5990712)", shouldEvalTo: .FloatAtom(2.19591 - 999123.5990712))
+    expectThat("(.- 0.5921 0.2102)", shouldEvalTo: .float(0.5921 - 0.2102))
+    expectThat("(.- 2.19591 999123.5990712)", shouldEvalTo: .float(2.19591 - 999123.5990712))
   }
 
   /// Subtraction with mixed types should work.
@@ -84,8 +84,8 @@ class TestMultiplyBuiltin : InterpreterTest {
 
   /// Multiplication with floats should work.
   func testFloats() {
-    expectThat("(.* 0.2003 159892.129)", shouldEvalTo: .FloatAtom(0.2003 * 159892.129))
-    expectThat("(.* -9297.00028 1.00001289)", shouldEvalTo: .FloatAtom(-9297.00028 * 1.00001289))
+    expectThat("(.* 0.2003 159892.129)", shouldEvalTo: .float(0.2003 * 159892.129))
+    expectThat("(.* -9297.00028 1.00001289)", shouldEvalTo: .float(-9297.00028 * 1.00001289))
   }
 
   /// Multiplication with mixed types should work.
@@ -112,25 +112,25 @@ class TestDivideBuiltin : InterpreterTest {
   /// Division with ints should work.
   func testInts() {
     let result1 = Double(59) / Double(18)
-    expectThat("(./ 59 18)", shouldEvalTo: .FloatAtom(result1))
+    expectThat("(./ 59 18)", shouldEvalTo: .float(result1))
     let result2 = Double(-881) / Double(199692)
-    expectThat("(./ -881 199692)", shouldEvalTo: .FloatAtom(result2))
+    expectThat("(./ -881 199692)", shouldEvalTo: .float(result2))
   }
 
   /// Division with floats should work.
   func testFloats() {
     let result1 : Double = 61.2 / 18886.1111
-    expectThat("(./ 61.2 18886.1111)", shouldEvalTo: .FloatAtom(result1))
+    expectThat("(./ 61.2 18886.1111)", shouldEvalTo: .float(result1))
     let result2 : Double = 9218388.0 / -187721.999
-    expectThat("(./ 9218388.0 -187721.999)", shouldEvalTo: .FloatAtom(result2))
+    expectThat("(./ 9218388.0 -187721.999)", shouldEvalTo: .float(result2))
   }
 
   /// Division with mixed types should work.
   func testMixed() {
     let result1 : Double = Double(8817) / 0.293878
-    expectThat("(./ 8817 0.293878)", shouldEvalTo: .FloatAtom(result1))
+    expectThat("(./ 8817 0.293878)", shouldEvalTo: .float(result1))
     let result2 : Double = 0.293878 / Double(8817)
-    expectThat("(./ 0.293878 8817)", shouldEvalTo: .FloatAtom(result2))
+    expectThat("(./ 0.293878 8817)", shouldEvalTo: .float(result2))
   }
 
   /// Division should return an integer result if evenly divisible, and both operands are integers.

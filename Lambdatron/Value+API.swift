@@ -10,25 +10,25 @@ import Foundation
 extension Value : Hashable {
   public var hashValue : Int {
     switch self {
-    case .Nil: return 0
-    case let .BoolAtom(v): return v.hashValue
-    case let .IntAtom(v): return v.hashValue
-    case let .FloatAtom(v): return v.hashValue
-    case let .CharAtom(c): return c.hashValue
-    case let .StringAtom(s): return s.hashValue
-    case let .Symbol(s): return s.hashValue
-    case let .Keyword(k): return k.hashValue
-    case let .Namespace(namespace): return namespace.name.hashValue
-    case let .Var(v): return v.hashValue
-    case let .Auxiliary(a): return a.hashValue
-    case let .Seq(seq): return seq.hashValue
-    case let .Vector(v): return v.count == 0 ? 0 : v[0].hashValue
-    case let .Map(m): return m.count
-    case let .MacroLiteral(macro): return macro.hashValue
-    case let .FunctionLiteral(fn): return fn.hashValue
-    case let .BuiltInFunction(bf): return bf.hashValue
-    case let .Special(sf): return sf.hashValue
-    case let .ReaderMacroForm(rf): return rf.hashValue
+    case .nilValue: return 0
+    case let .bool(v): return v.hashValue
+    case let .int(v): return v.hashValue
+    case let .float(v): return v.hashValue
+    case let .char(c): return c.hashValue
+    case let .string(s): return s.hashValue
+    case let .symbol(s): return s.hashValue
+    case let .keyword(k): return k.hashValue
+    case let .namespace(namespace): return namespace.name.hashValue
+    case let .`var`(v): return v.hashValue
+    case let .auxiliary(a): return a.hashValue
+    case let .seq(seq): return seq.hashValue
+    case let .vector(v): return v.count == 0 ? 0 : v[0].hashValue
+    case let .map(m): return m.count
+    case let .macroLiteral(macro): return macro.hashValue
+    case let .functionLiteral(fn): return fn.hashValue
+    case let .builtInFunction(bf): return bf.hashValue
+    case let .special(sf): return sf.hashValue
+    case let .readerMacroForm(rf): return rf.hashValue
     }
   }
 }
@@ -48,19 +48,19 @@ extension Value : CustomStringConvertible {
 
 extension Value : IntegerLiteralConvertible {
   public init(integerLiteral value: Int) {
-    self = .IntAtom(value)
+    self = .int(value)
   }
 }
 
 extension Value : FloatLiteralConvertible {
   public init(floatLiteral value: Double) {
-    self = .FloatAtom(value)
+    self = .float(value)
   }
 }
 
 extension Value : BooleanLiteralConvertible {
   public init(booleanLiteral value: Bool) {
-    self = .BoolAtom(value)
+    self = .bool(value)
   }
 }
 
@@ -72,8 +72,8 @@ extension Value {
   /// Extract value into an equivalent NumericalType token.
   func extractNumber() -> NumericalType {
     switch self {
-    case let .IntAtom(v): return .Integer(v)
-    case let .FloatAtom(v): return .Float(v)
+    case let .int(v): return .Integer(v)
+    case let .float(v): return .Float(v)
     default: return .Invalid
     }
   }
@@ -81,8 +81,8 @@ extension Value {
   /// Extract value into an integer, if possible.
   func extractInt() -> Int? {
     switch self {
-    case let .IntAtom(v): return v
-    case let .FloatAtom(v): return Int(v)
+    case let .int(v): return v
+    case let .float(v): return Int(v)
     default: return nil
     }
   }

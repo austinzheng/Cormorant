@@ -18,13 +18,13 @@ extension ReadEvaluatePrintLoop {
       print("Error: benchmark must run at least once.")
       return
     }
-    if let form = interpreter.readIntoForm(form) {
-      var buffer : [NSTimeInterval] = []
+    if let form = interpreter.read(form: form) {
+      var buffer : [TimeInterval] = []
       print("Benchmarking...")
       for _ in 0..<iterations {
         let start = NSDate.timeIntervalSinceReferenceDate()
 
-        let result = interpreter.evaluate(form)
+        let result = interpreter.evaluate(form: form)
         switch result {
         case .Success: break
         default:
@@ -37,8 +37,8 @@ extension ReadEvaluatePrintLoop {
         buffer.append(delta)
       }
       // Calculate the statistics
-      let min = buffer.minElement() ?? 0 * 1000
-      let max = buffer.maxElement() ?? 0 * 1000
+      let min = buffer.min() ?? 0 * 1000
+      let max = buffer.max() ?? 0 * 1000
       let average = 1000 * buffer.reduce(0, combine: +) / Double(iterations)
       print("Benchmark complete (\(iterations) iterations).")
       print("Average time: \(average) ms")
@@ -63,10 +63,9 @@ internal enum SpecialCommand : String {
   }
 
   static func instanceWith(input: String) -> (SpecialCommand, [String])? {
-    let wsSet = NSCharacterSet.whitespaceCharacterSet()
-    var items : [String] = input.componentsSeparatedByCharactersInSet(wsSet)
+    var items : [String] = input.components(separatedBy: CharacterSet.whitespaces)
     if items.count > 0, let selfInstance = SpecialCommand(rawValue: items[0]) {
-      items.removeAtIndex(0)
+      items.remove(at: 0)
       return (selfInstance, items)
     }
     return nil
@@ -89,14 +88,14 @@ internal enum SpecialCommand : String {
     case .Logging:
       if args.count == 1 {
         // Global turning logging on or off
-        processOnOff(args[0],
+        processOnOff(arg: args[0],
           on: {
             print("Turning all logging on")
-            logger.setAllLogging(true)
+            logger.setAllLogging(enabled: true)
           },
           off: {
             print("Turning all logging off")
-            logger.setAllLogging(false)
+            logger.setAllLogging(enabled: false)
           },
           error: {
             print("Error: specify either 'on' or 'off', or a domain and 'on' or 'off'.")
@@ -105,14 +104,14 @@ internal enum SpecialCommand : String {
       else if args.count > 1 {
         // Turning logging on or off for a specific domain
         if let domain = LogDomain(rawValue: args[0]) {
-          processOnOff(args[1],
+          processOnOff(arg: args[1],
             on: {
               print("Turning logging for domain '\(args[0])' on")
-              logger.setLoggingForDomain(domain, enabled: true)
+              logger.setLoggingForDomain(domain: domain, enabled: true)
             },
             off: {
               print("Turning logging for domain '\(args[0])' off")
-              logger.setLoggingForDomain(domain, enabled: false)
+              logger.setLoggingForDomain(domain: domain, enabled: false)
             },
             error: {
               print("Error: specify either 'on' or 'off'.")
@@ -133,12 +132,13 @@ internal enum SpecialCommand : String {
       }
       // Extract the count (last element)
       let count = args.last!
-      let nf = NSNumberFormatter()
-      nf.numberStyle = NSNumberFormatterStyle.NoStyle
-      if let number = nf.numberFromString(count) {
+      let nf = NumberFormatter()
+      nf.numberStyle = NumberFormatter.Style.none
+      if let number = nf.number(from: count) {
+
         // The last argument is a count.
-        let form = args[0..<args.count - 1].joinWithSeparator(" ")
-        repl.benchmark(form, iterations: number.integerValue)
+        let form = args[0..<args.count - 1].joined(separator: " ")
+        repl.benchmark(form: form, iterations: number.intValue)
       }
       else {
         print("Error: benchmark must be called with a valid form and a number of iterations.")
@@ -160,7 +160,7 @@ internal enum SpecialCommand : String {
 }
 
 private func processOnOff(arg: String, on: () -> (), off: () -> (), error: (() -> ())?) {
-  switch arg.lowercaseString {
+  switch arg.lowercased() {
   case "on", "true", "1":
     on()
   case "off", "false", "0":

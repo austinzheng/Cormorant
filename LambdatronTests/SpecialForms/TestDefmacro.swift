@@ -13,28 +13,28 @@ class TestDefmacro : InterpreterTest {
 
   /// defmacro should allow the user to define a macro with no explicit body.
   func testEmptyMacro() {
-    runCode("(defmacro testMacro [])")
-    expectThat("(testMacro)", shouldEvalTo: .Nil)
-    runCode("(defmacro testMacro2 ([]))")
-    expectThat("(testMacro2)", shouldEvalTo: .Nil)
+    run(input: "(defmacro testMacro [])")
+    expectThat("(testMacro)", shouldEvalTo: .nilValue)
+    run(input: "(defmacro testMacro2 ([]))")
+    expectThat("(testMacro2)", shouldEvalTo: .nilValue)
   }
 
   /// defmacro should allow the user to define a single-arity macro.
   func testSingleArityMacro() {
-    runCode("(defmacro testMacro [left infix right] (.list infix left right))")
+    run(input: "(defmacro testMacro [left infix right] (.list infix left right))")
     expectThat("(testMacro 5 .+ 3)", shouldEvalTo: 8)
   }
 
   /// defmacro should allow the user to define a macro with multiple arity definitions.
   func testMultiArityMacro() {
-    runCode("(defmacro testMacro ([left infix right] (.list infix left right)) ([a postfix] (.list postfix a)))")
+    run(input: "(defmacro testMacro ([left infix right] (.list infix left right)) ([a postfix] (.list postfix a)))")
     expectThat("(testMacro 2 .* 10)", shouldEvalTo: 20)
     expectThat("(testMacro 102 .int?)", shouldEvalTo: true)
   }
 
   // defmacro should allow the user to define a multiple-arity macro.
   func testVariadicMacro() {
-    runCode("(defmacro testMacro [a b & c] (.concat [.list a b] c))")
+    run(input: "(defmacro testMacro [a b & c] (.concat [.list a b] c))")
     expectThat("(testMacro 1 2 3 4 5)", shouldEvalTo: "'(1 2 3 4 5)")
   }
 
@@ -56,16 +56,16 @@ class TestDefmacro : InterpreterTest {
 
   /// defmacro should allow qualified symbols only if they are in the current namespace.
   func testQualifiedSymbols() {
-    runCode("(.ns-set 'foo)")
+    run(input: "(.ns-set 'foo)")
     expectThat("(defmacro bar/a [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
-    runCode("(defmacro foo/a [] nil)")
-    runCode("(defmacro foo/b [] nil)")
+    run(input: "(defmacro foo/a [] nil)")
+    run(input: "(defmacro foo/b [] nil)")
     expectThat("(defmacro bar/z [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
     // Move namespaces
-    runCode("(.ns-set 'bar)")
+    run(input: "(.ns-set 'bar)")
     expectThat("(defmacro foo/a [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
-    runCode("(defmacro bar/a [] nil)")
-    runCode("(defmacro bar/b [] nil)")
+    run(input: "(defmacro bar/a [] nil)")
+    run(input: "(defmacro bar/b [] nil)")
     expectThat("(defmacro foo/z [] nil)", shouldFailAs: .QualifiedSymbolMisuseError)
   }
 
@@ -79,7 +79,7 @@ class TestDefmacro : InterpreterTest {
   func testArgVectorDuplicateSymbols() {
     // If it were up to me, we would reject these outright. However, Clojure accepts macros defined with duplicate
     //  arguments.
-    runCode("(defmacro testMacro [a a a] a)")
+    run(input: "(defmacro testMacro [a a a] a)")
     expectThat("(testMacro true \"foobar\" 1523)", shouldEvalTo: 1523)
   }
 

@@ -13,32 +13,32 @@ class TestReFirstBuiltin : InterpreterTest {
 
   /// .re-first should work with literal patterns containing no regex logic.
   func testLiteralPattern() {
-    expectThat("(.re-first #\"ee\" \"meela\")", shouldEvalTo: .StringAtom("ee"))
-    expectThat("(.re-first #\"ee\" \"jyaku\")", shouldEvalTo: .Nil)
-    expectThat("(.re-first #\"s\" \"mississippi\")", shouldEvalTo: .StringAtom("s"))
-    expectThat("(.re-first #\"s\" \"indiana\")", shouldEvalTo: .Nil)
+    expectThat("(.re-first #\"ee\" \"meela\")", shouldEvalTo: .string("ee"))
+    expectThat("(.re-first #\"ee\" \"jyaku\")", shouldEvalTo: .nilValue)
+    expectThat("(.re-first #\"s\" \"mississippi\")", shouldEvalTo: .string("s"))
+    expectThat("(.re-first #\"s\" \"indiana\")", shouldEvalTo: .nilValue)
   }
 
   /// .re-first should work with patterns containing regex logic.
   func testAdvancedPattern() {
-    expectThat("(.re-first #\"\\d\\d\" \"a12b34c56\")", shouldEvalTo: .StringAtom("12"))
-    expectThat("(.re-first #\"\\d*\" \"foobar\")", shouldEvalTo: .StringAtom(""))
-    expectThat("(.re-first #\"\\d+\" \"foobar\")", shouldEvalTo: .Nil)
-    expectThat("(.re-first #\"[a-z]+\" \"3.1415nine2six5three\")", shouldEvalTo: .StringAtom("nine"))
-    expectThat("(.re-first #\"[a-z]+\" \"3.141592653\")", shouldEvalTo: .Nil)
+    expectThat("(.re-first #\"\\d\\d\" \"a12b34c56\")", shouldEvalTo: .string("12"))
+    expectThat("(.re-first #\"\\d*\" \"foobar\")", shouldEvalTo: .string(""))
+    expectThat("(.re-first #\"\\d+\" \"foobar\")", shouldEvalTo: .nilValue)
+    expectThat("(.re-first #\"[a-z]+\" \"3.1415nine2six5three\")", shouldEvalTo: .string("nine"))
+    expectThat("(.re-first #\"[a-z]+\" \"3.141592653\")", shouldEvalTo: .nilValue)
   }
 
   /// .re-first should work with patterns defining capture groups.
   func testCaptureGroupsPattern() {
     expectThat("(.re-first #\"\\d(\\d)\" \"a12b34c56\")",
-      shouldEvalTo: vectorWithItems(.StringAtom("12"), .StringAtom("2")))
+      shouldEvalTo: vector(containing: .string("12"), .string("2")))
     expectThat("(.re-first #\"(\\d*)\" \"foobar\")",
-      shouldEvalTo: vectorWithItems(.StringAtom(""), .StringAtom("")))
-    expectThat("(.re-first #\"(\\d+)\" \"foobar\")", shouldEvalTo: .Nil)
+      shouldEvalTo: vector(containing: .string(""), .string("")))
+    expectThat("(.re-first #\"(\\d+)\" \"foobar\")", shouldEvalTo: .nilValue)
     expectThat("(.re-first #\"([a-z]+)\" \"3.1415nine2six5three\")",
-      shouldEvalTo: vectorWithItems(.StringAtom("nine"), .StringAtom("nine")))
+      shouldEvalTo: vector(containing: .string("nine"), .string("nine")))
     expectThat("(.re-first #\"th([a-z]+)\" \"3.1415nine2six5three\")",
-      shouldEvalTo: vectorWithItems(.StringAtom("three"), .StringAtom("ree")))
+      shouldEvalTo: vector(containing: .string("three"), .string("ree")))
   }
 
   /// .re-first should reject pattern arguments that aren't regex patterns.

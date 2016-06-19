@@ -16,7 +16,7 @@ public protocol AuxiliaryType : class {
   //  easier to add features to Lambdatron that require runtime support.
 
   /// Return whether this AuxiliaryType instance is equal in value to another AuxiliaryType instance.
-  func equals(other: AuxiliaryType) -> Bool
+  func equals(_ other: AuxiliaryType) -> Bool
   /// Return a hash value (same as with Swift's Hashable protocol)
   var hashValue : Int { get }
 
@@ -40,11 +40,11 @@ public final class StringBuilderType : AuxiliaryType {
   public func debugDescribe() -> String { return "Object.StringBuilder(\(buffer))" }
   public func toString() -> String { return string() }
 
-  func append(str: String) { buffer += Array(str.characters) }
-  func reverse() { buffer = buffer.reverse() }
+  func append(_ str: String) { buffer += Array(str.characters) }
+  func reverse() { buffer = buffer.reversed() }
   func string() -> String { return String(buffer) }
 
-  public func equals(other: AuxiliaryType) -> Bool {
+  public func equals(_ other: AuxiliaryType) -> Bool {
     if let other = other as? StringBuilderType {
       return self.buffer == other.buffer
     }
@@ -58,13 +58,13 @@ public final class StringBuilderType : AuxiliaryType {
 
 // MARK: Regex
 
-extension NSRegularExpression : AuxiliaryType {
+extension RegularExpression : AuxiliaryType {
   public func describe() -> String { return "#\"\(pattern)\"" }
   public func debugDescribe() -> String { return "Object.Regex(#\"\(pattern)\")" }
   public func toString() -> String { return pattern }
 
-  public func equals(other: AuxiliaryType) -> Bool {
-    if let other = other as? NSRegularExpression {
+  public func equals(_ other: AuxiliaryType) -> Bool {
+    if let other = other as? RegularExpression {
       return isEqual(other)
     }
     return false
