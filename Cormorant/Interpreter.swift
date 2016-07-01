@@ -60,7 +60,7 @@ public class Interpreter {
   }
 
   var currentNsName : NamespaceName! { return currentNamespace.internedName }
-  public var currentNamespaceName : String! { return currentNamespace.name }
+  public var currentNamespaceName : String { return currentNamespace!.name }
 
   /// All namespaces registered to this interpreter.
   private(set) var namespaces : [NamespaceName : NamespaceContext] = [:]

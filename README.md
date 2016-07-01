@@ -11,13 +11,15 @@ Bug reports, feature requests, PRs, and other contributions are welcome!
 Web site: http://cormorant-lang.org (coming soon); Twitter: [@cormorantlang](https://twitter.com/cormorantlang).
 
 
-## Application
+## Software
 
-Cormorant is a library and an OS X command-line application written in Swift 3. You will need Xcode 8 beta 1 or later to build.
+Cormorant is a framework written in Swift 3. You will need Xcode 8 beta 1 or later to build.
 
-Run the executable either from within Xcode, or directly from the command line. Run with no arguments to start the interactive REPL, or run with the argument `-f <FILENAME>` to have the interpreter run code within a file. When in the REPL, type expressions at the command prompt and press 'Enter'.
+Cormorant comes with a REPL demonstrating its capabilities. Due to current limitations with Swift, the REPL is a Cocoa OS X application. It can either be run directly (in GUI mode), or the underlying executable can be invoked from the command line with the `-c` flag to run the interactive REPL as a command line application. When in the REPL, type expressions at the command prompt and press 'Enter'.
 
-*Running from Xcode*: Select the `CormorantREPLRunner` target and press the Run button; the application opens up a new instance of Terminal.app and runs in that. Alternately, select `CormorantTests` and run that to run the test suite. See the *Development* section below for more details on the development environment and configuration.
+*Getting started*: Clone the repository. Open up the Cormorant project in Xcode. Select the `CormorantREPLRunner` target and press the Run button to build and run the REPL. Alternately, select `CormorantTests` and run that to run the test suite. See the *Development* section below for more details on the development environment and configuration.
+
+*Running as command line application*: Use the terminal command `./path/to/CorormantREPLRunner.app/Contents/MacOS/CorormantREPLRunner -c`, and replace `/path/to` with whatever the absolute or relative path is to the Cocoa bundle.
 
 [Grimoire](http://conj.io/) is a high-quality Clojure API reference, and can be used to reference the intended behavior of all included functions and special forms.
 
@@ -61,7 +63,7 @@ These will disappear as the feature set is filled out.
 
 ## Features
 
-Cormorant has a number of possibly useful features. Cormorant's data structures should share identical semantics with Clojure's data structures (in that they are immutable and persistent), although some of them are implemented using Swift's naive copy-on-write features rather than as proper persistent data structures.
+Cormorant has a number of possibly useful features. Cormorant's data structures should share identical semantics with Clojure's data structures (in that they are immutable and persistent), although some of them are implemented using Swift's native copy-on-write features rather than as persistent data structures.
 
 **Sequences**, like in Clojure. Sequences are immutable, and come in several flavors. You can prepend items using `cons`, extract the first element using `first`, or get the sequence consisting of all but the first element using `rest`. Create a sequence or get a sequence view using `seq`.
 
@@ -127,11 +129,11 @@ Some notes on Cormorant development tools follow.
 
 When debugging Cormorant, you have at least three options:
 
-* **Disable [SIP](https://en.wikipedia.org/wiki/System_Integrity_Protection)** (if on OS X 10.11) and debug Cormorant by attaching the `CormorantREPLRunner` executable to `Terminal.app`. Instructions for disabling SIP [here](http://osxdaily.com/2015/10/05/disable-rootless-system-integrity-protection-mac-os-x/).
-* Don't disable SIP, and change the `CormorantREPLRunner` scheme to run the executable rather than `Terminal.app`. This runs the REPL in Xcode's built-in console. Because of issues with libedit, anything you type will be echoed twice, but everything else should work.
+* Run Cormorant's REPL as a Cocoa app, and debug as usual.
+* Run Cormorant's REPL in the built-in Xcode console by setting the `-c` command-line argument in the scheme. Unfortunately, anything you type will be echoed twice due to an [ancient and still-unfixed bug](http://www.openradar.me/10660201).
 * Add Cormorant as a library to your own Cocoa or command-line app, and debug from there.
 
-If anyone knows how to attach a process to Terminal for debugging without disabling SIP, please let me know.
+If, in the future, it becomes possible to properly build command-line applications that depend upon Swift frameworks, you might be able to debug using Xcode by running the REPL in Terminal.app, but you will have to disable SIP to do so.
 
 ### Code Organization
 
@@ -139,35 +141,41 @@ Cormorant is divided into three components:
 
 * The core framework (`Cormorant`)
 * The REPL framework (`CormorantREPL`)
-* A command-line app and associated build settings for running the REPL (`CormorantREPLRunner`)
-
-**IMPORTANT**: If you change either of the two frameworks, you must rebuild the framework that was changed before building and running the command-line app, otherwise your changes will not be reflected. This is an unfortunate side effect of the hacks necessary to build a command-line app which properly consumes Swift dylibs.
-
-At this time Cormorant always builds with optimizations, even if the scheme is set to 'Debug'. I'm looking for Xcode documentation that explains how build configurations between dependencies actually works. In the meantime, if you really want, manually enable or disable optimizations for both Debug and Release modes for the two frameworks and the REPL runner app.
-
-If you want to run the REPL, make sure the bundle is in the same directory.
-
+* A Cocoa/command-line app and associated build settings for running the REPL (`CormorantREPLRunner`)
 
 ### Debugging
 
-Note that running (or profiling) Cormorant in Xcode will open the REPL up in a new instance of Terminal.app, rather than in Xcode's built-in console. If you wish to debug, after starting Cormorant, go to the Debug menu in Xcode --> Attach to Process, and then choose the process named "CormorantREPLRunner" (it should show up under "Likely Targets").
+You can directly debug the Cormorant framework through the Cocoa REPL app.
 
+If you want to profile using the command-line REPL, follow these instructions (you will need to disable SIP):
+
+1. Copy the app to a convenient location.
+2. Invoke the underlying binary from the command line using the `-c` flag to start the command-line REPL.
+3. In Xcode, go to "Debug" --> "Attach to Process" and choose the "CormorantREPLRunner" target. If you are fortunate it'll be at the top under "Likely Targets".
+4. Debug as usual. Note that modifying a breakpoint might cause libedit to redraw the prompt in Terminal. This is annoying, but merely cosmetic.
 
 ### Profiling
 
-Unfortunately profiling is a little more cumbersome to set up. After you've chosen which Instrument you want to use, you have to click the red Record button, then wait half a second, then click on the dropdown list that says "Terminal.app" and select "CormorantREPLRunner" from the "System Processes" section. Then press the square Stop button, and press it again to begin recording in earnest.
+You can directly profile the Cormorant framework through the Cocoa REPL app.
 
+If you want to profile using the command-line REPL, follow these instructions (you will need to disable SIP):
+
+1. Copy the app to a convenient location.
+2. Invoke the underlying binary from the command line using the `-c` flag to start the command-line REPL.
+3. Open Instruments and choose the Instrument you want to profile with.
+4. Choose the target manually: it will be named "CormorantREPLRunner", under "System Processes". (Use Activity Monitor to get the PID if you can't find it.)
+5. Profile as usual.
 
 ### Logging
 
-Logging is in an embryonic state. In the REPL, type `?logging <DOMAIN> on` or `?logging <DOMAIN> off` to turn logging on or off for a given domain, or omit the `<DOMAIN>` argument to turn logging on or off globally.
+Logging is in an embryonic state. In the command-line version of the REPL, type `?logging <DOMAIN> on` or `?logging <DOMAIN> off` to turn logging on or off for a given domain, or omit the `<DOMAIN>` argument to turn logging on or off globally.
 
 The only currently supported domain is `eval`. This logging domain prints out messages detailing how macros, functions, etc are evaluated, and can be useful to see exactly what the interpreter is doing when it evaluates a form.
 
 
 ### Benchmarking
 
-The REPL includes a basic benchmarking tool. Invoke it using `?benchmark <SOME_FORM> <ITERATIONS>`, where `<SOME_FORM>` is a valid code snippet and `<ITERATIONS>` is the number of times to repeat the execution. The benchmark tool will print the average, minimum, and maximum run times (in milliseconds).
+The command-line version of the REPL includes a basic benchmarking tool. Invoke it using `?benchmark <SOME_FORM> <ITERATIONS>`, where `<SOME_FORM>` is a valid code snippet and `<ITERATIONS>` is the number of times to repeat the execution. The benchmark tool will print the average, minimum, and maximum run times (in milliseconds).
 
 The code snippet is lexed, parsed, and expanded before the benchmark, and the expanded data structure is cached between benchmark iterations, so the benchmarking tool only measures evaluation time. As well, the context is not cleared between executions, so side effects caused by one iteration are visible to all subsequent iterations.
 
@@ -188,6 +196,7 @@ Development objectives can be divided into two categories.
 These are objectives I am working on right now, or plan on doing in the near future.
 
 - Optimizing and refactoring code to take advantage of Swift 3's new features
+- Interpreter (translate source to bytecode and then execute)
 - Expanding standard library
 - Support for sets
 - Ability to type in multiple forms at the top level
@@ -206,7 +215,6 @@ These are objectives that are either too big in scope to schedule, too technical
 - Destructuring via pattern matching
 - Custom types (e.g. `deftype`) and multimethods (may not be possible at the moment)
 - Rationals and bignums (may need to wait for a suitable Swift library handling these first)
-- Interpreter rewrite (compile to bytecode rather than direct interpretation) - probably as a separate project
 - Full Foundation/Cocoa bindings
 - Better Swift runtime interop (if proper reflection support ever comes to Swift)
 

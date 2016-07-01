@@ -43,18 +43,12 @@ private func fileDataForRawPath(p: String) -> String? {
 
 // MARK: Entry point
 
-public class REPLWrapper : NSObject {
-  public class func run(withArguments args: [String]) {
-    interpreterMain(args: args)
-  }
-}
-
-func interpreterMain(args: [String]) {
+public func runREPL(withArguments args: [String]) {
   // Retrieve command-line arguments
 //  let args = Process.arguments
 
   #if DEBUG
-    println("Cormorant REPL: framework was built using DEBUG mode")
+    print("Cormorant REPL: framework was built using DEBUG mode")
   #endif
 
   if args.count == 3 && args[1] == "-f" {

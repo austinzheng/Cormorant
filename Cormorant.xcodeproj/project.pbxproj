@@ -116,10 +116,56 @@
 		1A14EBC61D174F19002069C3 /* stringbuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBBC1D174F19002069C3 /* stringbuilder.swift */; };
 		1A14EBC71D174F19002069C3 /* strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBBD1D174F19002069C3 /* strings.swift */; };
 		1A14EBCB1D174FEA002069C3 /* FunctionObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A14EBCA1D174FEA002069C3 /* FunctionObjects.swift */; };
+		1A18E1961D242D8B003F29E4 /* Cormorant.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */; };
+		1AD02A381D248E1600FB9AA5 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AD02A371D248E1600FB9AA5 /* Info.plist */; };
+		1AD02A391D248E3000FB9AA5 /* CormorantREPL.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD02A361D248E1600FB9AA5 /* CormorantREPL.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AD02A3A1D248E3E00FB9AA5 /* LineReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A18E19C1D242E07003F29E4 /* LineReader.m */; };
+		1AD02A3B1D248E4200FB9AA5 /* LineReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A18E19B1D242E07003F29E4 /* LineReader.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AD02A3C1D248E4900FB9AA5 /* system.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A18E19F1D242E07003F29E4 /* system.swift */; };
+		1AD02A3D1D248E4E00FB9AA5 /* repl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A18E19E1D242E07003F29E4 /* repl.swift */; };
+		1AD02A3E1D248E5200FB9AA5 /* commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A18E19A1D242E07003F29E4 /* commands.swift */; };
+		1AD02A3F1D248E5500FB9AA5 /* logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A18E19D1D242E07003F29E4 /* logging.swift */; };
+		1AD02A8A1D2494CC00FB9AA5 /* libedit.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD02A881D2494C200FB9AA5 /* libedit.tbd */; };
+		1AE617B61D256CEB00DB23EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE617B51D256CEB00DB23EF /* AppDelegate.swift */; };
+		1AE617B81D256CEB00DB23EF /* REPLViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE617B71D256CEB00DB23EF /* REPLViewController.swift */; };
+		1AE617BA1D256CEB00DB23EF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1AE617B91D256CEB00DB23EF /* Assets.xcassets */; };
+		1AE617BD1D256CEB00DB23EF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1AE617BB1D256CEB00DB23EF /* Main.storyboard */; };
+		1AE617C21D256CF700DB23EF /* Cormorant.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */; };
+		1AE617C31D256CF700DB23EF /* CormorantREPL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A18E17B1D242D18003F29E4 /* CormorantREPL.framework */; };
+		1AE617CA1D256D1300DB23EF /* builtin.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A14EBA81D174EFF002069C3 /* builtin.lbt */; };
+		1AE617CB1D256D1300DB23EF /* core.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A14EBA91D174EFF002069C3 /* core.lbt */; };
+		1AE617CC1D256D1300DB23EF /* sequences.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A14EBAD1D174EFF002069C3 /* sequences.lbt */; };
+		1AE617CD1D256D1300DB23EF /* higherorder.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A14EBAB1D174EFF002069C3 /* higherorder.lbt */; };
+		1AE617CE1D256D1300DB23EF /* flow.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A14EBAA1D174EFF002069C3 /* flow.lbt */; };
+		1AE617CF1D256D1300DB23EF /* math.lbt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A14EBAC1D174EFF002069C3 /* math.lbt */; };
+		1AE617D01D256D1A00DB23EF /* Cormorant.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1AE617D11D256D1A00DB23EF /* CormorantREPL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1A18E17B1D242D18003F29E4 /* CormorantREPL.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1AE617D31D257BF300DB23EF /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE617D21D257BF300DB23EF /* main.swift */; };
 		1AE62F511B9182C30038FA44 /* Cormorant.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1AD02A461D248FB700FB9AA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A73F0CD19F7138000F266DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1ADD0BA91AD3AE0100419F94;
+			remoteInfo = Cormorant;
+		};
+		1AE617C41D256CFE00DB23EF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A73F0CD19F7138000F266DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1ADD0BA91AD3AE0100419F94;
+			remoteInfo = Cormorant;
+		};
+		1AE617C61D256CFE00DB23EF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A73F0CD19F7138000F266DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A18E17A1D242D18003F29E4;
+			remoteInfo = CormorantREPL;
+		};
 		1AE62F521B9182C30038FA44 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A73F0CD19F7138000F266DA /* Project object */;
@@ -128,6 +174,35 @@
 			remoteInfo = Lambdatron;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1AE617C81D256D0600DB23EF /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				1AE617CA1D256D1300DB23EF /* builtin.lbt in CopyFiles */,
+				1AE617CB1D256D1300DB23EF /* core.lbt in CopyFiles */,
+				1AE617CC1D256D1300DB23EF /* sequences.lbt in CopyFiles */,
+				1AE617CD1D256D1300DB23EF /* higherorder.lbt in CopyFiles */,
+				1AE617CE1D256D1300DB23EF /* flow.lbt in CopyFiles */,
+				1AE617CF1D256D1300DB23EF /* math.lbt in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE617C91D256D0800DB23EF /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1AE617D01D256D1A00DB23EF /* Cormorant.framework in CopyFiles */,
+				1AE617D11D256D1A00DB23EF /* CormorantREPL.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1A14EAA11D174C8D002069C3 /* TestArithmetic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestArithmetic.swift; path = CormorantTests/Builtins/TestArithmetic.swift; sourceTree = SOURCE_ROOT; };
@@ -239,15 +314,52 @@
 		1A14EBBC1D174F19002069C3 /* stringbuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = stringbuilder.swift; path = Cormorant/builtin/stringbuilder.swift; sourceTree = SOURCE_ROOT; };
 		1A14EBBD1D174F19002069C3 /* strings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = strings.swift; path = Cormorant/builtin/strings.swift; sourceTree = SOURCE_ROOT; };
 		1A14EBCA1D174FEA002069C3 /* FunctionObjects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FunctionObjects.swift; path = Cormorant/FunctionObjects.swift; sourceTree = SOURCE_ROOT; };
+		1A18E17B1D242D18003F29E4 /* CormorantREPL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CormorantREPL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A18E1981D242D99003F29E4 /* libedit.3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libedit.3.0.tbd; path = usr/lib/libedit.3.0.tbd; sourceTree = SDKROOT; };
+		1A18E19A1D242E07003F29E4 /* commands.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = commands.swift; path = CormorantREPL/commands.swift; sourceTree = SOURCE_ROOT; };
+		1A18E19B1D242E07003F29E4 /* LineReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LineReader.h; path = CormorantREPL/LineReader.h; sourceTree = SOURCE_ROOT; };
+		1A18E19C1D242E07003F29E4 /* LineReader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LineReader.m; path = CormorantREPL/LineReader.m; sourceTree = SOURCE_ROOT; };
+		1A18E19D1D242E07003F29E4 /* logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = logging.swift; path = CormorantREPL/logging.swift; sourceTree = SOURCE_ROOT; };
+		1A18E19E1D242E07003F29E4 /* repl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = repl.swift; path = CormorantREPL/repl.swift; sourceTree = SOURCE_ROOT; };
+		1A18E19F1D242E07003F29E4 /* system.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = system.swift; path = CormorantREPL/system.swift; sourceTree = SOURCE_ROOT; };
+		1AD02A361D248E1600FB9AA5 /* CormorantREPL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CormorantREPL.h; path = CormorantREPL/CormorantREPL.h; sourceTree = SOURCE_ROOT; };
+		1AD02A371D248E1600FB9AA5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CormorantREPL/Info.plist; sourceTree = SOURCE_ROOT; };
+		1AD02A851D24943200FB9AA5 /* libedit.3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libedit.3.tbd; path = usr/lib/libedit.3.tbd; sourceTree = SDKROOT; };
+		1AD02A881D2494C200FB9AA5 /* libedit.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libedit.tbd; path = usr/lib/libedit.tbd; sourceTree = SDKROOT; };
 		1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cormorant.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE617B31D256CEB00DB23EF /* CorormantREPLRunner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CorormantREPLRunner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE617B51D256CEB00DB23EF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1AE617B71D256CEB00DB23EF /* REPLViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REPLViewController.swift; sourceTree = "<group>"; };
+		1AE617B91D256CEB00DB23EF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1AE617BC1D256CEB00DB23EF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		1AE617BE1D256CEB00DB23EF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1AE617D21D257BF300DB23EF /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1AE62F4C1B9182C30038FA44 /* CormorantTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CormorantTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1A18E1771D242D18003F29E4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD02A8A1D2494CC00FB9AA5 /* libedit.tbd in Frameworks */,
+				1A18E1961D242D8B003F29E4 /* Cormorant.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1ADD0BA61AD3AE0100419F94 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE617B01D256CEB00DB23EF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE617C21D256CF700DB23EF /* Cormorant.framework in Frameworks */,
+				1AE617C31D256CF700DB23EF /* CormorantREPL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -387,6 +499,41 @@
 			name = Context;
 			sourceTree = "<group>";
 		};
+		1A18E16B1D242CDF003F29E4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				1AD02A371D248E1600FB9AA5 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			path = CormorantREPL/LambdatronREPL;
+			sourceTree = "<group>";
+		};
+		1A18E16C1D242CDF003F29E4 /* CormorantREPL */ = {
+			isa = PBXGroup;
+			children = (
+				1AD02A361D248E1600FB9AA5 /* CormorantREPL.h */,
+				1A18E19A1D242E07003F29E4 /* commands.swift */,
+				1A18E19D1D242E07003F29E4 /* logging.swift */,
+				1A18E19E1D242E07003F29E4 /* repl.swift */,
+				1A18E19F1D242E07003F29E4 /* system.swift */,
+				1A18E19B1D242E07003F29E4 /* LineReader.h */,
+				1A18E19C1D242E07003F29E4 /* LineReader.m */,
+				1A18E16B1D242CDF003F29E4 /* Supporting Files */,
+			);
+			name = CormorantREPL;
+			path = CormorantREPL/LambdatronREPL;
+			sourceTree = "<group>";
+		};
+		1A18E1971D242D99003F29E4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1AD02A881D2494C200FB9AA5 /* libedit.tbd */,
+				1AD02A851D24943200FB9AA5 /* libedit.3.tbd */,
+				1A18E1981D242D99003F29E4 /* libedit.3.0.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		1A22BCB11A25AFEE00D34872 /* Reader */ = {
 			isa = PBXGroup;
 			children = (
@@ -400,9 +547,12 @@
 		1A73F0CC19F7138000F266DA = {
 			isa = PBXGroup;
 			children = (
+				1AE617B41D256CEB00DB23EF /* CorormantREPLRunner */,
+				1A18E16C1D242CDF003F29E4 /* CormorantREPL */,
 				1A73F0D719F7138100F266DA /* Cormorant */,
 				1AAC2DA81A68E86E0019A5DD /* CormorantTests */,
 				1A73F0D619F7138100F266DA /* Products */,
+				1A18E1971D242D99003F29E4 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -411,6 +561,8 @@
 			children = (
 				1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */,
 				1AE62F4C1B9182C30038FA44 /* CormorantTests.xctest */,
+				1A18E17B1D242D18003F29E4 /* CormorantREPL.framework */,
+				1AE617B31D256CEB00DB23EF /* CorormantREPLRunner.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -484,6 +636,19 @@
 			name = Builtin;
 			sourceTree = "<group>";
 		};
+		1AE617B41D256CEB00DB23EF /* CorormantREPLRunner */ = {
+			isa = PBXGroup;
+			children = (
+				1AE617B51D256CEB00DB23EF /* AppDelegate.swift */,
+				1AE617B71D256CEB00DB23EF /* REPLViewController.swift */,
+				1AE617B91D256CEB00DB23EF /* Assets.xcassets */,
+				1AE617BB1D256CEB00DB23EF /* Main.storyboard */,
+				1AE617BE1D256CEB00DB23EF /* Info.plist */,
+				1AE617D21D257BF300DB23EF /* main.swift */,
+			);
+			path = CorormantREPLRunner;
+			sourceTree = "<group>";
+		};
 		1AEF466E1BACC19400119D81 /* Value */ = {
 			isa = PBXGroup;
 			children = (
@@ -496,7 +661,38 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		1A18E1781D242D18003F29E4 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD02A391D248E3000FB9AA5 /* CormorantREPL.h in Headers */,
+				1AD02A3B1D248E4200FB9AA5 /* LineReader.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
+		1A18E17A1D242D18003F29E4 /* CormorantREPL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A18E1801D242D18003F29E4 /* Build configuration list for PBXNativeTarget "CormorantREPL" */;
+			buildPhases = (
+				1A18E1761D242D18003F29E4 /* Sources */,
+				1A18E1771D242D18003F29E4 /* Frameworks */,
+				1A18E1781D242D18003F29E4 /* Headers */,
+				1A18E1791D242D18003F29E4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AD02A471D248FB700FB9AA5 /* PBXTargetDependency */,
+			);
+			name = CormorantREPL;
+			productName = CormorantREPL;
+			productReference = 1A18E17B1D242D18003F29E4 /* CormorantREPL.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		1ADD0BA91AD3AE0100419F94 /* Cormorant */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1ADD0BBD1AD3AE0200419F94 /* Build configuration list for PBXNativeTarget "Cormorant" */;
@@ -513,6 +709,27 @@
 			productName = Lambdatron;
 			productReference = 1ADD0BAA1AD3AE0100419F94 /* Cormorant.framework */;
 			productType = "com.apple.product-type.framework";
+		};
+		1AE617B21D256CEB00DB23EF /* CorormantREPLRunner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE617BF1D256CEB00DB23EF /* Build configuration list for PBXNativeTarget "CorormantREPLRunner" */;
+			buildPhases = (
+				1AE617AF1D256CEB00DB23EF /* Sources */,
+				1AE617B01D256CEB00DB23EF /* Frameworks */,
+				1AE617B11D256CEB00DB23EF /* Resources */,
+				1AE617C81D256D0600DB23EF /* CopyFiles */,
+				1AE617C91D256D0800DB23EF /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AE617C51D256CFE00DB23EF /* PBXTargetDependency */,
+				1AE617C71D256CFE00DB23EF /* PBXTargetDependency */,
+			);
+			name = CorormantREPLRunner;
+			productName = CorormantREPLRunner;
+			productReference = 1AE617B31D256CEB00DB23EF /* CorormantREPLRunner.app */;
+			productType = "com.apple.product-type.application";
 		};
 		1AE62F4B1B9182C30038FA44 /* CormorantTests */ = {
 			isa = PBXNativeTarget;
@@ -538,12 +755,25 @@
 		1A73F0CD19F7138000F266DA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0700;
+				LastSwiftUpdateCheck = 0800;
 				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = "Austin Zheng";
 				TargetAttributes = {
+					1A18E17A1D242D18003F29E4 = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = GYV39WAN3G;
+						DevelopmentTeamName = "Austin Zheng";
+						ProvisioningStyle = Automatic;
+					};
 					1ADD0BA91AD3AE0100419F94 = {
 						CreatedOnToolsVersion = 6.3;
+						LastSwiftMigration = 0800;
+					};
+					1AE617B21D256CEB00DB23EF = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = GYV39WAN3G;
+						DevelopmentTeamName = "Austin Zheng";
+						ProvisioningStyle = Automatic;
 					};
 					1AE62F4B1B9182C30038FA44 = {
 						CreatedOnToolsVersion = 7.0;
@@ -556,6 +786,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 1A73F0CC19F7138000F266DA;
 			productRefGroup = 1A73F0D619F7138100F266DA /* Products */;
@@ -564,11 +795,20 @@
 			targets = (
 				1ADD0BA91AD3AE0100419F94 /* Cormorant */,
 				1AE62F4B1B9182C30038FA44 /* CormorantTests */,
+				1A18E17A1D242D18003F29E4 /* CormorantREPL */,
+				1AE617B21D256CEB00DB23EF /* CorormantREPLRunner */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		1A18E1791D242D18003F29E4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1ADD0BA81AD3AE0100419F94 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -579,6 +819,16 @@
 				1A14EBB11D174EFF002069C3 /* higherorder.lbt in Resources */,
 				1A14EBB01D174EFF002069C3 /* flow.lbt in Resources */,
 				1A14EBB31D174EFF002069C3 /* sequences.lbt in Resources */,
+				1AD02A381D248E1600FB9AA5 /* Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE617B11D256CEB00DB23EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE617BA1D256CEB00DB23EF /* Assets.xcassets in Resources */,
+				1AE617BD1D256CEB00DB23EF /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -594,6 +844,18 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1A18E1761D242D18003F29E4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD02A3D1D248E4E00FB9AA5 /* repl.swift in Sources */,
+				1AD02A3C1D248E4900FB9AA5 /* system.swift in Sources */,
+				1AD02A3F1D248E5500FB9AA5 /* logging.swift in Sources */,
+				1AD02A3A1D248E3E00FB9AA5 /* LineReader.m in Sources */,
+				1AD02A3E1D248E5200FB9AA5 /* commands.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1ADD0BA51AD3AE0100419F94 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -628,6 +890,16 @@
 				1A14EBA51D174EF2002069C3 /* Lexer.swift in Sources */,
 				1A14EBC31D174F19002069C3 /* primitives.swift in Sources */,
 				1A14EB961D174E93002069C3 /* Params.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE617AF1D256CEB00DB23EF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE617B81D256CEB00DB23EF /* REPLViewController.swift in Sources */,
+				1AE617B61D256CEB00DB23EF /* AppDelegate.swift in Sources */,
+				1AE617D31D257BF300DB23EF /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -712,6 +984,21 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1AD02A471D248FB700FB9AA5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1ADD0BA91AD3AE0100419F94 /* Cormorant */;
+			targetProxy = 1AD02A461D248FB700FB9AA5 /* PBXContainerItemProxy */;
+		};
+		1AE617C51D256CFE00DB23EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1ADD0BA91AD3AE0100419F94 /* Cormorant */;
+			targetProxy = 1AE617C41D256CFE00DB23EF /* PBXContainerItemProxy */;
+		};
+		1AE617C71D256CFE00DB23EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A18E17A1D242D18003F29E4 /* CormorantREPL */;
+			targetProxy = 1AE617C61D256CFE00DB23EF /* PBXContainerItemProxy */;
+		};
 		1AE62F531B9182C30038FA44 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1ADD0BA91AD3AE0100419F94 /* Cormorant */;
@@ -719,7 +1006,68 @@
 		};
 /* End PBXTargetDependency section */
 
+/* Begin PBXVariantGroup section */
+		1AE617BB1D256CEB00DB23EF /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AE617BC1D256CEB00DB23EF /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
+		1A18E1811D242D18003F29E4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = f3nghuang.CormorantREPL;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		1A18E1821D242D18003F29E4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = f3nghuang.CormorantREPL;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		1A73F0DA19F7138100F266DA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -824,7 +1172,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -853,8 +1202,45 @@
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		1AE617C01D256CEB00DB23EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = CorormantREPLRunner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = f3nghuang.CorormantREPLRunner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		1AE617C11D256CEB00DB23EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				INFOPLIST_FILE = CorormantREPLRunner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = f3nghuang.CorormantREPLRunner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -890,6 +1276,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1A18E1801D242D18003F29E4 /* Build configuration list for PBXNativeTarget "CormorantREPL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A18E1811D242D18003F29E4 /* Debug */,
+				1A18E1821D242D18003F29E4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		1A73F0D019F7138100F266DA /* Build configuration list for PBXProject "Cormorant" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -907,6 +1302,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		1AE617BF1D256CEB00DB23EF /* Build configuration list for PBXNativeTarget "CorormantREPLRunner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE617C01D256CEB00DB23EF /* Debug */,
+				1AE617C11D256CEB00DB23EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		1AE62F541B9182C30038FA44 /* Build configuration list for PBXNativeTarget "CormorantTests" */ = {
 			isa = XCConfigurationList;

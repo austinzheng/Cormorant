@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1ADD0C881AD3C8F100419F94"
-               BuildableName = "CormorantREPLRunner.bundle"
-               BlueprintName = "CormorantREPLRunnerBundle"
-               ReferencedContainer = "container:CormorantREPLRunner.xcodeproj">
+               BlueprintIdentifier = "1AE617B21D256CEB00DB23EF"
+               BuildableName = "CorormantREPLRunner.app"
+               BlueprintName = "CorormantREPLRunner"
+               ReferencedContainer = "container:Cormorant.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,6 +29,15 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "1AE617B21D256CEB00DB23EF"
+            BuildableName = "CorormantREPLRunner.app"
+            BlueprintName = "CorormantREPLRunner"
+            ReferencedContainer = "container:Cormorant.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -42,15 +51,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1ADD0C881AD3C8F100419F94"
-            BuildableName = "CormorantREPLRunner.bundle"
-            BlueprintName = "CormorantREPLRunnerBundle"
-            ReferencedContainer = "container:CormorantREPLRunner.xcodeproj">
+            BlueprintIdentifier = "1AE617B21D256CEB00DB23EF"
+            BuildableName = "CorormantREPLRunner.app"
+            BlueprintName = "CorormantREPLRunner"
+            ReferencedContainer = "container:Cormorant.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -60,15 +70,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1ADD0C881AD3C8F100419F94"
-            BuildableName = "CormorantREPLRunner.bundle"
-            BlueprintName = "CormorantREPLRunnerBundle"
-            ReferencedContainer = "container:CormorantREPLRunner.xcodeproj">
+            BlueprintIdentifier = "1AE617B21D256CEB00DB23EF"
+            BuildableName = "CorormantREPLRunner.app"
+            BlueprintName = "CorormantREPLRunner"
+            ReferencedContainer = "container:Cormorant.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

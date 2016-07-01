@@ -9,7 +9,7 @@
 import Foundation
 import Cormorant
 
-class ReadEvaluatePrintLoop {
+public class ReadEvaluatePrintLoop {
   let interpreter = Interpreter()
   let logger = LoggingManager()
   let processName : String
@@ -31,7 +31,7 @@ class ReadEvaluatePrintLoop {
     while true {
       // Each iteration of this loop represents one REPL loop
       // Update the prompt
-      let nsName = interpreter.currentNamespaceName!
+      let nsName = interpreter.currentNamespaceName
       prompt.setPrompt("\(nsName)-> ")
 
       if let data = prompt.gets() {
